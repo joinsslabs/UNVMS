@@ -1,0 +1,162 @@
+rules_version = '2';
+// UN House Access Control: role-based access, enforced on the server.
+// Roles: admin, approver, gate, docs, reception, vip, host, pending (new account awaiting a role).
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function signedIn() { return request.auth != null; }
+    function staffPath(uid) { return /databases/$(db)/documents/staff/$(uid); }
+    function setupPath() { return /databases/$(db)/documents/config/setup; }
+    function me() { return get(staffPath(request.auth.uid)).data; }
+    function isStaff() {
+      return signedIn() && exists(staffPath(request.auth.uid))
+        && me().active == true && me().role != 'pending';
+    }
+    function hasRole(roles) { return isStaff() && me().role in roles; }
+    function isAdmin() { return hasRole(['admin']); }
+
+    // Records who the first administrator is. Written once, never changed.
+    match /config/setup {
+      allow read: if signedIn();
+      allow create: if signedIn() && !exists(setupPath())
+        && request.resource.data.adminUid == request.auth.uid;
+    }
+
+    // Feature switches (AI assistant, handwriting reading). Off unless an admin turns them on.
+    match /config/features {
+      allow read: if signedIn();
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasOnly(['ai', 'handwriting', 'updatedBy', 'updatedAt', 'approvalNote'])
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+
+    match /staff/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isStaff());
+      // A new account registers itself as 'pending'. The very first account
+      // becomes admin, but only together with creating config/setup.
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.active == true
+        && (
+          request.resource.data.role == 'pending'
+          || (request.resource.data.role == 'admin'
+              && !exists(setupPath())
+              && getAfter(setupPath()).data.adminUid == uid)
+        );
+      // Only admins assign roles. An admin cannot demote or deactivate themselves.
+      allow update: if isAdmin()
+        && (uid != request.auth.uid
+            || (request.resource.data.role == 'admin' && request.resource.data.active == true))
+        && request.resource.data.email == resource.data.email;
+      allow delete: if false;
+    }
+
+    match /visitors/{id} {
+      function d() { return request.resource.data; }
+      function o() { return resource.data; }
+      function from(a, b) { return o().status == a && d().status == b; }
+      function decision() { return from('pending', 'approved') || from('pending', 'rejected'); }
+      function fixedFields() {
+        return !d().diff(o()).affectedKeys().hasAny(['requestedByUid', 'requestedBy', 'ref', 'type']);
+      }
+
+      // A log entry must name the signed-in person, their real role, and the current time (±5 min).
+      function entryOk(e) {
+        return e.byUid == request.auth.uid && e.by == me().name && e.role == me().role
+          && e.t is int && math.abs(e.t - request.time.toMillis()) < 300000;
+      }
+      // The log is append-only: old entries unchanged, exactly one new entry.
+      function logAppended() {
+        let n = o().log.size();
+        return d().log is list && d().log.size() == n + 1
+          && d().log[0:n] == o().log && entryOk(d().log[n]);
+      }
+
+      allow read: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip'])
+        || (hasRole(['host']) && resource.data.requestedByUid == request.auth.uid);
+
+      allow create: if (isAdmin() && (d().get('example', false) == true
+                                      || (d().log is list && d().log.size() == 1 && entryOk(d().log[0]))))
+        || (hasRole(['approver', 'gate', 'reception', 'host'])
+            && d().log is list && d().log.size() == 1 && entryOk(d().log[0])
+            && d().requestedByUid == request.auth.uid
+            && (d().status == 'pending'
+                || (d().status == 'approved' && d().type == 'visitor' && d().restricted == false)));
+
+      allow update: if isStaff() && fixedFields() && logAppended() && (
+        // Approvals: approver or admin, never on their own request.
+        (decision() && hasRole(['admin', 'approver'])
+          && o().requestedByUid != request.auth.uid
+          && d().decidedByUid == request.auth.uid)
+        // Admin can make any other correction.
+        || (isAdmin() && !decision())
+        // Approvers manage contractor access (suspend, reinstate, extend).
+        || (hasRole(['approver']) && o().type == 'contractor' && !decision()
+            && (d().status == o().status || d().status == 'suspended' || o().status == 'suspended'))
+        || (hasRole(['gate']) && from('approved', 'arrived'))
+        || (hasRole(['docs']) && from('arrived', 'tagged'))
+        || (hasRole(['reception']) && (from('tagged', 'in') || from('tagged', 'tagged')))
+        || (hasRole(['vip']) && o().type == 'vip' && from('approved', 'in'))
+        || (hasRole(['reception', 'vip', 'gate']) && from('in', 'out'))
+      );
+
+      // Only example records can be deleted; real visit history is kept.
+      allow delete: if isAdmin() && resource.data.get('example', false) == true;
+    }
+
+    // Digital visitor passes. The document id is a long random code shown as a QR on the visitor's phone.
+    // Anyone holding the code can view that one pass; only staff can create or update passes.
+    match /passes/{code} {
+      function pd() { return request.resource.data; }
+      allow get: if true;
+      allow list: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip'])
+        || (hasRole(['host']) && resource.data.requestedByUid == request.auth.uid);
+      allow create: if isStaff() && code.size() >= 32
+        && pd().keys().hasOnly(['visitorId', 'ref', 'name', 'org', 'host', 'agency', 'type', 'building', 'expected',
+             'validUntil', 'status', 'tag', 'arrivedAt', 'inAt', 'outAt', 'requestedByUid', 'createdAt', 'createdBy', 'revoked',
+             'group', 'members'])
+        && (!('members' in pd()) || (pd().members is list && pd().members.size() <= 60))
+        && pd().validUntil is int && pd().validUntil < request.time.toMillis() + 2592000000
+        && exists(/databases/$(db)/documents/visitors/$(pd().visitorId));
+      allow update: if isStaff()
+        && !pd().diff(resource.data).affectedKeys().hasAny(['visitorId', 'ref', 'name', 'requestedByUid', 'createdAt', 'createdBy'])
+        && pd().validUntil < request.time.toMillis() + 2592000000;
+      allow delete: if false;
+    }
+
+    // Visitor pre-registration invites. The document id is a long random token sent to the guest;
+    // anyone holding it can read that one invite and submit their details once, before it expires.
+    match /invites/{token} {
+      function inv() { return resource.data; }
+      function nv() { return request.resource.data; }
+      function str(v, max) { return v is string && v.size() <= max; }
+      allow get: if true;
+      allow list: if hasRole(['admin', 'approver', 'gate', 'reception'])
+        || (hasRole(['host']) && resource.data.hostUid == request.auth.uid);
+      allow create: if hasRole(['admin', 'approver', 'gate', 'reception', 'host'])
+        && nv().hostUid == request.auth.uid && nv().status == 'open'
+        && nv().expires is int && nv().expires < request.time.toMillis() + 1209600000
+        && token.size() >= 20;
+      allow update: if
+        // Guest submits once, before expiry, only the allowed fields.
+        (inv().status == 'open' && nv().status == 'submitted'
+          && inv().expires > request.time.toMillis()
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt'])
+          && nv().guest.keys().hasOnly(['name', 'org', 'phone', 'email', 'expected', 'purpose'])
+          && (!('email' in nv().guest) || str(nv().guest.email, 160))
+          && str(nv().guest.name, 120) && nv().guest.name.size() > 1
+          && str(nv().guest.org, 160) && str(nv().guest.phone, 40)
+          && str(nv().guest.expected, 20) && str(nv().guest.purpose, 300))
+        // Staff turn a submission into a visit, or cancel an invite.
+        || (isStaff() && (inv().hostUid == request.auth.uid || hasRole(['admin', 'approver', 'gate', 'reception']))
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
+          && nv().status in ['used', 'cancelled']);
+      allow delete: if false;
+    }
+
+    // Server audit trail: written only by the Cloud Function, never by a browser.
+    match /audit/{id} {
+      allow read: if hasRole(['admin', 'approver']);
+      allow write: if false;
+    }
+  }
+}

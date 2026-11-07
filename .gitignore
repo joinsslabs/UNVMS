@@ -1,0 +1,16 @@
+# Dependencies and build caches
+node_modules/
+firebase-app/functions/node_modules/
+firebase-app/.firebase/
+
+# Logs and local debug files
+*.log
+firebase-debug.log*
+firestore-debug.log*
+users.json
+
+# Never commit secrets. Function secrets live in Google Secret Manager, not in files.
+*.secret
+.env.local
+.runtimeconfig.json
+service-account*.json

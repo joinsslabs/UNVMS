@@ -1,0 +1,1174 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head><body>
+<title>UN House Access Control</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: operations console — station bar on top, sidebar nav, work area with dense tables */
+:root{
+  --bg:#f3f5f9; --surface:#ffffff; --surface2:#eef2f8; --fg:#1b2537; --muted:#5b6679; --line:#d8dee9;
+  --navy:#1e2f52; --accent:#1f6fd1; --accent-fg:#ffffff;
+  --ok:#17803d; --ok-bg:#e3f4e8; --warn:#a15c00; --warn-bg:#fdf0dc; --bad:#b4232c; --bad-bg:#fbe5e6; --info-bg:#e4eefb;
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1521; --surface:#172030; --surface2:#1e293b; --fg:#e4e9f2; --muted:#9aa6ba; --line:#2c384d;
+  --navy:#0b1220; --accent:#5ea2ff; --accent-fg:#0b1220;
+  --ok:#5fd38a; --ok-bg:#163424; --warn:#f0b75e; --warn-bg:#3a2a12; --bad:#ff8a8f; --bad-bg:#3d1a1d; --info-bg:#1a2c48; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1521; --surface:#172030; --surface2:#1e293b; --fg:#e4e9f2; --muted:#9aa6ba; --line:#2c384d;
+  --navy:#0b1220; --accent:#5ea2ff; --accent-fg:#0b1220;
+  --ok:#5fd38a; --ok-bg:#163424; --warn:#f0b75e; --warn-bg:#3a2a12; --bad:#ff8a8f; --bad-bg:#3d1a1d; --info-bg:#1a2c48; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:14px;margin:0}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--navy)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--navy);color:#fff;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+.brand{display:flex;flex-direction:column;line-height:1.2}
+.hlogo{height:38px;width:auto;display:block}
+.hslot{height:38px;min-width:44px;padding:0 9px;border:1px dashed #ffffff66;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#b9c4d8}
+.brand b{font-size:15px;letter-spacing:.01em}
+.brand span{font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:.08em}
+.top .sp{flex:1}
+.top label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;opacity:.8}
+.top select{background:#ffffff1a;color:#fff;border:1px solid #ffffff40;border-radius:6px;padding:6px 8px;font:inherit}
+.top select option{color:#111;background:#fff}
+.sync{font-size:12px;display:flex;align-items:center;gap:6px;opacity:.9}
+.dot{width:8px;height:8px;border-radius:50%;background:#9aa6ba}
+.dot.on{background:#5fd38a}
+.wrap{display:grid;grid-template-columns:200px 1fr;min-height:calc(100vh - 60px)}
+nav{background:transparent;padding:18px 10px;display:flex;flex-direction:column;gap:2px}
+nav button{all:unset;cursor:pointer;padding:9px 14px;border-radius:999px;transition:background .15s,color .15s;color:var(--muted);font-weight:500;display:flex;justify-content:space-between;gap:8px}
+nav button:hover{background:var(--surface2);color:var(--fg)}
+nav button.on{background:var(--surface);color:var(--fg);font-weight:600;box-shadow:0 1px 0 var(--line)}
+nav button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cnt{font-family:var(--mono);font-size:11px;background:var(--surface2);border-radius:10px;padding:1px 7px;color:var(--fg)}
+main{padding-block:20px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0;display:flex;flex-direction:column;gap:18px}
+h1{font-size:20px;margin:0;text-wrap:balance}
+h2{font-size:15px;margin:0 0 10px}
+.sub{color:var(--muted);margin:2px 0 0;max-width:70ch}
+.panel{background:var(--surface);border-radius:16px;padding:20px;min-width:0;box-shadow:0 1px 0 var(--line)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.kpi{background:var(--surface);border-radius:16px;padding:16px 18px;box-shadow:0 1px 0 var(--line);transition:transform .2s}
+.kpi:hover{transform:translateY(-2px)}
+.kpi .n{font-size:32px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.kpi.alert{box-shadow:inset 0 0 0 1.5px var(--warn)} .kpi.alert .n{color:var(--warn)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:500;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:12px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+.ref{font-family:var(--mono);font-size:12px;color:var(--accent);white-space:nowrap}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.small{font-size:12px;color:var(--muted)}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap;background:var(--surface2);color:var(--fg)}
+.p-pending{background:var(--warn-bg);color:var(--warn)} .p-approved{background:var(--info-bg);color:var(--accent)}
+.p-arrived,.p-tagged{background:var(--info-bg);color:var(--accent)} .p-in{background:var(--ok-bg);color:var(--ok)}
+.p-out{background:var(--surface2);color:var(--muted)} .p-rejected,.p-suspended{background:var(--bad-bg);color:var(--bad)}
+.t-vip{background:var(--navy);color:#fff} .t-contractor{background:var(--warn-bg);color:var(--warn)}
+.btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:999px;font-weight:600;font-size:13px;background:var(--surface2);color:var(--fg);border:1px solid transparent;white-space:nowrap;transition:transform .12s,background .15s,box-shadow .2s}
+.btn:active{transform:scale(.95)}
+.btn.sent{animation:sent .5s}
+@keyframes sent{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--ok) 55%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+.btn:hover{border-color:var(--line)}
+.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.ok{background:var(--ok);color:#fff;border-color:var(--ok)}
+.btn.bad{color:var(--bad);border-color:var(--bad)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
+form .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.f{display:flex;flex-direction:column;gap:4px}
+.f label{font-size:12px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;width:100%}
+textarea{min-height:70px;resize:vertical}
+.search{display:flex;gap:8px;flex-wrap:wrap}
+.search input{flex:1;min-width:0}
+.toast{animation:toastIn .35s cubic-bezier(.3,1.4,.5,1);display:flex;gap:10px;align-items:center;border-radius:999px!important;padding:12px 18px!important;position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));background:var(--fg);color:var(--bg);padding:10px 14px;border-radius:8px;font-weight:500;z-index:20;max-width:340px}
+.empty{padding:20px;text-align:center;color:var(--muted)}
+.banner{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:10px 14px;font-size:13px}
+.note{background:var(--info-bg);border-radius:8px;padding:10px 14px;font-size:13px}
+.vcard{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:start;border:1px solid var(--line);border-radius:8px;padding:14px;background:var(--surface)}
+.vcard .nm{font-size:16px;font-weight:700}
+.badge{border:2px solid var(--navy);border-radius:10px;padding:14px;max-width:300px;background:var(--surface)}
+.badge .hd{background:var(--navy);color:#fff;margin:-14px -14px 10px;padding:8px 14px;border-radius:7px 7px 0 0;font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+.feed{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow:auto}
+.feed div{font-size:13px;border-left:3px solid var(--line);padding-left:10px}
+.feed div.w{border-color:var(--warn)} .feed div.b{border-color:var(--bad)}
+.al{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;max-height:420px;overflow:auto}
+.al li{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--surface2)}
+.al-ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center}
+.al-ic svg,.al-empty svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.al li.act .al-ic{background:var(--warn-bg);color:var(--warn)}
+.al li.soon .al-ic{background:var(--info-bg);color:var(--accent)}
+.al li.info .al-ic{background:var(--surface);color:var(--muted)}
+.al-tx{min-width:0}
+.al-k{font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;color:var(--muted)}
+.al li.act .al-k{color:var(--warn)} .al li.soon .al-k{color:var(--accent)}
+.al-t{font-weight:600;font-size:14px}
+.al-t .ref{font-weight:400;margin-left:4px}
+.al-d{font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.al-sum{display:flex;gap:8px;margin:-2px 0 12px;flex-wrap:wrap}
+.al-chip{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+.al-chip.act{background:var(--warn-bg);color:var(--warn)} .al-chip.soon{background:var(--info-bg);color:var(--accent)}
+.al-empty{display:flex;align-items:center;gap:10px;color:var(--ok);font-weight:500;padding:8px 0}
+@media (max-width:520px){.al li{grid-template-columns:32px 1fr}.al li .btn{grid-column:2;justify-self:start}}
+.chat{display:flex;flex-direction:column;gap:10px}
+.ans{white-space:pre-wrap;background:var(--surface2);border-radius:8px;padding:12px;font-size:13px;line-height:1.5}
+.modal-bg{position:fixed;inset:0;background:#0008;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--surface);border-radius:10px;padding:18px;max-width:440px;width:100%;display:flex;flex-direction:column;gap:12px}
+.appfoot{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.appfoot a{color:var(--muted)}
+.appfoot a:hover{color:var(--fg)}
+#printArea{display:none}
+@media print{body.print-sheet{margin:0}body.print-sheet #printArea{display:block!important}
+.tsheet{display:grid;grid-template-columns:86mm 86mm;gap:4mm 6mm;padding:8mm;justify-content:center}
+.tcard{width:86mm;height:54mm;box-sizing:border-box;border:1px dashed #555;display:flex;flex-direction:column;font-family:Arial,sans-serif;color:#000;break-inside:avoid}
+.tc-h{background:#1e2f52!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;justify-content:space-between;padding:2mm 3mm;font-size:8pt;font-weight:bold;text-transform:uppercase}
+.tc-b{flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 4mm}.tc-n{font-family:monospace;font-size:30pt;font-weight:bold}.tc-b img{width:26mm;height:26mm}
+.tc-f{font-size:6pt;text-align:center;padding:1mm;border-top:1px solid #000}}
+@media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
+/* Single badges print on card size; the tag sheet uses its own A4 page. */
+@page{size:86mm 54mm;margin:0}
+@page sheet{size:A4 portrait;margin:0}
+@media print{body.print-sheet .tsheet{page:sheet}
+.pbadge{width:86mm;height:54mm;box-sizing:border-box;border:1px solid #000;font-family:Arial,sans-serif;color:#000;display:flex;flex-direction:column}
+.pb-h{background:#1e2f52!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;justify-content:space-between;padding:2mm 3mm;font-size:8pt;font-weight:bold;text-transform:uppercase;letter-spacing:.08em}
+.pb-b{flex:1;display:flex;justify-content:space-between;gap:2mm;padding:2mm 3mm}.pb-b img{width:24mm;height:24mm}
+.pb-n{font-size:12pt;font-weight:bold}.pb-o{font-size:8pt}.pb-t{font-family:monospace;font-size:16pt;font-weight:bold;margin:1mm 0}.pb-r{font-size:7pt}.pb-ref{font-family:monospace;font-size:7pt;margin-top:1mm}
+.pb-f{font-size:6pt;padding:1mm 3mm;border-top:1px solid #000}}
+.scan-band{border-radius:12px;padding:16px;font-size:20px;font-weight:700;text-align:center}
+.scan-band.ok{background:var(--ok-bg);color:var(--ok)} .scan-band.no{background:var(--warn-bg);color:var(--warn)} .scan-band.info{background:var(--info-bg);color:var(--accent)}
+.vpass{max-width:400px;width:100%;margin:12px auto;background:var(--surface);border-radius:20px;padding:22px;box-shadow:0 20px 50px -25px #0006;display:flex;flex-direction:column;gap:12px;border-top:6px solid var(--muted)}
+.vpass.ok{border-top-color:var(--ok)} .vpass.no{border-top-color:var(--warn)}
+.vp-load{color:var(--muted);text-align:center;padding:30px 0}
+.vp-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.vp-kind{color:var(--muted)} .vpass.ok .vp-st{color:var(--ok)} .vpass.no .vp-st{color:var(--warn)}
+.vp-name{font-size:26px;font-weight:700;line-height:1.15} .vp-org{color:var(--muted);margin-top:-8px}
+.vp-qr{background:#fff;border-radius:14px;padding:14px;align-self:center}.vp-qr img{width:220px;height:220px;display:block}
+.vp-clock{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums}
+.vp-clock i{width:10px;height:10px;border-radius:50%;background:var(--ok);animation:vpPulse 1s infinite alternate}
+@keyframes vpPulse{from{opacity:.25;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
+.vp-msg{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:12px;font-weight:500;margin:0}
+.vp-dl{margin:0;display:grid;gap:6px}.vp-dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:6px;font-size:14px}
+.vp-dl dt{color:var(--muted)}.vp-dl dd{margin:0;font-weight:600;text-align:right}
+.vp-foot{font-size:12px;color:var(--muted);margin:0}
+@keyframes toastIn{from{transform:translateY(16px) scale(.96);opacity:0}}
+.toast::before{content:"";width:18px;height:18px;border-radius:50%;flex:none;background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2.5 6.2 5 8.5 9.5 3.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E") center/12px no-repeat}
+.toast.err::before{background-color:var(--bad);background-image:none}
+h1{font-weight:600;letter-spacing:-.01em;font-size:24px}
+main{gap:22px}
+@media (max-width:760px){.wrap{grid-template-columns:1fr}nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line)}nav button{white-space:nowrap}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <!-- Logo slot: add the officially approved logo as public/logo.png to show it here. Keep this placeholder until then. -->
+  <img class="hlogo" src="logo.png" alt="Logo" hidden onload="this.hidden=false;document.getElementById('hslot').hidden=true">
+  <div class="hslot" id="hslot" aria-hidden="true">Logo</div>
+  <div class="brand"><b>UN House Access Control</b><span>UN Common Services · Abuja</span></div>
+  <div class="sp"></div>
+  <div id="who" class="sync" hidden></div>
+  <div id="demoSel" style="display:contents">
+  <div class="f" style="gap:2px"><label for="station">Station</label>
+    <select id="station">
+      <option value="S1">1 · Reception / Initial Access (Computer 1)</option>
+      <option value="S2">2 · Documentation &amp; Tagging (Computer 2)</option>
+      <option value="S3">3 · Internal Reception, Main Building (Computer 3)</option>
+      <option value="S4">4 · VIP Gate (Tablet 1)</option>
+    </select></div>
+  <div class="f" style="gap:2px"><label for="operator">Operator</label>
+    <select id="operator">
+      <option>Security Officer A. Bello</option><option>Receptionist N. Okafor</option>
+      <option>Supervisor F. Adeyemi</option><option>House Manager</option>
+    </select></div>
+  </div>
+  <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
+</header>
+<div class="wrap">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+<footer class="appfoot">
+  <span>UN House Access Control · Pilot · <a href="index.html">Home</a></span>
+  <span>© <span id="yr">2026</span> SKILL.SCH for UN Common Services, Abuja</span>
+</footer>
+<div id="toast" class="toast" hidden></div>
+<div id="modal" class="modal-bg" hidden></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const STATIONS={S1:"Reception / Initial Access",S2:"Documentation & Tagging",S3:"Internal Reception",S4:"VIP Gate"};
+const BUILDINGS=["Main UN House Building","Access Control Building","Annex A","Conference Centre"];
+const AGENCIES=["UNDP","UNICEF","WHO","UNFPA","UNHCR","WFP","UN Women","OCHA","UNDSS","Common Services"];
+const STATUS={pending:"Pending approval",approved:"Approved · expected",arrived:"At gate · verified",tagged:"Tagged",in:"Checked in",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
+const OVERSTAY_H=9;
+let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
+try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
+/* ---------- staff, roles and permissions ---------- */
+let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[];
+const FN_BASE="https://europe-west1-unhouse-vms-abj26.cloudfunctions.net/";
+async function callFn(name,body){
+  const tok=await firebase.auth().currentUser.getIdToken();
+  const r=await fetch(FN_BASE+name,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify(body)});
+  let d={}; try{d=await r.json()}catch(e){}
+  if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
+  return d;
+}
+const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
+const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
+const ROLE_VIEWS={
+  admin:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","history","assistant"],
+  gate:["dashboard","gate","register","history"], docs:["dashboard","tagging","history"],
+  reception:["dashboard","reception","register","history"], vip:["dashboard","vip","history"], host:["register","history"]
+};
+const ACT_ROLES={pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","admin"],checkin:["reception","admin"],
+  checkout:["reception","vip","gate","admin"],approve:["approver","admin"],reject:["approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
+const myRole=()=>fb?(me?.role||"pending"):"admin";
+const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole());
+const canView=v=>(ROLE_VIEWS[myRole()]||[]).includes(v);
+const station=()=>fb&&me?(ROLE_STATION[me.role]||"S1"):$("#station").value;
+const op=()=>fb&&me?me.name:$("#operator").value;
+const myUid=()=>fb&&me?me.uid:"demo:"+$("#operator").value;
+$("#station").onchange=()=>{try{localStorage.setItem("station",station())}catch(e){} view=defaultView(); render()};
+$("#operator").onchange=()=>{try{localStorage.setItem("op",op())}catch(e){} render()};
+function defaultView(){
+  if(fb){const r=myRole(); return {gate:"gate",docs:"tagging",reception:"reception",vip:"vip",host:"register"}[r]||"dashboard"}
+  return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()]}
+
+const now=()=>Date.now();
+const fmtT=t=>t?new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"—";
+const fmtD=t=>t?new Date(t).toLocaleDateString([], {day:"numeric",month:"short"})+" "+fmtT(t):"—";
+const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()};
+function newRef(){const d=new Date();return "UNH-"+String(d.getFullYear()).slice(2)+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")+"-"+Math.random().toString(36).slice(2,6).toUpperCase()}
+function toast(m){const t=$("#toast");t.textContent=m;t.classList.toggle("err",/not|cannot|can't|couldn|isn't|stopped|full|already/i.test(m));t.hidden=true;void t.offsetWidth;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,3200)}
+
+/* ---------- data layer: shared db when available, local demo otherwise ---------- */
+async function save(v){
+  const i=visitors.findIndex(x=>x.id===v.id); if(i>=0) visitors[i]=v; else visitors.push(v);
+  render();
+  if(db){try{await db.collection("visitors").doc(v.id).set(v); if(fb){ syncPass(v); syncGroupPass(v); }}catch(e){
+    toast(e.code==="permission-denied"?"Your role isn't allowed to do that. The change was not saved.":e.code==="quota_exceeded"?"Storage is full. Archive old records to continue.":"Could not save: "+(e.message||e.code));
+    if(e.code==="permission-denied"){const s=await db.collection("visitors").doc(v.id).get().catch(()=>null);const j=visitors.findIndex(x=>x.id===v.id);
+      if(s&&s.exists) visitors[j]={...s.data(),id:s.id}; else if(j>=0) visitors.splice(j,1); render();}
+  }}
+}
+function act(v,action,extra={}){
+  const nv=JSON.parse(JSON.stringify(v));
+  Object.assign(nv,extra);
+  nv.log=(nv.log||[]).concat([{t:now(),a:action,by:op(),byUid:myUid(),role:myRole(),st:STATIONS[station()]}]);
+  return save(nv);
+}
+async function connect(){
+  if(window.FIREBASE_CONFIG&&window.firebase&&!/PASTE/.test(window.FIREBASE_CONFIG.apiKey||"")) return connectFirebase();
+  try{ if(window.claude?.use) db=await window.claude.use("db"); }catch(e){db=null}
+  if(!db){ visitors=sampleData(); setSync(false,"Demo mode · changes stay on this device"); render(); return; }
+  setSync(false,"Loading shared records…");
+  const timer=setTimeout(()=>setSync(false,"Shared records not reachable yet"),10000);
+  db.collection("visitors").onSnapshot(snap=>{
+    visitors=snap.docs.map(d=>({...d.data(),id:d.id}));
+    if(!snap.metadata.fromCache){clearTimeout(timer);setSync(true,"Live · all stations synced")}
+    render();
+  },e=>{clearTimeout(timer);setSync(false,"Sync stopped ("+e.code+")")});
+  try{sample=window.claude?.use?await window.claude.use("sample"):null}catch(e){sample=null}
+}
+/* ---------- Firebase: sign-in, staff profile, role-scoped data ---------- */
+function connectFirebase(){
+  firebase.initializeApp(window.FIREBASE_CONFIG);
+  fb=firebase; db=firebase.firestore();
+  const passCode=new URLSearchParams(location.search).get("pass");
+  if(passCode){ $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode); }
+  const inviteTok=new URLSearchParams(location.search).get("invite");
+  if(inviteTok){ $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(false,"Visitor pre-registration"); return showInvite(inviteTok); }
+  $("#demoSel").hidden=true; $("#demoSel").style.display="none";
+  setSync(false,"Not signed in");
+  let linkPending=firebase.auth().isSignInWithEmailLink(location.href);
+  if(linkPending) finishEmailLink();
+  firebase.auth().onAuthStateChanged(async u=>{
+    if(!u&&linkPending){ linkPending=false; return; }
+    unsubs.forEach(f=>f()); unsubs=[]; visitors=[]; staffList=[]; me=null;
+    if(!u){ $("#who").hidden=true; return showLogin(); }
+    setSync(false,"Loading your profile…");
+    try{ me=await ensureStaff(u); }catch(e){ return showGate("We couldn't load your staff profile.",e.message||e.code); }
+    $("#who").hidden=false;
+    $("#who").innerHTML=`<span>${esc(me.name)} · ${esc(ROLES[me.role]||me.role)}</span><button class="btn" id="signOut" style="background:#ffffff1a;color:#fff;border-color:#ffffff40">Sign out</button>`;
+    $("#signOut").onclick=()=>firebase.auth().signOut();
+    if(me.active===false) return showGate("Your account has been deactivated.","Ask the House Manager if you need access again.");
+    if(me.role==="pending") return showGate("Your account is waiting for a role.","The House Manager will assign your station or role. This page updates as soon as they do.",true);
+    startData();
+  });
+}
+async function ensureStaff(u){
+  const ref=db.collection("staff").doc(u.uid);
+  let s=await ref.get();
+  if(!s.exists){
+    const name=(u.displayName||sessionStorageGet("pendingName")||u.email.split("@")[0]).trim();
+    const setup=await db.collection("config").doc("setup").get().catch(()=>({exists:true}));
+    const base={uid:u.uid,email:u.email,name,active:true,createdAt:now()};
+    if(!setup.exists){
+      const b=db.batch();
+      b.set(db.collection("config").doc("setup"),{adminUid:u.uid,createdAt:now()});
+      b.set(ref,{...base,role:"admin"});
+      try{await b.commit(); toast("You are the first account, so you are the administrator.")}catch(e){await ref.set({...base,role:"pending"})}
+    } else await ref.set({...base,role:"pending"});
+    s=await ref.get();
+  }
+  return {...s.data(),uid:u.uid};
+}
+function sessionStorageGet(k){try{return localStorage.getItem(k)||sessionStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+/* Passwordless: finish sign-in when the page is opened from the emailed link. */
+async function finishEmailLink(){
+  const a=firebase.auth(); if(!a.isSignInWithEmailLink(location.href)) return false;
+  let email=sessionStorageGet("linkEmail");
+  if(!email){ showLinkConfirm(); return true; }
+  try{ await a.signInWithEmailLink(email,location.href); lsDel("linkEmail"); history.replaceState(null,"",location.pathname); }
+  catch(e){ history.replaceState(null,"",location.pathname); showLogin("in", e.code==="auth/invalid-action-code"?"That sign-in link has expired or was already used. Send a new one.":authMsg(e)); }
+  return true;
+}
+function showLinkConfirm(){
+  $("#nav").innerHTML="";
+  $("#main").innerHTML=`<div class="panel" style="max-width:420px;width:100%;margin:20px auto"><h1>Confirm your email</h1>
+  <p class="sub">You opened the sign-in link on a different device or browser. Enter the email it was sent to.</p>
+  <form id="lc" style="display:flex;flex-direction:column;gap:12px;margin-top:14px"><div class="f"><label for="lc_email">Email</label><input id="lc_email" type="email" required autocomplete="username"></div>
+  <div id="l_err" class="small" style="color:var(--bad)"></div><div class="acts"><button class="btn pri" type="submit">Sign in</button></div></form></div>`;
+  $("#lc").onsubmit=async e=>{e.preventDefault();try{await firebase.auth().signInWithEmailLink($("#lc_email").value.trim(),location.href);history.replaceState(null,"",location.pathname)}catch(x){$("#l_err").textContent=x.code==="auth/invalid-action-code"?"That link has expired or was already used. Go back and send a new one.":authMsg(x)}};
+}
+function startData(){
+  // Watch my own staff record so role changes apply at once.
+  unsubs.push(db.collection("staff").doc(me.uid).onSnapshot(s=>{const d=s.data();if(!d)return;
+    if(d.role!==me.role||d.active!==me.active){ me={...d,uid:me.uid}; firebase.auth().currentUser&&location.reload(); }}));
+  const q=me.role==="host"?db.collection("visitors").where("requestedByUid","==",me.uid):db.collection("visitors");
+  const timer=setTimeout(()=>setSync(false,"Shared records not reachable yet"),10000);
+  unsubs.push(q.onSnapshot(snap=>{
+    visitors=snap.docs.map(d=>({...d.data(),id:d.id}));
+    if(!snap.metadata.fromCache){clearTimeout(timer);setSync(true,"Live · all stations synced")}
+    render();
+  },e=>{clearTimeout(timer);setSync(false,"Sync stopped: "+(e.code==="permission-denied"?"your role can't read these records":e.code))}));
+  unsubs.push(db.collection("config").doc("features").onSnapshot(s=>{features=s.data()||{};if(["assistant","staff","register"].includes(view))render()},()=>{}));
+  { const pq=me.role==="host"?db.collection("passes").where("requestedByUid","==",me.uid):db.collection("passes");
+    unsubs.push(pq.onSnapshot(s=>{passes=s.docs.map(d=>({...d.data(),id:d.id}))},()=>{})); }
+  if(["admin","approver","gate","reception","host"].includes(me.role)){
+    const iq=me.role==="host"?db.collection("invites").where("hostUid","==",me.uid):db.collection("invites");
+    unsubs.push(iq.onSnapshot(s=>{invites=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="register")render()},()=>{}));
+  }
+  if(["admin","approver"].includes(me.role)) unsubs.push(db.collection("audit").orderBy("at","desc").limit(200).onSnapshot(s=>{
+    serverAudit=s.docs.map(d=>({...d.data(),id:d.id})); if(view==="history") render();
+  },()=>{}));
+  if(me.role==="admin") unsubs.push(db.collection("staff").onSnapshot(s=>{staffList=s.docs.map(d=>({...d.data(),uid:d.id}));if(view==="staff")render()}));
+  view=defaultView(); render();
+}
+function showGate(title,msg,waiting){
+  $("#nav").innerHTML=""; setSync(false,waiting?"Waiting for role":"No access");
+  $("#main").innerHTML=`<div class="panel" style="max-width:520px"><h1>${esc(title)}</h1><p class="sub">${esc(msg)}</p></div>`;
+  if(waiting) unsubs.push(db.collection("staff").doc(me.uid).onSnapshot(s=>{const d=s.data(); if(d&&d.role!=="pending") location.reload()}));
+}
+function showLogin(_m,msg){
+  $("#nav").innerHTML="";
+  $("#main").innerHTML=`<div class="panel" style="max-width:420px;width:100%;margin:20px auto">
+    <h1>Staff sign-in</h1>
+    <p class="sub">No password needed. Enter your work email and we'll send you a link that signs you in.</p>
+    <form id="ml" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+      <div class="f"><label for="ml_email">Email</label><input id="ml_email" type="email" required autocomplete="username" value="${esc(sessionStorageGet("linkEmail")||"")}"></div>
+      <div class="f"><label for="ml_name">Full name <span style="font-weight:400">(first time only)</span></label><input id="ml_name" autocomplete="name"></div>
+      <div id="l_err" class="small" style="color:var(--bad)">${esc(msg||"")}</div>
+      <div class="acts"><button class="btn pri" type="submit" id="ml_go">Email me a sign-in link</button></div>
+    </form>
+    ${window.MS_SIGNIN&&window.MS_SIGNIN.enabled?`<div style="display:flex;align-items:center;gap:10px;margin:16px 0 4px" class="small"><span style="flex:1;height:1px;background:var(--line)"></span>or<span style="flex:1;height:1px;background:var(--line)"></span></div><button class="btn" id="ms_go" style="width:100%;justify-content:center;padding:10px">Sign in with Microsoft (UN account)</button>`:""}
+    <p class="small" style="margin-top:14px"><a href="#" id="ml_pw">Use a password instead</a></p></div>`;
+  const ms=$("#ms_go"); if(ms) ms.onclick=async()=>{const p=new firebase.auth.OAuthProvider("microsoft.com");
+    if(window.MS_SIGNIN.tenant) p.setCustomParameters({tenant:window.MS_SIGNIN.tenant,prompt:"select_account"});
+    try{await firebase.auth().signInWithPopup(p)}catch(x){if(x.code==="auth/popup-blocked"||x.code==="auth/operation-not-supported-in-this-environment")firebase.auth().signInWithRedirect(p);else $("#l_err").textContent=x.code==="auth/operation-not-allowed"?"Microsoft sign-in isn't set up in Firebase yet.":authMsg(x)}};
+  $("#ml_pw").onclick=e=>{e.preventDefault();showPasswordLogin("in")};
+  $("#ml").onsubmit=async e=>{e.preventDefault();const em=$("#ml_email").value.trim(),nm=$("#ml_name").value.trim();
+    $("#ml_go").setAttribute("disabled","");$("#l_err").textContent="";
+    try{await firebase.auth().sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true});
+      lsSet("linkEmail",em); if(nm) lsSet("pendingName",nm);
+      $("#main").innerHTML=`<div class="panel" style="max-width:420px;width:100%;margin:20px auto"><h1>Check your email</h1><p class="sub">We sent a sign-in link to <b>${esc(em)}</b>. Click it on this device to open your station. The link works once and expires after a short time.</p><p class="small">Nothing there? Check spam, or <a href="#" id="ml_again">send another link</a>.</p></div>`;
+      $("#ml_again").onclick=x=>{x.preventDefault();showLogin()};
+    }catch(x){$("#ml_go").removeAttribute("disabled");$("#l_err").textContent=x.code==="auth/operation-not-allowed"?"Email-link sign-in isn't switched on yet. Ask the administrator.":authMsg(x)}};
+}
+function showPasswordLogin(mode="in"){
+  $("#nav").innerHTML="";
+  $("#main").innerHTML=`<div class="panel" style="max-width:420px;width:100%;margin:20px auto">
+    <h1>${mode==="up"?"Create a staff account":"Staff sign-in"}</h1>
+    <p class="sub">${mode==="up"?"After you create an account, the House Manager assigns your role before you can see visitor records.":"Sign in with your staff account to open your station."}</p>
+    <form id="login" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+      ${mode==="up"?`<div class="f"><label for="l_name">Full name</label><input id="l_name" required autocomplete="name"></div>`:""}
+      <div class="f"><label for="l_email">Email</label><input id="l_email" type="email" required autocomplete="username"></div>
+      <div class="f"><label for="l_pw">Password</label><input id="l_pw" type="password" required minlength="8" autocomplete="${mode==="up"?"new-password":"current-password"}"></div>
+      <div id="l_err" class="small" style="color:var(--bad)"></div>
+      <div class="acts"><button class="btn pri" type="submit">${mode==="up"?"Create account":"Sign in"}</button>
+      ${mode==="up"?`<button class="btn" type="button" id="l_sw">I have an account</button>`:`<button class="btn" type="button" id="l_sw">Create an account</button><button class="btn" type="button" id="l_reset">Forgot password</button>`}</div>
+    </form></div>`;
+  $("#l_sw").onclick=()=>showPasswordLogin(mode==="up"?"in":"up");
+  const r=$("#l_reset"); if(r) r.onclick=async()=>{const em=$("#l_email").value.trim(); if(!em){$("#l_err").textContent="Enter your email first.";return}
+    try{await firebase.auth().sendPasswordResetEmail(em);$("#l_err").style.color="var(--ok)";$("#l_err").textContent="Password reset email sent to "+em+"."}catch(e){$("#l_err").textContent=authMsg(e)}};
+  $("#login").onsubmit=async e=>{e.preventDefault(); $("#l_err").textContent="";
+    const em=$("#l_email").value.trim(), pw=$("#l_pw").value;
+    try{
+      if(mode==="up"){const name=$("#l_name").value.trim(); try{sessionStorage.setItem("pendingName",name)}catch(x){}
+        const c=await firebase.auth().createUserWithEmailAndPassword(em,pw); await c.user.updateProfile({displayName:name});}
+      else await firebase.auth().signInWithEmailAndPassword(em,pw);
+    }catch(x){$("#l_err").textContent=authMsg(x)}};
+}
+function authMsg(e){return ({"auth/invalid-credential":"Email or password is wrong.","auth/wrong-password":"Email or password is wrong.","auth/user-not-found":"No account uses that email.","auth/email-already-in-use":"An account already uses that email. Sign in instead.","auth/weak-password":"Use a password of at least 8 characters.","auth/too-many-requests":"Too many attempts. Wait a few minutes and try again.","auth/operation-not-allowed":"Email sign-in isn't switched on for this system yet. Ask the administrator."})[e.code]||e.message}
+
+const staffView=()=>{
+  const list=[...staffList].sort((a,b)=>(a.role==="pending"?0:1)-(b.role==="pending"?0:1)||String(a.name).localeCompare(b.name));
+  const pend=list.filter(s=>s.role==="pending").length;
+  return head("Staff and roles","Staff create their own account from the sign-in page. Assign each person a role here. Roles are enforced by the database, not just hidden in the page.")+
+  (pend?`<div class="banner">${pend} new account${pend>1?"s are":" is"} waiting for a role.</div>`:"")+
+  `<div class="panel"><div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>${list.map(s=>{const self=s.uid===me.uid;return `<tr>
+    <td><b>${esc(s.name)}</b>${self?' <span class="small">(you)</span>':""}</td><td class="small">${esc(s.email)}</td>
+    <td><select data-role="${esc(s.uid)}" ${self?"disabled":""} aria-label="Role for ${esc(s.name)}">${Object.entries(ROLES).map(([k,l])=>`<option value="${k}" ${s.role===k?"selected":""}>${l}</option>`).join("")}</select></td>
+    <td>${s.active===false?'<span class="pill p-rejected">Deactivated</span>':s.role==="pending"?'<span class="pill p-pending">Awaiting role</span>':'<span class="pill p-in">Active</span>'}</td>
+    <td>${self?"":`<button class="btn ${s.active===false?"":"bad"}" data-toggle="${esc(s.uid)}">${s.active===false?"Reactivate":"Deactivate"}</button>`}</td></tr>`}).join("")}</tbody></table></div></div>
+  <div class="panel"><h2>Optional features</h2><p class="small">These send visitor details to Google's Gemini AI service. Keep them off until UN data protection approves that service.</p>
+   <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+    <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ft_ai" style="width:auto" ${features.ai?"checked":""}> AI operations assistant (questions in plain English)</label>
+    <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ft_hw" style="width:auto" ${features.handwriting?"checked":""}> Read handwritten visitor lists</label>
+    <div class="f"><label for="ft_note">Approval reference (who approved this, and when)</label><input id="ft_note" value="${esc(features.approvalNote||"")}" placeholder="e.g. UN ICT approval 14 Nov 2026, ref 123"></div>
+    <div class="acts"><button class="btn pri" id="ft_save">Save feature settings</button></div>
+    ${features.updatedAt?`<span class="small">Last changed ${fmtD(features.updatedAt)}</span>`:""}
+   </div></div>
+  <div class="note">Role permissions: Gate officers admit approved visitors. Documentation officers issue tags. Receptionists check visitors in and out. VIP gate officers handle VIPs only. Staff hosts see and register only their own guests. Approvers decide approvals (never their own requests) and manage contractors. Administrators do everything and manage staff.</div>`;
+};
+async function setStaff(uid,patch){
+  try{await db.collection("staff").doc(uid).update(patch);toast("Staff record updated.")}catch(e){toast(e.code==="permission-denied"?"Only an administrator can change roles.":"Could not update: "+e.message)}
+}
+
+function setSync(on,txt){$("#dot").className="dot"+(on?" on":"");$("#syncTxt").textContent=txt;live=on}
+
+function sampleData(){
+  const h=3600e3,t0=today0()+8*h, mk=(o)=>({id:o.ref,ref:o.ref,group:"",purpose:"",phone:"",org:"",idType:"",tag:"",building:"Main UN House Building",log:[{t:t0-20*h,a:"Registered (example record)",by:"System",st:"Seed"}],example:true,...o});
+  return [
+    mk({ref:"UNH-EX-0001",name:"Amaka Nwosu",org:"Federal Ministry of Health",type:"visitor",host:"Dr. K. Ibrahim",agency:"WHO",status:"in",expected:t0+1*h,arrivedAt:t0+1.1*h,inAt:t0+1.3*h,tag:"V-014",purpose:"Immunisation programme review"}),
+    mk({ref:"UNH-EX-0002",name:"David Mensah",org:"Ecobank",type:"visitor",host:"S. Garba",agency:"UNDP",status:"approved",expected:t0+3*h,purpose:"Banking services meeting"}),
+    mk({ref:"UNH-EX-0003",name:"H.E. Ambassador L. Haugen",org:"Royal Norwegian Embassy",type:"vip",host:"Resident Coordinator",agency:"Common Services",status:"approved",expected:t0+2.5*h,purpose:"Courtesy call",building:"Main UN House Building"}),
+    mk({ref:"UNH-EX-0004",name:"Chidi Eze",org:"Julius Facilities Ltd",type:"contractor",host:"Facilities Unit",agency:"Common Services",status:"in",expected:t0,arrivedAt:t0-0.5*h,inAt:t0-0.4*h,tag:"C-003",accessFrom:today0()-3*864e5,accessTo:today0()+1*864e5,purpose:"HVAC maintenance",building:"Annex A"}),
+    mk({ref:"UNH-EX-0005",name:"Grace Okon",org:"Independent consultant",type:"visitor",host:"T. Musa",agency:"UNICEF",status:"pending",expected:t0+5*h,purpose:"Restricted area access: server room",restricted:true,requestedBy:"T. Musa"}),
+    mk({ref:"UNH-EX-0006",name:"Yusuf Danladi",org:"Press, Daily Trust",type:"visitor",host:"Comms Office",agency:"UNFPA",status:"tagged",expected:t0+0.5*h,arrivedAt:t0+0.6*h,tag:"V-021",purpose:"Interview"}),
+    mk({ref:"UNH-EX-0007",name:"Bola Ajayi",org:"Kings Catering",type:"contractor",host:"Facilities Unit",agency:"Common Services",status:"in",expected:t0-3*h,arrivedAt:t0-3*h,inAt:t0-2.9*h,tag:"C-007",accessFrom:today0()-10*864e5,accessTo:today0()-1,purpose:"Canteen supply",building:"Main UN House Building"}),
+    mk({ref:"UNH-EX-0008",name:"Fatima Sule",org:"Ministry of Foreign Affairs",type:"visitor",host:"P. Obi",agency:"UNHCR",status:"in",expected:today0()-15*h,arrivedAt:today0()-15*h,inAt:today0()-14.8*h,tag:"V-002",purpose:"Workshop"}),
+    mk({ref:"UNH-EX-0009",name:"John Adeleke",org:"Visitor",type:"visitor",host:"R. Bassey",agency:"WFP",status:"out",expected:t0-1*h,arrivedAt:t0-1*h,inAt:t0-0.9*h,outAt:t0+0.2*h,purpose:"Delivery of documents"})
+  ];
+}
+
+/* ---------- derived ---------- */
+const isToday=t=>t>=today0()&&t<today0()+864e5;
+const overstay=v=>v.status==="in"&&v.inAt&&now()-v.inAt>OVERSTAY_H*3600e3;
+const contractorExpired=v=>v.type==="contractor"&&v.accessTo&&now()>v.accessTo&&!["out","rejected","suspended"].includes(v.status);
+const contractorExpiring=v=>v.type==="contractor"&&v.accessTo&&!contractorExpired(v)&&v.accessTo-now()<2*864e5&&v.status!=="suspended";
+const late=v=>v.status==="approved"&&v.expected&&now()-v.expected>45*60e3&&isToday(v.expected);
+// Alerts: lvl "act" = needs action now, "soon" = coming up, "info" = for awareness. Sorted in that order.
+function alerts(){
+  const a=[], since=t=>dur(now()-t);
+  visitors.forEach(v=>{
+    if(overstay(v)) a.push({lvl:"act",kind:"Overstay",v,title:v.name,detail:`Inside ${since(v.inAt)} · host ${v.host}`,act:"checkout",label:"Check out"});
+    if(contractorExpired(v)) a.push({lvl:"act",kind:"Access expired",v,title:v.name,detail:`Contractor access ended ${fmtD(v.accessTo)} · still ${STATUS[v.status].toLowerCase()}`,act:"suspend",label:"Suspend"});
+    else if(contractorExpiring(v)) a.push({lvl:"soon",kind:"Expires soon",v,title:v.name,detail:`Contractor access ends ${fmtD(v.accessTo)}`,act:"extend",label:"Extend 7 days"});
+    if(late(v)) a.push({lvl:"soon",kind:"Not arrived",v,title:v.name,detail:`Expected ${fmtT(v.expected)} · host ${v.host}`,act:"detail",label:"Details"});
+    if(v.status==="pending") a.push({lvl:"soon",kind:"Approval",v,title:v.name,detail:`${v.purpose||"Visit"} · requested by ${v.requestedBy||v.host}`,act:ownRequest(v)?"detail":"approve",label:ownRequest(v)?"Details":"Approve"});
+    if(v.status==="tagged") a.push({lvl:"info",kind:"Waiting",v,title:v.name,detail:`At internal reception for ${v.host}${v.hostNotified?` · host notified ${fmtT(v.hostNotified)}`:""}`,act:v.hostNotified?"checkin":"notify",label:v.hostNotified?"Check in":"Notify host"});
+  });
+  const o={act:0,soon:1,info:2}; return a.sort((x,y)=>o[x.lvl]-o[y.lvl]);
+}
+const ICON={act:'<path d="M12 8v5M12 16.5v.5"/><circle cx="12" cy="12" r="9"/>',soon:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8v.5"/>'};
+function alertList(limit){
+  const al=alerts(); if(!al.length) return `<div class="al-empty"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>All clear. Nothing needs attention.</div>`;
+  const n={act:al.filter(x=>x.lvl==="act").length,soon:al.filter(x=>x.lvl==="soon").length};
+  return `<div class="al-sum">${n.act?`<span class="al-chip act">${n.act} need action</span>`:""}${n.soon?`<span class="al-chip soon">${n.soon} coming up</span>`:""}</div>
+  <ul class="al">${al.slice(0,limit||99).map(x=>`<li class="${x.lvl}"><span class="al-ic"><svg viewBox="0 0 24 24">${ICON[x.lvl]}</svg></span>
+    <div class="al-tx"><div class="al-k">${esc(x.kind)}</div><div class="al-t">${esc(x.title)} <span class="ref">${esc(x.v.ref)}</span></div><div class="al-d">${esc(x.detail)}</div></div>
+    ${canAct(x.act)?`<button class="btn" data-act="${x.act}" data-id="${esc(x.v.id)}">${esc(x.label)}</button>`:""}</li>`).join("")}</ul>`;
+}
+
+/* ---------- views ---------- */
+const VIEWS=[
+  ["dashboard","Dashboard"],["gate","Gate reception"],["tagging","Documentation & tags"],["reception","Internal reception"],
+  ["vip","VIP gate"],["register","Register visitors"],["approvals","Approvals"],["contractors","Contractors"],
+  ["history","History & audit"],["assistant","Ops assistant"],["staff","Staff & roles"]
+];
+function renderNav(){
+  const c={approvals:visitors.filter(v=>v.status==="pending").length,gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
+    tagging:visitors.filter(v=>v.status==="arrived").length,reception:visitors.filter(v=>v.status==="tagged").length,
+    vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived"].includes(v.status)).length};
+  c.staff=staffList.filter(s=>s.role==="pending").length;
+  $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l])=>`<button class="${view===k?"on":""}" data-v="${k}">${l}${c[k]?`<span class="cnt">${c[k]}</span>`:""}</button>`).join("");
+  $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{view=b.dataset.v;selected=null;render()});
+}
+// Email delivery status, written back by the server function.
+function mailPill(v){const m=v.mail;if(!v.hostEmail)return `<span class="small">No host email</span>`;if(!m)return "";
+  return m.status==="sent"?`<span class="pill p-in" title="${esc(m.to)}">Emailed ${fmtT(m.at)}</span>`:m.status==="failed"?`<span class="pill p-rejected" title="${esc(m.error||"")}">Email failed</span>`:""}
+/* ---------- badge printing and QR scanning ---------- */
+const QRLIB="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js", SCANLIB="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js";
+async function printBadge(v){
+  if(!v) return;
+  try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool. Check the internet connection.")}
+  const holder=document.createElement("div"); new QRCode(holder,{text:v.ref,width:160,height:160,correctLevel:QRCode.CorrectLevel.M});
+  await new Promise(r=>setTimeout(r,60));
+  const img=(holder.querySelector("img")&&holder.querySelector("img").src)||(holder.querySelector("canvas")&&holder.querySelector("canvas").toDataURL());
+  const kind=v.type==="vip"?"VIP":v.type==="contractor"?"Contractor":"Visitor";
+  const until=v.type==="contractor"&&v.accessTo?new Date(v.accessTo).toLocaleDateString():new Date(today0()+864e5-1).toLocaleDateString()+" 23:59";
+  let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
+  p.innerHTML=`<div class="pbadge"><div class="pb-h"><span>UN House Abuja</span><span>${kind}</span></div>
+    <div class="pb-b"><div><div class="pb-n">${esc(v.name)}</div><div class="pb-o">${esc(v.org||"")}</div>
+    <div class="pb-t">${esc(v.tag||"")}</div><div class="pb-r">Host: ${esc(v.host)}</div><div class="pb-r">${esc(v.building||"")}</div>
+    <div class="pb-r">Valid until ${esc(until)}</div><div class="pb-ref">${esc(v.ref)}</div></div>${img?`<img src="${img}" alt="QR code ${esc(v.ref)}">`:""}</div>
+    <div class="pb-f">Wear this badge at all times. Return it on leaving.</div></div>`;
+  setTimeout(()=>window.print(),80);
+}
+async function scanBadge(){
+  const m=$("#modal"); m.innerHTML=`<div class="modal"><h2>Scan a badge</h2><p class="small">Hold the QR code on the badge up to the camera. A handheld USB scanner works too: click the search box and scan.</p><div id="qrReader" style="width:100%"></div><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`; m.hidden=false;
+  let sc=null; const close=()=>{m.hidden=true;if(sc)sc.stop().catch(()=>{}).then(()=>sc.clear())};
+  $("#mNo").onclick=close;
+  try{await loadScript(SCANLIB); sc=new Html5Qrcode("qrReader");
+    await sc.start({facingMode:"environment"},{fps:10,qrbox:220},txt=>{close();handleScan(txt)});
+  }catch(e){$("#qrReader").innerHTML=`<div class="banner">The camera could not start: ${esc(e.message||e)}. Allow camera access, or use a USB scanner in the search box.</div>`}
+}
+/* ---------- visitor pre-registration invites ---------- */
+const inviteUrl=t=>location.origin+location.pathname+"?invite="+t;
+function newToken(){const a=new Uint8Array(18);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,"0")).join("")}
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast("Link copied. Send it to your visitor.")}catch(e){modal(`<h2>Copy this link</h2><input id="m_link" value="${esc(t)}" readonly>`,()=>{});setTimeout(()=>$("#m_link").select(),0)}}
+function inviteView(){
+  if(!fb||!canAct("invite")) return "";
+  const sub=invites.filter(i=>i.status==="submitted"), open=invites.filter(i=>i.status==="open"&&i.expires>now());
+  return `<div class="panel"><h2>Invite a visitor</h2><p class="small">Create a link for your guest. They fill in their own name, organisation and arrival time, with no account needed. The link works once and expires in 7 days.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:10px 0">
+   <div class="f"><label for="inv_host">Host (staff member)</label><input id="inv_host" value="${esc(me?me.name:"")}"></div>
+   <div class="f"><label for="inv_email">Host email</label><input id="inv_email" type="email" value="${esc(me?me.email:"")}"></div>
+   <div class="f"><label for="inv_agency">Host agency</label><select id="inv_agency">${AGENCIES.map(a=>`<option>${a}</option>`).join("")}</select></div></div>
+  <div class="acts"><button class="btn pri" id="invNew">Create invite link</button></div>
+  ${sub.length?`<h2 style="margin-top:18px">Details received <span class="cnt">${sub.length}</span></h2><div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th></th></tr></thead><tbody>${sub.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org)} · ${esc(i.guest.phone)}</div></td><td>${esc(i.host)}</td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose)}</td><td><div class="acts"><button class="btn pri" data-inv-use="${esc(i.id)}">Register visit</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
+  ${open.length?`<h2 style="margin-top:18px">Waiting for the guest <span class="cnt">${open.length}</span></h2><div class="tw"><table><tbody>${open.map(i=>`<tr><td>For ${esc(i.host)}</td><td class="small">Created ${fmtD(i.createdAt)} · expires ${fmtD(i.expires)}</td><td><div class="acts"><button class="btn" data-inv-copy="${esc(i.id)}">Copy link</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Cancel</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
+  </div>`;
+}
+async function createInvite(){
+  const host=$("#inv_host").value.trim(); if(!host) return toast("Enter the host's name.");
+  const tok=newToken();
+  try{await db.collection("invites").doc(tok).set({hostUid:me.uid,host,hostEmail:$("#inv_email").value.trim().toLowerCase(),agency:$("#inv_agency").value,status:"open",createdAt:now(),expires:now()+7*864e5});
+    copyText(inviteUrl(tok));}catch(e){toast("Could not create the invite: "+e.message)}
+}
+async function useInvite(i){
+  if(!i) return; const g=i.guest, ref=newRef();
+  const v={id:ref,ref,name:g.name,org:g.org,phone:g.phone,visitorEmail:g.email||"",type:"visitor",host:i.host,hostEmail:i.hostEmail||"",agency:i.agency,building:BUILDINGS[0],
+    expected:g.expected?new Date(g.expected).getTime()||now():now(),purpose:g.purpose,restricted:false,requestedBy:op(),requestedByUid:myUid(),status:"approved",log:[]};
+  await act(v,"Registered from guest's pre-registration");
+  try{await db.collection("invites").doc(i.id).update({status:"used",visitorId:ref});toast(`${g.name} registered as ${ref}.`)}catch(e){toast("Visit saved, but the invite could not be closed: "+e.message)}
+}
+async function showInvite(tok){
+  const main=$("#main"), box=h=>main.innerHTML=`<div class="panel" style="max-width:480px;width:100%;margin:20px auto">${h}</div>`;
+  box(`<h1>Opening your invitation…</h1>`);
+  let d; for(let n=0;n<3&&!d;n++){try{d=await db.collection("invites").doc(tok).get()}catch(e){console.warn("invite read",e.code,e.message);await new Promise(r=>setTimeout(r,1200))}}
+  if(!d) return box(`<h1>This link can't be opened</h1><p class="sub">Check your internet connection and try again.</p>`);
+  if(!d.exists) return box(`<h1>Link not found</h1><p class="sub">Check you copied the whole link, or ask your host for a new one.</p>`);
+  const i=d.data();
+  if(i.status==="submitted"||i.status==="used") return box(`<h1>Thank you</h1><p class="sub">Your details have been received. Bring a photo ID to the gate at UN House.</p>`);
+  if(i.status!=="open"||i.expires<now()) return box(`<h1>This link has expired</h1><p class="sub">Ask ${esc(i.host)} to send you a new one.</p>`);
+  box(`<h1>Visit to UN House, Abuja</h1><p class="sub">${esc(i.host)} (${esc(i.agency)}) has invited you. Fill in your details so the gate can expect you.</p>
+  <form id="gf" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+   <div class="f"><label for="g_name">Full name</label><input id="g_name" required minlength="2" maxlength="120" autocomplete="name"></div>
+   <div class="f"><label for="g_org">Organisation</label><input id="g_org" maxlength="160" autocomplete="organization"></div>
+   <div class="f"><label for="g_email">Email (we send your pass here)</label><input id="g_email" type="email" maxlength="160" autocomplete="email"></div>
+   <div class="f"><label for="g_phone">Phone</label><input id="g_phone" maxlength="40" inputmode="tel" autocomplete="tel"></div>
+   <div class="f"><label for="g_when">Arrival date and time</label><input id="g_when" type="datetime-local" required></div>
+   <div class="f"><label for="g_purpose">Purpose of visit</label><input id="g_purpose" maxlength="300"></div>
+   <div id="g_err" class="small" style="color:var(--bad)"></div>
+   <div class="acts"><button class="btn pri" type="submit">Send my details</button></div>
+   <p class="small">Your details are used only to manage your visit. Bring a photo ID to the gate.</p></form>`);
+  $("#gf").onsubmit=async e=>{e.preventDefault();
+    const guest={name:$("#g_name").value.trim(),org:$("#g_org").value.trim(),phone:$("#g_phone").value.trim(),email:$("#g_email").value.trim().toLowerCase(),expected:$("#g_when").value,purpose:$("#g_purpose").value.trim()};
+    try{await db.collection("invites").doc(tok).update({status:"submitted",guest,submittedAt:now()});
+      box(`<h1>Thank you, ${esc(guest.name)}</h1><p class="sub">${esc(i.host)} has your details. Bring a photo ID to the gate at UN House on ${esc(guest.expected.replace("T"," at "))}.</p>`);
+    }catch(x){$("#g_err").textContent="Your details could not be sent. The link may have expired. Ask your host for a new one."}};
+}
+/* ---------- digital visitor passes ---------- */
+const PASS_PREFIX="UNHPASS:";
+const passUrl=c=>location.origin+location.pathname+"?pass="+c;
+const passLive=s=>["approved","arrived","tagged","in"].includes(s);
+function passFor(v){return passes.find(p=>p.visitorId===v.id&&!p.revoked)}
+function passValidUntil(v){
+  if(v.type==="contractor"&&v.accessTo) return v.accessTo;
+  const d=new Date(v.expected||now()); d.setHours(23,59,59,0); return Math.max(d.getTime(),now()+3600e3);
+}
+function passBtn(v){return fb&&canAct("pass")&&passLive(v.status)?`<button class="btn" data-act="pass" data-id="${esc(v.id)}" title="Digital pass for the visitor's phone">${passFor(v)?"Pass ✓":"Pass"}</button>`:""}
+async function ensurePass(v){
+  let p=passFor(v); if(p) return p;
+  const code=newToken()+newToken().slice(0,8);
+  p={visitorId:v.id,ref:v.ref,name:v.name,org:v.org||"",host:v.host||"",agency:v.agency||"",type:v.type,building:v.building||"",
+     expected:v.expected||now(),validUntil:passValidUntil(v),status:v.status,tag:v.tag||"",arrivedAt:v.arrivedAt||null,inAt:v.inAt||null,outAt:v.outAt||null,
+     requestedByUid:v.requestedByUid||"",createdAt:now(),createdBy:me.uid,revoked:false};
+  await db.collection("passes").doc(code).set(p);
+  p={...p,id:code}; passes.push(p); return p;
+}
+async function syncPass(v){
+  const p=passFor(v); if(!p||!db) return;
+  const patch={status:v.status,tag:v.tag||"",arrivedAt:v.arrivedAt||null,inAt:v.inAt||null,outAt:v.outAt||null,validUntil:passValidUntil(v),
+    expected:v.expected||p.expected,host:v.host||"",building:v.building||""};
+  if(["out","rejected","suspended"].includes(v.status)) patch.revoked=v.status!=="out"?true:p.revoked;
+  try{await db.collection("passes").doc(p.id).update(patch)}catch(e){console.warn("pass sync",e.message)}
+}
+async function qrDataUrl(text,size){
+  await loadScript(QRLIB); const h=document.createElement("div");
+  new QRCode(h,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M}); await new Promise(r=>setTimeout(r,60));
+  return (h.querySelector("canvas")&&h.querySelector("canvas").toDataURL())||(h.querySelector("img")&&h.querySelector("img").src);
+}
+async function openPass(v){
+  let p; try{p=await ensurePass(v)}catch(e){return toast("Could not create the pass: "+e.message)}
+  const url=passUrl(p.id), img=await qrDataUrl(PASS_PREFIX+p.id,200).catch(()=>null);
+  const digits=String(v.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
+  const msg=`Hello ${v.name}, here is your visitor pass for UN House Abuja on ${new Date(v.expected||now()).toLocaleDateString()}. Show it at the gate with your photo ID: ${url}`;
+  const m=$("#modal"); m.innerHTML=`<div class="modal"><h2>Digital pass · ${esc(v.name)}</h2>
+    <p class="small">Send this link to the visitor. It opens their pass on their phone, with no app needed. Valid until ${fmtD(p.validUntil)}. It stops working when they check out.</p>
+    ${img?`<img src="${img}" alt="Pass QR code" style="width:180px;height:180px;align-self:center;border-radius:8px;background:#fff;padding:8px">`:""}
+    <input id="m_plink" value="${esc(url)}" readonly aria-label="Pass link">
+    <div class="acts"><button class="btn pri" id="m_pcopy">Copy link</button>
+      <a class="btn" href="https://wa.me/${digits.length>=10?digits:""}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>
+      ${v.visitorEmail?`<a class="btn" href="mailto:${esc(v.visitorEmail)}?subject=${encodeURIComponent("Your UN House visitor pass")}&body=${encodeURIComponent(msg)}">Email</a>`:""}
+      <a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open pass</a>
+      <button class="btn" id="mNo">Close</button></div></div>`;
+  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
+  $("#m_pcopy").onclick=async()=>{try{await navigator.clipboard.writeText(url);toast("Pass link copied.")}catch(e){$("#m_plink").select()}};
+  render();
+}
+/* The visitor's own pass page: app.html?pass=CODE (no sign-in). */
+function showPass(code){
+  const main=$("#main"); main.innerHTML=`<div class="vpass"><div class="vp-load">Opening your pass…</div></div>`;
+  let clockT=null, qr=null, tries=0;
+  const draw=p=>{
+    const expired=p.validUntil<now(), done=p.status==="out", bad=p.revoked||["rejected","suspended","pending"].includes(p.status);
+    const ok=!expired&&!done&&!bad;
+    const label=done?"Visit ended":expired?"Pass expired":p.status==="pending"?"Awaiting approval":bad?"Not valid":p.status==="in"?"Checked in":p.status==="tagged"?"Documented":p.status==="arrived"?"Admitted at gate":"Approved";
+    main.innerHTML=`<div class="vpass ${ok?"ok":"no"}">
+      <div class="vp-top"><span class="vp-kind">${p.type==="group"?"Delegation":p.type==="vip"?"VIP guest":p.type==="contractor"?"Contractor":"Visitor"}</span><span class="vp-st">${esc(label)}</span></div>
+      <div class="vp-name">${esc(p.name)}</div><div class="vp-org">${p.members?`Group pass · ${p.members.length} people`:esc(p.org)}</div>
+      ${ok?`<div class="vp-qr"><img id="vpq" alt="Your pass code"></div><div class="vp-clock"><i></i><span id="vpc"></span></div>`:`<div class="vp-msg">${done?"Thank you for visiting UN House.":expired?"This pass is no longer valid. Ask your host for a new one.":"This pass can't be used yet. Your host will let you know."}</div>`}
+      ${p.members?`<div class="vp-dl">${p.members.map(x=>`<div><span>${esc(x.name)}</span><span class="small">${esc(STATUS[x.status]||x.status)}${x.tag?" · "+esc(x.tag):""}</span></div>`).join("")}</div>`:""}
+      <dl class="vp-dl"><div><dt>Host</dt><dd>${esc(p.host)}${p.agency?" · "+esc(p.agency):""}</dd></div><div><dt>Date</dt><dd>${new Date(p.expected).toLocaleDateString([], {weekday:"short",day:"numeric",month:"short"})} · ${fmtT(p.expected)}</dd></div>
+      ${p.tag?`<div><dt>Tag</dt><dd class="mono">${esc(p.tag)}</dd></div>`:""}<div><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div><div><dt>Reference</dt><dd class="mono">${esc(p.ref)}</dd></div></dl>
+      <p class="vp-foot">Show this screen at the gate together with your photo ID. Screenshots are not accepted: the clock must be moving.</p></div>`;
+    if(ok){ (qr?Promise.resolve(qr):qrDataUrl(PASS_PREFIX+code,240)).then(u=>{qr=u;const i=$("#vpq");if(i)i.src=u}).catch(()=>{});
+      const tick=()=>{const c=$("#vpc");if(c)c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})}; tick(); clearInterval(clockT); clockT=setInterval(tick,1000); }
+  };
+  const sub=()=>db.collection("passes").doc(code).onSnapshot(s=>{
+    if(!s.exists){ main.innerHTML=`<div class="vpass no"><div class="vp-name">Pass not found</div><p class="vp-msg">Check you opened the whole link, or ask your host to send it again.</p></div>`; return; }
+    draw({...s.data(),id:s.id});
+  },()=>{ if(++tries<3) setTimeout(sub,1500); else main.innerHTML=`<div class="vpass no"><div class="vp-name">This pass can't be opened</div><p class="vp-msg">Check your internet connection and reload the page.</p></div>`; });
+  sub();
+  try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
+}
+/* Scanning: works for digital passes (UNHPASS:code) and paper badges (reference number). */
+async function handleScan(txt){
+  txt=String(txt||"").trim(); let v=null, p=null;
+  if(txt.startsWith(PASS_PREFIX)){
+    const code=txt.slice(PASS_PREFIX.length);
+    p=passes.find(x=>x.id===code);
+    if(!p){try{const s=await db.collection("passes").doc(code).get();if(s.exists)p={...s.data(),id:s.id}}catch(e){}}
+    if(p&&Array.isArray(p.members)) return groupScanResult(p);
+    if(!p) return scanResult(null,null,"Unknown pass","This code is not a UN House pass. Check the visitor's photo ID and register them as a walk-in if needed.");
+    v=visitors.find(x=>x.id===p.visitorId);
+  } else if(txt.startsWith("UNHTAG:")){
+    const t=txt.slice(7); v=visitors.find(x=>x.tag===t&&["tagged","in"].includes(x.status));
+    if(!v) return scanResult(null,null,`Tag ${t} is free`,"Nobody is holding this tag right now. It can be issued to the next visitor.");
+  } else v=visitors.find(x=>x.ref===txt);
+  if(!v) return scanResult(null,p,"Not found here",p?`${p.name}'s visit is not visible to your station.`:`No visitor matches ${txt}.`);
+  scanResult(v,p);
+}
+function nextStep(v){
+  const r=myRole(), any=["admin","approver"].includes(r);
+  if(v.type==="vip"&&v.status==="approved"&&(r==="vip"||any)) return ["vipadmit","Admit VIP"];
+  if(v.status==="approved"&&(r==="gate"||any)) return ["arrive","Admit at gate"];
+  if(v.status==="arrived"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
+  if(v.status==="tagged"&&(r==="reception"||r==="admin")) return ["checkin","Check in"];
+  if(v.status==="in"&&["reception","vip","gate","admin"].includes(r)) return ["checkout","Check out"];
+  return null;
+}
+function scanResult(v,p,title,msg){
+  const m=$("#modal");
+  if(!v){ m.innerHTML=`<div class="modal"><div class="scan-band no">${esc(title)}</div><p>${esc(msg)}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`; m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return; }
+  const expired=p&&p.validUntil<now(), step=nextStep(v);
+  let band="ok", head="Valid", note="";
+  if(v.status==="out"){band="no";head="Already checked out";note=`Left at ${fmtT(v.outAt)}. Do not admit on this pass.`}
+  else if(["rejected","suspended"].includes(v.status)){band="no";head=STATUS[v.status];note="Do not admit. Contact the approver."}
+  else if(v.status==="pending"){band="no";head="Not approved yet";note="Wait for approval before admitting."}
+  else if(expired){band="no";head="Pass expired";note=`Valid until ${fmtD(p.validUntil)}.`}
+  else if(!step){band="info";head=STATUS[v.status];note="No action for your station at this step."}
+  m.innerHTML=`<div class="modal"><div class="scan-band ${band}">${esc(head)}</div>
+    <div><div style="font-size:20px;font-weight:700">${esc(v.name)} ${tpill(v)}</div><div class="small">${esc(v.org||"")} · host ${esc(v.host)} · <span class="ref">${esc(v.ref)}</span></div></div>
+    <div class="small">Check the photo ID matches this name.${v.tag?` Tag <b class="mono">${esc(v.tag)}</b>.`:""} ${esc(note)}</div>
+    <div class="small">${times(v).replace(/<br>/g," · ")}</div>
+    <div class="acts">${band!=="no"&&step?`<button class="btn pri" id="scanGo">${esc(step[1])}</button>`:""}<button class="btn" id="scanDet">Details</button><button class="btn" id="mNo">Close</button></div></div>`;
+  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
+  $("#scanDet").onclick=()=>{m.hidden=true;doAct("detail",v)};
+  const g=$("#scanGo"); if(g) g.onclick=()=>{m.hidden=true;doAct(step[0],v)};
+}
+
+/* ---------- group passes for delegations ---------- */
+const gkey=s=>String(s||"").trim().toLowerCase();
+function groupMembers(v){const k=gkey(v.group);return k?visitors.filter(x=>gkey(x.group)===k&&!["rejected"].includes(x.status)):[]}
+function groupPassFor(v){return passes.find(p=>Array.isArray(p.members)&&!p.revoked&&p.members.some(m=>m.visitorId===v.id))}
+function groupBtn(v){return fb&&canAct("pass")&&v.group&&passLive(v.status)&&groupMembers(v).length>1?`<button class="btn" data-act="grouppass" data-id="${esc(v.id)}" title="One pass for the whole delegation">Group pass</button>`:""}
+const memberOf=x=>({visitorId:x.id,ref:x.ref,name:x.name,org:x.org||"",type:x.type,status:x.status,tag:x.tag||""});
+async function ensureGroupPass(v){
+  const mem=groupMembers(v); let p=groupPassFor(v);
+  if(p){ // add anyone registered to the delegation since the pass was made
+    const add=mem.filter(x=>!p.members.some(m=>m.visitorId===x.id));
+    if(add.length){p.members=p.members.concat(add.map(memberOf)).slice(0,60);await db.collection("passes").doc(p.id).update({members:p.members})}
+    return p;
+  }
+  const code=newToken()+newToken().slice(0,8), lead=mem[0]||v;
+  p={visitorId:lead.id,ref:lead.ref,name:v.group,org:lead.org||"",host:lead.host||"",agency:lead.agency||"",type:"group",building:lead.building||"",
+     expected:Math.min(...mem.map(x=>x.expected||now())),validUntil:Math.max(...mem.map(passValidUntil)),status:"approved",tag:"",arrivedAt:null,inAt:null,outAt:null,
+     requestedByUid:lead.requestedByUid||"",createdAt:now(),createdBy:me.uid,revoked:false,group:v.group,members:mem.slice(0,60).map(memberOf)};
+  await db.collection("passes").doc(code).set(p); p={...p,id:code}; passes.push(p); return p;
+}
+async function syncGroupPass(v){
+  const p=groupPassFor(v); if(!p) return;
+  const members=p.members.map(m=>m.visitorId===v.id?memberOf(v):m);
+  const live=members.filter(m=>passLive(m.status));
+  try{await db.collection("passes").doc(p.id).update({members,status:live.length?"approved":"out",validUntil:Math.max(p.validUntil,passValidUntil(v))})}catch(e){console.warn("group pass sync",e.message)}
+}
+async function openGroupPass(v){
+  let p; try{p=await ensureGroupPass(v)}catch(e){return toast("Could not create the group pass: "+e.message)}
+  const url=passUrl(p.id), img=await qrDataUrl(PASS_PREFIX+p.id,200).catch(()=>null);
+  const msg=`Group visitor pass for ${p.group} at UN House Abuja (${p.members.length} people). The group lead shows it at the gate; everyone brings a photo ID: ${url}`;
+  const m=$("#modal"); m.innerHTML=`<div class="modal"><h2>Group pass · ${esc(p.group)}</h2>
+    <p class="small">One QR code for ${p.members.length} people. Send it to the delegation lead. Each person still shows their own photo ID at the gate. Valid until ${fmtD(p.validUntil)}.</p>
+    ${img?`<img src="${img}" alt="Group pass QR code" style="width:170px;height:170px;align-self:center;border-radius:8px;background:#fff;padding:8px">`:""}
+    <div class="small" style="max-height:120px;overflow:auto">${p.members.map(x=>`${esc(x.name)} <span class="ref">${esc(x.ref)}</span>`).join("<br>")}</div>
+    <input id="m_plink" value="${esc(url)}" readonly aria-label="Group pass link">
+    <div class="acts"><button class="btn pri" id="m_pcopy">Copy link</button>
+      <a class="btn" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Open pass</a><button class="btn" id="mNo">Close</button></div></div>`;
+  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
+  $("#m_pcopy").onclick=async()=>{try{await navigator.clipboard.writeText(url);toast("Group pass link copied.")}catch(e){$("#m_plink").select()}};
+}
+function groupScanResult(p){
+  const mem=p.members.map(m=>visitors.find(x=>x.id===m.visitorId)||{...m,id:m.visitorId,host:p.host});
+  const expired=p.validUntil<now(), r=myRole();
+  const steps=mem.map(v=>({v,step:nextStep(v)})), doable=steps.filter(s=>s.step);
+  const bulk=doable.length&&doable.every(s=>s.step[0]===doable[0].step[0])&&["arrive","vipadmit","checkin","checkout"].includes(doable[0].step[0])?doable[0].step:null;
+  const m=$("#modal");
+  m.innerHTML=`<div class="modal" style="max-width:560px"><div class="scan-band ${expired?"no":"ok"}">${expired?"Group pass expired":"Group pass · "+esc(p.group)}</div>
+    <p class="small">${mem.length} people. Check each person's photo ID against this list.</p>
+    <div class="tw" style="max-height:300px;overflow:auto"><table><tbody>${steps.map(({v,step})=>`<tr><td><b>${esc(v.name)}</b><div class="small">${esc(v.org||"")} · <span class="ref">${esc(v.ref)}</span></div></td><td>${v.status?pill(v):""}</td>
+      <td>${!expired&&step?`<button class="btn" data-gstep="${esc(v.id)}">${esc(step[1])}</button>`:""}</td></tr>`).join("")}</tbody></table></div>
+    <div class="acts">${!expired&&bulk?`<button class="btn pri" id="gAll">${esc(bulk[1])} · all ${doable.length}</button>`:""}<button class="btn" id="mNo">Close</button></div></div>`;
+  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
+  m.querySelectorAll("[data-gstep]").forEach(b=>b.onclick=()=>{const s=steps.find(x=>x.v.id===b.dataset.gstep);m.hidden=true;doAct(s.step[0],s.v)});
+  const all=$("#gAll"); if(all) all.onclick=async()=>{all.setAttribute("disabled","");
+    if(bulk[0]==="checkout"){for(const s of doable){await act(s.v,`Checked out with group ${p.group}`,{status:"out",outAt:now(),outRecordedAt:now(),tagReturned:!s.v.tag,tag:s.v.tag})}}
+    else for(const s of doable) await doAct(bulk[0],s.v);
+    m.hidden=true; toast(`${doable.length} people from ${p.group}: ${bulk[1].toLowerCase()} done.`)};
+}
+
+/* ---------- printable sheet of reusable numbered tags ---------- */
+async function printTagSheet(){
+  const pre=$("#ts_pre").value, from=Math.max(1,+$("#ts_from").value||1), to=Math.min(from+199,+$("#ts_to").value||from);
+  if(to<from) return toast("The last number must be the same as or after the first.");
+  try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool.")}
+  const kind={V:"Visitor",C:"Contractor",P:"VIP"}[pre], cards=[];
+  for(let n=from;n<=to;n++){const t=`${pre}-${String(n).padStart(3,"0")}`;cards.push(`<div class="tcard"><div class="tc-h"><span>UN House Abuja</span><span>${kind}</span></div><div class="tc-b"><div class="tc-n">${t}</div><img src="${await qrDataUrl("UNHTAG:"+t,140)}" alt=""></div><div class="tc-f">Property of UN Common Services · Return on leaving</div></div>`)}
+  let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
+  p.innerHTML=`<div class="tsheet">${cards.join("")}</div>`;
+  document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},120);
+}
+function tagSheetPanel(){return `<div class="panel"><h2>Print reusable tags</h2><p class="small">Print a sheet of numbered tags to cut out and laminate. Each tag has a QR code: scanning it finds who is holding that tag. Ten tags per A4 page.</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">
+   <div class="f"><label for="ts_pre">Type</label><select id="ts_pre"><option value="V">Visitor (V-)</option><option value="C">Contractor (C-)</option><option value="P">VIP (P-)</option></select></div>
+   <div class="f"><label for="ts_from">From number</label><input id="ts_from" type="number" min="1" value="1" style="width:110px"></div>
+   <div class="f"><label for="ts_to">To number</label><input id="ts_to" type="number" min="1" value="50" style="width:110px"></div>
+   <button class="btn pri" id="ts_go">Print tag sheet</button></div></div>`}
+
+function ownRequest(v){return v.requestedByUid?v.requestedByUid===myUid():(v.requestedBy||"")===op()}
+function pill(v){return `<span class="pill p-${v.status}">${STATUS[v.status]}</span>`}
+function tpill(v){return v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor</span>`:""}
+// Expected time, plus the actual arrival, check-in and check-out times once they happen.
+function times(v){
+  const r=[`<span title="Expected">${fmtT(v.expected)}</span>`];
+  if(v.arrivedAt) r.push(`<span class="small">Gate ${fmtT(v.arrivedAt)}</span>`);
+  if(v.inAt) r.push(`<span class="small">In ${fmtT(v.inAt)}</span>`);
+  if(v.outAt) r.push(`<span class="small"><b>Out ${fmtT(v.outAt)}</b>${v.inAt?` · ${dur(v.outAt-v.inAt)}`:""}</span>`);
+  return r.join("<br>");
+}
+const dur=ms=>{const m=Math.max(0,Math.round(ms/60000));return m<60?`${m} min`:`${Math.floor(m/60)} h ${m%60} min`};
+function row(v,actions){return `<tr><td><span class="ref">${esc(v.ref)}</span></td><td><b>${esc(v.name)}</b> ${tpill(v)}<div class="small">${esc(v.org)}</div></td><td>${esc(v.host)}<div class="small">${esc(v.agency)}</div></td><td class="mono">${times(v)}</td><td>${pill(v)}${v.tag?` <span class="mono small">${esc(v.tag)}</span>`:""}</td><td><div class="acts">${actions(v)}${passBtn(v)}${groupBtn(v)}</div></td></tr>`}
+function table(list,actions,empty){
+  if(!list.length) return `<div class="empty">${empty}</div>`;
+  return `<div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Host</th><th>Times</th><th>Status</th><th>Action</th></tr></thead><tbody>${list.map(v=>row(v,actions)).join("")}</tbody></table></div>`;
+}
+const B=(id,act,label,cls="")=>!canAct(act)?"":`<button class="btn ${cls}" data-id="${esc(id)}" data-act="${act}">${label}</button>`;
+function searchBox(ph="Search by name, reference or organisation"){return `<div class="search"><input id="q" placeholder="${ph}" value="${esc(render.q||"")}"><button class="btn" id="qscan" title="Scan a badge QR code with the camera">Scan badge</button><button class="btn" id="qclear">Clear</button></div>`}
+function filterQ(list){const q=(render.q||"").toLowerCase().trim(); if(!q) return list; return list.filter(v=>[v.name,v.ref,v.org,v.host,v.tag,v.agency].join(" ").toLowerCase().includes(q))}
+function head(t,s){return `<div><h1>${t}</h1><p class="sub">${s}</p></div>`}
+
+const V={};
+V.dashboard=()=>{
+  const inside=visitors.filter(v=>v.status==="in"), exp=visitors.filter(v=>["approved"].includes(v.status)&&isToday(v.expected));
+  const wait=visitors.filter(v=>v.status==="tagged"), pend=visitors.filter(v=>v.status==="pending");
+  const exc=visitors.filter(v=>overstay(v)||contractorExpired(v));
+  const tagsOut=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
+  const byB=BUILDINGS.map(b=>[b,inside.filter(v=>v.building===b).length]);
+  const max=Math.max(1,...byB.map(x=>x[1]));
+  const al=alerts();
+  return head("Live overview",`Everything happening across the four stations right now. Updated ${fmtT(now())}.`)+
+  (visitors.some(v=>v.example)?`<div class="banner">These are example records for the demo. <button class="btn" id="clearEx">Remove example records</button></div>`:"")+
+  (db&&!visitors.length?`<div class="note">No visitors recorded yet. Register the first one under <b>Register visitors</b>, or <button class="btn" id="loadEx">Load example records</button> to try the workflow.</div>`:"")+
+  `<div class="kpis">
+    <div class="kpi"><div class="n">${exp.length}</div><div class="l">Expected today</div></div>
+    <div class="kpi"><div class="n">${inside.length}</div><div class="l">On premises</div></div>
+    <div class="kpi"><div class="n">${wait.length}</div><div class="l">Waiting for host</div></div>
+    <div class="kpi"><div class="n">${pend.length}</div><div class="l">Pending approvals</div></div>
+    <div class="kpi"><div class="n">${tagsOut.length}</div><div class="l">Tags issued</div></div>
+    <div class="kpi ${exc.length?"alert":""}"><div class="n">${exc.length}</div><div class="l">Exceptions</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel"><h2>Occupancy by building</h2>
+      <div style="display:flex;flex-direction:column;gap:10px">${byB.map(([b,n])=>`<div><div style="display:flex;justify-content:space-between" class="small"><span>${b}</span><span class="mono">${n}</span></div><div style="height:8px;background:var(--surface2);border-radius:4px"><div style="height:8px;width:${n/max*100}%;background:var(--accent);border-radius:4px"></div></div></div>`).join("")}</div>
+      <h2 style="margin-top:18px">By agency (today)</h2>
+      <div class="tw"><table><tbody>${AGENCIES.map(a=>[a,visitors.filter(v=>v.agency===a&&(isToday(v.expected)||v.status==="in")).length]).filter(x=>x[1]).map(([a,n])=>`<tr><td>${a}</td><td class="mono" style="text-align:right">${n}</td></tr>`).join("")||`<tr><td class="small">No visits today</td></tr>`}</tbody></table></div>
+    </div>
+    <div class="panel"><h2>Alerts and reminders</h2>${alertList()}</div>
+  </div>
+  <div class="panel"><h2>On premises now</h2>${table(inside,v=>B(v.id,"checkout","Check out"),"Nobody is checked in.")}</div>`;
+};
+V.gate=()=>{
+  const list=filterQ(visitors.filter(v=>["approved","pending"].includes(v.status)||(v.status==="arrived")).sort((a,b)=>a.expected-b.expected));
+  return head("Gate reception","Station 1. Confirm the visitor is approved, verify them, and send them to documentation. Walk-ins can be registered here.")+
+  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>v.status==="approved"?B(v.id,"arrive","Verify & admit","pri"):v.status==="pending"?`<span class="small">Awaiting approval</span>`:`<span class="small">Sent to documentation</span>`,"No expected visitors match.")}</div></div>
+  <div class="panel"><h2>Walk-in visitor</h2>${regForm(true)}</div>`;
+};
+V.tagging=()=>{
+  const list=filterQ(visitors.filter(v=>v.status==="arrived"));
+  const out=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
+  return head("Documentation & visitor tags","Station 2. Record the identity document, assign a tag, and print the badge details.")+
+  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>B(v.id,"tag","Document & tag","pri"),"No visitors are waiting for documentation.")}</div></div>
+  ${tagSheetPanel()}
+  <div class="panel"><h2>Tags in circulation <span class="cnt">${out.length}</span></h2>${out.length?`<div class="tw"><table><thead><tr><th>Tag</th><th>Holder</th><th>Issued</th><th>Status</th></tr></thead><tbody>${out.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="mono">${fmtT(v.taggedAt||v.arrivedAt)}</td><td>${pill(v)} <button class="btn" data-print="${esc(v.id)}">Print badge</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags are returned.</div>`}</div>`;
+};
+V.reception=()=>{
+  const wait=filterQ(visitors.filter(v=>v.status==="tagged")), inside=filterQ(visitors.filter(v=>v.status==="in"));
+  return head("Internal reception","Station 3, Main UN House Building. Notify hosts, check visitors in, and collect tags on departure.")+
+  `<div class="panel">${searchBox()}</div>
+  <div class="panel"><h2>Waiting for host <span class="cnt">${wait.length}</span></h2>${table(wait,v=>(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Mark host notified"))+mailPill(v)+B(v.id,"checkin","Check in","ok"),"Nobody is waiting.")}</div>
+  <div class="panel"><h2>Checked in</h2>${table(inside,v=>B(v.id,"checkout","Check out & collect tag"),"Nobody is checked in.")}</div>`;
+};
+V.vip=()=>{
+  const list=filterQ(visitors.filter(v=>v.type==="vip"&&["approved","arrived","in","pending"].includes(v.status)));
+  return head("VIP gate","Station 4, tablet. Verify the guest against the approved list and record their movement.")+
+  `<div class="panel">${searchBox("Search VIP name or reference")}</div>
+  <div style="display:flex;flex-direction:column;gap:10px">${list.length?list.map(v=>`<div class="vcard"><div><div class="nm">${esc(v.name)}</div><div class="small">${esc(v.org)} · Host: ${esc(v.host)} · Expected ${fmtT(v.expected)}</div><div style="margin-top:6px">${pill(v)} <span class="ref">${esc(v.ref)}</span></div></div><div class="acts">${
+    v.status==="approved"?B(v.id,"vipadmit","Verify & admit","ok"):v.status==="in"?B(v.id,"checkout","Record exit"):v.status==="pending"?`<span class="pill p-pending">Not yet approved. Do not admit.</span>`:""}</div></div>`).join(""):`<div class="panel empty">No VIP guests expected.</div>`}</div>`;
+};
+function regForm(walkin){
+  return `<form id="reg"><div class="fields">
+   <div class="f"><label for="r_name">Full name</label><input id="r_name" required></div>
+   <div class="f"><label for="r_org">Organisation</label><input id="r_org"></div>
+   <div class="f"><label for="r_vemail">Visitor email (for their digital pass)</label><input id="r_vemail" type="email"></div>
+   <div class="f"><label for="r_phone">Phone</label><input id="r_phone" inputmode="tel"></div>
+   <div class="f"><label for="r_type">Visitor type</label><select id="r_type"><option value="visitor">Visitor</option><option value="vip">VIP</option><option value="contractor">Contractor</option></select></div>
+   <div class="f"><label for="r_host">Host (staff member)</label><input id="r_host" required></div>
+   <div class="f"><label for="r_hostEmail">Host email (for arrival alerts)</label><input id="r_hostEmail" type="email" value="${esc(fb&&me&&me.role==="host"?me.email:"")}"></div>
+   <div class="f"><label for="r_agency">Host agency</label><select id="r_agency">${AGENCIES.map(a=>`<option>${a}</option>`).join("")}</select></div>
+   <div class="f"><label for="r_building">Building</label><select id="r_building">${BUILDINGS.map(a=>`<option>${a}</option>`).join("")}</select></div>
+   <div class="f"><label for="r_when">Expected arrival</label><input id="r_when" type="datetime-local"></div>
+   <div class="f"><label for="r_to">Contractor access until</label><input id="r_to" type="date"></div>
+   <div class="f"><label for="r_group">Group / delegation (optional)</label><input id="r_group"></div>
+   <div class="f" style="grid-column:1/-1"><label for="r_purpose">Purpose of visit</label><input id="r_purpose"></div>
+   <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_restricted" type="checkbox" style="width:auto"><label for="r_restricted" style="margin:0">Needs access to a restricted area (sends for approval)</label></div>
+  </div><div class="acts" style="margin-top:14px"><button class="btn pri" type="submit">${walkin?"Register walk-in":"Register visitor"}</button></div>
+  <p class="small">VIPs, contractors and restricted-area visits go to Approvals. Only name, organisation, host and purpose are collected; ID scans are not stored.</p></form>`;
+}
+V.register=()=>head("Register visitors","Register one visitor, send a guest a link to fill in their own details, or upload a list.")+inviteView()+
+  `<div class="panel"><h2>Single visitor</h2>${regForm(false)}</div>
+   <div class="panel"><h2>Bulk registration</h2><p class="small">Upload a CSV, a PDF, or a photo or scan of a printed list. One visitor per line, in this order: name, organisation, host, agency, type, expected date and time, purpose. You check every row before anything is registered. ${fb&&features.handwriting?"For handwritten lists, tick the box first.":"Handwritten lists need the AI reader, which an administrator can switch on."}</p>
+   ${fb&&features.handwriting?`<label class="small" style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="checkbox" id="hwList" style="width:auto"> This list is handwritten (read by the AI service)</label>`:""}<div class="acts"><input type="file" id="csv" accept=".csv,text/csv,.pdf,application/pdf,image/png,image/jpeg,image/webp" style="max-width:340px"></div><div id="csvOut" class="small" style="margin-top:8px" aria-live="polite"></div><div id="bulkReview"></div></div>`;
+V.approvals=()=>{
+  const pend=visitors.filter(v=>v.status==="pending"), done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,12);
+  return head("Approvals","VIPs, contractors and restricted-area access. You cannot approve a request you made yourself.")+
+  `<div class="panel"><h2>Pending <span class="cnt">${pend.length}</span></h2>${table(pend,v=>{const own=ownRequest(v);return own?`<span class="small">Your request. Another officer must decide.</span>`:B(v.id,"approve","Approve","ok")+B(v.id,"reject","Reject","bad")},"Nothing waiting for approval.")}</div>
+  <div class="panel"><h2>Recent decisions</h2>${done.length?`<div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>${done.map(v=>`<tr><td class="ref">${esc(v.ref)}</td><td>${esc(v.name)}</td><td>${v.status==="rejected"?'<span class="pill p-rejected">Rejected</span>':'<span class="pill p-approved">Approved</span>'}</td><td>${esc(v.decidedBy)}</td><td class="mono">${fmtD(v.decidedAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No decisions yet.</div>`}</div>`;
+};
+V.contractors=()=>{
+  const list=filterQ(visitors.filter(v=>v.type==="contractor"));
+  return head("Contractors","Time-limited access by building and date. Suspend access immediately when needed.")+
+  `<div class="panel">${searchBox()}</div><div class="panel"><div class="tw"><table><thead><tr><th>Contractor</th><th>Building</th><th>Access window</th><th>Status</th><th>Action</th></tr></thead><tbody>${list.map(v=>`<tr><td><b>${esc(v.name)}</b><div class="small">${esc(v.org)} · ${esc(v.ref)}</div></td><td>${esc(v.building)}</td><td class="mono">${v.accessFrom?new Date(v.accessFrom).toLocaleDateString():"—"} → ${v.accessTo?new Date(v.accessTo).toLocaleDateString():"—"} ${contractorExpired(v)?'<span class="pill p-rejected">Expired</span>':contractorExpiring(v)?'<span class="pill p-pending">Expiring</span>':""}</td><td>${pill(v)}</td><td><div class="acts">${v.status==="suspended"?B(v.id,"reinstate","Reinstate"):B(v.id,"suspend","Suspend","bad")}${B(v.id,"extend","Extend 7 days")}</div></td></tr>`).join("")||`<tr><td colspan="5" class="empty">No contractors registered.</td></tr>`}</tbody></table></div></div>`;
+};
+V.history=()=>{
+  const list=filterQ([...visitors].sort((a,b)=>(b.expected||0)-(a.expected||0)));
+  const ev=visitors.flatMap(v=>(v.log||[]).map(l=>({...l,name:v.name,ref:v.ref}))).sort((a,b)=>b.t-a.t).slice(0,80);
+  const wk=now()-7*864e5, mo=now()-30*864e5;
+  const cnt=t=>visitors.filter(v=>(v.arrivedAt||0)>=t).length;
+  return head("History & audit","Searchable visitor history and a record of every registration, decision, check-in and check-out.")+
+  `<div class="kpis"><div class="kpi"><div class="n">${cnt(today0())}</div><div class="l">Arrivals today</div></div><div class="kpi"><div class="n">${cnt(wk)}</div><div class="l">Last 7 days</div></div><div class="kpi"><div class="n">${cnt(mo)}</div><div class="l">Last 30 days</div></div><div class="kpi"><div class="n">${visitors.length}</div><div class="l">Total records</div></div></div>
+  <div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>B(v.id,"detail","Details"),"No records match.")}</div>
+  <div class="acts" style="margin-top:10px"><button class="btn" id="copyCsv">Copy report as CSV</button></div></div>
+  ${fb&&["admin","approver"].includes(myRole())?`<div class="panel"><h2>Server audit trail</h2><p class="small">Written by the server for every change. Staff cannot edit or delete these entries.</p>${serverAudit.length?`<div class="tw"><table><thead><tr><th>Time</th><th>Visitor</th><th>Change</th><th>By (verified)</th></tr></thead><tbody>${serverAudit.map(a=>`<tr><td class="mono">${a.at&&a.at.toMillis?fmtD(a.at.toMillis()):"…"}</td><td>${esc(a.visitorName)} <span class="ref">${esc(a.ref)}</span></td><td>${esc(a.action)}${a.statusFrom!==a.statusTo?`: ${esc(STATUS[a.statusFrom]||a.statusFrom||"new")} → ${esc(STATUS[a.statusTo]||a.statusTo||"removed")}`:""}<div class="small">${esc(Object.keys(a.changes||{}).join(", "))}</div>${a.clientNoteMatchesActor===false?'<span class="pill p-rejected">Log entry did not match the signed-in user</span>':""}</td><td>${a.actor?esc(a.actor.name)+'<div class="small">'+esc(ROLES[a.actor.role]||a.actor.role)+" · "+esc(a.actor.email)+"</div>":esc(a.actorType)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No server entries yet. They appear here once the audit function is switched on.</div>`}</div>`:""}
+  <div class="panel"><h2>Activity log</h2><div class="tw"><table><thead><tr><th>Time</th><th>Action</th><th>Visitor</th><th>By</th><th>Station</th></tr></thead><tbody>${ev.map(e=>`<tr><td class="mono">${fmtD(e.t)}</td><td>${esc(e.a)}</td><td>${esc(e.name)} <span class="ref">${esc(e.ref)}</span></td><td>${esc(e.by)}</td><td class="small">${esc(e.st)}</td></tr>`).join("")}</tbody></table></div></div>`;
+};
+const aiReady=()=>sample||(fb&&features.ai);
+V.assistant=()=>head("Operations assistant","Ask about recent and current visitors in plain English. Every question is recorded in the audit trail.")+
+  `<div class="panel chat">${!aiReady()?`<div class="note">The assistant is switched off. An administrator can turn it on under Staff & roles once UN data protection approves it. The reminders below always work.</div>`:""}
+   <div class="search"><input id="ask" placeholder="e.g. Who is still on site from UNICEF?"><button class="btn pri" id="askBtn" ${aiReady()?"":"disabled"}>Ask</button></div>
+   <div class="acts">${["Who is overstaying?","Which contractors expire this week?","Summarise today's visits by agency","Who is waiting for their host?"].map(q=>`<button class="btn" data-q="${esc(q)}" ${aiReady()?"":"disabled"}>${q}</button>`).join("")}</div>
+   ${chat.map(c=>`<div><div class="small"><b>${esc(c.q)}</b></div><div class="ans">${esc(c.a)}</div></div>`).join("")}
+  </div><div class="panel"><h2>Automatic reminders</h2>${alertList()}</div>`;
+
+function render(){
+  if(fb&&(!me||me.role==="pending"||me.active===false)) return;
+  V.staff=staffView;
+  if(!canView(view)) view=defaultView();
+  renderNav();
+  $("#main").innerHTML=V[view]();
+  wire();
+}
+function wire(){
+  const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
+  const ib=$("#invNew"); if(ib) ib.onclick=createInvite;
+  const tsg=$("#ts_go"); if(tsg) tsg.onclick=printTagSheet;
+  document.querySelectorAll("[data-inv-use]").forEach(b=>b.onclick=()=>useInvite(invites.find(i=>i.id===b.dataset.invUse)));
+  document.querySelectorAll("[data-inv-cancel]").forEach(b=>b.onclick=()=>db.collection("invites").doc(b.dataset.invCancel).update({status:"cancelled"}).then(()=>toast("Invite cancelled.")).catch(e=>toast("Could not cancel: "+e.message)));
+  document.querySelectorAll("[data-inv-copy]").forEach(b=>b.onclick=()=>copyText(inviteUrl(b.dataset.invCopy)));
+  document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>printBadge(visitors.find(v=>v.id===b.dataset.print)));
+  const q=$("#q"); if(q){ q.onkeydown=e=>{if(e.key==="Enter"&&q.value.trim().startsWith(PASS_PREFIX)){const t=q.value.trim();render.q="";handleScan(t)}};q.oninput=()=>{render.q=q.value;const p=q.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)};$("#qclear").onclick=()=>{render.q="";render()}}
+  document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{b.classList.add("sent");return doAct(b.dataset.act,visitors.find(v=>v.id===b.dataset.id))});
+  const f=$("#reg"); if(f) f.onsubmit=e=>{e.preventDefault();register()};
+  const c=$("#csv"); if(c){ c.onchange=bulk; renderBulk(); }
+  const ce=$("#clearEx"); if(ce) ce.onclick=clearExamples;
+  const le=$("#loadEx"); if(le) le.onclick=async()=>{for(const v of sampleData()) await save({...v,requestedByUid:v.requestedByUid||"example",restricted:!!v.restricted});toast("Example records loaded")};
+  const fs_=$("#ft_save"); if(fs_) fs_.onclick=async()=>{const on=$("#ft_ai").checked||$("#ft_hw").checked, note=$("#ft_note").value.trim();
+    if(on&&!note) return toast("Enter the approval reference before turning these on.");
+    try{await db.collection("config").doc("features").set({ai:$("#ft_ai").checked,handwriting:$("#ft_hw").checked,approvalNote:note,updatedBy:me.uid,updatedAt:now()});toast("Feature settings saved.")}catch(e){toast("Could not save: "+e.message)}};
+  document.querySelectorAll("[data-role]").forEach(s=>s.onchange=()=>setStaff(s.dataset.role,{role:s.value}));
+  document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const s=staffList.find(x=>x.uid===b.dataset.toggle);setStaff(s.uid,{active:s.active===false})});
+  const cc=$("#copyCsv"); if(cc) cc.onclick=copyCsv;
+  const ab=$("#askBtn"); if(ab) ab.onclick=()=>ask($("#ask").value);
+  const ai=$("#ask"); if(ai) ai.onkeydown=e=>{if(e.key==="Enter")ask(ai.value)};
+  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>ask(b.dataset.q));
+}
+async function clearExamples(){
+  const ex=visitors.filter(v=>v.example);
+  visitors=visitors.filter(v=>!v.example);
+  if(db) for(const v of ex){try{await db.collection("visitors").doc(v.id).delete()}catch(e){}}
+  toast("Example records removed");render();
+}
+
+async function register(){
+  const g=id=>$("#"+id).value.trim();
+  const type=g("r_type"), restricted=$("#r_restricted").checked;
+  const ref=newRef(), when=g("r_when")?new Date(g("r_when")).getTime():now();
+  const needs=type!=="visitor"||restricted;
+  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),purpose:g("r_purpose"),restricted,requestedBy:op(),requestedByUid:myUid(),status:needs?"pending":"approved",log:[]};
+  if(type==="contractor"){v.accessFrom=today0();v.accessTo=g("r_to")?new Date(g("r_to")).getTime()+864e5-1:today0()+864e5-1}
+  await act(v,needs?"Registered; sent for approval":"Registered and approved");
+  toast(`${v.name} registered as ${ref}${needs?". Sent for approval.":"."}`);
+}
+/* ---------- bulk upload: CSV, typed PDF, scanned PDF or photo → review → register ---------- */
+let bulkRows=[], bulkFile="", bulkGroup="";
+const loaded={};
+function loadScript(src){return loaded[src]||(loaded[src]=new Promise((ok,no)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=()=>no(new Error("Could not load "+src));document.head.appendChild(s)}))}
+const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", PDFJS_W="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const TESS="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js";
+function bulkStatus(m){const o=$("#csvOut");if(o)o.textContent=m}
+async function pdfLines(buf){
+  await loadScript(PDFJS); pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS_W;
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise; const lines=[];
+  for(let p=1;p<=pdf.numPages;p++){
+    bulkStatus(`Reading page ${p} of ${pdf.numPages}…`);
+    const tc=await (await pdf.getPage(p)).getTextContent(); const rows={};
+    tc.items.forEach(it=>{if(!it.str.trim())return;const y=Math.round(it.transform[5]/3);(rows[y]=rows[y]||[]).push({x:it.transform[4],w:it.width,s:it.str})});
+    Object.keys(rows).sort((a,b)=>b-a).forEach(y=>{const its=rows[y].sort((a,b)=>a.x-b.x);let line="",end=null;
+      its.forEach(it=>{if(end!==null)line+=(it.x-end>10?"\t":" ");line+=it.s.trim();end=it.x+it.w});lines.push(line)});
+  }
+  return {lines,pdf};
+}
+async function ocrCanvasOrImage(srcs){
+  await loadScript(TESS); bulkStatus("Starting text recognition (first time takes a few seconds)…");
+  const w=await Tesseract.createWorker("eng",1,{logger:m=>{if(m.status==="recognizing text")bulkStatus(`Recognising text… ${Math.round(m.progress*100)}%`)}});
+  await w.setParameters({preserve_interword_spaces:"1"});
+  const lines=[];
+  for(const s of srcs){const r=await w.recognize(s); r.data.text.split(/\n/).forEach(l=>lines.push(l.replace(/ {3,}/g,"\t")))}
+  await w.terminate(); return lines;
+}
+async function scannedPdfLines(pdf){
+  const canv=[];
+  for(let p=1;p<=Math.min(pdf.numPages,10);p++){const pg=await pdf.getPage(p);const vp=pg.getViewport({scale:2});const c=document.createElement("canvas");c.width=vp.width;c.height=vp.height;await pg.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;canv.push(c)}
+  return ocrCanvasOrImage(canv);
+}
+function splitLine(l){
+  if(l.includes("\t")) return l.split("\t");
+  if(l.includes("|")) return l.split("|");
+  if(l.includes(",")) return l.split(",");
+  return l.split(/\s{2,}/);
+}
+function toRows(lines){
+  const rows=[];
+  lines.map(l=>l.trim()).filter(Boolean).forEach(l=>{
+    const c=splitLine(l).map(s=>s.trim().replace(/^"|"$/g,"")).filter((s,i,a)=>s||i<a.length-1);
+    if(!c[0]||/^(s\/?n|no\.?|#)?\s*(full\s*)?name\b/i.test(c.join(" "))&&rows.length===0) return; // header
+    if(/^\d+\.?$/.test(c[0])) c.shift(); // leading row numbers from printed lists
+    const emailIdx=c.findIndex(x=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(x));
+    const hostEmail=emailIdx>=0?c.splice(emailIdx,1)[0].toLowerCase():"";
+    const typeIdx=c.findIndex(x=>/^(visitor|vip|contractor)$/i.test(x));
+    const dateIdx=c.findIndex(x=>/\d{4}-\d{2}-\d{2}|\d{1,2}[\/.]\d{1,2}[\/.]\d{2,4}|\b\d{1,2}:\d{2}\b/.test(x));
+    const rest=c.filter((_,i)=>i!==typeIdx&&i!==dateIdx);
+    rows.push({hostEmail,name:rest[0]||"",org:rest[1]||"",host:rest[2]||"",agency:AGENCIES.find(a=>a.toLowerCase()===(rest[3]||"").toLowerCase())||rest[3]||"",
+      type:typeIdx>=0?c[typeIdx].toLowerCase():"visitor",expected:dateIdx>=0?parseWhen(c[dateIdx]):"",purpose:rest.slice(4).join(" ")});
+  });
+  return rows;
+}
+function parseWhen(s){
+  let m=s.match(/(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  if(m) return `${m[1]}-${m[2]}-${m[3]}T${(m[4]||"09").padStart(2,"0")}:${m[5]||"00"}`;
+  m=s.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})(?:\s+(\d{1,2}):(\d{2}))?/);
+  if(m){const y=m[3].length===2?"20"+m[3]:m[3];return `${y}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}T${(m[4]||"09").padStart(2,"0")}:${m[5]||"00"}`} // day/month/year, as used in Nigeria
+  m=s.match(/\b(\d{1,2}):(\d{2})\b/);
+  if(m){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}T${m[1].padStart(2,"0")}:${m[2]}`}
+  return "";
+}
+async function bulk(e){
+  const file=e.target.files[0]; if(!file) return; bulkFile=file.name; bulkRows=[]; renderBulk();
+  const hw=$("#hwList")&&$("#hwList").checked;
+  try{
+    if(hw&&/^(image\/|application\/pdf)/.test(file.type)){
+      if(file.size>6e6) return bulkStatus("The file is over 6 MB. Take a smaller photo or split the PDF.");
+      bulkStatus("Reading the handwritten list…");
+      const data=await new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=no;r.readAsDataURL(file)});
+      const out=await callFn("readList",{mime:file.type,data});
+      bulkRows=(out.rows||[]).map(r=>({name:r.name||"",org:r.org||"",host:r.host||"",hostEmail:r.hostEmail||"",agency:r.agency||"",type:["vip","contractor"].includes(r.type)?r.type:"visitor",expected:r.expected||"",purpose:(r.uncertain?"[check] ":"")+(r.purpose||"")}));
+      bulkStatus(bulkRows.length?`Read ${bulkRows.length} rows. Rows marked [check] were hard to read. Compare every row with the paper list.`:"No rows could be read. Try a clearer, straighter photo.");
+      return renderBulk();
+    }
+    let lines;
+    if(/\.csv$|text\/csv/i.test(file.name+" "+file.type)) lines=(await file.text()).split(/\r?\n/);
+    else if(/pdf/i.test(file.type)||/\.pdf$/i.test(file.name)){
+      const {lines:l,pdf}=await pdfLines(await file.arrayBuffer());
+      lines=l.join("").replace(/\s/g,"").length<20?(bulkStatus("This PDF is a scan. Recognising text…"),await scannedPdfLines(pdf)):l;
+    } else if(/^image\//.test(file.type)) lines=await ocrCanvasOrImage([file]);
+    else return bulkStatus("Use a CSV, PDF, or a photo or scan (JPG or PNG).");
+    bulkRows=toRows(lines);
+    bulkStatus(bulkRows.length?`Found ${bulkRows.length} rows in ${file.name}. Check them below, then register.`:`No visitor rows found in ${file.name}. Check the file is a list with one visitor per line.`);
+    renderBulk();
+  }catch(x){bulkStatus("Could not read the file: "+x.message)}
+}
+function renderBulk(){
+  const el=$("#bulkReview"); if(!el) return;
+  if(!bulkRows.length){el.innerHTML="";return}
+  const bad=r=>!r.name.trim()||!r.host.trim();
+  el.innerHTML=`<div class="note" style="margin-top:12px">Text read from scans can contain mistakes. Check every name and time before registering. Rows missing a name or host are highlighted.</div>
+  <div class="tw" style="margin-top:10px"><table><thead><tr><th>Name</th><th>Organisation</th><th>Host</th><th>Host email</th><th>Agency</th><th>Type</th><th>Expected</th><th>Purpose</th><th></th></tr></thead><tbody>
+  ${bulkRows.map((r,i)=>`<tr style="${bad(r)?"background:var(--warn-bg)":""}">
+    <td><input data-b="${i}" data-k="name" value="${esc(r.name)}" aria-label="Name row ${i+1}"></td>
+    <td><input data-b="${i}" data-k="org" value="${esc(r.org)}" aria-label="Organisation row ${i+1}"></td>
+    <td><input data-b="${i}" data-k="host" value="${esc(r.host)}" aria-label="Host row ${i+1}"></td>
+    <td><input type="email" data-b="${i}" data-k="hostEmail" value="${esc(r.hostEmail||"")}" aria-label="Host email row ${i+1}"></td>
+    <td><input data-b="${i}" data-k="agency" value="${esc(r.agency)}" list="agencyList" aria-label="Agency row ${i+1}"></td>
+    <td><select data-b="${i}" data-k="type" aria-label="Type row ${i+1}">${["visitor","vip","contractor"].map(t=>`<option ${r.type===t?"selected":""}>${t}</option>`).join("")}</select></td>
+    <td><input type="datetime-local" data-b="${i}" data-k="expected" value="${esc(r.expected)}" aria-label="Expected row ${i+1}"></td>
+    <td><input data-b="${i}" data-k="purpose" value="${esc(r.purpose)}" aria-label="Purpose row ${i+1}"></td>
+    <td><button class="btn bad" data-bdel="${i}" aria-label="Remove row ${i+1}">Remove</button></td></tr>`).join("")}
+  </tbody></table></div><datalist id="agencyList">${AGENCIES.map(a=>`<option>${a}</option>`).join("")}</datalist>
+  <div class="f" style="margin-top:12px;max-width:340px"><label for="bulkGroup">Delegation or group name (optional, for one group pass)</label><input id="bulkGroup" value="${esc(bulkGroup)}" placeholder="e.g. Ministry of Health delegation"></div>
+  <div class="acts" style="margin-top:12px"><button class="btn pri" id="bulkGo">Register ${bulkRows.filter(r=>!bad(r)).length} visitors</button><button class="btn" id="bulkCancel">Discard</button>
+  ${bulkRows.some(bad)?`<span class="small">${bulkRows.filter(bad).length} highlighted rows will be skipped.</span>`:""}</div>`;
+  el.querySelectorAll("[data-b]").forEach(inp=>inp.onchange=()=>{bulkRows[+inp.dataset.b][inp.dataset.k]=inp.value;if(["name","host"].includes(inp.dataset.k))renderBulk()});
+  el.querySelectorAll("[data-bdel]").forEach(b=>b.onclick=()=>{bulkRows.splice(+b.dataset.bdel,1);renderBulk()});
+  $("#bulkGroup").oninput=e=>bulkGroup=e.target.value;
+  $("#bulkCancel").onclick=()=>{bulkRows=[];renderBulk();bulkStatus("Discarded.");$("#csv").value=""};
+  $("#bulkGo").onclick=async()=>{
+    $("#bulkGo").setAttribute("disabled",""); let n=0;
+    for(const r of bulkRows.filter(r=>!bad(r))){
+      const ref=newRef()+n;
+      const v={id:ref,ref,name:r.name.trim(),org:r.org.trim(),host:r.host.trim(),hostEmail:(r.hostEmail||"").trim().toLowerCase(),agency:r.agency.trim()||"Common Services",type:r.type,
+        expected:r.expected?new Date(r.expected).getTime():now(),purpose:r.purpose.trim(),group:bulkGroup.trim(),building:BUILDINGS[0],restricted:false,
+        requestedBy:op(),requestedByUid:myUid(),status:r.type==="visitor"?"approved":"pending",log:[]};
+      if(r.type==="contractor"){v.accessFrom=today0();v.accessTo=today0()+864e5-1}
+      await act(v,"Bulk registered from "+bulkFile); n++;
+    }
+    bulkRows=[]; renderBulk(); bulkStatus(""); toast(`${n} visitors registered from ${bulkFile}`);
+  };
+}
+function modal(html,onOk){
+  const m=$("#modal"); m.innerHTML=`<div class="modal">${html}<div class="acts"><button class="btn pri" id="mOk">Confirm</button><button class="btn" id="mNo">Cancel</button></div></div>`; m.hidden=false;
+  $("#mNo").onclick=()=>m.hidden=true; $("#mOk").onclick=()=>{const r=onOk(); if(r!==false) m.hidden=true};
+  const first=m.querySelector("input,select"); (first||$("#mOk")).focus();
+}
+function doAct(a,v){
+  if(!v) return;
+  if(a==="pass") return openPass(v);
+  if(a==="grouppass") return openGroupPass(v);
+  if(a==="arrive") return act(v,"Verified at gate",{status:"arrived",arrivedAt:now()}).then(()=>toast(`${v.name} admitted. Send to documentation.`));
+  if(a==="vipadmit") return act(v,"VIP verified and admitted at VIP gate",{status:"in",arrivedAt:now(),inAt:now(),hostNotified:now()}).then(()=>toast(`${v.name} admitted. ${v.host} notified.`));
+  if(a==="notify") return act(v,`Host ${v.host} notified of arrival`,{hostNotified:now()}).then(()=>toast(`${v.host} notified that ${v.name} is waiting.`));
+  if(a==="checkin") return act(v,"Checked in at internal reception",{status:"in",inAt:now()}).then(()=>toast(`${v.name} checked in.`));
+  if(a==="suspend") return act(v,"Contractor access suspended",{status:"suspended",prevStatus:v.status}).then(()=>toast(`${v.name}'s access suspended.`));
+  if(a==="reinstate") return act(v,"Contractor access reinstated",{status:v.prevStatus&&v.prevStatus!=="suspended"?v.prevStatus:"approved"});
+  if(a==="extend") return act(v,"Contractor access extended 7 days",{accessTo:Math.max(v.accessTo||now(),now())+7*864e5}).then(()=>toast("Access extended by 7 days."));
+  if(a==="approve"||a==="reject"){ if(ownRequest(v)) return toast("You cannot decide on your own request.");
+    return act(v,a==="approve"?"Approved":"Rejected",{status:a==="approve"?"approved":"rejected",decidedBy:op(),decidedByUid:myUid(),decidedAt:now()}).then(()=>toast(`${v.name} ${a==="approve"?"approved":"rejected"}.`)); }
+  if(a==="tag"){
+    const used=new Set(visitors.filter(x=>x.tag&&["tagged","in"].includes(x.status)).map(x=>x.tag));
+    const pre=v.type==="contractor"?"C":v.type==="vip"?"P":"V"; let i=1; while(used.has(pre+"-"+String(i).padStart(3,"0"))) i++;
+    modal(`<h2>Document & tag ${esc(v.name)}</h2>
+      <div class="f"><label for="m_id">ID document checked</label><select id="m_id"><option>National ID (NIN)</option><option>International passport</option><option>Driver's licence</option><option>Staff / agency ID</option><option>Other</option></select></div>
+      <div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_print" style="width:auto" ${passFor(v)?"":"checked"}><label for="m_print">Print a paper badge${passFor(v)?" (visitor has a digital pass)":""}</label></div>
+      <div class="f"><label for="m_tag">Tag number</label><input id="m_tag" value="${pre}-${String(i).padStart(3,"0")}"></div>
+      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · ${fmtD(now())}</div></div>`,
+      ()=>{const tag=$("#m_tag").value.trim(), printIt=$("#m_print").checked; if(!tag) return false; if(used.has(tag)){toast(`Tag ${tag} is already issued.`);return false}
+        act(v,`Documented (${$("#m_id").value}); tag ${tag} issued`,{status:"tagged",tag,idType:$("#m_id").value,taggedAt:now()}).then(()=>{toast(`Tag ${tag} issued to ${v.name}.`);if(printIt)printBadge({...v,tag,taggedAt:now()})})});
+    return;
+  }
+  if(a==="checkout"){
+    const pad=n=>String(n).padStart(2,"0"), d=new Date(), nowHM=`${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    modal(`<h2>Check out ${esc(v.name)}</h2><p class="small">Inside since ${fmtT(v.inAt)}.${v.tag?` Collect tag <b class="mono">${esc(v.tag)}</b>.`:""}</p>
+      <div class="f"><label for="m_out">Time of check-out</label><input type="time" id="m_out" value="${nowHM}"><span class="small">Change it only if the visitor left earlier than now.</span></div>
+      <div id="m_err" class="small" style="color:var(--bad)"></div>
+      ${v.tag?`<div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_ret" checked style="width:auto"><label for="m_ret">Tag returned</label></div>`:""}`,
+      ()=>{const [h,m]=($("#m_out").value||nowHM).split(":").map(Number); const t=new Date(); t.setHours(h,m,0,0); let out=t.getTime();
+        if(out>now()+60000){$("#m_err").textContent="The check-out time can't be in the future.";return false}
+        if(v.inAt&&out<v.inAt){$("#m_err").textContent=`The check-out time can't be before check-in (${fmtT(v.inAt)}).`;return false}
+        const late=now()-out>5*60000, ret=$("#m_ret")?$("#m_ret").checked:true;
+        act(v,`Checked out at ${fmtT(out)}${late?` (recorded at ${fmtT(now())})`:""}${v.tag?(ret?`; tag ${v.tag} returned`:`; tag ${v.tag} NOT returned`):""}`,{status:"out",outAt:out,outRecordedAt:now(),tagReturned:ret,tag:ret?"":v.tag}).then(()=>toast(`${v.name} checked out at ${fmtT(out)}.`))});
+    return;
+  }
+  if(a==="detail"){
+    const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:560px"><h2>${esc(v.name)} ${tpill(v)}</h2><div class="small">${esc(v.org)} · <span class="ref">${esc(v.ref)}</span> · ${pill(v)}</div><div class="small">Host ${esc(v.host)} (${esc(v.agency)}) · ${esc(v.building)} · ${esc(v.purpose)}</div><div class="tw" style="max-height:300px;overflow:auto"><table><tbody>${(v.log||[]).slice().reverse().map(l=>`<tr><td class="mono">${fmtD(l.t)}</td><td>${esc(l.a)}<div class="small">${esc(l.by)} · ${esc(l.st)}</div></td></tr>`).join("")}</tbody></table></div><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
+    m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; $("#mNo").focus();
+  }
+}
+async function copyCsv(){
+  const cols=["ref","name","org","type","host","agency","building","status","tag","expected","arrivedAt","inAt","outAt"];
+  const csv=[cols.join(",")].concat(visitors.map(v=>cols.map(c=>{let x=v[c]??"";if(/At$|expected/.test(c)&&x)x=new Date(x).toISOString();return '"'+String(x).replace(/"/g,'""')+'"'}).join(","))).join("\n");
+  try{await navigator.clipboard.writeText(csv);toast("Report copied. Paste it into Excel.")}catch(e){modal(`<h2>Copy the report</h2><textarea id="m_csv" style="min-height:200px">${esc(csv)}</textarea>`,()=>{});setTimeout(()=>$("#m_csv").select(),0)}
+}
+async function ask(q){
+  q=(q||"").trim(); if(!q||!aiReady()) return;
+  if(!sample){ const entry={q,a:"Thinking…"}; chat.unshift(entry); render();
+    try{ entry.a=(await callFn("assistant",{q})).text||"No answer."; }catch(e){ entry.a=e.message; }
+    return render(); }
+  const ctx=visitors.map(v=>({ref:v.ref,name:v.name,org:v.org,type:v.type,host:v.host,agency:v.agency,building:v.building,status:STATUS[v.status],tag:v.tag,expected:v.expected&&new Date(v.expected).toISOString(),inAt:v.inAt&&new Date(v.inAt).toISOString(),accessTo:v.accessTo&&new Date(v.accessTo).toISOString(),purpose:v.purpose}));
+  const entry={q,a:"Thinking…"}; chat.unshift(entry); render();
+  try{
+    const r=await sample(`You are the operations assistant for the UN House Abuja visitor management system. Current time: ${new Date().toISOString()}. Overstay threshold: ${OVERSTAY_H} hours. Answer the security officer's question using only these visitor records (JSON). Be brief and factual, use plain text with short lines, name visitors with their reference numbers. If the records do not answer it, say so.\n\nRECORDS:\n${JSON.stringify(ctx)}\n\nQUESTION: ${q}`,{modelTier:"quick",cache:false,onText:({text})=>{entry.a=text;const el=document.querySelector(".ans");if(el)el.textContent=text}});
+    entry.a=r.text;
+  }catch(e){entry.a=e.code==="not_granted"?"The assistant was not allowed on this page.":e.code==="rate_limited"?"Too many questions. Try again in a minute.":"The assistant could not answer: "+(e.message||e.code)}
+  render();
+}
+$("#yr").textContent=new Date().getFullYear();
+const willUseFirebase=window.FIREBASE_CONFIG&&window.firebase&&!/PASTE/.test(window.FIREBASE_CONFIG.apiKey||"");
+if(!willUseFirebase){view=defaultView(); render();} connect();
+setInterval(()=>{if(!$("#modal").hidden||document.activeElement?.tagName==="INPUT")return;render()},60000);
+</script>
+
+</body></html>
