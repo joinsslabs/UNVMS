@@ -21,6 +21,13 @@ service cloud.firestore {
         && request.resource.data.adminUid == request.auth.uid;
     }
 
+    // Site settings: buildings, agencies, overstay hours and the visitor rules wording.
+    // Readable by anyone (the rules are shown to visitors); only admins change them.
+    match /config/settings {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     // Feature switches (AI assistant, handwriting reading). Off unless an admin turns them on.
     match /config/features {
       allow read: if signedIn();

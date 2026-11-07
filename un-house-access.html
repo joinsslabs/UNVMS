@@ -230,6 +230,36 @@ td{vertical-align:middle}
 tbody tr td:first-child{box-shadow:inset 3px 0 0 transparent;transition:box-shadow .15s}
 tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 @media (max-width:900px){.row-acts{flex-wrap:wrap}}
+.sitepick{background:#ffffff1a;color:#fff;border:1px solid #ffffff40;border-radius:8px;padding:6px 8px;font:inherit;width:auto}
+.sitepick option{color:#111;background:#fff}
+/* command centre */
+body.wall-mode .top,body.wall-mode nav,body.wall-mode .appfoot{display:none!important}
+body.wall-mode .wrap{display:block}body.wall-mode main{padding:0!important}
+.wall{background:#0b1426;color:#e8eef8;border-radius:18px;padding:28px;display:flex;flex-direction:column;gap:22px;min-height:70vh}
+body.wall-mode .wall{border-radius:0;min-height:100vh}
+.wall-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px}
+.wall-site{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#8fa4c4}.wall-date{font-size:24px;font-weight:600}
+.wall-clock{font-family:var(--mono);font-size:56px;font-weight:500;letter-spacing:-.02em}
+.wall-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.wall-kpis div{background:#13213a;border-radius:14px;padding:18px 20px;display:flex;flex-direction:column}
+.wall-kpis b{font-size:60px;line-height:1;font-variant-numeric:tabular-nums}.wall-kpis span{color:#8fa4c4;font-size:14px;margin-top:6px;text-transform:uppercase;letter-spacing:.08em}
+.wall-kpis .hot{background:#3b2a00}.wall-kpis .hot b{color:#ffd166}
+.wall-grid{display:grid;grid-template-columns:1fr 1.2fr 1.2fr;gap:14px;flex:1}
+.wall-grid section{background:#13213a;border-radius:14px;padding:18px 20px;min-width:0}
+.wall-grid h3{margin:0 0 12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#8fa4c4}
+.wb{margin-bottom:12px}.wb div{display:flex;justify-content:space-between;font-size:16px}.wb b{font-variant-numeric:tabular-nums}.wb i{display:block;height:8px;margin-top:5px;border-radius:4px;background:#4da3ff;min-width:4px}
+.wv,.wf,.wa{display:flex;flex-direction:column;padding:9px 0;border-top:1px solid #ffffff12;font-size:15px}.wv span,.wf span,.wa span{color:#a9bad3;font-size:13px}
+.wf{display:grid;grid-template-columns:70px 1fr;column-gap:10px}.wf span:last-child{grid-column:2}
+.wa.act b{color:#ffd166}.wa.soon b{color:#7cc4ff}
+@media (max-width:900px){.wall-kpis{grid-template-columns:1fr 1fr}.wall-grid{grid-template-columns:1fr}.wall-clock{font-size:36px}}
+/* guided demo */
+#tour{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;width:min(380px,calc(100vw - 32px));background:var(--surface);color:var(--fg);border-radius:16px;padding:16px 18px;box-shadow:0 20px 50px -15px #0008;border:1px solid var(--line);display:flex;flex-direction:column;gap:8px}
+#tour h3{margin:0;font-size:17px}#tour p{margin:0;font-size:14px;color:var(--muted);line-height:1.5}
+.tour-h{display:flex;justify-content:space-between;align-items:center;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:600}
+.tour-h button{all:unset;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:0 4px}
+.tour-bar{height:4px;background:var(--surface2);border-radius:3px;overflow:hidden}.tour-bar span{display:block;height:100%;background:var(--accent)}
+#tourOpen{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40}
+body.wall-mode #tour,body.wall-mode #tourOpen{display:none!important}
 @keyframes toastIn{from{transform:translateY(16px) scale(.96);opacity:0}}
 .toast::before{content:"";width:18px;height:18px;border-radius:50%;flex:none;background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2.5 6.2 5 8.5 9.5 3.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E") center/12px no-repeat}
 .toast.err::before{background-color:var(--bad);background-image:none}
@@ -280,7 +310,7 @@ const STATIONS={S1:"Reception / Initial Access",S2:"Documentation & Tagging",S3:
 const BUILDINGS=["Main UN House Building","Access Control Building","Annex A","Conference Centre"];
 const AGENCIES=["UNDP","UNICEF","WHO","UNFPA","UNHCR","WFP","UN Women","OCHA","UNDSS","Common Services"];
 const STATUS={cancelled:"Cancelled by host",pending:"Pending approval",approved:"Approved · expected",arrived:"At gate · verified",tagged:"Tagged",in:"Checked in",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
-const OVERSTAY_H=9;
+let OVERSTAY_H=9;
 let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
 try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
 /* ---------- staff, roles and permissions ---------- */
@@ -296,10 +326,10 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
-  gate:["dashboard","gate","register","deliveries","evac","history"], docs:["dashboard","tagging","evac","history"],
-  reception:["dashboard","reception","register","deliveries","kiosk","evac","history"], vip:["dashboard","vip","evac","history"], host:["myguests","register","history"]
+  admin:["wall","settings","dashboard","gate","tagging","reception","vip","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
+  approver:["wall","dashboard","gate","tagging","reception","vip","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
+  gate:["wall","dashboard","gate","register","deliveries","evac","history"], docs:["dashboard","tagging","evac","history"],
+  reception:["wall","dashboard","reception","register","deliveries","kiosk","evac","history"], vip:["dashboard","vip","evac","history"], host:["myguests","register","history"]
 };
 const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","admin"],checkin:["reception","admin"],
   checkout:["reception","vip","gate","admin"],approve:["approver","admin"],reject:["approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
@@ -325,6 +355,8 @@ function toast(m){const t=$("#toast");t.textContent=m;t.classList.toggle("err",/
 /* ---------- data layer: shared db when available, local demo otherwise ---------- */
 async function save(v){
   const i=visitors.findIndex(x=>x.id===v.id);
+  if(i<0&&!v.site) v.site=currentSite==="*"?SETTINGS.sites[0].id:currentSite;
+  if(allVisitors&&allVisitors!==visitors){const j=allVisitors.findIndex(x=>x.id===v.id); if(j>=0) allVisitors[j]=v; else allVisitors.push(v);}
   if(i<0&&!("watchFlag" in v)&&!v.example){const w=watchMatch(v.name); v.watchFlag=!!w; if(w) v.watchReason=w.reason||"Watchlist match";}
   if(i>=0) visitors[i]=v; else visitors.push(v);
   render();
@@ -342,6 +374,8 @@ function act(v,action,extra={}){
   return save(nv);
 }
 async function connect(){
+  const QS=new URLSearchParams(location.search);
+  if(QS.has("demo")&&!QS.get("pass")){ startDemo(); if(QS.has("wall")) enterWall(); return; }
   if(window.FIREBASE_CONFIG&&window.firebase&&!/PASTE/.test(window.FIREBASE_CONFIG.apiKey||"")) return connectFirebase();
   try{ if(window.claude?.use) db=await window.claude.use("db"); }catch(e){db=null}
   if(!db){ visitors=sampleData(); setSync(false,"Demo mode · changes stay on this device"); render(); return; }
@@ -359,7 +393,11 @@ function connectFirebase(){
   firebase.initializeApp(window.FIREBASE_CONFIG);
   fb=firebase; db=firebase.firestore();
   db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
-  const passCode=new URLSearchParams(location.search).get("pass");
+  const QS=new URLSearchParams(location.search);
+  db.collection("config").doc("settings").onSnapshot(s=>{applySettings(s.data());if(me&&me.role!=="pending")render();if(QS.has("rules"))showRules()},()=>{});
+  if(QS.has("rules")){ document.body.classList.add("guest-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(true,"Visitor rules"); return showRules(); }
+  const passCode=QS.get("pass");
+  if(passCode==="demo"){ try{const p=JSON.parse(decodeURIComponent(escape(atob(QS.get("d")||""))));db={collection:()=>({doc:()=>({onSnapshot:f=>{f({exists:true,id:"demo",data:()=>p});return()=>{}}})})}}catch(e){} }
   if(passCode){ document.body.classList.add("guest-mode","pass-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode); }
   const inviteTok=new URLSearchParams(location.search).get("invite");
   if(inviteTok){ document.body.classList.add("guest-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(false,"Visitor pre-registration"); return showInvite(inviteTok); }
@@ -425,7 +463,7 @@ function startData(){
   const q=me.role==="host"?db.collection("visitors").where("requestedByUid","==",me.uid):db.collection("visitors");
   const timer=setTimeout(()=>setSync(false,"Shared records not reachable yet"),10000);
   unsubs.push(q.onSnapshot(snap=>{
-    visitors=snap.docs.map(d=>({...d.data(),id:d.id}));
+    allVisitors=snap.docs.map(d=>({...d.data(),id:d.id})); siteFilter();
     if(!snap.metadata.fromCache){clearTimeout(timer);setSync(true,"Live · all stations synced")}
     render();
   },e=>{clearTimeout(timer);setSync(false,"Sync stopped: "+(e.code==="permission-denied"?"your role can't read these records":e.code))}));
@@ -445,7 +483,9 @@ function startData(){
     serverAudit=s.docs.map(d=>({...d.data(),id:d.id})); if(view==="history") render();
   },()=>{}));
   if(me.role==="admin") unsubs.push(db.collection("staff").onSnapshot(s=>{staffList=s.docs.map(d=>({...d.data(),uid:d.id}));if(view==="staff")render()}));
+  renderSitePicker();
   view=defaultView(); render();
+  if(new URLSearchParams(location.search).has("wall")) enterWall();
 }
 function showGate(title,msg,waiting){
   $("#nav").innerHTML=""; setSync(false,waiting?"Waiting for role":"No access");
@@ -521,6 +561,7 @@ const staffView=()=>{
     <div class="acts"><button class="btn pri" id="ft_save">Save feature settings</button></div>
     ${features.updatedAt?`<span class="small">Last changed ${fmtD(features.updatedAt)}</span>`:""}
    </div></div>
+  <div class="note">Public visitor rules page: <a href="?rules" target="_blank" rel="noopener">${esc(location.origin+location.pathname)}?rules</a>. Put it on a sign at the gate or in emails.</div>
   <div class="note">Role permissions: Gate officers admit approved visitors. Documentation officers issue tags. Receptionists check visitors in and out. VIP gate officers handle VIPs only. Staff hosts see and register only their own guests. Approvers decide approvals (never their own requests) and manage contractors. Administrators do everything and manage staff.</div>`;
 };
 async function setStaff(uid,patch){
@@ -579,7 +620,7 @@ function alertList(limit){
 const VIEWS=[
   ["dashboard","Dashboard"],["gate","Gate reception"],["tagging","Documentation & tags"],["reception","Internal reception"],
   ["vip","VIP gate"],["register","Register visitors"],["approvals","Approvals"],["contractors","Contractors"],
-  ["myguests","My guests"],["deliveries","Deliveries"],["kiosk","Kiosk"],["evac","Evacuation"],["watch","Watchlist"],["reports","Reports"],["history","History & audit"],["assistant","Ops assistant"],["staff","Staff & roles"]
+  ["wall","Command centre"],["myguests","My guests"],["deliveries","Deliveries"],["kiosk","Kiosk"],["evac","Evacuation"],["watch","Watchlist"],["reports","Reports"],["history","History & audit"],["assistant","Ops assistant"],["staff","Staff & roles"],["settings","Settings"]
 ];
 function renderNav(){
   const c={approvals:visitors.filter(v=>v.status==="pending").length,gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
@@ -652,7 +693,7 @@ async function useInvite(i){
 
 /* ---------- digital visitor passes ---------- */
 const PASS_PREFIX="UNHPASS:";
-const passUrl=c=>location.origin+location.pathname+"?pass="+c;
+const passUrl=c=>DEMO?location.origin+location.pathname+"?pass=demo&d="+encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(passes.find(p=>p.id===c)||{}))))):location.origin+location.pathname+"?pass="+c;
 const passLive=s=>["approved","arrived","tagged","in"].includes(s);
 function passFor(v){return passes.find(p=>p.visitorId===v.id&&!p.revoked)}
 function passValidUntil(v){
@@ -1138,6 +1179,180 @@ async function showInvite(tok){
   draw();
 }
 
+/* ================= settings, sites, command centre, demo ================= */
+
+/* ---------- Settings (admin-editable, stored in config/settings) ---------- */
+let SETTINGS={orgName:"UN Common Services",sites:[{id:"abj",name:"UN House Abuja",buildings:BUILDINGS.slice()}]};
+let currentSite=(()=>{try{return localStorage.getItem("site")||"abj"}catch(e){return "abj"}})();
+let allVisitors=null; // every site's visitors; `visitors` holds the current site's
+const siteOf=id=>SETTINGS.sites.find(s=>s.id===id)||SETTINGS.sites[0];
+function applySettings(d){
+  d=d||{};
+  if(Array.isArray(d.sites)&&d.sites.length) SETTINGS.sites=d.sites;
+  if(d.orgName) SETTINGS.orgName=d.orgName;
+  if(Array.isArray(d.agencies)&&d.agencies.length){AGENCIES.length=0;d.agencies.forEach(a=>AGENCIES.push(a))}
+  if(d.overstayHours>0) OVERSTAY_H=d.overstayHours;
+  if(Array.isArray(d.rulesEn)&&d.rulesEn.length){AGREEMENT.en=d.rulesEn;AGREEMENT.version=d.rulesVersion||AGREEMENT.version}
+  if(Array.isArray(d.rulesFr)&&d.rulesFr.length) AGREEMENT.fr=d.rulesFr;
+  if(!SETTINGS.sites.some(s=>s.id===currentSite)&&currentSite!=="*") currentSite=SETTINGS.sites[0].id;
+  setSiteBuildings(); siteFilter(); renderSitePicker();
+}
+function setSiteBuildings(){const b=currentSite==="*"?[...new Set(SETTINGS.sites.flatMap(s=>s.buildings))]:siteOf(currentSite).buildings;BUILDINGS.length=0;b.forEach(x=>BUILDINGS.push(x))}
+function siteFilter(){ if(allVisitors) visitors=currentSite==="*"?allVisitors:allVisitors.filter(v=>(v.site||SETTINGS.sites[0].id)===currentSite); }
+function renderSitePicker(){
+  let p=$("#sitePick"); const show=SETTINGS.sites.length>1&&me&&me.role!=="host";
+  if(!show){if(p)p.remove();return}
+  if(!p){p=document.createElement("select");p.id="sitePick";p.setAttribute("aria-label","Site");p.className="sitepick";$(".top .sp").after(p);p.onchange=()=>{currentSite=p.value;try{localStorage.setItem("site",currentSite)}catch(e){}setSiteBuildings();siteFilter();render()}}
+  p.innerHTML=SETTINGS.sites.map(s=>`<option value="${esc(s.id)}" ${s.id===currentSite?"selected":""}>${esc(s.name)}</option>`).join("")+(["admin","approver"].includes(myRole())?`<option value="*" ${currentSite==="*"?"selected":""}>All sites</option>`:"");
+}
+const VW_settings=()=>{
+  const sitesTxt=SETTINGS.sites.map(s=>`${s.name}: ${s.buildings.join(", ")}`).join("\n");
+  return head("Settings","Adapt the system to your site without changing code. Changes apply to every station straight away.")+
+  `<div class="panel"><h2>Organisation and sites</h2><div style="display:grid;gap:12px">
+    <div class="f"><label for="st_org">Organisation name</label><input id="st_org" value="${esc(SETTINGS.orgName)}"></div>
+    <div class="f"><label for="st_sites">Sites and their buildings: one site per line, as "Site name: Building, Building"</label><textarea id="st_sites" style="min-height:90px">${esc(sitesTxt)}</textarea>
+      <span class="small">Add a line to manage another office, for example "UN Lagos Office: Main Block, Annex". Staff then pick the site at the top of the screen.</span></div></div></div>
+  <div class="panel"><h2>Agencies and rules</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px">
+    <div class="f"><label for="st_ag">Agencies (one per line)</label><textarea id="st_ag" style="min-height:150px">${esc(AGENCIES.join("\n"))}</textarea></div>
+    <div class="f"><label for="st_over">Overstay alert after (hours)</label><input id="st_over" type="number" min="1" max="72" value="${OVERSTAY_H}" style="max-width:120px"></div></div></div>
+  <div class="panel"><h2>Visitor rules and privacy notice</h2><p class="small">Shown to guests on invite links and on the public rules page. One rule per line. Saving creates a new version, recorded against each visitor who accepts it.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:8px">
+    <div class="f"><label for="st_en">English</label><textarea id="st_en" style="min-height:200px">${esc(AGREEMENT.en.join("\n"))}</textarea></div>
+    <div class="f"><label for="st_fr">Français</label><textarea id="st_fr" style="min-height:200px">${esc(AGREEMENT.fr.join("\n"))}</textarea></div></div>
+    <p class="small">Current version: <span class="mono">${esc(AGREEMENT.version)}</span></p></div>
+  <div class="acts"><button class="btn pri" id="st_save">Save settings</button></div>`;
+};
+function wireSettings(){
+  const b=$("#st_save"); if(!b) return;
+  b.onclick=async()=>{
+    const lines=id=>$("#"+id).value.split("\n").map(x=>x.trim()).filter(Boolean);
+    const sites=lines("st_sites").map((l,i)=>{const [n,bs]=l.split(":");const name=(n||"").trim();
+      const id=(SETTINGS.sites.find(s=>s.name===name)||{}).id||(i===0?"abj":name.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,24));
+      return {id,name,buildings:(bs||"").split(",").map(x=>x.trim()).filter(Boolean)}}).filter(s=>s.name&&s.buildings.length);
+    if(!sites.length) return toast("Add at least one site with one building.");
+    const en=lines("st_en"), fr=lines("st_fr"), changed=en.join("|")!==AGREEMENT.en.join("|")||fr.join("|")!==AGREEMENT.fr.join("|");
+    const d={orgName:$("#st_org").value.trim()||"UN Common Services",sites,agencies:lines("st_ag"),overstayHours:Math.max(1,+$("#st_over").value||9),
+      rulesEn:en,rulesFr:fr,rulesVersion:changed?"UNH-"+new Date().toISOString().slice(0,10)+"-"+Date.now().toString(36).slice(-4):AGREEMENT.version,updatedAt:now(),updatedBy:op()};
+    try{await db.collection("config").doc("settings").set(d); applySettings(d); render(); toast("Settings saved."+(changed?" Visitor rules are now version "+d.rulesVersion+".":""))}catch(e){toast("Could not save: "+e.message)}
+  };
+}
+
+/* ---------- Public visitor rules page: app.html?rules ---------- */
+function showRules(){
+  const draw=()=>{$("#main").innerHTML=`${langSwitch()}<div class="panel" style="max-width:620px;width:100%;margin:12px auto"><h1>${LANG==="fr"?"Règles de visite et confidentialité":"Visitor rules and privacy notice"}</h1>
+    <p class="sub">${esc(siteOf(currentSite).name)} · ${LANG==="fr"?"version":"version"} <span class="mono">${esc(AGREEMENT.version)}</span></p>
+    <ol style="line-height:1.6;margin:14px 0 0;padding-left:20px;display:grid;gap:8px">${AGREEMENT[LANG].map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>`; wireLang(draw);};
+  draw();
+}
+
+/* ---------- Command centre wall display ---------- */
+const VW_wall=()=>{
+  const inside=visitors.filter(v=>["arrived","tagged","in"].includes(v.status)), exp=visitors.filter(v=>v.status==="approved"&&isToday(v.expected));
+  const wait=visitors.filter(v=>v.status==="tagged"), vips=visitors.filter(v=>v.type==="vip"&&(isToday(v.expected)||v.status==="in")&&!["rejected","cancelled"].includes(v.status));
+  const al=alerts(), byB=BUILDINGS.map(b=>[b,inside.filter(v=>v.building===b).length]), mx=Math.max(1,...byB.map(x=>x[1]));
+  const feed=visitors.flatMap(v=>(v.log||[]).map(l=>({...l,name:v.name}))).filter(l=>l.t>today0()).sort((a,b)=>b.t-a.t).slice(0,9);
+  const site=currentSite==="*"?"All sites":siteOf(currentSite).name;
+  return (document.body.classList.contains("wall-mode")?"":`<div class="acts" style="justify-content:flex-end"><button class="btn pri" id="wallFs">Show full screen on this display</button></div>`)+`<div class="wall"><div class="wall-top"><div><div class="wall-site">${esc(site)} · Command centre</div><div class="wall-date">${new Date().toLocaleDateString([], {weekday:"long",day:"numeric",month:"long"})}</div></div><div class="wall-clock" id="wallClock">${new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</div></div>
+  <div class="wall-kpis"><div><b>${inside.length}</b><span>On site now</span></div><div><b>${exp.length}</b><span>Still expected today</span></div><div><b>${wait.length}</b><span>Waiting for host</span></div><div class="${al.filter(a=>a.lvl==="act").length?"hot":""}"><b>${al.filter(a=>a.lvl==="act").length}</b><span>Need action</span></div></div>
+  <div class="wall-grid">
+   <section><h3>Occupancy by building</h3>${byB.map(([b,n])=>`<div class="wb"><div><span>${esc(b)}</span><b>${n}</b></div><i style="width:${n/mx*100}%"></i></div>`).join("")}
+     <h3 style="margin-top:22px">VIPs today</h3>${vips.length?vips.map(v=>`<div class="wv"><b>${esc(v.name)}</b><span>${esc(STATUS[v.status])} · ${fmtT(v.expected)} · ${esc(v.host)}</span></div>`).join(""):`<div class="wv"><span>No VIP visits today</span></div>`}</section>
+   <section><h3>Latest movements</h3>${feed.map(l=>`<div class="wf"><span class="mono">${fmtT(l.t)}</span><b>${esc(l.name)}</b><span>${esc(l.a.replace(/;.*$/,""))}</span></div>`).join("")||`<div class="wf"><span>No movements yet today</span></div>`}</section>
+   <section><h3>Alerts</h3>${al.slice(0,7).map(a=>`<div class="wa ${a.lvl}"><b>${esc(a.kind)}</b><span>${esc(a.title)} · ${esc(a.detail)}</span></div>`).join("")||`<div class="wa"><span>All clear</span></div>`}</section>
+  </div></div>`;
+};
+function enterWall(){document.body.classList.add("wall-mode");view="wall";render();try{document.documentElement.requestFullscreen()}catch(e){}
+  clearInterval(enterWall.t);enterWall.t=setInterval(()=>{if(view==="wall")render()},20000);
+  clearInterval(enterWall.c);enterWall.c=setInterval(()=>{const c=$("#wallClock");if(c)c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})},5000);}
+
+/* ---------- Scripted demo mode: app.html?demo ---------- */
+let DEMO=false;
+function demoDb(){
+  const COLS={visitors:()=>visitors,deliveries:()=>deliveries,rollcalls:()=>rollcalls,watchlist:()=>watchlist,passes:()=>passes,invites:()=>invites,config:()=>[]};
+  const col=name=>{const arr=()=>COLS[name]?COLS[name]():[];const q={
+    add:async d=>{const id="d"+Math.random().toString(36).slice(2,9);arr().unshift({...d,id});setTimeout(render);return {id}},
+    doc:id=>({id,set:async d=>{if(name==="visitors")return;const a=arr(),i=a.findIndex(x=>x.id===id);if(i>=0)a[i]={...d,id};else a.unshift({...d,id});setTimeout(render)},
+      update:async p=>{const x=arr().find(y=>y.id===id);if(!x)return;for(const[k,v]of Object.entries(p)){if(k.includes(".")){const[a1,b1]=k.split(".");x[a1]={...(x[a1]||{}),[b1]:v}}else x[k]=v}setTimeout(render)},
+      get:async()=>{const x=arr().find(y=>y.id===id);return {exists:!!x,id,data:()=>x}},delete:async()=>{},onSnapshot:()=>()=>{}}),
+    where:()=>q,orderBy:()=>q,limit:()=>q,onSnapshot:()=>()=>{},get:async()=>({docs:arr().map(x=>({id:x.id,data:()=>x})),empty:!arr().length})};return q};
+  return {collection:col,batch:()=>({set(){},update(){},commit:async()=>{}}),enablePersistence:async()=>{}};
+}
+function demoLog(o,host){const L=(t,a,by,st)=>t?{t,a,by,byUid:"demo",role:"demo",st}:null;
+  return [L((o.expected||Date.now())-26*3600e3,"Registered",host,"Register visitors"),L(o.arrivedAt,"Verified at gate","A. Bello","Reception / Initial Access"),
+    L(o.arrivedAt&&o.tag?o.arrivedAt+4*60e3:0,"Documented; tag "+(o.tag||"")+" issued","F. Adeyemi","Documentation & Tagging"),L(o.inAt,"Checked in at internal reception","N. Okafor","Internal Reception"),
+    L(o.outAt,"Checked out","N. Okafor","Internal Reception")].filter(Boolean)}
+function demoData(){
+  const h=3600e3,t0=today0(),ME="demo-admin";
+  const first=["Amaka","Chinedu","Fatima","Tunde","Ngozi","Ibrahim","Aisha","Emeka","Grace","Musa","Halima","Segun","Zainab","Kelechi","Bisi","Yakubu","Funmi","Abdul","Ada","Peter","Maryam","John","Ruth","Sani","Esther"];
+  const last=["Okafor","Bello","Adeyemi","Nwosu","Danjuma","Eze","Ogunleye","Abubakar","Okonkwo","Lawal","Mohammed","Balogun","Uche","Garba","Akande","Haruna","Obi","Usman","Afolabi","Ibe"];
+  const orgs=["Federal Ministry of Health","Ministry of Foreign Affairs","NCDC","Ecobank","Daily Trust","Save the Children","USAID","EU Delegation","NEMA","Julius Facilities Ltd","Kings Catering","Independent consultant"];
+  const hosts=[["Dr. K. Ibrahim","WHO"],["S. Garba","UNDP"],["T. Musa","UNICEF"],["P. Obi","UNHCR"],["A. Lawal","WFP"],["R. Bassey","UNFPA"],["Comms Office","UN Women"],["Facilities Unit","Common Services"]];
+  let seq=0; const R=(a,i)=>a[i%a.length];
+  const mk=(o)=>{seq++;const [host,agency]=R(hosts,seq*3);const ref="UNH-D-"+String(seq).padStart(4,"0");
+    return {id:ref,ref,name:`${R(first,seq*7)} ${R(last,seq*5)}`,org:R(orgs,seq*11),type:"visitor",host,agency,building:R(BUILDINGS,seq%5===0?2:seq%7===0?3:0),purpose:"Meeting",requestedByUid:seq%4===0?ME:"x",requestedBy:"Staff host",restricted:false,...o,log:demoLog(o,host)}};
+  const v=[];
+  // history for the reports: 30 days of finished visits
+  for(let d=29;d>=1;d--){const n=6+((d*7)%9);for(let k=0;k<n;k++){const ex=t0-d*864e5+(8+((k*5+d)%9))*h+(k%4)*15*60e3;
+    v.push(mk({status:"out",expected:ex,arrivedAt:ex+((k%3)*6+2)*60e3,inAt:ex+((k%3)*6+12)*60e3,outAt:ex+((k%5)+1)*h,tag:"",tagReturned:k%37!==0,...(k%37===0?{tag:"V-0"+(10+d)}:{})}))}}
+  // today: on site, waiting, expected, VIP, contractor, delegation, watchlist hit
+  const N=Date.now();
+  for(let k=0;k<9;k++){const ex=N-(k*22+25)*60e3;v.push(mk({status:"in",expected:ex,arrivedAt:ex+4*60e3,inAt:ex+11*60e3,tag:"V-0"+(20+k),hostNotified:ex+8*60e3}))}
+  v.push(mk({status:"in",expected:N-9.7*h,arrivedAt:N-9.6*h,inAt:N-9.5*h,tag:"V-019",purpose:"Training workshop"}));
+  v.push(mk({name:"Yusuf Danladi",org:"Daily Trust",status:"tagged",expected:N-20*60e3,arrivedAt:N-12*60e3,tag:"V-031",purpose:"Interview"}));
+  v.push(mk({name:"Grace Okon",org:"Independent consultant",status:"pending",expected:N+3*h,restricted:true,purpose:"Server room access"}));
+  for(let k=0;k<6;k++) v.push(mk({status:"approved",expected:N+(0.5+k*0.6)*h,visitorEmail:"guest"+k+"@example.org",requestedByUid:k<2?ME:"x"}));
+  v.push(mk({name:"H.E. Ambassador L. Haugen",org:"Royal Norwegian Embassy",type:"vip",host:"Resident Coordinator",agency:"Common Services",status:"approved",expected:N+2.5*h,purpose:"Courtesy call",room:"RC Office"}));
+  v.push(mk({name:"Chidi Eze",org:"Julius Facilities Ltd",type:"contractor",host:"Facilities Unit",agency:"Common Services",status:"in",expected:N-5*h,arrivedAt:N-5*h,inAt:N-4.9*h,tag:"C-003",accessFrom:t0-3*864e5,accessTo:t0+864e5,building:"Annex A",items:[{d:"Toolbox",out:false},{d:"Drill, Bosch",out:false}]}));
+  ["Dr. Ifeoma Nnaji","Bashir Sule","Kemi Adewale","Ahmed Tijani"].forEach((n,k)=>v.push(mk({name:n,org:"Federal Ministry of Health",group:"Ministry of Health delegation",status:"approved",expected:N+1.5*h,host:"Dr. K. Ibrahim",agency:"WHO",room:"Conference Room B",purpose:"Immunisation programme review"})));
+  v.push(mk({name:"Musa Ibrahim Bello",org:"Unknown",status:"approved",expected:N+0.4*h,watchFlag:true,watchReason:"Barred by UNDSS, 3 Oct 2026. Call security."}));
+  const d1=N-3*h;
+  return {visitors:v,
+    watchlist:[{id:"w1",name:"Musa Ibrahim Bello",aliases:"Bello Musa; M. I. Bello",reason:"Barred by UNDSS, 3 Oct 2026. Call security.",active:true,at:t0-30*864e5,addedBy:"UNDSS"}],
+    deliveries:[{id:"dl1",forName:"Dr. K. Ibrahim",email:"k.ibrahim@example.org",phone:"0803 123 4567",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation",at:d1,by:"N. Okafor",status:"waiting"},
+      {id:"dl2",forName:"S. Garba",agency:"UNDP",from:"Courier",desc:"Envelope",at:d1+h,by:"N. Okafor",status:"waiting",notifiedAt:d1+1.2*h,notifiedVia:"WhatsApp"},
+      {id:"dl3",forName:"T. Musa",agency:"UNICEF",from:"Jumia",desc:"Small parcel",at:d1-20*h,by:"N. Okafor",status:"collected",collectedAt:d1-2*h,collectedBy:"N. Okafor"}]};
+}
+const TOUR=[
+  ["Live overview","Everything happening across the four stations at once: who is expected, who is on site, and what needs attention. Each alert has a button that deals with it.",()=>{view="dashboard"}],
+  ["Invite a guest","Staff create an invite link. The guest fills in their own details and accepts the visitor rules on their phone, in English or French. No account needed.",()=>{view="register"}],
+  ["The visitor's phone pass","Once approved, the visitor gets a digital pass: a QR code with a live clock, so screenshots are useless. Open it to see what the visitor sees.",()=>{view="gate";const v=visitors.find(x=>x.visitorEmail&&x.status==="approved");if(v)setTimeout(()=>openPass(v),150)}],
+  ["Gate: a watchlist match","Every registration is checked automatically against the UNDSS watchlist. A match is blocked at the gate; only an approver can override, with a written reason.",()=>{view="gate";const v=visitors.find(x=>x.watchFlag);if(v)setTimeout(()=>scanResult(v,null),150)}],
+  ["Documentation and tags","The officer records the ID checked and any equipment brought in, then issues a numbered tag. Paper badges are optional when the visitor has a digital pass.",()=>{view="tagging"}],
+  ["Self check-in kiosk","A reception tablet becomes a kiosk: visitors scan their own pass, the host is notified, and staff only handle exceptions.",()=>{view="kiosk"}],
+  ["The host's view","Hosts see their own guests, move or cancel visits, and tell reception \"I'm coming down\" with one tap.",()=>{view="myguests"}],
+  ["Deliveries","Parcels for staff are logged and the recipient is notified by email or WhatsApp, with reminders until collected.",()=>{view="deliveries"}],
+  ["Emergency roll call","In an evacuation, one button lists everyone on site by building. Every station ticks people off live at the assembly point.",()=>{view="evac"}],
+  ["Reports","Thirty days of arrivals, busiest hours, waiting times, overstays and unreturned tags: ready for management.",()=>{view="reports"}],
+  ["Command centre","A live wall display for the security office. Press the button below to show it full screen.",()=>{view="wall"}]
+];
+let tourStep=0;
+function drawTour(){
+  let t=$("#tour"); if(!t){t=document.createElement("div");t.id="tour";document.body.appendChild(t)}
+  const [title,text]=TOUR[tourStep];
+  t.innerHTML=`<div class="tour-h"><span>Guided demo · ${tourStep+1} of ${TOUR.length}</span><button id="tourX" aria-label="Hide the guide">×</button></div><h3>${esc(title)}</h3><p>${esc(text)}</p>
+    <div class="tour-bar"><span style="width:${(tourStep+1)/TOUR.length*100}%"></span></div>
+    <div class="acts"><button class="btn" id="tourB" ${tourStep?"":"disabled"}>Back</button>${tourStep===TOUR.length-1?`<button class="btn pri" id="tourWall">Show full screen</button>`:`<button class="btn pri" id="tourN">Next</button>`}</div>`;
+  $("#tourX").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false};
+  const go=i=>{tourStep=i;$("#modal").hidden=true;document.body.classList.remove("wall-mode");TOUR[i][2]();render();drawTour();scrollTo({top:0,behavior:"smooth"})};
+  if($("#tourB")) $("#tourB").onclick=()=>go(tourStep-1);
+  if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
+  if($("#tourWall")) $("#tourWall").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;enterWall()};
+}
+function startDemo(){
+  DEMO=true; fb={demo:true}; db=demoDb();
+  me={uid:"demo-admin",name:"Demo Administrator",role:"admin",email:"demo@example.org",active:true};
+  const d=demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist; deliveries=d.deliveries;
+  $("#demoSel").style.display="none";
+  setSync(false,"Demo · sample data · nothing is saved");
+  $("#who").hidden=false;
+  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["admin","approver","gate","docs","reception","vip","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
+  $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";view=defaultView();document.body.classList.remove("wall-mode");render();toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
+  const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
+  open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
+  view="dashboard"; render(); drawTour();
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("wall-mode")){document.body.classList.remove("wall-mode");render()}});
+}
+
 function ownRequest(v){return v.requestedByUid?v.requestedByUid===myUid():(v.requestedBy||"")===op()}
 function pill(v){return `<span class="pill p-${v.status}">${STATUS[v.status]}</span>`}
 function tpill(v){return v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor</span>`:""}
@@ -1290,7 +1505,7 @@ V.assistant=()=>head("Operations assistant","Ask about recent and current visito
 
 function render(){
   if(fb&&(!me||me.role==="pending"||me.active===false)) return;
-  V.staff=staffView; Object.assign(V,{watch:VW_watch,evac:VW_evac,kiosk:VW_kiosk,myguests:VW_myguests,deliveries:VW_deliveries,reports:VW_reports});
+  V.staff=staffView; Object.assign(V,{watch:VW_watch,evac:VW_evac,kiosk:VW_kiosk,myguests:VW_myguests,deliveries:VW_deliveries,reports:VW_reports,wall:VW_wall,settings:VW_settings});
   if(!canView(view)) view=defaultView();
   renderNav();
   const rc=fb&&myRole()!=="host"?activeRoll():null;
@@ -1299,6 +1514,7 @@ function render(){
   wire();
 }
 function wire(){
+  wireSettings(); const wf=$("#wallFs"); if(wf) wf.onclick=enterWall;
   wireWatch(); wireEvac(); wireDeliveries(); wireReports(); wireRepeat();
   const ks=$("#k_start"); if(ks) ks.onclick=startKiosk;
   const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
