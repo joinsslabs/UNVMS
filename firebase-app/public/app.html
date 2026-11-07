@@ -214,6 +214,30 @@ body:not(.pass-mode) .lang button{color:var(--muted)} body:not(.pass-mode) .lang
 .k-cam{width:min(420px,90vw);border-radius:18px;overflow:hidden;background:#0006}.k-clock{opacity:.7}
 .k-exit{all:unset;cursor:pointer;position:absolute;right:20px;bottom:20px;font-size:12px;opacity:.5;padding:8px}
 body.kiosk-on .toast{z-index:60}
+/* visitor rows */
+td{vertical-align:middle}
+.vis{display:flex;align-items:center;gap:12px;min-width:200px}
+.av{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;font-weight:700;font-size:13px;letter-spacing:.02em;color:hsl(var(--h) 55% 30%);background:hsl(var(--h) 70% 92%)}
+:root[data-theme=dark] .av{color:hsl(var(--h) 70% 82%);background:hsl(var(--h) 35% 24%)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .av{color:hsl(var(--h) 70% 82%);background:hsl(var(--h) 35% 24%)}}
+.vis-t{min-width:0}.vn{font-weight:650;font-size:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.vn2{font-weight:550}
+.vs{font-size:12px;color:var(--muted);margin-top:2px}.vs .ref{font-size:11px}
+.tl{list-style:none;margin:0;padding:0;display:flex;align-items:flex-start}
+.tl li{position:relative;padding:0 16px 0 0;display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted)}
+.tl li:not(:last-child)::after{content:"";position:absolute;bottom:8px;right:4px;width:8px;height:1px;background:var(--line)}
+.tl li b{font-family:var(--mono);font-weight:500;font-size:12.5px;color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tl li.muted b{color:var(--muted)} .tl li.cur span{color:var(--accent);font-weight:600} .tl li.cur b{font-weight:600}
+.tl-dur{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;color:var(--ok);background:var(--ok-bg);padding:2px 8px;border-radius:999px}
+.tl-dur.warn{color:var(--warn);background:var(--warn-bg)} .tl-dur.muted{color:var(--muted);background:var(--surface2)}
+.st{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.tagchip{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px dashed color-mix(in srgb,var(--fg) 30%,transparent)}
+.row-acts{justify-content:flex-end;flex-wrap:nowrap}
+.btn.icon{width:34px;padding:0;gap:0}
+.btn.icon.has{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+.btn.icon.grp{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5'/%3E%3Ccircle cx='17' cy='9' r='2.5'/%3E%3Cpath d='M16.5 14.6c2.6.2 4.4 2 5 4.9'/%3E%3C/svg%3E")}
+tbody tr td:first-child{box-shadow:inset 3px 0 0 transparent;transition:box-shadow .15s}
+tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+@media (max-width:900px){.row-acts{flex-wrap:wrap}}
 @keyframes toastIn{from{transform:translateY(16px) scale(.96);opacity:0}}
 .toast::before{content:"";width:18px;height:18px;border-radius:50%;flex:none;background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2.5 6.2 5 8.5 9.5 3.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E") center/12px no-repeat}
 .toast.err::before{background-color:var(--bad);background-image:none}
@@ -643,7 +667,7 @@ function passValidUntil(v){
   if(v.type==="contractor"&&v.accessTo) return v.accessTo;
   const d=new Date(v.expected||now()); d.setHours(23,59,59,0); return Math.max(d.getTime(),now()+3600e3);
 }
-function passBtn(v){return fb&&canAct("pass")&&passLive(v.status)?`<button class="btn" data-act="pass" data-id="${esc(v.id)}" title="Digital pass for the visitor's phone">${passFor(v)?"Pass ✓":"Pass"}</button>`:""}
+function passBtn(v){return fb&&canAct("pass")&&passLive(v.status)?`<button class="btn icon${passFor(v)?" has":""}" data-act="pass" data-id="${esc(v.id)}" title="${passFor(v)?"Digital pass created: open or resend":"Create a digital pass for the visitor's phone"}" aria-label="Digital pass"></button>`:""}
 async function ensurePass(v){
   let p=passFor(v); if(p) return p;
   const code=newToken()+newToken().slice(0,8);
@@ -736,7 +760,7 @@ function scanResult(v,p,title,msg){
 const gkey=s=>String(s||"").trim().toLowerCase();
 function groupMembers(v){const k=gkey(v.group);return k?visitors.filter(x=>gkey(x.group)===k&&!["rejected"].includes(x.status)):[]}
 function groupPassFor(v){return passes.find(p=>Array.isArray(p.members)&&!p.revoked&&p.members.some(m=>m.visitorId===v.id))}
-function groupBtn(v){return fb&&canAct("pass")&&v.group&&passLive(v.status)&&groupMembers(v).length>1?`<button class="btn" data-act="grouppass" data-id="${esc(v.id)}" title="One pass for the whole delegation">Group pass</button>`:""}
+function groupBtn(v){return fb&&canAct("pass")&&v.group&&passLive(v.status)&&groupMembers(v).length>1?`<button class="btn icon grp" data-act="grouppass" data-id="${esc(v.id)}" title="Group pass for the whole delegation" aria-label="Group pass"></button>`:""}
 const memberOf=x=>({visitorId:x.id,ref:x.ref,name:x.name,org:x.org||"",type:x.type,status:x.status,tag:x.tag||""});
 async function ensureGroupPass(v){
   const mem=groupMembers(v); let p=groupPassFor(v);
@@ -1109,10 +1133,23 @@ function times(v){
   return r.join("<br>");
 }
 const dur=ms=>{const m=Math.max(0,Math.round(ms/60000));return m<60?`${m} min`:`${Math.floor(m/60)} h ${m%60} min`};
-function row(v,actions){return `<tr><td><span class="ref">${esc(v.ref)}</span></td><td><b>${esc(v.name)}</b> ${tpill(v)}${watchPill(v)}<div class="small">${esc(v.org)}</div></td><td>${esc(v.host)}<div class="small">${esc(v.agency)}${v.room?" · "+esc(v.room):""}${v.hostReply?' · <b style="color:var(--ok)">Host coming '+fmtT(v.hostReplyAt)+'</b>':""}</div></td><td class="mono">${times(v)}</td><td>${pill(v)}${v.tag?` <span class="mono small">${esc(v.tag)}</span>`:""}</td><td><div class="acts">${actions(v)}${passBtn(v)}${groupBtn(v)}</div></td></tr>`}
+// Visitor row: avatar + name, host, a step timeline, status with tag chip, actions on the right.
+const initials=n=>String(n||"?").replace(/^(h\.e\.|dr\.?|mr\.?|mrs\.?|ms\.?)\s+/i,"").split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+const hue=n=>{let h=0;for(const c of String(n))h=(h*31+c.charCodeAt(0))%360;return h};
+function timeline(v){
+  const steps=[["Expected",v.expected],["Gate",v.arrivedAt],["In",v.inAt],["Out",v.outAt]].filter((x,k)=>k===0||x[1]);
+  const last=steps.length-1;
+  return `<ol class="tl">${steps.map((x,k)=>`<li class="${k===last?"cur":""}${k===0&&last>0?" muted":""}"><span>${x[0]}</span><b>${fmtT(x[1])}</b></li>`).join("")}</ol>`
+    +(v.status==="in"&&v.inAt?`<div class="tl-dur${overstay(v)?" warn":""}">Inside ${dur(now()-v.inAt)}</div>`:v.outAt&&v.inAt?`<div class="tl-dur muted">Stayed ${dur(v.outAt-v.inAt)}</div>`:"");
+}
+function row(v,actions){return `<tr><td><div class="vis"><span class="av" style="--h:${hue(v.name)}">${esc(initials(v.name))}</span><div class="vis-t"><div class="vn">${esc(v.name)} ${tpill(v)}${watchPill(v)}</div><div class="vs">${esc(v.org||"")}${v.org?" · ":""}<span class="ref">${esc(v.ref)}</span></div></div></div></td>
+  <td><div class="vn2">${esc(v.host)}</div><div class="vs">${esc(v.agency)}${v.room?" · "+esc(v.room):""}${v.hostReply?' · <b style="color:var(--ok)">Coming '+fmtT(v.hostReplyAt)+'</b>':""}</div></td>
+  <td>${timeline(v)}</td>
+  <td><div class="st">${pill(v)}${v.tag?`<span class="tagchip">${esc(v.tag)}</span>`:""}</div></td>
+  <td><div class="acts row-acts">${actions(v)}${passBtn(v)}${groupBtn(v)}</div></td></tr>`}
 function table(list,actions,empty){
   if(!list.length) return `<div class="empty">${empty}</div>`;
-  return `<div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Host</th><th>Times</th><th>Status</th><th>Action</th></tr></thead><tbody>${list.map(v=>row(v,actions)).join("")}</tbody></table></div>`;
+  return `<div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Timeline</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${list.map(v=>row(v,actions)).join("")}</tbody></table></div>`;
 }
 const B=(id,act,label,cls="")=>!canAct(act)?"":`<button class="btn ${cls}" data-id="${esc(id)}" data-act="${act}">${label}</button>`;
 function searchBox(ph="Search by name, reference or organisation"){return `<div class="search"><input id="q" placeholder="${ph}" value="${esc(render.q||"")}"><button class="btn" id="qscan" title="Scan a badge QR code with the camera">Scan badge</button><button class="btn" id="qclear">Clear</button></div>`}
