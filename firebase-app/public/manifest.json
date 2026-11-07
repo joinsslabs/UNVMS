@@ -1,0 +1,14 @@
+{
+  "name": "UN House Access Control",
+  "short_name": "UNH Access",
+  "description": "Visitor and access management for UN Common Services, UN House Abuja.",
+  "start_url": "/app.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f5f9",
+  "theme_color": "#1e2f52",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

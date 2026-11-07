@@ -66,7 +66,7 @@ tr:last-child td{border-bottom:0}
 .pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;white-space:nowrap;background:var(--surface2);color:var(--fg)}
 .p-pending{background:var(--warn-bg);color:var(--warn)} .p-approved{background:var(--info-bg);color:var(--accent)}
 .p-arrived,.p-tagged{background:var(--info-bg);color:var(--accent)} .p-in{background:var(--ok-bg);color:var(--ok)}
-.p-out{background:var(--surface2);color:var(--muted)} .p-rejected,.p-suspended{background:var(--bad-bg);color:var(--bad)}
+.p-out,.p-cancelled{background:var(--surface2);color:var(--muted)} .p-watch{background:#3b2a00;color:#ffd166} .p-rejected,.p-suspended{background:var(--bad-bg);color:var(--bad)}
 .t-vip{background:var(--navy);color:#fff} .t-contractor{background:var(--warn-bg);color:var(--warn)}
 /* Buttons: secondary = white with a hairline border; primary = solid accent; ok = solid green; bad = soft amber (no red). */
 .btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;
@@ -186,6 +186,26 @@ body.pass-mode{background:var(--bg) linear-gradient(180deg,var(--navy) 0 180px,t
 body.pass-mode .vpass{margin-top:0}
 .vp-qr{box-shadow:0 0 0 1px var(--line)}
 @media (min-width:700px){body.pass-mode main{padding-top:40px}}
+.evac-alert{all:unset;box-sizing:border-box;cursor:pointer;display:block;width:100%;padding:12px 16px;border-radius:12px;background:var(--warn);color:#fff;font-weight:700;animation:evPulse 1.6s infinite alternate}
+@keyframes evPulse{from{opacity:.85}to{opacity:1}}
+.evac-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--warn);color:#fff;border-radius:16px;padding:16px 18px}
+.evac-n{font-size:28px;font-weight:700}
+.evac-bar{height:10px;border-radius:6px;background:var(--surface2);overflow:hidden}.evac-bar span{display:block;height:100%;background:var(--ok);transition:width .3s}
+.evac{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.evac li label{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--surface2);cursor:pointer}
+.evac li.ok label{background:var(--ok-bg)} .evac input{width:22px;height:22px}
+.agree{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:13px}.agree summary{cursor:pointer;font-weight:600}.agree ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}
+.lang{display:flex;gap:4px;justify-content:center;margin:0 auto 12px;max-width:440px}.lang button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font-size:13px;color:var(--onnavy-muted,#b9c4d8)}.lang button.on{background:#ffffff22;color:#fff;font-weight:600}
+body:not(.pass-mode) .lang button{color:var(--muted)} body:not(.pass-mode) .lang button.on{background:var(--surface2);color:var(--fg)}
+.chart{width:100%;height:auto}.chart .bar{fill:var(--accent)}.chart .grid{stroke:var(--line);stroke-dasharray:3 3}.chart .axis{fill:var(--muted);font-size:10px;font-family:var(--mono)}
+#kiosk{position:fixed;inset:0;z-index:50;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;transition:background .3s}
+#kiosk.k-ok{background:#0f5c32} #kiosk.k-no{background:#7a4b00}
+.k-in{width:100%;max-width:760px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.k-top{display:flex;gap:12px;align-items:center;font-size:14px;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.k-h{font-size:clamp(28px,4vw,44px);margin:8px 0 0;line-height:1.15}.k-sub{font-size:20px;opacity:.85}
+.k-cam{width:min(420px,90vw);border-radius:18px;overflow:hidden;background:#0006}.k-clock{opacity:.7}
+.k-exit{all:unset;cursor:pointer;position:absolute;right:20px;bottom:20px;font-size:12px;opacity:.5;padding:8px}
+body.kiosk-on .toast{z-index:60}
 @keyframes toastIn{from{transform:translateY(16px) scale(.96);opacity:0}}
 .toast::before{content:"";width:18px;height:18px;border-radius:50%;flex:none;background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2.5 6.2 5 8.5 9.5 3.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E") center/12px no-repeat}
 .toast.err::before{background-color:var(--bad);background-image:none}
@@ -235,12 +255,12 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const STATIONS={S1:"Reception / Initial Access",S2:"Documentation & Tagging",S3:"Internal Reception",S4:"VIP Gate"};
 const BUILDINGS=["Main UN House Building","Access Control Building","Annex A","Conference Centre"];
 const AGENCIES=["UNDP","UNICEF","WHO","UNFPA","UNHCR","WFP","UN Women","OCHA","UNDSS","Common Services"];
-const STATUS={pending:"Pending approval",approved:"Approved · expected",arrived:"At gate · verified",tagged:"Tagged",in:"Checked in",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
+const STATUS={cancelled:"Cancelled by host",pending:"Pending approval",approved:"Approved · expected",arrived:"At gate · verified",tagged:"Tagged",in:"Checked in",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
 const OVERSTAY_H=9;
 let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
 try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
 /* ---------- staff, roles and permissions ---------- */
-let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[];
+let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[], watchlist=[], rollcalls=[], deliveries=[];
 const FN_BASE="https://europe-west1-unhouse-vms-abj26.cloudfunctions.net/";
 async function callFn(name,body){
   const tok=await firebase.auth().currentUser.getIdToken();
@@ -252,12 +272,12 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","history","assistant"],
-  gate:["dashboard","gate","register","history"], docs:["dashboard","tagging","history"],
-  reception:["dashboard","reception","register","history"], vip:["dashboard","vip","history"], host:["register","history"]
+  admin:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
+  gate:["dashboard","gate","register","deliveries","evac","history"], docs:["dashboard","tagging","evac","history"],
+  reception:["dashboard","reception","register","deliveries","kiosk","evac","history"], vip:["dashboard","vip","evac","history"], host:["myguests","register","history"]
 };
-const ACT_ROLES={pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","admin"],checkin:["reception","admin"],
+const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","admin"],checkin:["reception","admin"],
   checkout:["reception","vip","gate","admin"],approve:["approver","admin"],reject:["approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
 const myRole=()=>fb?(me?.role||"pending"):"admin";
 const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole());
@@ -268,7 +288,7 @@ const myUid=()=>fb&&me?me.uid:"demo:"+$("#operator").value;
 $("#station").onchange=()=>{try{localStorage.setItem("station",station())}catch(e){} view=defaultView(); render()};
 $("#operator").onchange=()=>{try{localStorage.setItem("op",op())}catch(e){} render()};
 function defaultView(){
-  if(fb){const r=myRole(); return {gate:"gate",docs:"tagging",reception:"reception",vip:"vip",host:"register"}[r]||"dashboard"}
+  if(fb){const r=myRole(); return {gate:"gate",docs:"tagging",reception:"reception",vip:"vip",host:"myguests"}[r]||"dashboard"}
   return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()]}
 
 const now=()=>Date.now();
@@ -280,9 +300,12 @@ function toast(m){const t=$("#toast");t.textContent=m;t.classList.toggle("err",/
 
 /* ---------- data layer: shared db when available, local demo otherwise ---------- */
 async function save(v){
-  const i=visitors.findIndex(x=>x.id===v.id); if(i>=0) visitors[i]=v; else visitors.push(v);
+  const i=visitors.findIndex(x=>x.id===v.id);
+  if(i<0&&!("watchFlag" in v)&&!v.example){const w=watchMatch(v.name); v.watchFlag=!!w; if(w) v.watchReason=w.reason||"Watchlist match";}
+  if(i>=0) visitors[i]=v; else visitors.push(v);
   render();
-  if(db){try{await db.collection("visitors").doc(v.id).set(v); if(fb){ syncPass(v); syncGroupPass(v); }}catch(e){
+  if(fb){ syncPass(v); syncGroupPass(v); }
+  if(db){try{ const w=db.collection("visitors").doc(v.id).set(v); if(fb&&!navigator.onLine) return; await w; }catch(e){
     toast(e.code==="permission-denied"?"Your role isn't allowed to do that. The change was not saved.":e.code==="quota_exceeded"?"Storage is full. Archive old records to continue.":"Could not save: "+(e.message||e.code));
     if(e.code==="permission-denied"){const s=await db.collection("visitors").doc(v.id).get().catch(()=>null);const j=visitors.findIndex(x=>x.id===v.id);
       if(s&&s.exists) visitors[j]={...s.data(),id:s.id}; else if(j>=0) visitors.splice(j,1); render();}
@@ -311,6 +334,7 @@ async function connect(){
 function connectFirebase(){
   firebase.initializeApp(window.FIREBASE_CONFIG);
   fb=firebase; db=firebase.firestore();
+  db.enablePersistence({synchronizeTabs:true}).catch(()=>{});
   const passCode=new URLSearchParams(location.search).get("pass");
   if(passCode){ document.body.classList.add("guest-mode","pass-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode); }
   const inviteTok=new URLSearchParams(location.search).get("invite");
@@ -330,7 +354,7 @@ function connectFirebase(){
     $("#signOut").onclick=()=>firebase.auth().signOut();
     if(me.active===false) return showGate("Your account has been deactivated.","Ask the House Manager if you need access again.");
     if(me.role==="pending") return showGate("Your account is waiting for a role.","The House Manager will assign your station or role. This page updates as soon as they do.",true);
-    startData();
+    startData(); watchConnection();
   });
 }
 async function ensureStaff(u){
@@ -382,6 +406,11 @@ function startData(){
     render();
   },e=>{clearTimeout(timer);setSync(false,"Sync stopped: "+(e.code==="permission-denied"?"your role can't read these records":e.code))}));
   unsubs.push(db.collection("config").doc("features").onSnapshot(s=>{features=s.data()||{};if(["assistant","staff","register"].includes(view))render()},()=>{}));
+  if(me.role!=="host"){
+    unsubs.push(db.collection("watchlist").onSnapshot(s=>{watchlist=s.docs.map(d=>({...d.data(),id:d.id}));if(["watch","register","gate"].includes(view))render()},()=>{}));
+    unsubs.push(db.collection("rollcalls").orderBy("startedAt","desc").limit(20).onSnapshot(s=>{rollcalls=s.docs.map(d=>({...d.data(),id:d.id}));render()},()=>{}));
+    unsubs.push(db.collection("deliveries").orderBy("at","desc").limit(150).onSnapshot(s=>{deliveries=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="deliveries")render()},()=>{}));
+  }
   { const pq=me.role==="host"?db.collection("passes").where("requestedByUid","==",me.uid):db.collection("passes");
     unsubs.push(pq.onSnapshot(s=>{passes=s.docs.map(d=>({...d.data(),id:d.id}))},()=>{})); }
   if(["admin","approver","gate","reception","host"].includes(me.role)){
@@ -501,6 +530,7 @@ const late=v=>v.status==="approved"&&v.expected&&now()-v.expected>45*60e3&&isTod
 function alerts(){
   const a=[], since=t=>dur(now()-t);
   visitors.forEach(v=>{
+    if(v.watchFlag&&["pending","approved","arrived","tagged","in"].includes(v.status)) a.push({lvl:"act",kind:"Watchlist match",v,title:v.name,detail:v.watchReason||"Matches the watchlist",act:"detail",label:"Details"});
     if(overstay(v)) a.push({lvl:"act",kind:"Overstay",v,title:v.name,detail:`Inside ${since(v.inAt)} · host ${v.host}`,act:"checkout",label:"Check out"});
     if(contractorExpired(v)) a.push({lvl:"act",kind:"Access expired",v,title:v.name,detail:`Contractor access ended ${fmtD(v.accessTo)} · still ${STATUS[v.status].toLowerCase()}`,act:"suspend",label:"Suspend"});
     else if(contractorExpiring(v)) a.push({lvl:"soon",kind:"Expires soon",v,title:v.name,detail:`Contractor access ends ${fmtD(v.accessTo)}`,act:"extend",label:"Extend 7 days"});
@@ -524,7 +554,7 @@ function alertList(limit){
 const VIEWS=[
   ["dashboard","Dashboard"],["gate","Gate reception"],["tagging","Documentation & tags"],["reception","Internal reception"],
   ["vip","VIP gate"],["register","Register visitors"],["approvals","Approvals"],["contractors","Contractors"],
-  ["history","History & audit"],["assistant","Ops assistant"],["staff","Staff & roles"]
+  ["myguests","My guests"],["deliveries","Deliveries"],["kiosk","Kiosk"],["evac","Evacuation"],["watch","Watchlist"],["reports","Reports"],["history","History & audit"],["assistant","Ops assistant"],["staff","Staff & roles"]
 ];
 function renderNav(){
   const c={approvals:visitors.filter(v=>v.status==="pending").length,gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
@@ -574,6 +604,7 @@ function inviteView(){
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:10px 0">
    <div class="f"><label for="inv_host">Host (staff member)</label><input id="inv_host" value="${esc(me?me.name:"")}"></div>
    <div class="f"><label for="inv_email">Host email</label><input id="inv_email" type="email" value="${esc(me?me.email:"")}"></div>
+   <div class="f"><label for="inv_room">Meeting room (optional)</label><input id="inv_room"></div>
    <div class="f"><label for="inv_agency">Host agency</label><select id="inv_agency">${AGENCIES.map(a=>`<option>${a}</option>`).join("")}</select></div></div>
   <div class="acts"><button class="btn pri" id="invNew">Create invite link</button></div>
   ${sub.length?`<h2 style="margin-top:18px">Details received <span class="cnt">${sub.length}</span></h2><div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th></th></tr></thead><tbody>${sub.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org)} · ${esc(i.guest.phone)}</div></td><td>${esc(i.host)}</td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose)}</td><td><div class="acts"><button class="btn pri" data-inv-use="${esc(i.id)}">Register visit</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
@@ -583,42 +614,17 @@ function inviteView(){
 async function createInvite(){
   const host=$("#inv_host").value.trim(); if(!host) return toast("Enter the host's name.");
   const tok=newToken();
-  try{await db.collection("invites").doc(tok).set({hostUid:me.uid,host,hostEmail:$("#inv_email").value.trim().toLowerCase(),agency:$("#inv_agency").value,status:"open",createdAt:now(),expires:now()+7*864e5});
+  try{await db.collection("invites").doc(tok).set({hostUid:me.uid,host,hostEmail:$("#inv_email").value.trim().toLowerCase(),agency:$("#inv_agency").value,room:$("#inv_room").value.trim(),status:"open",createdAt:now(),expires:now()+7*864e5});
     copyText(inviteUrl(tok));}catch(e){toast("Could not create the invite: "+e.message)}
 }
 async function useInvite(i){
   if(!i) return; const g=i.guest, ref=newRef();
-  const v={id:ref,ref,name:g.name,org:g.org,phone:g.phone,visitorEmail:g.email||"",type:"visitor",host:i.host,hostEmail:i.hostEmail||"",agency:i.agency,building:BUILDINGS[0],
+  const v={id:ref,ref,name:g.name,org:g.org,phone:g.phone,visitorEmail:g.email||"",type:"visitor",room:i.room||"",...(g.agreedAt?{agreedAt:g.agreedAt,agreement:g.agreement,lang:g.lang}:{}),host:i.host,hostEmail:i.hostEmail||"",agency:i.agency,building:BUILDINGS[0],
     expected:g.expected?new Date(g.expected).getTime()||now():now(),purpose:g.purpose,restricted:false,requestedBy:op(),requestedByUid:myUid(),status:"approved",log:[]};
   await act(v,"Registered from guest's pre-registration");
   try{await db.collection("invites").doc(i.id).update({status:"used",visitorId:ref});toast(`${g.name} registered as ${ref}.`)}catch(e){toast("Visit saved, but the invite could not be closed: "+e.message)}
 }
-async function showInvite(tok){
-  const main=$("#main"), box=h=>main.innerHTML=`<div class="panel" style="max-width:480px;width:100%;margin:20px auto">${h}</div>`;
-  box(`<h1>Opening your invitation…</h1>`);
-  let d; for(let n=0;n<3&&!d;n++){try{d=await db.collection("invites").doc(tok).get()}catch(e){console.warn("invite read",e.code,e.message);await new Promise(r=>setTimeout(r,1200))}}
-  if(!d) return box(`<h1>This link can't be opened</h1><p class="sub">Check your internet connection and try again.</p>`);
-  if(!d.exists) return box(`<h1>Link not found</h1><p class="sub">Check you copied the whole link, or ask your host for a new one.</p>`);
-  const i=d.data();
-  if(i.status==="submitted"||i.status==="used") return box(`<h1>Thank you</h1><p class="sub">Your details have been received. Bring a photo ID to the gate at UN House.</p>`);
-  if(i.status!=="open"||i.expires<now()) return box(`<h1>This link has expired</h1><p class="sub">Ask ${esc(i.host)} to send you a new one.</p>`);
-  box(`<h1>Visit to UN House, Abuja</h1><p class="sub">${esc(i.host)} (${esc(i.agency)}) has invited you. Fill in your details so the gate can expect you.</p>
-  <form id="gf" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
-   <div class="f"><label for="g_name">Full name</label><input id="g_name" required minlength="2" maxlength="120" autocomplete="name"></div>
-   <div class="f"><label for="g_org">Organisation</label><input id="g_org" maxlength="160" autocomplete="organization"></div>
-   <div class="f"><label for="g_email">Email (we send your pass here)</label><input id="g_email" type="email" maxlength="160" autocomplete="email"></div>
-   <div class="f"><label for="g_phone">Phone</label><input id="g_phone" maxlength="40" inputmode="tel" autocomplete="tel"></div>
-   <div class="f"><label for="g_when">Arrival date and time</label><input id="g_when" type="datetime-local" required></div>
-   <div class="f"><label for="g_purpose">Purpose of visit</label><input id="g_purpose" maxlength="300"></div>
-   <div id="g_err" class="small" style="color:var(--bad)"></div>
-   <div class="acts"><button class="btn pri" type="submit">Send my details</button></div>
-   <p class="small">Your details are used only to manage your visit. Bring a photo ID to the gate.</p></form>`);
-  $("#gf").onsubmit=async e=>{e.preventDefault();
-    const guest={name:$("#g_name").value.trim(),org:$("#g_org").value.trim(),phone:$("#g_phone").value.trim(),email:$("#g_email").value.trim().toLowerCase(),expected:$("#g_when").value,purpose:$("#g_purpose").value.trim()};
-    try{await db.collection("invites").doc(tok).update({status:"submitted",guest,submittedAt:now()});
-      box(`<h1>Thank you, ${esc(guest.name)}</h1><p class="sub">${esc(i.host)} has your details. Bring a photo ID to the gate at UN House on ${esc(guest.expected.replace("T"," at "))}.</p>`);
-    }catch(x){$("#g_err").textContent="Your details could not be sent. The link may have expired. Ask your host for a new one."}};
-}
+
 /* ---------- digital visitor passes ---------- */
 const PASS_PREFIX="UNHPASS:";
 const passUrl=c=>location.origin+location.pathname+"?pass="+c;
@@ -634,7 +640,7 @@ async function ensurePass(v){
   const code=newToken()+newToken().slice(0,8);
   p={visitorId:v.id,ref:v.ref,name:v.name,org:v.org||"",host:v.host||"",agency:v.agency||"",type:v.type,building:v.building||"",
      expected:v.expected||now(),validUntil:passValidUntil(v),status:v.status,tag:v.tag||"",arrivedAt:v.arrivedAt||null,inAt:v.inAt||null,outAt:v.outAt||null,
-     requestedByUid:v.requestedByUid||"",createdAt:now(),createdBy:me.uid,revoked:false};
+     requestedByUid:v.requestedByUid||"",createdAt:now(),createdBy:me.uid,revoked:false,room:v.room||""};
   await db.collection("passes").doc(code).set(p);
   p={...p,id:code}; passes.push(p); return p;
 }
@@ -669,31 +675,7 @@ async function openPass(v){
   render();
 }
 /* The visitor's own pass page: app.html?pass=CODE (no sign-in). */
-function showPass(code){
-  const main=$("#main"); main.innerHTML=`<div class="vpass"><div class="vp-load">Opening your pass…</div></div>`;
-  let clockT=null, qr=null, tries=0;
-  const draw=p=>{
-    const expired=p.validUntil<now(), done=p.status==="out", bad=p.revoked||["rejected","suspended","pending"].includes(p.status);
-    const ok=!expired&&!done&&!bad;
-    const label=done?"Visit ended":expired?"Pass expired":p.status==="pending"?"Awaiting approval":bad?"Not valid":p.status==="in"?"Checked in":p.status==="tagged"?"Documented":p.status==="arrived"?"Admitted at gate":"Approved";
-    main.innerHTML=`<div class="vpass ${ok?"ok":"no"}">
-      <div class="vp-top"><span class="vp-kind">${p.type==="group"?"Delegation":p.type==="vip"?"VIP guest":p.type==="contractor"?"Contractor":"Visitor"}</span><span class="vp-st">${esc(label)}</span></div>
-      <div class="vp-name">${esc(p.name)}</div><div class="vp-org">${p.members?`Group pass · ${p.members.length} people`:esc(p.org)}</div>
-      ${ok?`<div class="vp-qr"><img id="vpq" alt="Your pass code"></div><div class="vp-clock"><i></i><span id="vpc"></span></div>`:`<div class="vp-msg">${done?"Thank you for visiting UN House.":expired?"This pass is no longer valid. Ask your host for a new one.":"This pass can't be used yet. Your host will let you know."}</div>`}
-      ${p.members?`<div class="vp-dl">${p.members.map(x=>`<div><span>${esc(x.name)}</span><span class="small">${esc(STATUS[x.status]||x.status)}${x.tag?" · "+esc(x.tag):""}</span></div>`).join("")}</div>`:""}
-      <dl class="vp-dl"><div><dt>Host</dt><dd>${esc(p.host)}${p.agency?" · "+esc(p.agency):""}</dd></div><div><dt>Date</dt><dd>${new Date(p.expected).toLocaleDateString([], {weekday:"short",day:"numeric",month:"short"})} · ${fmtT(p.expected)}</dd></div>
-      ${p.tag?`<div><dt>Tag</dt><dd class="mono">${esc(p.tag)}</dd></div>`:""}<div><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div><div><dt>Reference</dt><dd class="mono">${esc(p.ref)}</dd></div></dl>
-      <p class="vp-foot">Show this screen at the gate together with your photo ID. Screenshots are not accepted: the clock must be moving.</p></div>`;
-    if(ok){ (qr?Promise.resolve(qr):qrDataUrl(PASS_PREFIX+code,240)).then(u=>{qr=u;const i=$("#vpq");if(i)i.src=u}).catch(()=>{});
-      const tick=()=>{const c=$("#vpc");if(c)c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})}; tick(); clearInterval(clockT); clockT=setInterval(tick,1000); }
-  };
-  const sub=()=>db.collection("passes").doc(code).onSnapshot(s=>{
-    if(!s.exists){ main.innerHTML=`<div class="vpass no"><div class="vp-name">Pass not found</div><p class="vp-msg">Check you opened the whole link, or ask your host to send it again.</p></div>`; return; }
-    draw({...s.data(),id:s.id});
-  },()=>{ if(++tries<3) setTimeout(sub,1500); else main.innerHTML=`<div class="vpass no"><div class="vp-name">This pass can't be opened</div><p class="vp-msg">Check your internet connection and reload the page.</p></div>`; });
-  sub();
-  try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
-}
+
 /* Scanning: works for digital passes (UNHPASS:code) and paper badges (reference number). */
 async function handleScan(txt){
   txt=String(txt||"").trim(); let v=null, p=null;
@@ -725,7 +707,8 @@ function scanResult(v,p,title,msg){
   if(!v){ m.innerHTML=`<div class="modal"><div class="scan-band no">${esc(title)}</div><p>${esc(msg)}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`; m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return; }
   const expired=p&&p.validUntil<now(), step=nextStep(v);
   let band="ok", head="Valid", note="";
-  if(v.status==="out"){band="no";head="Already checked out";note=`Left at ${fmtT(v.outAt)}. Do not admit on this pass.`}
+  if(v.watchFlag){band="no";head="Watchlist match: do not admit";note="Keep the visitor here and call security and the duty approver."}
+  else if(v.status==="out"){band="no";head="Already checked out";note=`Left at ${fmtT(v.outAt)}. Do not admit on this pass.`}
   else if(["rejected","suspended"].includes(v.status)){band="no";head=STATUS[v.status];note="Do not admit. Contact the approver."}
   else if(v.status==="pending"){band="no";head="Not approved yet";note="Wait for approval before admitting."}
   else if(expired){band="no";head="Pass expired";note=`Valid until ${fmtD(p.validUntil)}.`}
@@ -817,6 +800,285 @@ function tagSheetPanel(){return `<div class="panel"><h2>Print reusable tags</h2>
    <div class="f"><label for="ts_to">To number</label><input id="ts_to" type="number" min="1" value="50" style="width:110px"></div>
    <button class="btn pri" id="ts_go">Print tag sheet</button></div></div>`}
 
+/* ================= world-class features ================= */
+
+/* ---------- 1. Watchlist ---------- */
+const nameTokens=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z\s]/g," ").split(/\s+/).filter(w=>w.length>1);
+function namesMatch(a,b){const A=nameTokens(a),B=nameTokens(b);if(!A.length||!B.length)return false;
+  if(A.slice().sort().join(" ")===B.slice().sort().join(" "))return true;
+  const common=A.filter(w=>B.includes(w)).length; return common>=2&&common>=Math.min(A.length,B.length);}
+function watchMatch(name){
+  for(const w of watchlist){ if(w.active===false) continue;
+    const names=[w.name].concat(String(w.aliases||"").split(";")).map(x=>x.trim()).filter(Boolean);
+    if(names.some(n=>namesMatch(n,name))) return w; }
+  return null;
+}
+function watchPill(v){return v.watchFlag?`<span class="pill p-watch" title="${esc(v.watchReason||"")}">Watchlist</span>`:""}
+function watchBlock(v,then){
+  const r=myRole();
+  if(!["admin","approver"].includes(r)){
+    const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit</div><p><b>${esc(v.name)}</b> matches the watchlist. Keep the visitor at the gate and call security and the duty approver.</p><p class="small">${esc(v.watchReason||"")}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
+    m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return;
+  }
+  modal(`<div class="scan-band no">Watchlist match</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc(v.watchReason||"no reason recorded")}.</p>
+    <div class="f"><label for="m_ovr">To admit anyway, record why (for example "Checked with UNDSS: different person, ID verified")</label><textarea id="m_ovr"></textarea></div><div id="m_err" class="small" style="color:var(--warn)"></div>`,
+    ()=>{const why=$("#m_ovr").value.trim(); if(why.length<10){$("#m_err").textContent="Write at least a short reason.";return false}
+      act(v,`Watchlist override: ${why}`,{watchFlag:false,watchOverride:{by:op(),byUid:myUid(),reason:why,at:now()}}).then(()=>{toast("Override recorded.");then&&then({...v,watchFlag:false})})});
+}
+const VW_watch=()=>{
+  const list=[...watchlist].sort((a,b)=>(b.active!==false)-(a.active!==false)||String(a.name).localeCompare(b.name));
+  const flagged=visitors.filter(v=>v.watchFlag&&!["out","rejected","cancelled"].includes(v.status));
+  return head("Watchlist","People who must not be admitted without a security check. Every new registration is checked against this list, and matches are blocked at the gate.")+
+  (flagged.length?`<div class="panel"><h2>Current matches <span class="cnt">${flagged.length}</span></h2>${table(flagged,v=>B(v.id,"detail","Details"),"")}</div>`:"")+
+  `<div class="panel"><h2>Add a person</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <div class="f"><label for="w_name">Full name</label><input id="w_name"></div>
+    <div class="f"><label for="w_alias">Other names or spellings (separate with ;)</label><input id="w_alias"></div>
+    <div class="f"><label for="w_org">Organisation (optional)</label><input id="w_org"></div>
+    <div class="f" style="grid-column:1/-1"><label for="w_reason">Reason and instruction (shown to the gate)</label><input id="w_reason" placeholder="e.g. Barred by UNDSS 3 Oct 2026. Call security on arrival."></div></div>
+    <div class="acts" style="margin-top:10px"><button class="btn pri" id="w_add">Add to watchlist</button></div></div>
+  <div class="panel"><h2>On the list <span class="cnt">${list.filter(w=>w.active!==false).length}</span></h2>${list.length?`<div class="tw"><table><thead><tr><th>Name</th><th>Reason</th><th>Added</th><th></th></tr></thead><tbody>${list.map(w=>`<tr style="${w.active===false?"opacity:.55":""}"><td><b>${esc(w.name)}</b><div class="small">${esc(w.aliases||"")}${w.org?" · "+esc(w.org):""}</div></td><td>${esc(w.reason||"")}</td><td class="small">${fmtD(w.at)} · ${esc(w.addedBy||"")}</td><td><button class="btn ${w.active===false?"":"bad"}" data-wtoggle="${esc(w.id)}">${w.active===false?"Reactivate":"Remove"}</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nobody is on the watchlist.</div>`}</div>`;
+};
+function wireWatch(){
+  const a=$("#w_add"); if(a) a.onclick=async()=>{const name=$("#w_name").value.trim(); if(name.length<2) return toast("Enter a name.");
+    try{await db.collection("watchlist").add({name,aliases:$("#w_alias").value.trim(),org:$("#w_org").value.trim(),reason:$("#w_reason").value.trim(),active:true,at:now(),addedBy:op(),addedByUid:myUid()});
+      // flag any current or upcoming visitor who matches
+      const tmp={name,aliases:$("#w_alias").value.trim(),active:true};
+      for(const v of visitors.filter(x=>!x.watchFlag&&["pending","approved","arrived","tagged","in"].includes(x.status))){
+        const hit=[tmp.name].concat(tmp.aliases.split(";")).some(n=>n.trim()&&namesMatch(n,v.name));
+        if(hit&&["admin"].includes(myRole())) await act(v,"Flagged by new watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()});
+      }
+      toast(`${name} added to the watchlist.`)}catch(e){toast("Could not add: "+e.message)}};
+  document.querySelectorAll("[data-wtoggle]").forEach(b=>b.onclick=()=>{const w=watchlist.find(x=>x.id===b.dataset.wtoggle);
+    db.collection("watchlist").doc(w.id).update({active:w.active===false,changedAt:now(),changedBy:op()}).then(()=>toast(w.active===false?"Reactivated.":"Removed from the watchlist.")).catch(e=>toast(e.message))});
+}
+
+/* ---------- 2. Evacuation roll call ---------- */
+const activeRoll=()=>rollcalls.find(r=>!r.endedAt);
+const VW_evac=()=>{
+  const r=activeRoll(), onsite=visitors.filter(v=>["arrived","tagged","in"].includes(v.status));
+  if(!r) return head("Evacuation roll call","In an emergency, start a roll call. Everyone signed in at any station sees the same live list and ticks people off at the assembly point.")+
+    `<div class="panel"><div class="kpis"><div class="kpi"><div class="n">${onsite.length}</div><div class="l">Visitors on site now</div></div>${BUILDINGS.map(b=>`<div class="kpi"><div class="n">${onsite.filter(v=>v.building===b).length}</div><div class="l">${esc(b)}</div></div>`).join("")}</div>
+    <div class="acts" style="margin-top:14px"><button class="btn pri" id="ev_start">Start roll call</button></div></div>
+    ${rollcalls.length?`<div class="panel"><h2>Past roll calls</h2><div class="tw"><table><tbody>${rollcalls.filter(x=>x.endedAt).slice(0,8).map(x=>`<tr><td>${fmtD(x.startedAt)}</td><td>${Object.values(x.accounted||{}).filter(Boolean).length} of ${x.people.length} accounted</td><td class="small">Started by ${esc(x.startedBy)} · ended ${fmtT(x.endedAt)} by ${esc(x.endedBy||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
+  const acc=r.accounted||{}, done=r.people.filter(p=>acc[p.visitorId]).length, missing=r.people.filter(p=>!acc[p.visitorId]);
+  return `<div class="evac-head"><div><div class="al-k" style="color:inherit">Roll call in progress · started ${fmtT(r.startedAt)} by ${esc(r.startedBy)}</div><div class="evac-n">${done} of ${r.people.length} accounted for</div></div><button class="btn" id="ev_end">End roll call</button></div>
+  <div class="evac-bar"><span style="width:${r.people.length?done/r.people.length*100:100}%"></span></div>
+  ${missing.length?`<div class="panel"><h2>Still missing <span class="cnt">${missing.length}</span></h2>${evacList(missing,acc)}</div>`:`<div class="panel"><div class="al-empty"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Everyone is accounted for.</div></div>`}
+  ${BUILDINGS.filter(b=>r.people.some(p=>p.building===b)).map(b=>{const ps=r.people.filter(p=>p.building===b);return `<div class="panel"><h2>${esc(b)} <span class="cnt">${ps.filter(p=>acc[p.visitorId]).length}/${ps.length}</span></h2>${evacList(ps,acc)}</div>`}).join("")}`;
+};
+function evacList(ps,acc){return `<ul class="evac">${ps.map(p=>`<li class="${acc[p.visitorId]?"ok":""}"><label><input type="checkbox" data-evac="${esc(p.visitorId)}" ${acc[p.visitorId]?"checked":""}><span><b>${esc(p.name)}</b><span class="small"> ${esc(p.tag||"")} · host ${esc(p.host)}${p.phone?" · "+esc(p.phone):""}</span></span></label></li>`).join("")}</ul>`}
+function wireEvac(){
+  const s=$("#ev_start"); if(s) s.onclick=()=>modal(`<h2>Start an evacuation roll call?</h2><p>Everyone currently on site goes onto a shared list that all stations can tick off.</p>`,()=>{
+    const people=visitors.filter(v=>["arrived","tagged","in"].includes(v.status)).map(v=>({visitorId:v.id,name:v.name,tag:v.tag||"",host:v.host||"",phone:v.phone||"",building:v.building||BUILDINGS[0]}));
+    db.collection("rollcalls").add({startedAt:now(),startedBy:op(),startedByUid:myUid(),people,accounted:{}}).then(()=>toast("Roll call started.")).catch(e=>toast(e.message))});
+  const e=$("#ev_end"); if(e) e.onclick=()=>{const r=activeRoll(); modal(`<h2>End the roll call?</h2><p>${r.people.filter(p=>!(r.accounted||{})[p.visitorId]).length} people are still not ticked.</p>`,()=>{db.collection("rollcalls").doc(r.id).update({endedAt:now(),endedBy:op()}).then(()=>toast("Roll call ended."))})};
+  document.querySelectorAll("[data-evac]").forEach(c=>c.onchange=()=>{const r=activeRoll(); if(!r) return;
+    db.collection("rollcalls").doc(r.id).update({["accounted."+c.dataset.evac]:c.checked?{at:now(),by:op()}:false}).catch(x=>toast(x.message))});
+}
+
+/* ---------- 3. Offline + installable ---------- */
+function watchConnection(){
+  const upd=()=>{ if(!navigator.onLine) setSync(false,"Offline · changes are saved on this device and sync when back online"); else if(me) setSync(true,"Live · all stations synced"); };
+  window.addEventListener("online",upd); window.addEventListener("offline",upd); upd();
+  if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+
+/* ---------- 4. Kiosk self check-in ---------- */
+const VW_kiosk=()=>head("Self check-in kiosk","Turn a reception tablet into a kiosk. Visitors who have been tagged scan their own pass; the system checks them in and notifies their host.")+
+  `<div class="panel"><ol class="small" style="line-height:1.8;margin:0 0 12px;padding-left:18px"><li>Sign in on the tablet with a receptionist account.</li><li>Press Start kiosk. The screen goes full-screen and the camera starts.</li><li>To leave kiosk mode, press Staff exit and confirm.</li></ol>
+  <button class="btn pri" id="k_start">Start kiosk</button></div>`;
+let kioskScanner=null, kioskBusy=false;
+async function startKiosk(){
+  let k=$("#kiosk"); if(!k){k=document.createElement("div");k.id="kiosk";document.body.appendChild(k)}
+  k.innerHTML=`<div class="k-in"><div class="k-top"><span class="hslot" style="color:inherit;border-color:currentColor">Logo</span><span>UN House Abuja · Internal reception</span></div>
+    <h1 class="k-h" id="k_msg">Welcome. Scan your visitor pass to check in.</h1><div class="k-sub" id="k_sub">Hold the QR code on your phone up to the camera.</div>
+    <div id="k_cam" class="k-cam"></div><div class="k-clock" id="k_clock"></div><button class="k-exit" id="k_exit">Staff exit</button></div>`;
+  k.hidden=false; document.body.classList.add("kiosk-on");
+  try{await document.documentElement.requestFullscreen()}catch(e){}
+  try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
+  const tick=()=>{const c=$("#k_clock");if(c)c.textContent=new Date().toLocaleString([], {weekday:"long",hour:"2-digit",minute:"2-digit"})};tick();const ti=setInterval(tick,15000);
+  $("#k_exit").onclick=()=>modal(`<h2>Leave kiosk mode?</h2>`,()=>{clearInterval(ti);stopKiosk()});
+  try{await loadScript(SCANLIB); kioskScanner=new Html5Qrcode("k_cam");
+    await kioskScanner.start({facingMode:"user"},{fps:8,qrbox:260},txt=>kioskScan(txt));
+  }catch(e){$("#k_sub").textContent="The camera could not start. Allow camera access and try again."}
+}
+function stopKiosk(){const k=$("#kiosk");if(kioskScanner){kioskScanner.stop().catch(()=>{});kioskScanner=null}if(k)k.hidden=true;document.body.classList.remove("kiosk-on");try{document.exitFullscreen()}catch(e){}}
+async function kioskScan(txt){
+  if(kioskBusy) return; kioskBusy=true;
+  const show=(cls,h,sub)=>{const k=$("#kiosk");k.className=cls;$("#k_msg").textContent=h;$("#k_sub").textContent=sub;
+    setTimeout(()=>{k.className="";$("#k_msg").textContent="Welcome. Scan your visitor pass to check in.";$("#k_sub").textContent="Hold the QR code on your phone up to the camera.";kioskBusy=false},6000)};
+  let v=null; txt=String(txt).trim();
+  if(txt.startsWith(PASS_PREFIX)){const p=passes.find(x=>x.id===txt.slice(PASS_PREFIX.length)); if(p&&!p.members) v=visitors.find(x=>x.id===p.visitorId);}
+  else v=visitors.find(x=>x.ref===txt);
+  if(!v) return show("k-no","We could not find your pass.","Please see the receptionist.");
+  const first=v.name.split(" ")[0];
+  if(v.watchFlag) return show("k-no",`Thank you, ${first}.`,"Please wait here. A member of staff will be with you shortly.");
+  if(v.status==="in") return show("k-ok",`You are already checked in, ${first}.`,`${v.host} knows you are here.`);
+  if(v.status!=="tagged") return show("k-no",`Hello ${first}.`,v.status==="out"?"This visit has ended.":"Please go to the documentation desk first to collect your tag.");
+  await act(v,"Checked in at the self-service kiosk",{status:"in",inAt:now(),hostNotified:v.hostNotified||now()});
+  show("k-ok",`Welcome, ${first}. You are checked in.`,`${v.host} has been told you are here. Please take a seat.`);
+}
+
+/* ---------- 5. Visitor agreements ---------- */
+const AGREEMENT={version:"UNH-2026-11",
+  en:["I will wear my visitor tag or show my pass at all times and return the tag when I leave.","I will stay with my host or in the areas I am allowed to visit.","I will follow security staff instructions, including in an emergency.","I will not take photos or recordings inside without permission.","Privacy: UN House records my name, organisation, contact details, host and visit times to manage access and safety. Records are kept for a limited period and are not shared outside the UN, except where the law requires."],
+  fr:["Je porterai mon badge visiteur ou présenterai mon laissez-passer en permanence et rendrai le badge en partant.","Je resterai avec mon hôte ou dans les zones autorisées.","Je suivrai les consignes du personnel de sécurité, y compris en cas d'urgence.","Je ne prendrai ni photos ni enregistrements à l'intérieur sans autorisation.","Confidentialité : UN House enregistre mon nom, mon organisation, mes coordonnées, mon hôte et mes heures de visite pour gérer l'accès et la sécurité. Ces données sont conservées pour une durée limitée et ne sont pas partagées en dehors de l'ONU, sauf obligation légale."]};
+function agreementBlock(lang,id){return `<details class="agree"><summary>${lang==="fr"?"Règles de visite et confidentialité":"Visitor rules and privacy notice"}</summary><ul>${AGREEMENT[lang].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
+  <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="${id}" style="width:auto;margin-top:2px" required> <span>${lang==="fr"?"J'ai lu et j'accepte les règles de visite et l'avis de confidentialité.":"I have read and accept the visitor rules and privacy notice."}</span></label>`}
+
+/* ---------- 6. Repeat-visitor recognition ---------- */
+function previousVisits(name){return visitors.filter(x=>namesMatch(x.name,name)).sort((a,b)=>(b.expected||0)-(a.expected||0))}
+function wireRepeat(){
+  const n=$("#r_name"), box=$("#r_prev"); if(!n||!box) return;
+  const check=()=>{const name=n.value.trim(); if(name.split(/\s+/).length<2){box.innerHTML="";return}
+    const prev=previousVisits(name), w=fb||watchlist.length?watchMatch(name):null, lost=prev.filter(x=>x.tagReturned===false);
+    box.innerHTML=(w?`<div class="banner" style="margin-bottom:8px"><b>Watchlist match.</b> This registration will be flagged and blocked at the gate. ${esc(w.reason||"")}</div>`:"")+
+      (prev.length?`<div class="note"><b>Returning visitor</b> · ${prev.length} previous visit${prev.length>1?"s":""}, last ${new Date(prev[0].expected).toLocaleDateString()} (host ${esc(prev[0].host)}).
+      ${lost.length?`<br><b>Note:</b> did not return tag ${esc(lost.map(x=>x.tag).join(", "))}.`:""} <button type="button" class="btn" id="r_fill" style="margin-left:6px">Use previous details</button></div>`:"");
+    const f=$("#r_fill"); if(f) f.onclick=()=>{const p=prev[0];[["r_org",p.org],["r_phone",p.phone],["r_vemail",p.visitorEmail]].forEach(([id,val])=>{const el=$("#"+id);if(el&&!el.value&&val)el.value=val});toast("Previous details filled in.")};
+  };
+  n.addEventListener("blur",check); n.addEventListener("input",()=>{clearTimeout(n._t);n._t=setTimeout(check,500)});
+}
+
+/* ---------- 7. Host portal ---------- */
+const VW_myguests=()=>{
+  const mine=visitors.filter(v=>v.requestedByUid===myUid()||(me&&v.hostEmail&&v.hostEmail===me.email));
+  const up=mine.filter(v=>["pending","approved"].includes(v.status)).sort((a,b)=>a.expected-b.expected);
+  const here=mine.filter(v=>["arrived","tagged","in"].includes(v.status));
+  const past=mine.filter(v=>["out","cancelled","rejected"].includes(v.status)).sort((a,b)=>(b.expected||0)-(a.expected||0)).slice(0,20);
+  const hostBtns=v=>(v.status==="tagged"||v.status==="arrived")&&!v.hostReply?`<button class="btn ok" data-act="reply" data-id="${esc(v.id)}">I'm coming down</button>`:v.hostReply?`<span class="pill p-in">You replied ${fmtT(v.hostReplyAt)}</span>`:"";
+  return head("My guests","Your upcoming and current visitors. Change a time, cancel a visit, or tell reception you are on your way.")+
+  (here.length?`<div class="panel"><h2>Here now <span class="cnt">${here.length}</span></h2>${table(here,hostBtns,"")}</div>`:"")+
+  `<div class="panel"><h2>Upcoming <span class="cnt">${up.length}</span></h2>${table(up,v=>B(v.id,"reschedule","Change time")+B(v.id,"cancel","Cancel","bad"),"No upcoming visits. Register a guest or send an invite link.")}</div>
+  <div class="panel"><h2>Recent</h2>${table(past,v=>B(v.id,"detail","Details"),"No past visits yet.")}</div>`;
+};
+
+/* ---------- 8. Deliveries log ---------- */
+const VW_deliveries=()=>{
+  const wait=deliveries.filter(d=>d.status==="waiting"), done=deliveries.filter(d=>d.status!=="waiting").slice(0,30);
+  return head("Deliveries","Log parcels and deliveries for staff, and record when they are collected.")+
+  `<div class="panel"><h2>Log a delivery</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+    <div class="f"><label for="d_for">For (staff member)</label><input id="d_for"></div>
+    <div class="f"><label for="d_agency">Agency</label><select id="d_agency">${AGENCIES.map(a=>`<option>${a}</option>`).join("")}</select></div>
+    <div class="f"><label for="d_from">From / courier</label><input id="d_from" placeholder="e.g. DHL"></div>
+    <div class="f"><label for="d_desc">Description</label><input id="d_desc" placeholder="e.g. 1 box, documents"></div></div>
+    <div class="acts" style="margin-top:10px"><button class="btn pri" id="d_add">Log delivery</button></div></div>
+  <div class="panel"><h2>Waiting for collection <span class="cnt">${wait.length}</span></h2>${wait.length?`<div class="tw"><table><thead><tr><th>For</th><th>Item</th><th>Received</th><th></th></tr></thead><tbody>${wait.map(d=>`<tr><td><b>${esc(d.forName)}</b><div class="small">${esc(d.agency)}</div></td><td>${esc(d.desc)}<div class="small">${esc(d.from)}</div></td><td class="small">${fmtD(d.at)} · ${esc(d.by)}</td><td><button class="btn ok" data-dcol="${esc(d.id)}">Collected</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nothing waiting.</div>`}</div>
+  ${done.length?`<div class="panel"><h2>Collected</h2><div class="tw"><table><tbody>${done.map(d=>`<tr><td>${esc(d.forName)}</td><td>${esc(d.desc)}</td><td class="small">Collected ${fmtD(d.collectedAt)} · ${esc(d.collectedBy||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
+};
+function wireDeliveries(){
+  const a=$("#d_add"); if(a) a.onclick=()=>{const f=$("#d_for").value.trim(); if(!f) return toast("Enter who the delivery is for.");
+    db.collection("deliveries").add({forName:f,agency:$("#d_agency").value,from:$("#d_from").value.trim(),desc:$("#d_desc").value.trim(),at:now(),by:op(),status:"waiting"}).then(()=>toast("Delivery logged.")).catch(e=>toast(e.message))};
+  document.querySelectorAll("[data-dcol]").forEach(b=>b.onclick=()=>db.collection("deliveries").doc(b.dataset.dcol).update({status:"collected",collectedAt:now(),collectedBy:op()}).then(()=>toast("Marked collected.")).catch(e=>toast(e.message)));
+}
+
+/* ---------- 9. Reports ---------- */
+const VW_reports=()=>{
+  const real=visitors.filter(v=>!v.example||!fb), days=30, start=today0()-(days-1)*864e5;
+  const arr=real.filter(v=>v.arrivedAt&&v.arrivedAt>=start);
+  const perDay=[...Array(days)].map((_,i)=>{const d0=start+i*864e5;return {d:d0,n:arr.filter(v=>v.arrivedAt>=d0&&v.arrivedAt<d0+864e5).length}});
+  const perHour=[...Array(24)].map((_,h)=>arr.filter(v=>new Date(v.arrivedAt).getHours()===h).length);
+  const waits=arr.filter(v=>v.inAt&&v.inAt>v.arrivedAt).map(v=>v.inAt-v.arrivedAt), stays=real.filter(v=>v.inAt&&v.outAt&&v.outAt>=start).map(v=>v.outAt-v.inAt);
+  const avg=a=>a.length?dur(a.reduce((x,y)=>x+y,0)/a.length):"—";
+  const byAgency={}; arr.forEach(v=>byAgency[v.agency||"Other"]=(byAgency[v.agency||"Other"]||0)+1);
+  const lost=real.filter(v=>v.tagReturned===false), over=real.filter(v=>v.inAt&&((v.outAt||now())-v.inAt)>OVERSTAY_H*3600e3&&v.inAt>=start);
+  const bars=(vals,labels,w,h)=>{const mx=Math.max(1,...vals),bw=w/vals.length;return `<svg viewBox="-18 -6 ${w+30} ${h+30}" class="chart" role="img">${[0.5,1].map(f=>`<line x1="0" x2="${w}" y1="${h-h*f}" y2="${h-h*f}" class="grid"/><text x="0" y="${h-h*f-3}" class="axis">${Math.round(mx*f)}</text>`).join("")}${vals.map((v,i)=>`<rect x="${i*bw+1}" y="${h-v/mx*h}" width="${Math.max(1,bw-2)}" height="${v/mx*h}" rx="2" class="bar"><title>${labels[i]}: ${v}</title></rect>${labels[i]&&(i%Math.ceil(vals.length/8)===0)?`<text x="${i*bw+bw/2}" y="${h+15}" class="axis" text-anchor="middle">${labels[i]}</text>`:""}`).join("")}</svg>`};
+  return head("Reports","The last 30 days. Use these for management reports and to plan staffing at each station.")+
+  `<div class="kpis"><div class="kpi"><div class="n">${arr.length}</div><div class="l">Arrivals, 30 days</div></div><div class="kpi"><div class="n">${avg(waits)}</div><div class="l">Avg gate → check-in</div></div><div class="kpi"><div class="n">${avg(stays)}</div><div class="l">Avg visit length</div></div><div class="kpi ${over.length?"alert":""}"><div class="n">${over.length}</div><div class="l">Overstays (&gt;${OVERSTAY_H} h)</div></div><div class="kpi ${lost.length?"alert":""}"><div class="n">${lost.length}</div><div class="l">Tags not returned</div></div></div>
+  <div class="grid2"><div class="panel"><h2>Arrivals per day</h2>${bars(perDay.map(x=>x.n),perDay.map(x=>new Date(x.d).toLocaleDateString([], {day:"numeric",month:"short"})),600,140)}</div>
+  <div class="panel"><h2>Busiest hours</h2>${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}<p class="small">Arrivals by hour of day, 06:00 to 20:00.</p></div></div>
+  <div class="grid2"><div class="panel"><h2>By agency</h2><div class="tw"><table><tbody>${Object.entries(byAgency).sort((a,b)=>b[1]-a[1]).map(([a,n])=>`<tr><td>${esc(a)}</td><td class="mono" style="text-align:right">${n}</td></tr>`).join("")||`<tr><td class="small">No arrivals yet.</td></tr>`}</tbody></table></div></div>
+  <div class="panel"><h2>Tags not returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags returned.</div>`}</div></div>
+  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button></div></div>`;
+};
+function wireReports(){const c=$("#rp_csv"); if(c) c.onclick=()=>{const days=30,start=today0()-(days-1)*864e5;
+  const rows=[...Array(days)].map((_,i)=>{const d0=start+i*864e5;return new Date(d0).toISOString().slice(0,10)+","+visitors.filter(v=>v.arrivedAt>=d0&&v.arrivedAt<d0+864e5).length});
+  copyText("date,arrivals\n"+rows.join("\n"))}}
+
+/* ---------- 10. Visitor pages in English and French ---------- */
+const TX={en:{passFor:"Visitor",group:"Delegation",vip:"VIP guest",contractor:"Contractor",loading:"Opening your pass…",notFound:"Pass not found",notFoundSub:"Check you opened the whole link, or ask your host to send it again.",cantOpen:"This pass can't be opened",cantOpenSub:"Check your internet connection and reload the page.",
+  st:{out:"Visit ended",expired:"Pass expired",pending:"Awaiting approval",bad:"Not valid",in:"Checked in",tagged:"Documented",arrived:"Admitted at gate",approved:"Approved"},
+  doneMsg:"Thank you for visiting UN House.",expMsg:"This pass is no longer valid. Ask your host for a new one.",badMsg:"This pass can't be used yet. Your host will let you know.",
+  host:"Host",date:"Date",tag:"Tag",until:"Valid until",ref:"Reference",room:"Meeting room",people:"people",groupPass:"Group pass",
+  foot:"Show this screen at the gate together with your photo ID. Screenshots are not accepted: the clock must be moving.",
+  invTitle:"Visit to UN House, Abuja",invIntro:(h,a)=>`${h} (${a}) has invited you. Fill in your details so the gate can expect you.`,name:"Full name",org:"Organisation",email:"Email (we send your pass here)",phone:"Phone",when:"Arrival date and time",purpose:"Purpose of visit",send:"Send my details",
+  privacy:"Your details are used only to manage your visit. Bring a photo ID to the gate.",thanks:n=>`Thank you, ${n}`,thanksSub:(h,w)=>`${h} has your details. Bring a photo ID to the gate at UN House on ${w}.`,received:"Thank you",receivedSub:"Your details have been received. Bring a photo ID to the gate at UN House.",
+  linkNF:"Link not found",linkNFSub:"Check you copied the whole link, or ask your host for a new one.",linkExp:"This link has expired",linkExpSub:h=>`Ask ${h} to send you a new one.`,sendErr:"Your details could not be sent. The link may have expired. Ask your host for a new one.",mustAgree:"Please accept the visitor rules to continue.",opening:"Opening your invitation…"},
+ fr:{passFor:"Visiteur",group:"Délégation",vip:"Invité VIP",contractor:"Prestataire",loading:"Ouverture de votre laissez-passer…",notFound:"Laissez-passer introuvable",notFoundSub:"Vérifiez que vous avez ouvert le lien complet, ou demandez à votre hôte de le renvoyer.",cantOpen:"Impossible d'ouvrir ce laissez-passer",cantOpenSub:"Vérifiez votre connexion Internet et rechargez la page.",
+  st:{out:"Visite terminée",expired:"Laissez-passer expiré",pending:"En attente d'approbation",bad:"Non valide",in:"Enregistré",tagged:"Documenté",arrived:"Admis à l'entrée",approved:"Approuvé"},
+  doneMsg:"Merci de votre visite à UN House.",expMsg:"Ce laissez-passer n'est plus valide. Demandez-en un nouveau à votre hôte.",badMsg:"Ce laissez-passer n'est pas encore utilisable. Votre hôte vous informera.",
+  host:"Hôte",date:"Date",tag:"Badge",until:"Valable jusqu'au",ref:"Référence",room:"Salle de réunion",people:"personnes",groupPass:"Laissez-passer de groupe",
+  foot:"Présentez cet écran à l'entrée avec votre pièce d'identité. Les captures d'écran ne sont pas acceptées : l'horloge doit défiler.",
+  invTitle:"Visite à UN House, Abuja",invIntro:(h,a)=>`${h} (${a}) vous a invité. Remplissez vos informations pour que l'entrée vous attende.`,name:"Nom complet",org:"Organisation",email:"E-mail (nous y envoyons votre laissez-passer)",phone:"Téléphone",when:"Date et heure d'arrivée",purpose:"Objet de la visite",send:"Envoyer mes informations",
+  privacy:"Vos informations servent uniquement à gérer votre visite. Apportez une pièce d'identité avec photo.",thanks:n=>`Merci, ${n}`,thanksSub:(h,w)=>`${h} a reçu vos informations. Apportez une pièce d'identité avec photo à l'entrée de UN House le ${w}.`,received:"Merci",receivedSub:"Vos informations ont été reçues. Apportez une pièce d'identité avec photo à l'entrée de UN House.",
+  linkNF:"Lien introuvable",linkNFSub:"Vérifiez que vous avez copié le lien complet, ou demandez-en un nouveau à votre hôte.",linkExp:"Ce lien a expiré",linkExpSub:h=>`Demandez à ${h} de vous en envoyer un nouveau.`,sendErr:"Vos informations n'ont pas pu être envoyées. Le lien a peut-être expiré. Demandez-en un nouveau à votre hôte.",mustAgree:"Veuillez accepter les règles de visite pour continuer.",opening:"Ouverture de votre invitation…"}};
+let LANG=(()=>{try{return localStorage.getItem("lang")||((navigator.language||"").startsWith("fr")?"fr":"en")}catch(e){return "en"}})();
+const tx=()=>TX[LANG];
+function langSwitch(onChange){return `<div class="lang"><button class="${LANG==="en"?"on":""}" data-lang="en">English</button><button class="${LANG==="fr"?"on":""}" data-lang="fr">Français</button></div>`}
+function wireLang(redraw){document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{LANG=b.dataset.lang;try{localStorage.setItem("lang",LANG)}catch(e){}redraw()})}
+const dateLoc=()=>LANG==="fr"?"fr-FR":undefined;
+
+function showPass(code){
+  const main=$("#main"); main.innerHTML=`<div class="vpass"><div class="vp-load">${tx().loading}</div></div>`;
+  let clockT=null, qr=null, tries=0, last=null;
+  const draw=p=>{ last=p; const T=tx();
+    const expired=p.validUntil<now(), done=p.status==="out", bad=p.revoked||["rejected","suspended","pending","cancelled"].includes(p.status);
+    const ok=!expired&&!done&&!bad;
+    const label=done?T.st.out:expired?T.st.expired:p.status==="pending"?T.st.pending:bad?T.st.bad:(T.st[p.status]||T.st.approved);
+    const kind=p.type==="group"?T.group:p.type==="vip"?T.vip:p.type==="contractor"?T.contractor:T.passFor;
+    main.innerHTML=`${langSwitch()}<div class="vpass ${ok?"ok":"no"}">
+      <div class="vp-top"><span class="vp-kind">${esc(kind)}</span><span class="vp-st">${esc(label)}</span></div>
+      <div class="vp-name">${esc(p.name)}</div><div class="vp-org">${p.members?`${T.groupPass} · ${p.members.length} ${T.people}`:esc(p.org)}</div>
+      ${ok?`<div class="vp-qr"><img id="vpq" alt="QR"></div><div class="vp-clock"><i></i><span id="vpc"></span></div>`:`<div class="vp-msg">${done?T.doneMsg:expired?T.expMsg:T.badMsg}</div>`}
+      ${p.members?`<div class="vp-dl">${p.members.map(x=>`<div><span>${esc(x.name)}</span><span class="small">${esc((T.st[x.status])||x.status)}${x.tag?" · "+esc(x.tag):""}</span></div>`).join("")}</div>`:""}
+      <dl class="vp-dl"><div><dt>${T.host}</dt><dd>${esc(p.host)}${p.agency?" · "+esc(p.agency):""}</dd></div>
+      <div><dt>${T.date}</dt><dd>${new Date(p.expected).toLocaleDateString(dateLoc(), {weekday:"short",day:"numeric",month:"short"})} · ${new Date(p.expected).toLocaleTimeString(dateLoc(), {hour:"2-digit",minute:"2-digit"})}</dd></div>
+      ${p.room?`<div><dt>${T.room}</dt><dd>${esc(p.room)}</dd></div>`:""}${p.tag?`<div><dt>${T.tag}</dt><dd class="mono">${esc(p.tag)}</dd></div>`:""}
+      <div><dt>${T.until}</dt><dd>${new Date(p.validUntil).toLocaleString(dateLoc(), {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</dd></div><div><dt>${T.ref}</dt><dd class="mono">${esc(p.ref)}</dd></div></dl>
+      <p class="vp-foot">${T.foot}</p></div>`;
+    wireLang(()=>draw(last));
+    if(ok){ (qr?Promise.resolve(qr):qrDataUrl(PASS_PREFIX+code,240)).then(u=>{qr=u;const i=$("#vpq");if(i)i.src=u}).catch(()=>{});
+      const tick=()=>{const c=$("#vpc");if(c)c.textContent=new Date().toLocaleTimeString(dateLoc(), {hour:"2-digit",minute:"2-digit",second:"2-digit"})}; tick(); clearInterval(clockT); clockT=setInterval(tick,1000); }
+  };
+  const sub=()=>db.collection("passes").doc(code).onSnapshot(s=>{
+    if(!s.exists){ main.innerHTML=`${langSwitch()}<div class="vpass no"><div class="vp-name">${tx().notFound}</div><p class="vp-msg">${tx().notFoundSub}</p></div>`; wireLang(()=>showPass(code)); return; }
+    draw({...s.data(),id:s.id});
+  },()=>{ if(++tries<3) setTimeout(sub,1500); else main.innerHTML=`<div class="vpass no"><div class="vp-name">${tx().cantOpen}</div><p class="vp-msg">${tx().cantOpenSub}</p></div>`; });
+  sub();
+  try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
+}
+async function showInvite(tok){
+  const main=$("#main"), box=h=>{main.innerHTML=`${langSwitch()}<div class="panel" style="max-width:480px;width:100%;margin:12px auto">${h}</div>`;};
+  box(`<h1>${tx().opening}</h1>`);
+  let d; for(let n=0;n<3&&!d;n++){try{d=await db.collection("invites").doc(tok).get()}catch(e){await new Promise(r=>setTimeout(r,1200))}}
+  const draw=()=>{const T=tx();
+    if(!d) return box(`<h1>${T.cantOpen}</h1><p class="sub">${T.cantOpenSub}</p>`);
+    if(!d.exists) return box(`<h1>${T.linkNF}</h1><p class="sub">${T.linkNFSub}</p>`);
+    const i=d.data();
+    if(i.status==="submitted"||i.status==="used") return box(`<h1>${T.received}</h1><p class="sub">${T.receivedSub}</p>`);
+    if(i.status!=="open"||i.expires<now()) return box(`<h1>${T.linkExp}</h1><p class="sub">${T.linkExpSub(esc(i.host))}</p>`);
+    box(`<h1>${T.invTitle}</h1><p class="sub">${T.invIntro(esc(i.host),esc(i.agency))}</p>
+    <form id="gf" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
+     <div class="f"><label for="g_name">${T.name}</label><input id="g_name" required minlength="2" maxlength="120" autocomplete="name"></div>
+     <div class="f"><label for="g_org">${T.org}</label><input id="g_org" maxlength="160" autocomplete="organization"></div>
+     <div class="f"><label for="g_email">${T.email}</label><input id="g_email" type="email" maxlength="160" autocomplete="email"></div>
+     <div class="f"><label for="g_phone">${T.phone}</label><input id="g_phone" maxlength="40" inputmode="tel" autocomplete="tel"></div>
+     <div class="f"><label for="g_when">${T.when}</label><input id="g_when" type="datetime-local" required></div>
+     <div class="f"><label for="g_purpose">${T.purpose}</label><input id="g_purpose" maxlength="300"></div>
+     ${agreementBlock(LANG,"g_agree")}
+     <div id="g_err" class="small" style="color:var(--warn)"></div>
+     <div class="acts"><button class="btn pri" type="submit">${T.send}</button></div>
+     <p class="small">${T.privacy}</p></form>`);
+    wireLang(draw);
+    $("#gf").onsubmit=async e=>{e.preventDefault(); if(!$("#g_agree").checked){$("#g_err").textContent=T.mustAgree;return}
+      const guest={name:$("#g_name").value.trim(),org:$("#g_org").value.trim(),phone:$("#g_phone").value.trim(),email:$("#g_email").value.trim().toLowerCase(),expected:$("#g_when").value,purpose:$("#g_purpose").value.trim(),agreedAt:now(),agreement:AGREEMENT.version,lang:LANG};
+      try{await db.collection("invites").doc(tok).update({status:"submitted",guest,submittedAt:now()});
+        box(`<h1>${T.thanks(esc(guest.name))}</h1><p class="sub">${T.thanksSub(esc(i.host),esc(new Date(guest.expected).toLocaleString(dateLoc(), {weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})))}</p>`);
+      }catch(x){$("#g_err").textContent=T.sendErr}};
+  };
+  draw();
+}
+
 function ownRequest(v){return v.requestedByUid?v.requestedByUid===myUid():(v.requestedBy||"")===op()}
 function pill(v){return `<span class="pill p-${v.status}">${STATUS[v.status]}</span>`}
 function tpill(v){return v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor</span>`:""}
@@ -829,7 +1091,7 @@ function times(v){
   return r.join("<br>");
 }
 const dur=ms=>{const m=Math.max(0,Math.round(ms/60000));return m<60?`${m} min`:`${Math.floor(m/60)} h ${m%60} min`};
-function row(v,actions){return `<tr><td><span class="ref">${esc(v.ref)}</span></td><td><b>${esc(v.name)}</b> ${tpill(v)}<div class="small">${esc(v.org)}</div></td><td>${esc(v.host)}<div class="small">${esc(v.agency)}</div></td><td class="mono">${times(v)}</td><td>${pill(v)}${v.tag?` <span class="mono small">${esc(v.tag)}</span>`:""}</td><td><div class="acts">${actions(v)}${passBtn(v)}${groupBtn(v)}</div></td></tr>`}
+function row(v,actions){return `<tr><td><span class="ref">${esc(v.ref)}</span></td><td><b>${esc(v.name)}</b> ${tpill(v)}${watchPill(v)}<div class="small">${esc(v.org)}</div></td><td>${esc(v.host)}<div class="small">${esc(v.agency)}${v.room?" · "+esc(v.room):""}${v.hostReply?' · <b style="color:var(--ok)">Host coming '+fmtT(v.hostReplyAt)+'</b>':""}</div></td><td class="mono">${times(v)}</td><td>${pill(v)}${v.tag?` <span class="mono small">${esc(v.tag)}</span>`:""}</td><td><div class="acts">${actions(v)}${passBtn(v)}${groupBtn(v)}</div></td></tr>`}
 function table(list,actions,empty){
   if(!list.length) return `<div class="empty">${empty}</div>`;
   return `<div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Host</th><th>Times</th><th>Status</th><th>Action</th></tr></thead><tbody>${list.map(v=>row(v,actions)).join("")}</tbody></table></div>`;
@@ -899,6 +1161,7 @@ V.vip=()=>{
 };
 function regForm(walkin){
   return `<form id="reg"><div class="fields">
+   <div style="grid-column:1/-1" id="r_prev"></div>
    <div class="f"><label for="r_name">Full name</label><input id="r_name" required></div>
    <div class="f"><label for="r_org">Organisation</label><input id="r_org"></div>
    <div class="f"><label for="r_vemail">Visitor email (for their digital pass)</label><input id="r_vemail" type="email"></div>
@@ -911,8 +1174,10 @@ function regForm(walkin){
    <div class="f"><label for="r_when">Expected arrival</label><input id="r_when" type="datetime-local"></div>
    <div class="f"><label for="r_to">Contractor access until</label><input id="r_to" type="date"></div>
    <div class="f"><label for="r_group">Group / delegation (optional)</label><input id="r_group"></div>
+   <div class="f"><label for="r_room">Meeting room (optional)</label><input id="r_room" placeholder="e.g. Conference Room B"></div>
    <div class="f" style="grid-column:1/-1"><label for="r_purpose">Purpose of visit</label><input id="r_purpose"></div>
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_restricted" type="checkbox" style="width:auto"><label for="r_restricted" style="margin:0">Needs access to a restricted area (sends for approval)</label></div>
+   <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_agree" type="checkbox" style="width:auto"><label for="r_agree" style="margin:0">The visitor has accepted the visitor rules and privacy notice</label></div>
   </div><div class="acts" style="margin-top:14px"><button class="btn pri" type="submit">${walkin?"Register walk-in":"Register visitor"}</button></div>
   <p class="small">VIPs, contractors and restricted-area visits go to Approvals. Only name, organisation, host and purpose are collected; ID scans are not stored.</p></form>`;
 }
@@ -953,13 +1218,17 @@ V.assistant=()=>head("Operations assistant","Ask about recent and current visito
 
 function render(){
   if(fb&&(!me||me.role==="pending"||me.active===false)) return;
-  V.staff=staffView;
+  V.staff=staffView; Object.assign(V,{watch:VW_watch,evac:VW_evac,kiosk:VW_kiosk,myguests:VW_myguests,deliveries:VW_deliveries,reports:VW_reports});
   if(!canView(view)) view=defaultView();
   renderNav();
-  $("#main").innerHTML=V[view]();
+  const rc=fb&&myRole()!=="host"?activeRoll():null;
+  $("#main").innerHTML=(rc&&view!=="evac"?`<button class="evac-alert" id="ev_go">Evacuation roll call in progress · ${rc.people.filter(p=>!(rc.accounted||{})[p.visitorId]).length} people not yet accounted for · Open the list</button>`:"")+V[view]();
+  const eg=$("#ev_go"); if(eg) eg.onclick=()=>{view="evac";render()};
   wire();
 }
 function wire(){
+  wireWatch(); wireEvac(); wireDeliveries(); wireReports(); wireRepeat();
+  const ks=$("#k_start"); if(ks) ks.onclick=startKiosk;
   const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
   const ib=$("#invNew"); if(ib) ib.onclick=createInvite;
   const tsg=$("#ts_go"); if(tsg) tsg.onclick=printTagSheet;
@@ -995,7 +1264,7 @@ async function register(){
   const type=g("r_type"), restricted=$("#r_restricted").checked;
   const ref=newRef(), when=g("r_when")?new Date(g("r_when")).getTime():now();
   const needs=type!=="visitor"||restricted;
-  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),purpose:g("r_purpose"),restricted,requestedBy:op(),requestedByUid:myUid(),status:needs?"pending":"approved",log:[]};
+  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),room:g("r_room"),purpose:g("r_purpose"),...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),restricted,requestedBy:op(),requestedByUid:myUid(),status:needs?"pending":"approved",log:[]};
   if(type==="contractor"){v.accessFrom=today0();v.accessTo=g("r_to")?new Date(g("r_to")).getTime()+864e5-1:today0()+864e5-1}
   await act(v,needs?"Registered; sent for approval":"Registered and approved");
   toast(`${v.name} registered as ${ref}${needs?". Sent for approval.":"."}`);
@@ -1132,6 +1401,12 @@ function modal(html,onOk){
 }
 function doAct(a,v){
   if(!v) return;
+  if((a==="arrive"||a==="vipadmit")&&v.watchFlag) return watchBlock(v,nv=>doAct(a,nv));
+  if(a==="reply") return act(v,"Host replied: on my way",{hostReply:"coming",hostReplyAt:now()}).then(()=>toast("Reception has been told you are on your way."));
+  if(a==="cancel") return modal(`<h2>Cancel ${esc(v.name)}'s visit?</h2><p class="small">The gate will no longer expect them${passFor(v)?" and their digital pass stops working":""}.</p>`,()=>{act(v,"Visit cancelled by host",{status:"cancelled"}).then(()=>toast("Visit cancelled."))});
+  if(a==="reschedule"){const d=new Date(v.expected||now()),p=n=>String(n).padStart(2,"0");
+    return modal(`<h2>Change the time for ${esc(v.name)}</h2><div class="f"><label for="m_when">New arrival time</label><input type="datetime-local" id="m_when" value="${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}"></div>`,
+      ()=>{const t=new Date($("#m_when").value).getTime(); if(!t) return false; act(v,`Time changed to ${fmtD(t)}`,{expected:t}).then(()=>toast("New time saved."))});}
   if(a==="pass") return openPass(v);
   if(a==="grouppass") return openGroupPass(v);
   if(a==="arrive") return act(v,"Verified at gate",{status:"arrived",arrivedAt:now()}).then(()=>toast(`${v.name} admitted. Send to documentation.`));
@@ -1149,10 +1424,14 @@ function doAct(a,v){
     modal(`<h2>Document & tag ${esc(v.name)}</h2>
       <div class="f"><label for="m_id">ID document checked</label><select id="m_id"><option>National ID (NIN)</option><option>International passport</option><option>Driver's licence</option><option>Staff / agency ID</option><option>Other</option></select></div>
       <div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_print" style="width:auto" ${passFor(v)?"":"checked"}><label for="m_print">Print a paper badge${passFor(v)?" (visitor has a digital pass)":""}</label></div>
+      ${v.agreedAt?`<div class="small" style="color:var(--ok)">✓ Visitor rules accepted ${fmtD(v.agreedAt)}</div>`:`<div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_agree" style="width:auto"><label for="m_agree">Visitor has read and accepted the visitor rules and privacy notice</label></div>`}
+      <div class="f"><label for="m_items">Items brought in (one per line, e.g. "Laptop, Dell, serial 5CD12")</label><textarea id="m_items" style="min-height:56px"></textarea></div>
       <div class="f"><label for="m_tag">Tag number</label><input id="m_tag" value="${pre}-${String(i).padStart(3,"0")}"></div>
       <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · ${fmtD(now())}</div></div>`,
       ()=>{const tag=$("#m_tag").value.trim(), printIt=$("#m_print").checked; if(!tag) return false; if(used.has(tag)){toast(`Tag ${tag} is already issued.`);return false}
-        act(v,`Documented (${$("#m_id").value}); tag ${tag} issued`,{status:"tagged",tag,idType:$("#m_id").value,taggedAt:now()}).then(()=>{toast(`Tag ${tag} issued to ${v.name}.`);if(printIt)printBadge({...v,tag,taggedAt:now()})})});
+        act(v,`Documented (${$("#m_id").value}); tag ${tag} issued`,{status:"tagged",tag,idType:$("#m_id").value,taggedAt:now(),
+          ...($("#m_agree")&&$("#m_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),
+          ...($("#m_items").value.trim()?{items:$("#m_items").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,20).map(d=>({d,out:false}))}:{})}).then(()=>{toast(`Tag ${tag} issued to ${v.name}.`);if(printIt)printBadge({...v,tag,taggedAt:now()})})});
     return;
   }
   if(a==="checkout"){
@@ -1160,12 +1439,14 @@ function doAct(a,v){
     modal(`<h2>Check out ${esc(v.name)}</h2><p class="small">Inside since ${fmtT(v.inAt)}.${v.tag?` Collect tag <b class="mono">${esc(v.tag)}</b>.`:""}</p>
       <div class="f"><label for="m_out">Time of check-out</label><input type="time" id="m_out" value="${nowHM}"><span class="small">Change it only if the visitor left earlier than now.</span></div>
       <div id="m_err" class="small" style="color:var(--bad)"></div>
-      ${v.tag?`<div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_ret" checked style="width:auto"><label for="m_ret">Tag returned</label></div>`:""}`,
+      ${v.tag?`<div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_ret" checked style="width:auto"><label for="m_ret">Tag returned</label></div>`:""}
+      ${(v.items||[]).length?`<div class="f"><label>Items taken out</label>${v.items.map((it,i)=>`<label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-item="${i}" checked style="width:auto"> ${esc(it.d)}</label>`).join("")}</div>`:""}`,
       ()=>{const [h,m]=($("#m_out").value||nowHM).split(":").map(Number); const t=new Date(); t.setHours(h,m,0,0); let out=t.getTime();
         if(out>now()+60000){$("#m_err").textContent="The check-out time can't be in the future.";return false}
         if(v.inAt&&out<v.inAt){$("#m_err").textContent=`The check-out time can't be before check-in (${fmtT(v.inAt)}).`;return false}
         const late=now()-out>5*60000, ret=$("#m_ret")?$("#m_ret").checked:true;
-        act(v,`Checked out at ${fmtT(out)}${late?` (recorded at ${fmtT(now())})`:""}${v.tag?(ret?`; tag ${v.tag} returned`:`; tag ${v.tag} NOT returned`):""}`,{status:"out",outAt:out,outRecordedAt:now(),tagReturned:ret,tag:ret?"":v.tag}).then(()=>toast(`${v.name} checked out at ${fmtT(out)}.`))});
+        const items=(v.items||[]).map((it,i)=>({...it,out:!!(document.querySelector(`[data-item="${i}"]`)||{}).checked})), left=items.filter(x=>!x.out).map(x=>x.d);
+        act(v,`Checked out at ${fmtT(out)}${late?` (recorded at ${fmtT(now())})`:""}${left.length?`; items NOT taken out: ${left.join(", ")}`:""}${v.tag?(ret?`; tag ${v.tag} returned`:`; tag ${v.tag} NOT returned`):""}`,{status:"out",outAt:out,outRecordedAt:now(),tagReturned:ret,tag:ret?"":v.tag,...(items.length?{items}:{})}).then(()=>toast(`${v.name} checked out at ${fmtT(out)}.`))});
     return;
   }
   if(a==="detail"){
