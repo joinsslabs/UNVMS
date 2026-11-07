@@ -184,6 +184,15 @@ textarea{min-height:70px;resize:vertical}
 .vp-dl{margin:0;display:grid;gap:6px}.vp-dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:6px;font-size:14px}
 .vp-dl dt{color:var(--muted)}.vp-dl dd{margin:0;font-weight:600;text-align:right}
 .vp-foot{font-size:12px;color:var(--muted);margin:0}
+/* Visitor-facing pages (pass, invite): one centred column, no staff menu. */
+body.guest-mode .wrap{display:block;min-height:calc(100vh - 140px)}
+body.guest-mode nav{display:none!important}
+body.guest-mode main{align-items:center;padding-block:28px 40px}
+body.guest-mode main>*{width:100%;max-width:440px;margin-inline:auto}
+body.pass-mode{background:var(--bg) linear-gradient(180deg,var(--navy) 0 180px,transparent 180px) no-repeat}
+body.pass-mode .vpass{margin-top:0}
+.vp-qr{box-shadow:0 0 0 1px var(--line)}
+@media (min-width:700px){body.pass-mode main{padding-top:40px}}
 @keyframes toastIn{from{transform:translateY(16px) scale(.96);opacity:0}}
 .toast::before{content:"";width:18px;height:18px;border-radius:50%;flex:none;background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 12 12%27%3E%3Cpath d=%27M2.5 6.2 5 8.5 9.5 3.5%27 fill=%27none%27 stroke=%27white%27 stroke-width=%272%27 stroke-linecap=%27round%27/%3E%3C/svg%3E") center/12px no-repeat}
 .toast.err::before{background-color:var(--bad);background-image:none}
@@ -310,9 +319,9 @@ function connectFirebase(){
   firebase.initializeApp(window.FIREBASE_CONFIG);
   fb=firebase; db=firebase.firestore();
   const passCode=new URLSearchParams(location.search).get("pass");
-  if(passCode){ $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode); }
+  if(passCode){ document.body.classList.add("guest-mode","pass-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode); }
   const inviteTok=new URLSearchParams(location.search).get("invite");
-  if(inviteTok){ $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(false,"Visitor pre-registration"); return showInvite(inviteTok); }
+  if(inviteTok){ document.body.classList.add("guest-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(false,"Visitor pre-registration"); return showInvite(inviteTok); }
   $("#demoSel").hidden=true; $("#demoSel").style.display="none";
   setSync(false,"Not signed in");
   let linkPending=firebase.auth().isSignInWithEmailLink(location.href);
