@@ -14,3 +14,4 @@ users.json
 .env.local
 .runtimeconfig.json
 service-account*.json
+.claude/
