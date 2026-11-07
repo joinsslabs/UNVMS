@@ -328,3 +328,52 @@ exports.bookingApi = onRequest(
     res.json({ results });
   }
 );
+
+/* ---------------- automatic watchlist check (server side) ----------------
+   Runs whenever the watchlist changes and whenever a visit is created, from any source
+   (staff app, invite link, bulk upload or the booking API). Matches are stored on the visit
+   as watchFlag, which the database rules use to stop the gate admitting the visitor. */
+const { onDocumentWritten, onDocumentCreated } = require("firebase-functions/v2/firestore");
+const ACTIVE = ["pending", "approved", "arrived", "tagged", "in"];
+const tokens = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z\s]/g, " ").split(/\s+/).filter((w) => w.length > 1);
+function namesMatch(a, b) {
+  const A = tokens(a), B = tokens(b);
+  if (!A.length || !B.length) return false;
+  if ([...A].sort().join(" ") === [...B].sort().join(" ")) return true;
+  const common = A.filter((w) => B.includes(w)).length;
+  return common >= 2 && common >= Math.min(A.length, B.length);
+}
+function entryMatches(entry, name) {
+  if (entry.active === false) return false;
+  return [entry.name].concat(String(entry.aliases || "").split(";")).map((x) => x.trim()).filter(Boolean).some((n) => namesMatch(n, name));
+}
+function systemLog(v, text) {
+  return (Array.isArray(v.log) ? v.log : []).concat([{ t: Date.now(), a: text, by: "Watchlist check", byUid: "system:watchlist", role: "system", st: "Server" }]);
+}
+
+exports.watchlistSweep = onDocumentWritten({ document: "watchlist/{id}", region: REGION }, async (event) => {
+  const entry = event.data.after.exists ? event.data.after.data() : null;
+  if (!entry || entry.active === false) return; // removing an entry never clears flags automatically: an approver decides
+  const when = Math.max(entry.at || 0, entry.changedAt || 0);
+  const snap = await db.collection("visitors").where("status", "in", ACTIVE).get();
+  let n = 0;
+  const batch = db.batch();
+  snap.docs.forEach((d) => {
+    const v = d.data();
+    if (v.example || v.watchFlag || !entryMatches(entry, v.name)) return;
+    if (v.watchOverride && v.watchOverride.at >= when) return;
+    batch.update(d.ref, { watchFlag: true, watchReason: entry.reason || "Matches the watchlist", log: systemLog(v, "Flagged automatically: matches a watchlist entry") });
+    n++;
+  });
+  if (n) await batch.commit();
+  await db.collection("audit").add({ at: FieldValue.serverTimestamp(), action: "watchlist-sweep", entryId: event.params.id, flagged: n, actorType: "system" });
+});
+
+exports.watchlistOnCreate = onDocumentCreated({ document: "visitors/{visitorId}", region: REGION }, async (event) => {
+  const v = event.data.data();
+  if (!v || v.example || v.watchFlag) return;
+  const list = await db.collection("watchlist").where("active", "==", true).get();
+  const hit = list.docs.map((d) => d.data()).find((e) => entryMatches(e, v.name));
+  if (!hit) return;
+  await event.data.ref.update({ watchFlag: true, watchReason: hit.reason || "Matches the watchlist", log: systemLog(v, "Flagged automatically on registration: matches a watchlist entry") });
+});

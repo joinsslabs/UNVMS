@@ -89,6 +89,9 @@ service cloud.firestore {
           && d().decidedByUid == request.auth.uid)
         // Admin can make any other correction.
         || (isAdmin() && !decision())
+        // Approvers flag watchlist matches and record overrides on any visit (status unchanged).
+        || (hasRole(['approver']) && d().status == o().status
+            && d().diff(o()).affectedKeys().hasOnly(['watchFlag', 'watchReason', 'watchOverride', 'log']))
         // Approvers manage contractor access (suspend, reinstate, extend).
         || (hasRole(['approver']) && o().type == 'contractor' && !decision()
             && (d().status == o().status || d().status == 'suspended' || o().status == 'suspended'))

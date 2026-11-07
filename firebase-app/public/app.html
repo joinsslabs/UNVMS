@@ -538,7 +538,8 @@ const late=v=>v.status==="approved"&&v.expected&&now()-v.expected>45*60e3&&isTod
 function alerts(){
   const a=[], since=t=>dur(now()-t);
   visitors.forEach(v=>{
-    if(v.watchFlag&&["pending","approved","arrived","tagged","in"].includes(v.status)) a.push({lvl:"act",kind:"Watchlist match",v,title:v.name,detail:v.watchReason||"Matches the watchlist",act:"detail",label:"Details"});
+    const wm=["pending","approved","arrived","tagged","in"].includes(v.status)?watched(v):null;
+    if(wm) a.push({lvl:"act",kind:"Watchlist match",v,title:v.name,detail:(v.status==="in"||v.status==="tagged"?"Already inside · ":"")+wm.reason,act:"detail",label:"Details"});
     if(overstay(v)) a.push({lvl:"act",kind:"Overstay",v,title:v.name,detail:`Inside ${since(v.inAt)} · host ${v.host}`,act:"checkout",label:"Check out"});
     if(contractorExpired(v)) a.push({lvl:"act",kind:"Access expired",v,title:v.name,detail:`Contractor access ended ${fmtD(v.accessTo)} · still ${STATUS[v.status].toLowerCase()}`,act:"suspend",label:"Suspend"});
     else if(contractorExpiring(v)) a.push({lvl:"soon",kind:"Expires soon",v,title:v.name,detail:`Contractor access ends ${fmtD(v.accessTo)}`,act:"extend",label:"Extend 7 days"});
@@ -715,7 +716,7 @@ function scanResult(v,p,title,msg){
   if(!v){ m.innerHTML=`<div class="modal"><div class="scan-band no">${esc(title)}</div><p>${esc(msg)}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`; m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return; }
   const expired=p&&p.validUntil<now(), step=nextStep(v);
   let band="ok", head="Valid", note="";
-  if(v.watchFlag){band="no";head="Watchlist match: do not admit";note="Keep the visitor here and call security and the duty approver."}
+  if(watched(v)){band="no";head="Watchlist match: do not admit";note="Keep the visitor here and call security and the duty approver."}
   else if(v.status==="out"){band="no";head="Already checked out";note=`Left at ${fmtT(v.outAt)}. Do not admit on this pass.`}
   else if(["rejected","suspended"].includes(v.status)){band="no";head=STATUS[v.status];note="Do not admit. Contact the approver."}
   else if(v.status==="pending"){band="no";head="Not approved yet";note="Wait for approval before admitting."}
@@ -821,21 +822,30 @@ function watchMatch(name){
     if(names.some(n=>namesMatch(n,name))) return w; }
   return null;
 }
-function watchPill(v){return v.watchFlag?`<span class="pill p-watch" title="${esc(v.watchReason||"")}">Watchlist</span>`:""}
+// Live check: runs on every screen, every time the visits or the watchlist change.
+function watched(v){
+  if(!v||v.example&&fb) return null;
+  const live=watchMatch(v.name), when=live?Math.max(live.at||0,live.changedAt||0):0;
+  if(v.watchOverride&&v.watchOverride.at>=when) return null;
+  if(live) return {reason:live.reason||"Matches the watchlist",entry:live};
+  if(v.watchFlag) return {reason:v.watchReason||"Matches the watchlist"};
+  return null;
+}
+function watchPill(v){const w=watched(v);return w?`<span class="pill p-watch" title="${esc(w.reason)}">Watchlist</span>`:""}
 function watchBlock(v,then){
   const r=myRole();
   if(!["admin","approver"].includes(r)){
-    const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit</div><p><b>${esc(v.name)}</b> matches the watchlist. Keep the visitor at the gate and call security and the duty approver.</p><p class="small">${esc(v.watchReason||"")}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
+    const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc((watched(v)||{}).reason||"")}. Keep the visitor at the gate and call security and the duty approver.</p><p class="small">${esc(v.watchReason||"")}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
     m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return;
   }
-  modal(`<div class="scan-band no">Watchlist match</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc(v.watchReason||"no reason recorded")}.</p>
+  modal(`<div class="scan-band no">Watchlist match</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc((watched(v)||{}).reason||"no reason recorded")}.</p>
     <div class="f"><label for="m_ovr">To admit anyway, record why (for example "Checked with UNDSS: different person, ID verified")</label><textarea id="m_ovr"></textarea></div><div id="m_err" class="small" style="color:var(--warn)"></div>`,
     ()=>{const why=$("#m_ovr").value.trim(); if(why.length<10){$("#m_err").textContent="Write at least a short reason.";return false}
-      act(v,`Watchlist override: ${why}`,{watchFlag:false,watchOverride:{by:op(),byUid:myUid(),reason:why,at:now()}}).then(()=>{toast("Override recorded.");then&&then({...v,watchFlag:false})})});
+      act(v,`Watchlist override: ${why}`,{watchFlag:false,watchOverride:{by:op(),byUid:myUid(),reason:why,at:now()}}).then(()=>{toast("Override recorded.");then&&then({...v,watchFlag:false,watchOverride:{at:now()}})})});
 }
 const VW_watch=()=>{
   const list=[...watchlist].sort((a,b)=>(b.active!==false)-(a.active!==false)||String(a.name).localeCompare(b.name));
-  const flagged=visitors.filter(v=>v.watchFlag&&!["out","rejected","cancelled"].includes(v.status));
+  const flagged=visitors.filter(v=>watched(v)&&!["out","rejected","cancelled"].includes(v.status));
   return head("Watchlist","People who must not be admitted without a security check. Every new registration is checked against this list, and matches are blocked at the gate.")+
   (flagged.length?`<div class="panel"><h2>Current matches <span class="cnt">${flagged.length}</span></h2>${table(flagged,v=>B(v.id,"detail","Details"),"")}</div>`:"")+
   `<div class="panel"><h2>Add a person</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
@@ -850,12 +860,12 @@ function wireWatch(){
   const a=$("#w_add"); if(a) a.onclick=async()=>{const name=$("#w_name").value.trim(); if(name.length<2) return toast("Enter a name.");
     try{await db.collection("watchlist").add({name,aliases:$("#w_alias").value.trim(),org:$("#w_org").value.trim(),reason:$("#w_reason").value.trim(),active:true,at:now(),addedBy:op(),addedByUid:myUid()});
       // flag any current or upcoming visitor who matches
-      const tmp={name,aliases:$("#w_alias").value.trim(),active:true};
+      const tmp={name,aliases:$("#w_alias").value.trim(),active:true}; let n=0;
       for(const v of visitors.filter(x=>!x.watchFlag&&["pending","approved","arrived","tagged","in"].includes(x.status))){
         const hit=[tmp.name].concat(tmp.aliases.split(";")).some(n=>n.trim()&&namesMatch(n,v.name));
-        if(hit&&["admin"].includes(myRole())) await act(v,"Flagged by new watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()});
+        if(hit){ n++; if(["admin","approver"].includes(myRole())) await act(v,"Flagged by new watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()}); }
       }
-      toast(`${name} added to the watchlist.`)}catch(e){toast("Could not add: "+e.message)}};
+      toast(`${name} added to the watchlist.${n?` ${n} current visit${n>1?"s":""} now flagged.`:" No current visits match."}`)}catch(e){toast("Could not add: "+e.message)}};
   document.querySelectorAll("[data-wtoggle]").forEach(b=>b.onclick=()=>{const w=watchlist.find(x=>x.id===b.dataset.wtoggle);
     db.collection("watchlist").doc(w.id).update({active:w.active===false,changedAt:now(),changedBy:op()}).then(()=>toast(w.active===false?"Reactivated.":"Removed from the watchlist.")).catch(e=>toast(e.message))});
 }
@@ -920,7 +930,7 @@ async function kioskScan(txt){
   else v=visitors.find(x=>x.ref===txt);
   if(!v) return show("k-no","We could not find your pass.","Please see the receptionist.");
   const first=v.name.split(" ")[0];
-  if(v.watchFlag) return show("k-no",`Thank you, ${first}.`,"Please wait here. A member of staff will be with you shortly.");
+  if(watched(v)) return show("k-no",`Thank you, ${first}.`,"Please wait here. A member of staff will be with you shortly.");
   if(v.status==="in") return show("k-ok",`You are already checked in, ${first}.`,`${v.host} knows you are here.`);
   if(v.status!=="tagged") return show("k-no",`Hello ${first}.`,v.status==="out"?"This visit has ended.":"Please go to the documentation desk first to collect your tag.");
   await act(v,"Checked in at the self-service kiosk",{status:"in",inAt:now(),hostNotified:v.hostNotified||now()});
@@ -1409,7 +1419,7 @@ function modal(html,onOk){
 }
 function doAct(a,v){
   if(!v) return;
-  if((a==="arrive"||a==="vipadmit")&&v.watchFlag) return watchBlock(v,nv=>doAct(a,nv));
+  if(["arrive","vipadmit","checkin","tag"].includes(a)&&watched(v)) return watchBlock(v,nv=>doAct(a,nv));
   if(a==="reply") return act(v,"Host replied: on my way",{hostReply:"coming",hostReplyAt:now()}).then(()=>toast("Reception has been told you are on your way."));
   if(a==="cancel") return modal(`<h2>Cancel ${esc(v.name)}'s visit?</h2><p class="small">The gate will no longer expect them${passFor(v)?" and their digital pass stops working":""}.</p>`,()=>{act(v,"Visit cancelled by host",{status:"cancelled"}).then(()=>toast("Visit cancelled."))});
   if(a==="reschedule"){const d=new Date(v.expected||now()),p=n=>String(n).padStart(2,"0");
