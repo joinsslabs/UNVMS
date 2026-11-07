@@ -231,13 +231,16 @@ td{vertical-align:middle}
 .tl-dur.warn{color:var(--warn);background:var(--warn-bg)} .tl-dur.muted{color:var(--muted);background:var(--surface2)}
 .st{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tagchip{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px dashed color-mix(in srgb,var(--fg) 30%,transparent)}
-.row-acts{justify-content:flex-end;flex-wrap:nowrap}
+/* Fixed columns so actions line up row to row: main action | pass | group pass */
+.row-acts{display:grid;grid-template-columns:1fr 34px 34px;gap:6px;align-items:center;justify-items:end}
+.ra-main{display:flex;gap:6px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.ra-slot{width:34px;height:34px}
 .btn.icon{width:34px;padding:0;gap:0}
 .btn.icon.has{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
 .btn.icon.grp{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5'/%3E%3Ccircle cx='17' cy='9' r='2.5'/%3E%3Cpath d='M16.5 14.6c2.6.2 4.4 2 5 4.9'/%3E%3C/svg%3E")}
 tbody tr td:first-child{box-shadow:inset 3px 0 0 transparent;transition:box-shadow .15s}
 tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-@media (max-width:900px){.row-acts{flex-wrap:wrap}}
+@media (max-width:900px){.row-acts{grid-template-columns:1fr 34px 34px}}
 .sitepick{background:#ffffff1a;color:#fff;border:1px solid #ffffff40;border-radius:8px;padding:6px 8px;font:inherit;width:auto}
 .sitepick option{color:#111;background:#fff}
 /* command centre */
@@ -1050,7 +1053,7 @@ const VW_deliveries=()=>{
     <label class="small" style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="d_notify" checked style="width:auto"> Notify them now</label>
     <div class="acts" style="margin-top:10px"><button class="btn pri" id="d_add">Log delivery</button></div></div>
   <div class="panel"><h2>Waiting for collection <span class="cnt">${wait.length}</span></h2>${wait.length?`<div class="tw"><table><thead><tr><th>For</th><th>Item</th><th>Received</th><th style="text-align:right">Actions</th></tr></thead><tbody>${wait.map(d=>`<tr><td><b>${esc(d.forName)}</b><div class="small">${esc(d.agency)}${d.email?" · "+esc(d.email):""}${d.phone?" · "+esc(d.phone):""}</div></td><td>${esc(d.desc)}<div class="small">${esc(d.from)}</div></td><td class="small">${fmtD(d.at)} · ${esc(d.by)}<div>${d.notifiedAt?`<span class="pill p-in">Notified ${fmtT(d.notifiedAt)} · ${esc(d.notifiedVia||"")}</span>`:`<span class="pill p-pending">Not notified yet</span>`}${d.reminders?` <span class="small">${d.reminders} reminder${d.reminders>1?"s":""}</span>`:""}</div></td>
-    <td><div class="acts row-acts"><button class="btn" data-dnotify="${esc(d.id)}">${d.notifiedAt?"Remind":"Notify"}</button><button class="btn ok" data-dcol="${esc(d.id)}">Collected</button></div></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nothing waiting.</div>`}</div>
+    <td><div class="acts" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn" data-dnotify="${esc(d.id)}">${d.notifiedAt?"Remind":"Notify"}</button><button class="btn ok" data-dcol="${esc(d.id)}">Collected</button></div></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nothing waiting.</div>`}</div>
   ${done.length?`<div class="panel"><h2>Collected</h2><div class="tw"><table><tbody>${done.map(d=>`<tr><td>${esc(d.forName)}</td><td>${esc(d.desc)}</td><td class="small">Collected ${fmtD(d.collectedAt)} · ${esc(d.collectedBy||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
 };
 function deliveryMsg(d){return `Hello ${d.forName}, a delivery has arrived for you at UN House reception${d.from?" from "+d.from:""}${d.desc?": "+d.desc:""}. Please collect it at the reception desk. Logged ${fmtD(d.at)} by ${d.by}.`}
@@ -1386,7 +1389,7 @@ function row(v,actions){return `<tr><td><div class="vis"><span class="av" style=
   <td><div class="vn2">${esc(v.host)}</div><div class="vs">${esc(v.agency)}${v.room?" · "+esc(v.room):""}${v.hostReply?' · <b style="color:var(--ok)">Coming '+fmtT(v.hostReplyAt)+'</b>':""}</div></td>
   <td>${timeline(v)}</td>
   <td><div class="st">${pill(v)}${v.tag?`<span class="tagchip">${esc(v.tag)}</span>`:""}</div></td>
-  <td><div class="acts row-acts">${actions(v)}${passBtn(v)}${groupBtn(v)}</div></td></tr>`}
+  <td><div class="row-acts"><div class="ra-main">${actions(v)}</div>${passBtn(v)||'<span class="ra-slot"></span>'}${groupBtn(v)||'<span class="ra-slot"></span>'}</div></td></tr>`}
 function table(list,actions,empty){
   if(!list.length) return `<div class="empty">${empty}</div>`;
   return `<div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Timeline</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${list.map(v=>row(v,actions)).join("")}</tbody></table></div>`;
