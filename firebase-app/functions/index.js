@@ -377,3 +377,35 @@ exports.watchlistOnCreate = onDocumentCreated({ document: "visitors/{visitorId}"
   if (!hit) return;
   await event.data.ref.update({ watchFlag: true, watchReason: hit.reason || "Matches the watchlist", log: systemLog(v, "Flagged automatically on registration: matches a watchlist entry") });
 });
+
+/* ---------------- delivery notifications ----------------
+   When reception logs a delivery with the staff member's email, email them straight away,
+   and send one reminder if it is still waiting the next morning. */
+exports.deliveryEmail = onDocumentCreated(
+  { document: "deliveries/{id}", region: REGION, secrets: [SMTP_USER, SMTP_PASS] },
+  async (event) => {
+    const d = event.data.data();
+    if (!d || !validEmail(d.email)) return;
+    try {
+      await send(d.email, "A delivery is waiting for you at UN House reception",
+        page("You have a delivery", [["For", d.forName], ["From", d.from || "—"], ["Item", d.desc || "—"], ["Received", time(d.at) + " by " + (d.by || "reception")], ["Collect at", "Reception desk, UN House"]]));
+      await event.data.ref.update({ notifiedAt: Date.now(), notifiedBy: "System", notifiedVia: "email (automatic)" });
+    } catch (e) {
+      await event.data.ref.update({ notifyError: String(e.message).slice(0, 200) });
+    }
+  }
+);
+exports.deliveryReminder = onSchedule(
+  { schedule: "30 8 * * 1-5", timeZone: TZ, region: REGION, secrets: [SMTP_USER, SMTP_PASS] },
+  async () => {
+    const cutoff = Date.now() - 12 * 3600e3;
+    const waiting = await db.collection("deliveries").where("status", "==", "waiting").get();
+    for (const doc of waiting.docs) {
+      const d = doc.data();
+      if (!validEmail(d.email) || (d.at || 0) > cutoff || (d.reminders || 0) >= 3) continue;
+      await send(d.email, "Reminder: your delivery is still at UN House reception",
+        page("Your delivery is still waiting", [["From", d.from || "—"], ["Item", d.desc || "—"], ["Received", new Date(d.at).toLocaleDateString("en-GB", { timeZone: TZ })]])).catch(() => {});
+      await doc.ref.update({ reminders: (d.reminders || 0) + 1, notifiedAt: Date.now(), notifiedVia: "email reminder (automatic)" });
+    }
+  }
+);

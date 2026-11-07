@@ -585,7 +585,7 @@ function renderNav(){
   const c={approvals:visitors.filter(v=>v.status==="pending").length,gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
     tagging:visitors.filter(v=>v.status==="arrived").length,reception:visitors.filter(v=>v.status==="tagged").length,
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived"].includes(v.status)).length};
-  c.staff=staffList.filter(s=>s.role==="pending").length;
+  c.staff=staffList.filter(s=>s.role==="pending").length; c.deliveries=deliveries.filter(d=>d.status==="waiting").length;
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l])=>`<button class="${view===k?"on":""}" data-v="${k}">${l}${c[k]?`<span class="cnt">${c[k]}</span>`:""}</button>`).join("");
   $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{view=b.dataset.v;selected=null;render()});
 }
@@ -993,16 +993,41 @@ const VW_deliveries=()=>{
   return head("Deliveries","Log parcels and deliveries for staff, and record when they are collected.")+
   `<div class="panel"><h2>Log a delivery</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
     <div class="f"><label for="d_for">For (staff member)</label><input id="d_for"></div>
+    <div class="f"><label for="d_email">Their email</label><input id="d_email" type="email" placeholder="name@undp.org"></div>
+    <div class="f"><label for="d_phone">Their phone (for WhatsApp)</label><input id="d_phone" inputmode="tel" placeholder="0803 000 0000"></div>
     <div class="f"><label for="d_agency">Agency</label><select id="d_agency">${AGENCIES.map(a=>`<option>${a}</option>`).join("")}</select></div>
     <div class="f"><label for="d_from">From / courier</label><input id="d_from" placeholder="e.g. DHL"></div>
     <div class="f"><label for="d_desc">Description</label><input id="d_desc" placeholder="e.g. 1 box, documents"></div></div>
+    <label class="small" style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="d_notify" checked style="width:auto"> Notify them now</label>
     <div class="acts" style="margin-top:10px"><button class="btn pri" id="d_add">Log delivery</button></div></div>
-  <div class="panel"><h2>Waiting for collection <span class="cnt">${wait.length}</span></h2>${wait.length?`<div class="tw"><table><thead><tr><th>For</th><th>Item</th><th>Received</th><th></th></tr></thead><tbody>${wait.map(d=>`<tr><td><b>${esc(d.forName)}</b><div class="small">${esc(d.agency)}</div></td><td>${esc(d.desc)}<div class="small">${esc(d.from)}</div></td><td class="small">${fmtD(d.at)} · ${esc(d.by)}</td><td><button class="btn ok" data-dcol="${esc(d.id)}">Collected</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nothing waiting.</div>`}</div>
+  <div class="panel"><h2>Waiting for collection <span class="cnt">${wait.length}</span></h2>${wait.length?`<div class="tw"><table><thead><tr><th>For</th><th>Item</th><th>Received</th><th style="text-align:right">Actions</th></tr></thead><tbody>${wait.map(d=>`<tr><td><b>${esc(d.forName)}</b><div class="small">${esc(d.agency)}${d.email?" · "+esc(d.email):""}${d.phone?" · "+esc(d.phone):""}</div></td><td>${esc(d.desc)}<div class="small">${esc(d.from)}</div></td><td class="small">${fmtD(d.at)} · ${esc(d.by)}<div>${d.notifiedAt?`<span class="pill p-in">Notified ${fmtT(d.notifiedAt)} · ${esc(d.notifiedVia||"")}</span>`:`<span class="pill p-pending">Not notified yet</span>`}${d.reminders?` <span class="small">${d.reminders} reminder${d.reminders>1?"s":""}</span>`:""}</div></td>
+    <td><div class="acts row-acts"><button class="btn" data-dnotify="${esc(d.id)}">${d.notifiedAt?"Remind":"Notify"}</button><button class="btn ok" data-dcol="${esc(d.id)}">Collected</button></div></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nothing waiting.</div>`}</div>
   ${done.length?`<div class="panel"><h2>Collected</h2><div class="tw"><table><tbody>${done.map(d=>`<tr><td>${esc(d.forName)}</td><td>${esc(d.desc)}</td><td class="small">Collected ${fmtD(d.collectedAt)} · ${esc(d.collectedBy||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
 };
+function deliveryMsg(d){return `Hello ${d.forName}, a delivery has arrived for you at UN House reception${d.from?" from "+d.from:""}${d.desc?": "+d.desc:""}. Please collect it at the reception desk. Logged ${fmtD(d.at)} by ${d.by}.`}
+function notifyDelivery(d){
+  if(!d) return;
+  const msg=deliveryMsg(d), digits=String(d.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
+  const mark=via=>db.collection("deliveries").doc(d.id).update({notifiedAt:now(),notifiedBy:op(),notifiedVia:via,...(d.notifiedAt?{reminders:(d.reminders||0)+1}:{})}).then(()=>toast(`Recorded: ${d.forName} notified by ${via}.`)).catch(e=>toast(e.message));
+  const m=$("#modal"); m.innerHTML=`<div class="modal"><h2>${d.notifiedAt?"Remind":"Notify"} ${esc(d.forName)}</h2>
+    <p class="small">${esc(msg)}</p>
+    ${features.autoMail?`<div class="note">An email is also sent automatically when a delivery is logged.</div>`:""}
+    <div class="acts">
+      ${d.email?`<a class="btn pri" id="dn_mail" href="mailto:${esc(d.email)}?subject=${encodeURIComponent("Delivery for you at UN House reception")}&body=${encodeURIComponent(msg)}">Email</a>`:""}
+      ${digits.length>=10?`<a class="btn pri" id="dn_wa" href="https://wa.me/${digits}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>`:""}
+      <button class="btn" id="dn_person">Told in person</button><button class="btn" id="dn_phone">Phoned</button><button class="btn" id="mNo">Close</button></div>
+    ${!d.email&&digits.length<10?`<p class="small">Add their email or phone when logging the delivery to send a message from here.</p>`:""}</div>`;
+  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
+  const done=via=>()=>{mark(via);m.hidden=true};
+  if($("#dn_mail")) $("#dn_mail").addEventListener("click",done("email"));
+  if($("#dn_wa")) $("#dn_wa").addEventListener("click",done("WhatsApp"));
+  $("#dn_person").onclick=done("in person"); $("#dn_phone").onclick=done("phone");
+}
 function wireDeliveries(){
-  const a=$("#d_add"); if(a) a.onclick=()=>{const f=$("#d_for").value.trim(); if(!f) return toast("Enter who the delivery is for.");
-    db.collection("deliveries").add({forName:f,agency:$("#d_agency").value,from:$("#d_from").value.trim(),desc:$("#d_desc").value.trim(),at:now(),by:op(),status:"waiting"}).then(()=>toast("Delivery logged.")).catch(e=>toast(e.message))};
+  const a=$("#d_add"); if(a) a.onclick=async()=>{const f=$("#d_for").value.trim(); if(!f) return toast("Enter who the delivery is for.");
+    const d={forName:f,email:$("#d_email").value.trim().toLowerCase(),phone:$("#d_phone").value.trim(),agency:$("#d_agency").value,from:$("#d_from").value.trim(),desc:$("#d_desc").value.trim(),at:now(),by:op(),status:"waiting"};
+    try{const ref=await db.collection("deliveries").add(d); toast("Delivery logged."); if($("#d_notify").checked) notifyDelivery({...d,id:ref.id});}catch(e){toast(e.message)}};
+  document.querySelectorAll("[data-dnotify]").forEach(b=>b.onclick=()=>notifyDelivery(deliveries.find(x=>x.id===b.dataset.dnotify)));
   document.querySelectorAll("[data-dcol]").forEach(b=>b.onclick=()=>db.collection("deliveries").doc(b.dataset.dcol).update({status:"collected",collectedAt:now(),collectedBy:op()}).then(()=>toast("Marked collected.")).catch(e=>toast(e.message)));
 }
 
