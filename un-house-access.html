@@ -1809,7 +1809,7 @@ function demoData(){
     events:[{id:"ev1",title:"UNDSS Annual Security & Safety Briefing",room:"Conference Room A",building:"Conference Centre",agency:"UNDSS",host:"Chief of Security (UNDSS)",date:fmtD(t9+1.5*h),expectedCount:35,approvedCount:28,checkedInCount:14,status:"active",code:"EV-SEC-2026",desc:"Mandatory security briefing for incoming diplomatic missions and agency heads."}],
     assets:[
       {id:"as1",ref:"MP-2026-0041",item:"HP ZBook Studio Workstation & Dual Monitor Set",serial:"5CD23910KL",staffName:"Tunde Balogun",staffEmail:"t.balogun@undp.org",agency:"UNDP",dest:"UNDP Country Office / Field Visit (Kano)",status:"approved",requestedAt:t9-3*864e5,expectedRemovalDate:t9,approvedBy:"Operations Manager S. Garba (UNDP)",approvedAt:t9-24*3600e3,validUntil:t0+7*864e5,at:t9-3*864e5,verifiedAt:null},
-      {id:"as2",ref:"MP-2026-4084",item:"MacBook Pro M3 Max",serial:"SN64578999",staffName:"Demo Administrator",staffEmail:"demo@example.org",agency:"UNDP",dest:"Field work",status:"pending",requestedAt:t9,expectedRemovalDate:t9+2*864e5,validUntil:t9+7*864e5,at:t9,verifiedAt:null}
+      {id:"as2",ref:"MP-2026-4084",item:"MacBook Pro M3 Max",serial:"SN64578999",staffName:"Demo Administrator",staffEmail:"demo@example.org",agency:"UNDP",dest:"Field work",status:"pending",approverEmail:"operations.supervisor@undp.org",approverPhone:"08031234567",requestedAt:t9,expectedRemovalDate:t9+2*864e5,validUntil:t9+7*864e5,at:t9,verifiedAt:null}
     ],
     dobs:[{id:"dob1",at:t9-1.2*h,severity:"routine",category:"Power / Utilities",title:"Main Grid to Generator Switchover",detail:"FCT public power failure; automatic switch to 500kVA generator completed normally with zero disruption.",station:"S1",officer:"A. Bello"}],
     parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Diplomatic Bay #1",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}]};
@@ -1840,7 +1840,7 @@ function drawTour(){
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourDone")) $("#tourDone").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;go(0)};
 }
-const DEMO_KEY="unhDemoState_v10";
+const DEMO_KEY="unhDemoState_v11";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
   try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
@@ -2125,8 +2125,12 @@ V.assets=()=>{
       <td>
         ${a.status==="approved"?`<span class="pill p-in">Approved by ${esc(a.approvedBy)}</span>${a.approvedAt?`<div class="small">${fmtD(a.approvedAt)}</div>`:""}`:
           a.status==="pending"?`<span class="pill p-pending">Awaiting ${esc(a.agency)} Supervisor</span>${
-            isCustodian(a)?`<div class="small" style="color:var(--muted);margin-top:5px;font-style:italic">Custodian cannot self-approve · Awaiting ${esc(a.agency)} supervisor sign-off</div>`:
-            canApproveAgency(a)?`<div style="margin-top:5px"><button class="btn ok" data-asset-approve="${esc(a.id)}">Approve for ${esc(a.agency)}</button></div>`:""
+            a.notifiedApproverAt?`<div class="small" style="color:var(--muted);margin-top:2px">🔔 Request fired ${fmtT(a.notifiedApproverAt)} (${esc(a.notifiedVia||"msg")})</div>`:""
+          }<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+            <button class="btn" data-asset-notify="${esc(a.id)}" style="font-size:12px;padding:4px 9px" title="Send pre-written approval request to agency supervisor">📨 Notify Approver</button>
+            ${!isCustodian(a)&&canApproveAgency(a)?`<button class="btn ok" data-asset-approve="${esc(a.id)}" style="font-size:12px;padding:4px 9px">Approve for ${esc(a.agency)}</button>`:""}
+          </div>${
+            isCustodian(a)?`<div class="small" style="color:var(--muted);margin-top:4px;font-style:italic">Custodian cannot self-approve · Click 'Notify Approver' to dispatch request</div>`:""
           }`:
           `<span class="pill p-rejected">${esc(a.status)}</span>`}
       </td>
@@ -2140,6 +2144,99 @@ V.assets=()=>{
   }).join("")||`<tr><td colspan="7" class="empty">No property removal passes logged. Click "+ Request Material Pass" to log an advance removal request.</td></tr>`}
   </tbody></table></div></div>`;
 };
+
+function openAssetNotifyModal(a){
+  const schedDate=a.expectedRemovalDate?new Date(a.expectedRemovalDate).toLocaleDateString([], {weekday:"short",year:"numeric",month:"short",day:"numeric"}):"Scheduled";
+  const portalUrl=location.origin+location.pathname+"#assets";
+  const defMsg=`*OFFICIAL UN HOUSE ABUJA - MATERIAL GATE PASS APPROVAL REQUEST*
+
+Dear Certifying Officer / Operations Supervisor (${a.agency}),
+
+An official Property Removal Gate Pass has been requested and requires your formal agency authorization before Gate Security (Station 1) can clear equipment for exit:
+
+• Pass Reference: ${a.ref}
+• Item / Equipment: ${a.item}
+• Serial Number: ${a.serial||"N/A"}
+• Custodian Staff: ${a.staffName} (${a.staffEmail||"N/A"})
+• Agency: ${a.agency}
+• Scheduled Removal Date: ${schedDate}
+• Official Destination & Purpose: ${a.dest}
+
+Per UN House Abuja Security SOPs, custodians cannot self-approve equipment passes. Please review and certify this pass on the UN House Access portal:
+${portalUrl}
+
+Thank you,
+UN House Security & Common Services`;
+
+  const subj=`[ACTION REQUIRED] UN House Asset Pass Approval: ${a.ref} - ${a.item} (${a.staffName})`;
+  const m=$("#modal");
+  m.innerHTML=`<div class="modal" style="max-width:540px"><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">×</button>
+    <h2>Notify ${esc(a.agency)} Approver · ${esc(a.ref)}</h2>
+    <p class="small" style="margin-top:-6px;color:var(--muted)">Pre-written UN official equipment approval notification template. Ready to fire directly via Email, WhatsApp, or clipboard.</p>
+    <div class="f"><label for="an_email">Agency Approver / Supervisor Email</label><input id="an_email" type="email" placeholder="e.g. operations.${a.agency.toLowerCase().replace(/\\s+/g,'')}@un.org" value="${esc(a.approverEmail||"")}"></div>
+    <div class="f"><label for="an_phone">Agency Approver Phone (for WhatsApp)</label><input id="an_phone" type="tel" inputmode="tel" placeholder="e.g. 0803 123 4567" value="${esc(a.approverPhone||"")}"></div>
+    <div class="f"><label for="an_msg">Pre-written Notification Message</label><textarea id="an_msg" style="min-height:160px;font-family:var(--mono);font-size:12px;line-height:1.45">${esc(defMsg)}</textarea></div>
+    <div class="acts" style="flex-wrap:wrap;gap:8px;margin-top:10px">
+      <a class="btn pri" id="an_email_btn" href="#">📧 Send via Email</a>
+      <a class="btn ok" id="an_wa_btn" href="#" target="_blank" rel="noopener">💬 Send via WhatsApp</a>
+      <button class="btn" id="an_copy_btn">📋 Copy Message</button>
+      <button class="btn" id="mNo">Close</button>
+    </div></div>`;
+  m.hidden=false;
+
+  const getMsg=()=>$("#an_msg")?$("#an_msg").value.trim()||defMsg:defMsg;
+  const getEmail=()=>$("#an_email")?$("#an_email").value.trim():"";
+  const getDigits=()=>{
+    let d=($("#an_phone")?$("#an_phone").value.replace(/\\D/g,""):"");
+    if(d.length===11&&d.startsWith("0")) d="234"+d.slice(1);
+    return d;
+  };
+
+  const markNotified=async via=>{
+    a.notifiedApproverAt=now(); a.notifiedVia=via;
+    if($("#an_email")) a.approverEmail=getEmail();
+    if($("#an_phone")) a.approverPhone=$("#an_phone").value.trim();
+    if(db&&a.id) await db.collection("assets").doc(a.id).update({notifiedApproverAt:now(),notifiedVia:via,approverEmail:a.approverEmail||"",approverPhone:a.approverPhone||""});
+    render();
+  };
+
+  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+
+  const emailBtn=$("#an_email_btn");
+  if(emailBtn){
+    emailBtn.onclick=()=>{
+      const em=getEmail();
+      emailBtn.href=`mailto:${encodeURIComponent(em)}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(getMsg())}`;
+      markNotified(em?`Email (${em})`:"Email");
+      toast("Email client opened with pre-written approval request.");
+    };
+  }
+
+  const waBtn=$("#an_wa_btn");
+  if(waBtn){
+    waBtn.onclick=()=>{
+      const digits=getDigits();
+      waBtn.href=`https://wa.me/${digits}?text=${encodeURIComponent(getMsg())}`;
+      markNotified(digits?`WhatsApp (${digits})`:"WhatsApp");
+      toast("WhatsApp opened with pre-written approval request.");
+    };
+  }
+
+  const copyBtn=$("#an_copy_btn");
+  if(copyBtn){
+    copyBtn.onclick=async()=>{
+      try{
+        await navigator.clipboard.writeText(getMsg());
+        markNotified("Copied template");
+        toast("Message copied to clipboard! Paste into Teams or Outlook.");
+      }catch(e){
+        $("#an_msg").select();
+        markNotified("Copied template");
+        toast("Selected message text.");
+      }
+    };
+  }
+}
 
 // Move to a screen and record it in the browser history (Back returns to the previous screen).
 function goView(v,opts={}){
@@ -2302,10 +2399,14 @@ function wire(){
       <div class="f"><label for="as_m_email">Custodian Staff Email *</label><input id="as_m_email" type="email" value="${esc(fb&&me?me.email:"demo@example.org")}"></div>
       <div class="f"><label for="as_m_agency">Custodian Agency *</label><select id="as_m_agency">${AGENCIES.map(a=>`<option ${fb&&me&&me.agency===a?"selected":""}>${esc(a)}</option>`).join("")}</select></div>
       <div class="f"><label for="as_m_date">Scheduled Removal Date (Advance Notice Required) *</label><input id="as_m_date" type="date" min="${minD}" value="${minD}"></div>
-      <div class="f"><label for="as_m_dest">Destination &amp; Purpose *</label><input id="as_m_dest" placeholder="e.g. Field work / Remote coordination / Repair servicing"></div>`,
+      <div class="f"><label for="as_m_dest">Destination &amp; Purpose *</label><input id="as_m_dest" placeholder="e.g. Field work / Remote coordination / Repair servicing"></div>
+      <div class="f"><label for="as_m_approver_email">Agency Approver / Supervisor Email (Optional · For immediate 1-click notification)</label><input id="as_m_approver_email" type="email" placeholder="e.g. supervisor@undp.org"></div>
+      <div class="f"><label for="as_m_approver_phone">Agency Approver Phone (Optional · For WhatsApp)</label><input id="as_m_approver_phone" type="tel" inputmode="tel" placeholder="e.g. 0803 123 4567"></div>`,
       async ()=>{
         const item=$("#as_m_item").value.trim(), serial=$("#as_m_serial").value.trim(), staffName=$("#as_m_name").value.trim();
         const staffEmail=$("#as_m_email").value.trim().toLowerCase(), agency=$("#as_m_agency").value, dest=$("#as_m_dest").value.trim();
+        const approverEmail=$("#as_m_approver_email")?$("#as_m_approver_email").value.trim():"";
+        const approverPhone=$("#as_m_approver_phone")?$("#as_m_approver_phone").value.trim():"";
         const dateVal=$("#as_m_date").value;
         if(!item||!staffName||!dest){ toast("Please complete all required fields."); return false; }
         if(!dateVal){ toast("Please select scheduled equipment removal date."); return false; }
@@ -2320,6 +2421,8 @@ function wire(){
           staffEmail,
           agency,
           dest,
+          approverEmail,
+          approverPhone,
           status:"pending",
           requestedAt:now(),
           expectedRemovalDate:removalDateMs,
@@ -2330,10 +2433,17 @@ function wire(){
           verifiedAt:null,
           verifiedBy:""
         };
-        if(db) await db.collection("assets").add(passRec); else assetPasses.unshift({...passRec,id:"as-"+now()});
+        let addedDoc;
+        if(db) addedDoc=await db.collection("assets").add(passRec); else { passRec.id="as-"+now(); assetPasses.unshift(passRec); }
+        if(addedDoc) passRec.id=addedDoc.id;
         toast(`Material Pass ${ref} requested. Awaiting ${agency} supervisor approval.`); render();
+        setTimeout(()=>openAssetNotifyModal(passRec), 350);
       });
   };
+  document.querySelectorAll("[data-asset-notify]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.assetNotify, a=assetPasses.find(x=>x.id===id);
+    if(a) openAssetNotifyModal(a);
+  });
   document.querySelectorAll("[data-asset-approve]").forEach(b=>b.onclick=async()=>{
     const id=b.dataset.assetApprove, a=assetPasses.find(x=>x.id===id);
     if(!a) return;
