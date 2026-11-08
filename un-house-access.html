@@ -2154,91 +2154,91 @@ V.assistant=()=>head("Operations assistant","Ask about recent and current visito
 V.parking=()=>{
   const parkMap=new Map(); parkings.forEach(p=>parkMap.set(p.plate,p));
   
-  // All active visitors who brought a vehicle and are currently on premises
-  const activeVisitorsWithVeh = visitors.filter(v=>v.vehicle&&["in","arrived","tagged"].includes(v.status));
+  // Rule: Only VIP guests and accredited Diplomatic Mission vehicles are permitted to park on compound
+  const isVipVeh=v=>v&&(v.type==="vip"||/^C[DCMD]|^CORPS/i.test(v.vehicle||""));
+  
+  // Active VIP visitors who brought a vehicle and are currently on compound
+  const activeVisitorsWithVeh = visitors.filter(v=>v.vehicle&&isVipVeh(v)&&["in","arrived"].includes(v.status));
   const activePlates=new Set(activeVisitorsWithVeh.map(v=>v.vehicle));
   
-  // Standalone vehicles parked on compound
-  const standaloneParked = parkings.filter(p=>p.status==="parked" && !activePlates.has(p.plate));
+  // Standalone VIP diplomatic motorcades parked on compound
+  const standaloneParked = parkings.filter(p=>p.status==="parked" && (/^C[DCMD]|^CORPS/i.test(p.plate)||(p.bay||"").includes("VIP")||(p.bay||"").includes("Canopy")||(p.bay||"").includes("Motorcade")) && !activePlates.has(p.plate));
   
-  // Combined list of vehicles inside compound
+  // Combined list of VIP vehicles authorized inside compound
   const activeVehicles = [
     ...activeVisitorsWithVeh.map(v=>{
       const p=parkMap.get(v.vehicle)||{};
-      const isDip=v.type==="vip"||/^C[DCMD]|^CORPS/i.test(v.vehicle);
-      const isContractor=v.type==="contractor";
+      const isDip=true;
       return {
         plate: v.vehicle,
-        driver: p.driverNote||(isDip?"Diplomatic chauffeur (with vehicle)":isContractor?"Service driver (Annex A)":"Visitor self-drive (drop-off)"),
+        driver: p.driverNote||"Diplomatic chauffeur (with vehicle)",
         visitorName: v.name,
-        org: v.org||v.agency||"",
-        type: v.type,
-        bay: p.bay||(isDip?"VIP Canopy Bay #1 (Ambassadorial)":isContractor?"Annex A Loading Bay (Service Only)":"Drop-off Only (No Parking Bay Authorized)"),
+        org: v.org||v.agency||"Diplomatic Mission",
+        type: "vip",
+        bay: p.bay||"VIP Canopy Bay #1 (Ambassadorial)",
         timeIn: v.inAt||v.arrivedAt||p.at||now(),
-        isDip,
+        isDip: true,
         visitor: v
       };
     }),
     ...standaloneParked.map(p=>{
-      const isDip=/^C[DCMD]|^CORPS/i.test(p.plate);
       return {
         plate: p.plate,
-        driver: p.driverNote||(isDip?"Diplomatic chauffeur":"Official compound vehicle"),
-        visitorName: p.principalName||"Direct Gate Pass",
-        org: p.agency||(isDip?"Diplomatic Mission":"Compound Logistics"),
-        type: isDip?"vip":"official",
-        bay: p.bay||(isDip?"VIP Canopy Bay #2 (Ambassadorial)":"RC / UN Agency Head Reserved Bay"),
+        driver: p.driverNote||"Diplomatic chauffeur",
+        visitorName: p.principalName||"Accredited Diplomatic Mission",
+        org: p.agency||"Diplomatic Mission",
+        type: "vip",
+        bay: p.bay||"VIP Canopy Bay #2 (Ambassadorial)",
         timeIn: p.at||now(),
-        isDip,
+        isDip: true,
         visitor: null
       };
     })
   ];
 
   const totalInside = activeVehicles.length;
-  const vipOccupied = activeVehicles.filter(v=>v.isDip||(v.bay||"").includes("VIP")||(v.bay||"").includes("Motorcade")).length;
+  const vipOccupied = totalInside;
   const vipCanopyOccupied = activeVehicles.filter(v=>(v.bay||"").includes("Canopy")).length;
   const motorcadeOccupied = activeVehicles.filter(v=>(v.bay||"").includes("Motorcade")).length;
-  const serviceOccupied = activeVehicles.filter(v=>(v.bay||"").includes("Annex")||(v.bay||"").includes("Service")||(v.bay||"").includes("Loading")).length;
   
-  // Upcoming expected vehicles today
-  const expectedVehicles = visitors.filter(v=>v.vehicle && ["approved","pending"].includes(v.status) && isToday(v.expected));
+  // Upcoming expected VIP vehicles today (Non-VIP vehicles are drop-off only)
+  const expectedVehicles = visitors.filter(v=>v.vehicle && isVipVeh(v) && ["approved","pending"].includes(v.status) && isToday(v.expected));
   const isPast17 = new Date().getHours() >= 17;
 
   const q=(render.q||"").toLowerCase().trim();
   const filteredActive = q ? activeVehicles.filter(v=>[v.plate,v.visitorName,v.driver,v.org,v.bay,v.visitor?v.visitor.ref:""].join(" ").toLowerCase().includes(q)) : activeVehicles;
   const filteredExpected = q ? expectedVehicles.filter(v=>[v.vehicle,v.name,v.org,v.host,v.agency,v.ref,v.room,v.purpose].join(" ").toLowerCase().includes(q)) : expectedVehicles;
 
-  return head("Compound VIP Parking & Motorcades","Official compound parking control. Only accredited VIPs, Ambassadorial motorcades, and Diplomatic Mission vehicles are permitted to park on compound. Regular visitor vehicles are drop-off only at Gate 1.")+
+  return head("Compound VIP Parking & Motorcades","Official compound parking control. Only accredited VIPs, Ambassadorial motorcades, and accredited Diplomatic Mission vehicles are permitted to park on compound. Regular visitor vehicles are drop-off only at Gate 1.")+
   `<div class="note" style="border-left:4px solid var(--accent);background:var(--surface);margin-bottom:14px;padding:12px 16px">
     <div style="font-weight:700;font-size:13px;color:var(--accent);display:flex;align-items:center;gap:6px;margin-bottom:6px">
       <span>🛡️ UN House Perimeter Security Rule: VIP &amp; Diplomatic Parking Only</span>
     </div>
     <div style="font-size:12.5px;color:var(--text);line-height:1.5">
-      Compound parking is strictly restricted to <b>accredited VIPs, Ambassadorial motorcades (CD/CC), and UN Agency Heads</b>. Regular visitor vehicles are <b>not permitted to park on compound (drop-off only outside Gate 1)</b>. Facilities service/loading vehicles require authorized facilities clearance.
+      Compound parking is strictly restricted to <b>accredited VIPs, Ambassadorial motorcades (CD/CC), and UN Agency Heads</b>. Regular visitor vehicles are <b>not permitted to park on compound (drop-off only outside Gate 1)</b>.
     </div>
   </div>`+
   (isPast17 && totalInside > 0 ? `<div class="note" style="border-left:4px solid var(--bad);background:var(--bad-bg);color:var(--bad);display:flex;align-items:center;gap:12px;margin-bottom:12px">
     <span><b>⚠️ Anti-VBIED Security Rule:</b> Overnight compound parking is strictly prohibited. All ${totalInside} vehicle(s) must exit before reception closeout unless holding written UNDSS authorization.</span>
   </div>`:"")+
   `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
-    <div class="kpi ok"><div class="n">${vipOccupied}</div><div class="l">VIP &amp; Diplomatic on Compound</div></div>
+    <div class="kpi ok"><div class="n">${vipOccupied}</div><div class="l">VIP Vehicles on Compound</div></div>
     <div class="kpi ${vipCanopyOccupied>=4?"alert":""}"><div class="n">${vipCanopyOccupied} / 4</div><div class="l">VIP Canopy Bays (Canopy #1–#4)</div></div>
     <div class="kpi"><div class="n">${motorcadeOccupied} / 4</div><div class="l">Motorcade Escort Bays</div></div>
-    <div class="kpi"><div class="n" style="font-size:16px;color:var(--bad)">Drop-off Only</div><div class="l">Visitors: No compound parking</div></div>
+    <div class="kpi"><div class="n" style="font-size:15px;color:var(--bad)">Drop-off Only</div><div class="l">Non-VIP: No compound parking</div></div>
   </div>
   <div class="panel">
-    ${searchBox("Search plate number, principal, pass reference, chauffeur, bay, or diplomatic mission...")}
+    ${searchBox("Search VIP plate, diplomatic principal, pass reference, chauffeur, bay, or embassy...")}
   </div>
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <div><h2 style="margin:0">Vehicles Currently Inside Compound (${filteredActive.length})</h2><p class="small" style="margin:2px 0 0">Perimeter physical screening active. Only VIP diplomatic motorcades authorized to park.</p></div>
+      <div><h2 style="margin:0">VIP Motorcades Currently Inside Compound (${filteredActive.length})</h2><p class="small" style="margin:2px 0 0">Perimeter physical screening active. Exclusively VIP &amp; diplomatic motorcades.</p></div>
       <button class="btn pri" id="veh_quick_log">+ Log VIP Vehicle at Gate</button>
     </div>
     <div class="tw" style="margin-top:14px"><table><thead><tr>
       <th>Vehicle &amp; Plate</th>
-      <th>Assigned Bay (VIP Only)</th>
-      <th>Principal / Visitor Reference</th>
+      <th>Assigned VIP Bay</th>
+      <th>Diplomatic Principal &amp; Pass Ref</th>
       <th>Visitor Clearance Status</th>
       <th>Inspection &amp; Protocol</th>
       <th>Security Actions</th>
@@ -2246,63 +2246,56 @@ V.parking=()=>{
     ${filteredActive.map(v=>`<tr>
       <td>
         <span class="mono" style="font-size:14px;font-weight:700">🚗 ${esc(v.plate)}</span>
-        ${v.isDip?`<span class="pill p-in" style="font-size:10px;padding:2px 6px;margin-left:4px">Diplomatic CD</span>`:""}
-        ${v.type==="vip"?`<span class="pill p-in" style="font-size:10px;padding:2px 6px;margin-left:4px">VIP Guest</span>`:
-          v.type==="contractor"?`<span class="pill p-pending" style="font-size:10px;padding:2px 6px;margin-left:4px">Contractor Van</span>`:
-          `<span class="pill p-rejected" style="font-size:10px;padding:2px 6px;margin-left:4px">Non-VIP Visitor</span>`}
+        <span class="pill p-in" style="font-size:10px;padding:2px 6px;margin-left:4px">Diplomatic CD</span>
       </td>
       <td>
-        ${v.isDip||v.type==="vip"?`<span class="pill p-in">${esc(v.bay)}</span>`:
-          v.type==="contractor"?`<span class="pill p-pending">${esc(v.bay)}</span>`:
-          `<span class="pill p-rejected" style="font-size:11px">Drop-off Only</span><div class="small" style="color:var(--bad);font-weight:600">Unauthorized Parking Violation</div>`}
+        <span class="pill p-in">${esc(v.bay)}</span>
       </td>
       <td>
         <b>${esc(v.visitorName)}</b>
-        <div class="small">${esc(v.org)} · <span class="mono ref">${esc(v.visitor?v.visitor.ref:"DIRECT-PASS")}</span></div>
-        <div class="small" style="color:var(--muted)">Host: ${esc(v.visitor?v.visitor.host+" ("+v.visitor.agency+")":"UN Common Services")}</div>
+        <div class="small">${esc(v.org)} · <span class="mono ref">${esc(v.visitor?v.visitor.ref:"DIRECT-DIP")}</span></div>
+        <div class="small" style="color:var(--muted)">Host: ${esc(v.visitor?v.visitor.host+" ("+v.visitor.agency+")":"Resident Coordinator")}</div>
       </td>
       <td>
         ${v.visitor?pill(v.visitor):'<span class="pill p-in">Gate Cleared</span>'}
         ${v.visitor&&v.visitor.tag?`<div class="small mono" style="font-weight:600;color:var(--accent)">Tag: ${esc(v.visitor.tag)}</div>`:""}
         ${v.visitor&&["in","tagged"].includes(v.visitor.status)?`<div class="small" style="color:var(--ok);font-weight:600">✓ Security Cleared · Inside</div>`:
-          v.visitor&&v.visitor.status==="arrived"?`<div class="small" style="color:var(--accent);font-weight:600">Gate Verified · In Processing</div>`:
-          v.visitor&&v.visitor.status==="out"?`<div class="small" style="color:var(--bad);font-weight:600">⚠️ Flag: Visitor Exited (Vehicle Inside)</div>`:
-          `<div class="small" style="color:var(--muted)">Direct Logistics Entry</div>`}
+          v.visitor&&v.visitor.status==="arrived"?`<div class="small" style="color:var(--accent);font-weight:600">VIP Gate Verified</div>`:
+          `<div class="small" style="color:var(--muted)">Diplomatic Motorcade Cleared</div>`}
       </td>
       <td>
         <div>${esc(v.driver)}</div>
-        <div class="small" style="color:var(--ok)">✓ Mirror &amp; trunk physically screened</div>
+        <div class="small" style="color:var(--ok)">✓ Undercarriage mirror &amp; trunk cleared</div>
         <div class="small mono" style="color:var(--muted)">Entered: ${fmtT(v.timeIn)}</div>
       </td>
       <td>
         <div class="acts" style="flex-wrap:nowrap">
           ${v.visitor?`<button class="btn ok" data-act="pass" data-id="${esc(v.visitor.id)}" title="Show Digital Visitor Pass">Show Pass</button>`:""}
-          ${v.isDip||v.type==="vip"?`<button class="btn" data-veh-bay="${esc(v.plate)}">Reassign Bay</button>`:""}
+          <button class="btn" data-veh-bay="${esc(v.plate)}">Reassign Bay</button>
           <button class="btn bad" data-veh-exit="${esc(v.plate)}">Exit Gate</button>
         </div>
       </td>
-    </tr>`).join("")||`<tr><td colspan="6" class="empty">No vehicles currently inside the secure perimeter.</td></tr>`}
+    </tr>`).join("")||`<tr><td colspan="6" class="empty">No VIP vehicles currently inside the secure perimeter.</td></tr>`}
     </tbody></table></div>
   </div>
   ${filteredExpected.length?`
   <div class="panel" style="margin-top:16px">
-    <h2>Expected VIP &amp; Visitor Vehicles Today (${filteredExpected.length})</h2>
-    <p class="small" style="margin:-4px 0 10px;color:var(--muted)">Compound parking is restricted to VIP and diplomatic motorcades. Non-VIP vehicles are drop-off only at Gate 1.</p>
+    <h2>Expected VIP Motorcades Today (${filteredExpected.length})</h2>
+    <p class="small" style="margin:-4px 0 10px;color:var(--muted)">Compound parking is reserved exclusively for accredited VIP diplomatic motorcades. Canopy bays pre-allocated.</p>
     <div class="tw"><table><thead><tr>
       <th>Expected Plate</th>
-      <th>Principal / Guest Reference</th>
+      <th>Diplomatic Principal / Guest</th>
       <th>Visitor Clearance Status</th>
       <th>Host &amp; Meeting</th>
       <th>Expected Time</th>
-      <th>Compound Parking Status</th>
+      <th>Reserved VIP Bay</th>
       <th>Gate Admittance &amp; Pass</th>
     </tr></thead><tbody>
     ${filteredExpected.map(v=>{
-      const isDip=v.type==="vip"||/^C[DCMD]|^CORPS/i.test(v.vehicle);
       return `<tr>
         <td>
           <span class="mono" style="font-weight:700">🚗 ${esc(v.vehicle)}</span>
-          ${isDip?`<span class="pill p-in" style="font-size:10px;padding:1px 5px;margin-left:4px">Diplomatic CD</span>`:""}
+          <span class="pill p-in" style="font-size:10px;padding:1px 5px;margin-left:4px">Diplomatic CD</span>
         </td>
         <td>
           <b>${esc(v.name)}</b>
@@ -2310,7 +2303,7 @@ V.parking=()=>{
         </td>
         <td>
           ${v.watchFlag?`<span class="pill p-rejected">UNDSS Watchlist Alert</span><div class="small" style="color:var(--bad);font-weight:600">⛔ Barred by Security</div>`:
-            v.status==="approved"?`<span class="pill p-approved">Cleared &amp; Approved</span><div class="small" style="color:var(--ok)">✓ Cleared for Gate Admittance</div>`:
+            v.status==="approved"?`<span class="pill p-approved">Cleared &amp; Approved</span><div class="small" style="color:var(--ok)">✓ Cleared for VIP Gate Entry</div>`:
             v.status==="pending"?`<span class="pill p-pending">Approval Pending</span><div class="small" style="color:var(--bad);font-weight:600">⛔ Hold at Gate: Do NOT Admit</div>`:
             pill(v)}
         </td>
@@ -2320,13 +2313,12 @@ V.parking=()=>{
         </td>
         <td class="mono">${fmtT(v.expected)}</td>
         <td>
-          ${isDip?`<span class="pill p-in">VIP Canopy Bay (Reserved)</span>`:
-            `<span class="pill p-rejected" style="font-size:11px">Drop-off Only at Gate 1</span><div class="small" style="color:var(--bad);font-weight:600">No Compound Parking (VIP Only)</div>`}
+          <span class="pill p-in">VIP Canopy Bay (Reserved)</span>
         </td>
         <td>
           <div class="acts" style="flex-wrap:nowrap">
             <button class="btn ok" data-act="pass" data-id="${esc(v.id)}" title="Show Live Digital Pass">Show Pass</button>
-            ${v.status==="approved"?(isDip?B(v.id,"vipadmit","Admit VIP Motorcade","ok"):B(v.id,"arrive","Admit Guest (Drop-off Only)","pri")):
+            ${v.status==="approved"?B(v.id,"vipadmit","Admit VIP Motorcade","pri"):
               `<span class="small" style="color:var(--bad);font-weight:600">Hold at Gate</span>`}
           </div>
         </td>
