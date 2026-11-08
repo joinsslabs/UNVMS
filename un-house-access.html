@@ -114,7 +114,8 @@ tr:last-child td{border-bottom:0}
 .btn[data-act="reject"],.btn[data-act="suspend"],.btn[data-act="cancel"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M6 18L18 6'/%3E%3C/svg%3E")}
 .btn[data-act="tag"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z'/%3E%3Ccircle cx='7.5' cy='7.5' r='1.5'/%3E%3C/svg%3E")}
 .btn[data-act="notify"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16v12H4z'/%3E%3Cpath d='M4 7l8 6 8-6'/%3E%3C/svg%3E")}
-.btn[data-act="pass"],.btn[data-act="grouppass"],.btn#qscan{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z'/%3E%3Cpath d='M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2'/%3E%3C/svg%3E")}
+.btn[data-act="pass"],.btn#qscan{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z'/%3E%3Cpath d='M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2'/%3E%3C/svg%3E")}
+.btn[data-act="grouppass"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5'/%3E%3Ccircle cx='17' cy='9' r='2.5'/%3E%3Cpath d='M16.5 14.6c2.6.2 4.4 2 5 4.9'/%3E%3C/svg%3E")}
 .btn[data-act="detail"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5M12 8v.5'/%3E%3C/svg%3E")}
 .btn[data-act="extend"],.btn[data-act="reinstate"],.btn[data-act="extendstay"],.btn[data-act="reschedule"],.btn[data-act="resubmit"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 7v5l3 2'/%3E%3C/svg%3E")}
 .btn[data-print],.btn#ts_go{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linejoin='round'%3E%3Cpath d='M6 9V3h12v6M6 18H4v-7h16v7h-2M7 14h10v7H7z'/%3E%3C/svg%3E")}
@@ -1973,7 +1974,7 @@ function demoData(){
   v.push(mk({name:"Chinedu Okafor",org:"ActionAid Nigeria",status:"arrived",expected:t9+2.2*h,arrivedAt:t9+2.3*h,assignedTag:"V-033",purpose:"CSO Partnership Forum",host:"T. Musa",agency:"UNICEF"}));
   v.push(mk({name:"Zainab Haruna",org:"National Planning Commission",status:"arrived",expected:t9+2.4*h,arrivedAt:t9+2.5*h,assignedTag:"V-034",purpose:"Joint Monitoring Review",host:"A. Lawal",agency:"WFP"}));
   v.push(mk({name:"Grace Okon",org:"Independent consultant",status:"pending",expected:t9+4*h,restricted:true,escort:true,purpose:"Server room access",requestedByUid:"x"}));
-  v.push(mk({name:"Ibrahim Danjuma",org:"NCDC",status:"pending",expected:t9+3*h,vehicle:"FCT-819-NG",purpose:"Disease surveillance briefing",requestedByUid:"x"}));
+  v.push(mk({name:"Ibrahim Danjuma",org:"NCDC",status:"pending",expected:t9+3*h,vehicle:"FCT-819-NG",purpose:"Disease surveillance briefing",requestedByUid:"x",unscheduled:true}));
   ["Dr. Amina Bello","Kofi Mensah","Dr. Seydou Traoré"].forEach(n=>v.push(mk({name:n,org:"ECOWAS Commission",group:"ECOWAS Health Technical Team",status:"pending",expected:t9+3.5*h,host:"Dr. K. Ibrahim",agency:"WHO",room:"Conference Room A",purpose:"Cross-border health readiness",requestedByUid:"x"})));
   for(let k=0;k<6;k++) v.push(mk({status:"approved",expected:t9+k*30*60e3,visitorEmail:"guest"+k+"@example.org",requestedByUid:k<2?ME:"x",...(k===1?{vehicle:"ABC-904-KD"}:{})}));
   v.push(mk({name:"H.E. Ambassador L. Haugen",org:"Royal Norwegian Embassy",type:"vip",host:"Resident Coordinator",agency:"Common Services",status:"in",decidedBy:"Supervisor F. Adeyemi",decidedAt:y9+6*h,expected:t9+1*h,arrivedAt:t9+1.05*h,inAt:t9+1.05*h,purpose:"Courtesy call",room:"RC Office",vehicle:"CD-29-01"}));
@@ -2077,7 +2078,7 @@ function pill(v){
   return `<span class="pill p-${v.status}"${tip?` title="${esc(tip)}"`:""}>${STATUS[v.status]}</span>${v.verbalApproval?` <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:2px 6px" title="${esc(v.verbalApprovalNote||"Host verbal clearance on phone")}">📞 Phone Clearance</span>`:""}`;
 }
 
-function tpill(v){return (v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor &amp; Service Staff</span>`:"")+((v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?` <span class="pill p-pending" title="Requires staff escort while inside">Escort</span>`:"")}
+function tpill(v){return (v.unscheduled?`<span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a" title="Unscheduled walk-in visitor - Gate 1 must confirm with host">⚠️ Unscheduled</span> `:v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor &amp; Service Staff</span>`:"")+((v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?` <span class="pill p-pending" title="Requires staff escort while inside">Escort</span>`:"")}
 // Expected time, plus the actual arrival, check-in and check-out times once they happen.
 function times(v){
   const r=[`<span title="Expected">${fmtT(v.expected)}</span>`];
@@ -2159,44 +2160,80 @@ V.gate=()=>{
 
   return head("Gate reception, approvals & exit","Station 1. Review visitor requests, admit visitors, manage physical tag stock, and check out departing visitors at Gate 1.")+
   
-  /* Gate 1 Available Tags Feed & Inventory Space */
-  `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:0 2px 8px rgba(2,132,199,.06)">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+  /* Gate 1 Available Tags Feed & Physical Rack Inventory */
+  `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:0 3px 12px rgba(2,132,199,.08);border-radius:12px;padding:18px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
       <div>
-        <h2 style="margin:0;display:flex;align-items:center;gap:8px">🏷️ Feed Available Physical Tags (Gate 1 Inventory)</h2>
-        <p class="small" style="margin:4px 0 0">Feed physical tags available in your tray/rack into the system. As visitors arrive, the system automatically pulls the next available tag from this stock.</p>
+        <h2 style="margin:0;display:flex;align-items:center;gap:8px;font-size:18px;color:var(--navy)">
+          🏷️ Gate 1 Physical Tag Rack & Inventory
+        </h2>
+        <p class="small" style="margin:5px 0 0;color:var(--muted);max-width:660px;line-height:1.45">
+          Manage physical lanyard tags stocked in your Gate 1 tray. As arriving visitors are admitted, the system <b>automatically allocates the next available tag</b> from this stock. Returned tags at checkout automatically restock here.
+        </p>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn" id="btn_feed_default" title="Load standard UN House starter tags (V-001 to V-050, C-001 to C-020)">✨ Load Standard Stock</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn" id="btn_feed_default" title="Load standard UN House starter tags (V-001 to V-050, C-001 to C-020)">✨ Standard Preset (70 Tags)</button>
         <button class="btn" id="btn_restock_returned" title="Restock all checked-out tags into available pool">🔄 Restock Returned</button>
+        <button class="btn bad" id="btn_clear_tags" title="Clear all unissued tags from the tray">🗑️ Clear Unissued</button>
       </div>
     </div>
 
-    <!-- Live Stock Indicator -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px">
-      <div style="background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--line)">
-        <div class="small" style="color:var(--muted)">Available Visitor Tags</div>
-        <div style="font-size:22px;font-weight:700;color:${availV.length<5?'var(--bad)':'var(--ok)'}">${availV.length} <span style="font-size:12px;font-weight:400;color:var(--muted)">in rack</span></div>
+    <!-- Live Physical Tray Rack Status Cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px">
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:12px 14px;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:600;color:#0369a1">Visitor Tags in Tray</span>
+          <span style="font-size:10px;font-weight:700;background:#0284c7;color:#fff;padding:1px 6px;border-radius:4px">BLUE</span>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:#0369a1;margin-top:4px">
+          ${availV.length} <span style="font-size:12px;font-weight:500;color:#0284c7">ready to issue</span>
+        </div>
+        <div class="small" style="color:#0369a1;margin-top:2px">Next up: <b>${availV[0]||'Empty'}</b></div>
       </div>
-      <div style="background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--line)">
-        <div class="small" style="color:var(--muted)">Available Contractor Tags</div>
-        <div style="font-size:22px;font-weight:700;color:${availC.length<5?'var(--bad)':'var(--ok)'}">${availC.length} <span style="font-size:12px;font-weight:400;color:var(--muted)">in rack</span></div>
+
+      <div style="background:#fefce8;border:1px solid #fef08a;padding:12px 14px;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:600;color:#854d0e">Contractor Tags in Tray</span>
+          <span style="font-size:10px;font-weight:700;background:#ca8a04;color:#fff;padding:1px 6px;border-radius:4px">AMBER</span>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:#854d0e;margin-top:4px">
+          ${availC.length} <span style="font-size:12px;font-weight:500;color:#a16207">ready to issue</span>
+        </div>
+        <div class="small" style="color:#854d0e;margin-top:2px">Next up: <b>${availC[0]||'Empty'}</b></div>
       </div>
-      <div style="background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--line)">
-        <div class="small" style="color:var(--muted)">Tags Currently in Compound</div>
-        <div style="font-size:22px;font-weight:700;color:var(--navy)">${usedTags.length} <span style="font-size:12px;font-weight:400;color:var(--muted)">with visitors</span></div>
+
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 14px;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:600;color:#166534">Tags with Visitors Inside</span>
+          <span style="font-size:10px;font-weight:700;background:#16a34a;color:#fff;padding:1px 6px;border-radius:4px">CIRCULATING</span>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:#166534;margin-top:4px">
+          ${usedTags.length} <span style="font-size:12px;font-weight:500;color:#15803d">in compound</span>
+        </div>
+        <div class="small" style="color:#166534;margin-top:2px">Collect at compound exit</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--line);padding:12px 14px;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:600;color:var(--muted)">Total Managed Fleet</span>
+          <span style="font-size:10px;font-weight:700;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">FLEET</span>
+        </div>
+        <div style="font-size:24px;font-weight:700;color:var(--navy);margin-top:4px">
+          ${gateTagStock.length} <span style="font-size:12px;font-weight:500;color:var(--muted)">total tags</span>
+        </div>
+        <div class="small" style="color:var(--muted);margin-top:2px">Gate 1 inventory pool</div>
       </div>
     </div>
 
     <!-- Feed Controls -->
-    <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:8px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
       <div class="f" style="flex:1;min-width:200px">
-        <label for="tag_feed_batch" class="small"><b>Scan or Type Tags to Feed</b> (e.g. V-001, V-002, V-005, C-010)</label>
-        <input id="tag_feed_batch" placeholder="Scan barcode/QR or type comma-separated tag numbers">
+        <label for="tag_feed_batch" class="small"><b>Scan Barcode or Type Tag Numbers</b> (e.g. V-001, V-002 or 1, 2, 3)</label>
+        <input id="tag_feed_batch" placeholder="Scan tag barcode or enter comma-separated numbers">
       </div>
-      <div class="f" style="width:110px">
-        <label for="tag_feed_pre" class="small"><b>Prefix</b></label>
-        <select id="tag_feed_pre"><option value="V">Visitor (V)</option><option value="C">Contractor (C)</option></select>
+      <div class="f" style="width:120px">
+        <label for="tag_feed_pre" class="small"><b>Tag Type</b></label>
+        <select id="tag_feed_pre"><option value="V">Visitor (V-)</option><option value="C">Contractor (C-)</option></select>
       </div>
       <div class="f" style="width:85px">
         <label for="tag_feed_from" class="small"><b>From #</b></label>
@@ -2207,19 +2244,23 @@ V.gate=()=>{
         <input type="number" id="tag_feed_to" value="50" min="1" max="999">
       </div>
       <div class="acts" style="margin-bottom:2px">
-        <button class="btn pri" id="btn_feed_range">+ Feed Range</button>
-        <button class="btn" id="btn_feed_batch">+ Feed Scanned</button>
+        <button class="btn pri" id="btn_feed_range" title="Feed sequential numerical tag range">+ Feed Range</button>
+        <button class="btn" id="btn_feed_batch" title="Add scanned or typed tags">+ Feed Scanned</button>
       </div>
     </div>
 
-    <!-- Active Available Tag Stock Chips -->
-    <div style="margin-top:12px">
-      <div class="small" style="font-weight:600;margin-bottom:6px">Tags Currently Ready to Issue at Gate 1:</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;max-height:100px;overflow-y:auto;padding:4px 0">
-        ${availV.slice(0,35).map(t=>`<span class="mono" style="font-size:11px;background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:5px;border:1px solid #bae6fd">${esc(t)}</span>`).join("")}
-        ${availV.length>35?`<span class="small" style="align-self:center">+ ${availV.length-35} more visitor tags</span>`:""}
-        ${availC.slice(0,20).map(t=>`<span class="mono" style="font-size:11px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:5px;border:1px solid #fde68a">${esc(t)}</span>`).join("")}
-        ${availC.length>20?`<span class="small" style="align-self:center">+ ${availC.length-20} more contractor tags</span>`:""}
+    <!-- Active Available Tag Stock Chips in Visual Rack -->
+    <div style="margin-top:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="small" style="font-weight:600;color:var(--fg)">Physical Tags Currently Resting in Gate 1 Tray (Ready to Issue):</span>
+        <span class="small" style="color:var(--muted)">Tip: Click a tag chip to decommission damaged or lost tags</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;max-height:110px;overflow-y:auto;padding:6px;background:var(--surface);border:1px dashed var(--line);border-radius:8px">
+        ${availV.slice(0,35).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
+        ${availV.length>35?`<span class="small" style="align-self:center;color:var(--muted);padding:0 4px">+ ${availV.length-35} more visitor tags</span>`:""}
+        ${availC.slice(0,20).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:6px;border:1px solid #fde68a;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
+        ${availC.length>20?`<span class="small" style="align-self:center;color:var(--muted);padding:0 4px">+ ${availC.length-20} more contractor tags</span>`:""}
+        ${!availV.length && !availC.length ? `<span class="small" style="color:var(--warn);padding:4px">Tray is currently empty. Click "Standard Preset" or feed a range above to populate available tags.</span>` : ""}
       </div>
     </div>
   </div>`+
@@ -2230,10 +2271,11 @@ V.gate=()=>{
       <h2 style="margin:0;display:flex;align-items:center;gap:8px">Pending Approvals <span class="cnt hot">${pend.length}</span></h2>
       ${batchBar?`<div class="acts">${batchBar}</div>`:""}
     </div>
-    <p class="small">Review incoming visitor requests. Click <b>Approve request</b> to approve the visit and allocate an available tag from Gate 1 stock.</p>
-        ${table(pend,v=>{
+    <p class="small">Review incoming visitor requests. Click <b>Approve request</b> to approve the visit and allocate an available tag from Gate 1 stock. <b>For unscheduled visitors, Gate 1 must contact and confirm with the host first.</b></p>
+    ${table(pend,v=>{
       const ext=getHostExt(v.host, v.agency);
-      return `<button class="btn" data-confirm-host="${esc(v.id)}" title="Call host on desk phone to confirm before approving">📞 Confirm with Host (Ext. ${esc(ext)})</button>`
+      const isUnsch = v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
+      return `<button class="btn" data-confirm-host="${esc(v.id)}" style="${isUnsch?'background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700':''}" title="Call host on desk phone to confirm before approving">📞 ${isUnsch?'Confirm with Host First':'Confirm with Host'} (Ext. ${esc(ext)})</button>`
         + B(v.id,"approve","Approve request","ok")
         + B(v.id,"reject","Reject","bad");
     },"No pending approvals.")}
@@ -2253,20 +2295,72 @@ V.gate=()=>{
   </div>
 
   /* On premises now · Compound Exit & Check Out at Gate 1 */
-  <div class="panel" style="border-left:4px solid var(--ok);background:var(--surface)">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-      <h2 style="margin:0;display:flex;align-items:center;gap:8px">🏢 On premises now <span class="cnt ok">${insideList.length}</span></h2>
-      <span class="small" style="color:var(--muted)">Compound Exit Desk · Gate 1</span>
+  <div class="panel" style="border-left:4px solid var(--ok);background:linear-gradient(180deg,var(--surface),#f8fafc);box-shadow:0 3px 12px rgba(22,163,74,.06);border-radius:12px;padding:18px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0;display:flex;align-items:center;gap:8px;font-size:18px;color:var(--navy)">
+            🏢 On Premises Now · Compound Exit & Departure Desk
+          </h2>
+          <span class="cnt ok" style="font-size:12px;padding:2px 10px">${insideList.length} Active Inside</span>
+        </div>
+        <p class="small" style="margin:5px 0 0;color:var(--muted);max-width:700px;line-height:1.45">
+          All authorized visitors, contractors, and VIP guests currently inside the UN House compound. When a guest departs through Gate 1: <b>collect their physical tag</b> (automatically restocked to the inventory rack above), verify items/vehicles, and click <b>Check out</b>.
+        </p>
+      </div>
+
+      <!-- Live situational count chips -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #bae6fd">
+          🏷️ ${insideList.filter(v=>v.tag).length} Tags in Circulation
+        </span>
+        <span class="pill" style="background:#f1f5f9;color:#334155;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #cbd5e1">
+          🚗 ${insideList.filter(v=>v.vehicle).length} Vehicles on Site
+        </span>
+        ${insideList.filter(v=>v.type==="vip").length ? `<span class="pill" style="background:#fef3c7;color:#92400e;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #fde68a">👑 ${insideList.filter(v=>v.type==="vip").length} VIPs</span>` : ""}
+      </div>
     </div>
-    <p class="small">All persons currently on UN House premises. Visitors exit the compound through Gate 1: click <b>Check out</b> when departing, collect their physical lanyard tag (automatically restocked to available inventory), verify any items taken out, and record their exit.</p>
-    ${table(insideList, v=>{
-      if(v.type==="vip") return B(v.id,"checkout","VIP Departed","ok");
-      return B(v.id,"checkout",v.tag?`Check out (Tag ${esc(v.tag)})`:"Check out","ok");
-    },"Nobody is currently on the premises.")}
+
+    <!-- Quick Exit by Tag Bar & Fast Search -->
+    <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="f" style="flex:1;min-width:240px">
+        <label for="quick_exit_input" class="small"><b>⚡ Fast Check-Out by Tag / Name</b> (Scan barcode or type tag like V-024)</label>
+        <input id="quick_exit_input" placeholder="Type or scan tag number (e.g. V-024) and press Enter to check out...">
+      </div>
+      <button class="btn ok" id="btn_quick_exit" style="margin-top:16px;height:36px;padding:0 18px" title="Instantly check out the visitor holding this tag">
+        🚪 Fast Check-Out
+      </button>
+    </div>
+
+    <!-- Exit Table -->
+    <div style="margin-top:12px">
+      ${table(insideList, v=>{
+        if(v.type==="vip") return B(v.id,"checkout","VIP Departed","ok");
+        return B(v.id,"checkout","Check out","ok");
+      },"Nobody is currently on the premises.")}
+    </div>
   </div>
 
-  <div class="panel"><h2>Walk-in visitor</h2>${regForm(true)}</div>
-  ${done.length?`<div class="panel"><h2>Recent approval decisions</h2><div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>${done.map(v=>`<tr><td class="ref">${esc(v.ref)}</td><td>${esc(v.name)}</td><td>${v.status==="rejected"?`<span class="pill p-rejected">Rejected</span>${v.rejectReason?`<div class="small">${esc(v.rejectReason)}</div>`:""}`:`<span class="pill p-approved">Approved</span>`}</td><td>${esc(v.decidedBy||"—")}</td><td class="mono">${fmtT(v.decidedAt)}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
+  /* Register Unscheduled Visitor (Gate 1 Walk-In) */
+  <div class="panel" style="border-top:4px solid #f59e0b;background:linear-gradient(180deg,#ffffff,#fffdf5);border-radius:12px;box-shadow:0 3px 12px rgba(245,158,11,.06);padding:18px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;display:flex;align-items:center;gap:8px;font-size:18px;color:#92400e">
+          🚪 Register Unscheduled Visitor (Gate 1 Walk-In)
+        </h2>
+        <p class="small" style="margin:5px 0 0;color:var(--muted);max-width:700px;line-height:1.45">
+          Visitors arriving at Gate 1 without a scheduled invitation are classified as <b>Unscheduled Visitors</b>. UN Security protocol requires Gate 1 officers to <b>contact and confirm with the host first</b> before compound entry is granted.
+        </p>
+      </div>
+      <span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-weight:600;font-size:12px;padding:4px 10px">
+        ⚠️ Host Clearance Mandatory
+      </span>
+    </div>
+    <div style="margin-top:14px">
+      ${regForm(true)}
+    </div>
+  </div>`+
+  (done.length?`<div class="panel"><h2>Recent approval decisions</h2><div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>${done.map(v=>`<tr><td class="ref">${esc(v.ref)}</td><td>${esc(v.name)}</td><td>${v.status==="rejected"?`<span class="pill p-rejected">Rejected</span>${v.rejectReason?`<div class="small">${esc(v.rejectReason)}</div>`:""}`:`<span class="pill p-approved">Approved</span>`}</td><td>${esc(v.decidedBy||"—")}</td><td class="mono">${fmtT(v.decidedAt)}</td></tr>`).join("")}</tbody></table></div></div>`:"");
 };
 V.approvals=V.gate;
 V.tagging=()=>{
@@ -2575,9 +2669,26 @@ function regForm(walkin){
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_restricted" type="checkbox" style="width:auto"><label for="r_restricted" style="margin:0">Needs access to a restricted area</label></div>
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_escort" type="checkbox" style="width:auto"><label for="r_escort" style="margin:0">Requires staff escort while inside</label></div>
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_agree" type="checkbox" style="width:auto"><label for="r_agree" style="margin:0">The visitor has accepted the <a href="?rules" target="_blank" rel="noopener">visitor rules and privacy notice</a></label></div>
-   ${walkin?`<div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.35);padding:10px 14px;border-radius:10px"><input id="r_phone_cleared" type="checkbox" style="width:auto"><label for="r_phone_cleared" style="margin:0;font-weight:600;color:var(--ok);cursor:pointer">📞 Fast-Track Admission: Host has been contacted via phone / intercom and verbally cleared this visitor</label></div>`:""}
-  </div><div class="acts" style="margin-top:14px"><button class="btn pri" type="submit">${walkin?"Register walk-in":"Register visitor"}</button></div>
-  <p class="small">${walkin?"Walk-in visitors can be admitted immediately if the host confirms verbally, or placed in <b>Pending approval</b> for supervisor clearance.":"Every registered visitor starts as <b>Pending approval</b> until approved by an approver, after which they appear as <b>Approved · expected</b> at the gate. No ID scans are stored."}</p></form>`;
+   ${walkin?`<div class="f" style="grid-column:1/-1;background:#fffbeb;border:1.5px solid #fde68a;padding:14px;border-radius:10px;margin-top:6px">
+      <div style="display:flex;align-items:center;gap:8px;font-weight:700;color:#92400e;font-size:13.5px">
+        📞 Unscheduled Visitor Host Confirmation (Gate 1 Protocol)
+      </div>
+      <p class="small" style="margin:4px 0 10px;color:#78350f">
+        Under UN House access rules, all unscheduled visitors must be confirmed with the host before entry is authorized. Call the host on desk intercom/phone to confirm acceptance.
+      </p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input id="r_phone_cleared" type="checkbox" style="width:auto;transform:scale(1.2);cursor:pointer">
+        <label for="r_phone_cleared" style="margin:0;font-weight:600;color:#92400e;cursor:pointer">
+          ✓ Host has been contacted via phone/intercom and confirmed permission to admit this unscheduled visitor
+        </label>
+      </div>
+      <div class="f" style="margin-top:10px">
+        <label for="r_host_note" class="small" style="font-weight:600;color:#92400e">Host Extension & Confirmation Details (Optional)</label>
+        <input id="r_host_note" placeholder="e.g. Host confirmed on Ext. 214 - available to receive visitor" style="background:#fff">
+      </div>
+    </div>`:""}
+  </div><div class="acts" style="margin-top:14px"><button class="btn ${walkin?"ok":"pri"}" type="submit">${walkin?"✓ Register & Process Unscheduled Visitor":"Register visitor"}</button></div>
+  <p class="small">${walkin?"Unscheduled visitors confirmed by host are admitted to Gate 1 (tag allocated) and proceed to Station 2 Documentation. If host has not yet confirmed, they enter Pending Approvals until phone clearance is logged.":"Every registered visitor starts as <b>Pending approval</b> until approved by an approver, after which they appear as <b>Approved · expected</b> at the gate. No ID scans are stored."}</p></form>`;
 }
 V.register=()=>head("Register visitors","Register one visitor, send a guest a link to fill in their own details, or upload a list.")+inviteView()+
   `<div class="panel"><h2>Single visitor</h2>${regForm(false)}</div>
@@ -3208,6 +3319,54 @@ function wire(){
     render();
   };
 
+  const btnClearTags = $("#btn_clear_tags");
+  if(btnClearTags) btnClearTags.onclick = () => {
+    const inUse = new Set(visitors.filter(x => (x.tag || x.assignedTag) && ["arrived","tagged","in"].includes(x.status)).map(x => x.tag || x.assignedTag));
+    if(confirm("Remove all unissued physical tags from Gate 1 tray? (Tags currently with visitors inside the compound will not be affected).")){
+      gateTagStock = gateTagStock.filter(t => inUse.has(t));
+      saveGateTagStock(gateTagStock);
+      toast("Gate 1 tray cleared of unissued tags.");
+      render();
+    }
+  };
+
+  document.querySelectorAll("[data-remove-tag]").forEach(btn => {
+    btn.onclick = () => {
+      const tag = btn.dataset.removeTag;
+      if(!tag) return;
+      if(confirm(`Remove tag ${tag} from the Gate 1 available tray? (Use this if the physical tag is damaged or missing).`)){
+        gateTagStock = gateTagStock.filter(t => t !== tag);
+        saveGateTagStock(gateTagStock);
+        toast(`Tag ${tag} removed from tray inventory.`);
+        render();
+      }
+    };
+  });
+
+  const qExitIn = $("#quick_exit_input");
+  const doQuickExit = () => {
+    const raw = (qExitIn?.value || "").trim().toUpperCase();
+    if(!raw) return toast("Scan or type a tag number (e.g. V-024) or visitor name to check out.");
+    let tag = raw;
+    if(/^\d+$/.test(raw)) tag = "V-" + raw.padStart(3, "0");
+    else if(/^V\d+$/i.test(raw)) tag = "V-" + raw.slice(1).padStart(3, "0");
+    else if(/^C\d+$/i.test(raw)) tag = "C-" + raw.slice(1).padStart(3, "0");
+
+    const target = visitors.find(v => ["in","tagged","arrived"].includes(v.status) && (
+      (v.tag && v.tag.toUpperCase() === tag) ||
+      (v.assignedTag && v.assignedTag.toUpperCase() === tag) ||
+      (v.name && v.name.toUpperCase().includes(raw)) ||
+      (v.ref && v.ref.toUpperCase() === raw)
+    ));
+    if(!target) return toast(`No visitor currently on premises found matching "${raw}".`);
+    doAct("checkout", target);
+  };
+  if(qExitIn){
+    qExitIn.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); doQuickExit(); } };
+  }
+  const btnQuickExit = $("#btn_quick_exit");
+  if(btnQuickExit) btnQuickExit.onclick = doQuickExit;
+
   const f=$("#reg"); if(f) f.onsubmit=e=>{e.preventDefault();register()};
   const c=$("#csv"); if(c){ c.onchange=bulk; renderBulk(); }
   const ce=$("#clearEx"); if(ce) ce.onclick=clearExamples;
@@ -3422,14 +3581,57 @@ async function register(){
   const when=g("r_when")?new Date(g("r_when")).getTime():defaultWorkTime();
   if(!inWorkHours(when)) return toast("Expected arrival cannot be outside working hours (08:00 to 17:00).");
   const ref=newRef();
+  const isWalkin = Boolean($("#r_phone_cleared"));
   const phoneCleared=$("#r_phone_cleared")&&$("#r_phone_cleared").checked, isVip=type==="vip";
+  const hostNote = $("#r_host_note") ? $("#r_host_note").value.trim() : "";
   const st=phoneCleared?(isVip?"in":"arrived"):"pending";
   const assignedTag=phoneCleared&&!isVip?nextAvailableTag(type):null;
-  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),backupHost:$("#r_backup")?g("r_backup"):"",agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),room:g("r_room"),vehicle:$("#r_vehicle")?g("r_vehicle").toUpperCase():"",purpose:g("r_purpose"),...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),restricted,escort,requestedBy:op(),requestedByUid:myUid(),status:st,arrivedAt:phoneCleared?now():null,inAt:phoneCleared&&isVip?now():null,vipReceived:phoneCleared&&isVip?true:false,assignedTag,decidedBy:phoneCleared?`${op()} (Host phone clearance)`:"",decidedByUid:phoneCleared?myUid():"",decidedAt:phoneCleared?now():0,verbalApproval:phoneCleared,verbalApprovalNote:phoneCleared?"Host confirmed via phone / intercom at gate":"",hostNotified:phoneCleared?now():null,log:[]};
+  const v={
+    id:ref,
+    ref,
+    name:g("r_name"),
+    org:g("r_org")||(isWalkin?"Walk-in":""),
+    phone:g("r_phone"),
+    visitorEmail:g("r_vemail").toLowerCase(),
+    type,
+    unscheduled:isWalkin,
+    category:isWalkin?"unscheduled":"scheduled",
+    host:g("r_host"),
+    hostEmail:g("r_hostEmail").toLowerCase(),
+    backupHost:$("#r_backup")?g("r_backup"):"",
+    agency:g("r_agency"),
+    building:g("r_building"),
+    expected:when,
+    group:g("r_group"),
+    room:g("r_room"),
+    vehicle:$("#r_vehicle")?g("r_vehicle").toUpperCase():"",
+    purpose:g("r_purpose"),
+    ...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),
+    restricted,
+    escort,
+    requestedBy:op(),
+    requestedByUid:myUid(),
+    status:st,
+    arrivedAt:phoneCleared?now():null,
+    inAt:phoneCleared&&isVip?now():null,
+    vipReceived:phoneCleared&&isVip?true:false,
+    assignedTag,
+    hostConfirmed:phoneCleared,
+    hostConfirmedAt:phoneCleared?now():null,
+    hostConfirmedBy:phoneCleared?op():null,
+    hostConfirmedNote:hostNote||(phoneCleared?"Host confirmed via phone / intercom at gate":""),
+    decidedBy:phoneCleared?`${op()} (Host phone clearance)`:"",
+    decidedByUid:phoneCleared?myUid():"",
+    decidedAt:phoneCleared?now():0,
+    verbalApproval:phoneCleared,
+    verbalApprovalNote:hostNote||(phoneCleared?"Host confirmed via phone / intercom at gate":""),
+    hostNotified:phoneCleared?now():null,
+    log:[]
+  };
   if(type==="contractor"){const f0=day0(when),toStr=g("r_to");v.accessFrom=f0;v.accessTo=toStr?new Date(toStr+"T23:59:59.999").getTime():f0+864e5-1}
-  await act(v,phoneCleared?`Registered & admitted with verbal phone clearance from host ${v.host}${assignedTag?`; assigned tag ${assignedTag}`:""}`:"Registered; sent for approval");
+  await act(v,phoneCleared?`Registered & admitted with verbal phone clearance from host ${v.host}${assignedTag?`; assigned tag ${assignedTag}`:""}`:(isWalkin ? "Unscheduled visitor registered at Gate 1; sent for host phone clearance" : "Registered; sent for approval"));
   $("#reg")?.reset();
-  toast(phoneCleared?(isVip?`✨ ${v.name} (VIP) registered and auto checked in!`:`📞 ${v.name} admitted. Assigned Tag: ${assignedTag}. Send to Station 2.`):`${v.name} registered as ${ref}. Sent for approval.`);
+  toast(phoneCleared?(isVip?`✨ ${v.name} (VIP) confirmed with host & auto checked in!`:`📞 Host confirmed! ${v.name} admitted. Assigned Tag: ${assignedTag}. Send to Station 2.`):(isWalkin ? `⚠️ Unscheduled visitor ${v.name} registered. Host confirmation required before approval.` : `${v.name} registered as ${ref}. Sent for approval.`));
 }
 /* ---------- bulk upload: CSV, typed PDF, scanned PDF or photo → review → register ---------- */
 let bulkRows=[], bulkFile="", bulkGroup="";
@@ -3683,6 +3885,40 @@ function doAct(a,v){
     return;
   }
   if(a==="approve"){
+    if(v.unscheduled && !v.hostConfirmed && !v.verbalApproval){
+      const ext = getHostExt(v.host, v.agency);
+      return modal(`<h2>⚠️ Unscheduled Visitor · Host Confirmation Required</h2>
+        <p class="small"><b>${esc(v.name)}</b> (${esc(v.org||"Walk-in")}) is classified as an <b>Unscheduled Visitor</b>. Under UN House Security Protocol, Gate 1 must call host <b>${esc(v.host)}</b> to confirm acceptance before approving compound entry.</p>
+        <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin:10px 0">
+          <div style="font-size:13px;font-weight:600;color:#1e40af">📞 Host Desk Phone Directory:</div>
+          <div style="font-size:15px;color:#1d4ed8;margin-top:2px">
+            <b>${esc(v.host)}</b> (${esc(v.agency)}) &mdash; <b>Extension: ${esc(ext)}</b>
+          </div>
+          <div class="small" style="color:#2563eb;margin-top:4px">Call extension ${esc(ext)} now to verify host availability and agreement to receive this visitor.</div>
+        </div>
+        <div class="f"><label for="m_confby">Officer logging confirmation</label><input id="m_confby" value="${esc(op())}"></div>
+        <div class="f"><label for="m_confnote">Confirmation notes</label><input id="m_confnote" placeholder="e.g. Spoke with ${esc(v.host)} on Ext. ${esc(ext)} - confirmed available"></div>`,
+        ()=>{
+          const by = $("#m_confby").value.trim() || op();
+          const note = $("#m_confnote").value.trim() || `Host confirmed on Ext. ${ext}`;
+          const tag=(v.type!=="vip"&&!v.assignedTag)?nextAvailableTag(v.type):(v.assignedTag||null);
+          return act(v, `Host phone confirmation recorded (${note}); approved at Gate 1${tag?`; assigned tag ${tag}`:""}`, {
+            status: "approved",
+            hostConfirmed: true,
+            hostConfirmedAt: now(),
+            hostConfirmedBy: by,
+            hostConfirmedExt: ext,
+            hostConfirmedNote: note,
+            verbalApproval: true,
+            assignedTag: tag,
+            decidedBy: by,
+            decidedByUid: myUid(),
+            decidedAt: now(),
+            rejectReason: ""
+          }).then(()=>toast(`📞 Host confirmed! ${v.name} approved at Gate 1.${tag?` Assigned Tag: ${tag}.`:""}`));
+        }
+      );
+    }
     const tag=(v.type!=="vip"&&!v.assignedTag)?nextAvailableTag(v.type):(v.assignedTag||null);
     return act(v,`Approved at Gate 1${tag?`; assigned tag ${tag}`:""}`,{
       status:"approved",
