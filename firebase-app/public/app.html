@@ -356,7 +356,7 @@ main{gap:20px}
   <div class="f" style="gap:2px"><label for="operator">Operator</label>
     <select id="operator">
       <option>Security Officer A. Bello</option><option>Receptionist N. Okafor</option>
-      <option>Supervisor F. Adeyemi</option><option>House Manager</option>
+      <option>Supervisor F. Adeyemi</option><option>Administrator</option>
     </select></div>
   </div>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
@@ -394,19 +394,19 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
+const ROLES={admin:"Administrator",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
   admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
   approver:["dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
-  gate:["dashboard","gate","assets","register","deliveries","evac","history"],
+  gate:["dashboard","gate","approvals","assets","register","deliveries","evac","history"],
   docs:["dashboard","tagging","assets","evac","history"],
   reception:["dashboard","reception","assets","register","deliveries","kiosk","evac","history"],
   vip:["dashboard","vip","evac","history"],
   host:["myguests","assets","register","history"]
 };
 const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver","gate","reception"],phoneadmit:["gate","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
-  checkout:["reception","vip","gate","admin"],extendstay:["reception","approver","gate","vip","host","admin"],approve:["approver","admin"],reject:["approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
+  checkout:["reception","vip","gate","admin"],extendstay:["reception","approver","gate","vip","host","admin"],approve:["gate","approver","admin"],reject:["gate","approver","admin"],gateapprove:["gate","approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
 const myRole=()=>fb?(me?.role||"pending"):"admin";
 const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole());
 const canView=v=>(ROLE_VIEWS[myRole()]||[]).includes(v);
@@ -534,8 +534,8 @@ function connectFirebase(){
     $("#who").hidden=false;
     $("#who").innerHTML=`<span>${esc(me.name)} · ${esc(ROLES[me.role]||me.role)}</span><button class="btn" id="signOut" style="background:#ffffff1a;color:#fff;border-color:#ffffff40">Sign out</button>`;
     $("#signOut").onclick=()=>firebase.auth().signOut();
-    if(me.active===false) return showGate("Your account has been deactivated.","Ask the House Manager if you need access again.");
-    if(me.role==="pending") return showGate("Your account is waiting for a role.","The House Manager will assign your station or role. This page updates as soon as they do.",true);
+    if(me.active===false) return showGate("Your account has been deactivated.","Ask an Administrator if you need access again.");
+    if(me.role==="pending") return showGate("Your account is waiting for a role.","An Administrator will assign your station or role. This page updates as soon as they do.",true);
     startData(); watchConnection();
   });
 }
@@ -660,7 +660,7 @@ function showPasswordLogin(mode="in"){
   $("#nav").innerHTML="";
   $("#main").innerHTML=`<div class="panel" style="max-width:420px;width:100%;margin:20px auto">
     <h1>${mode==="up"?"Create a staff account":"Staff sign-in"}</h1>
-    <p class="sub">${mode==="up"?"After you create an account, the House Manager assigns your role before you can see visitor records.":"Sign in with your staff account to open your station."}</p>
+    <p class="sub">${mode==="up"?"After you create an account, an Administrator assigns your role before you can see visitor records.":"Sign in with your staff account to open your station."}</p>
     <form id="login" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
       ${mode==="up"?`<div class="f"><label for="l_name">Full name</label><input id="l_name" required autocomplete="name"></div>`:""}
       <div class="f"><label for="l_email">Email</label><input id="l_email" type="email" required autocomplete="username"></div>
@@ -685,11 +685,18 @@ function authMsg(e){return ({"auth/invalid-credential":"Email or password is wro
 const staffView=()=>{
   const list=[...staffList].sort((a,b)=>(a.role==="pending"?0:1)-(b.role==="pending"?0:1)||String(a.name).localeCompare(b.name));
   const pend=list.filter(s=>s.role==="pending").length;
-  return head("Staff and roles","Staff create their own account from the sign-in page. Assign each person a role here. Roles are enforced by the database, not just hidden in the page.")+
+  const adminCount=list.filter(s=>s.role==="admin"&&s.active!==false).length;
+  return head("Staff and roles","Staff create their own account from the sign-in page. Assign each person a role here. Up to 3 Administrators are permitted. Roles are enforced by the database, not just hidden in the page.")+
+  `<div class="note" style="margin-bottom:12px;background:var(--surface2);border-color:var(--line)">
+    <b>Administrator Quota:</b> Maximum of <b>3 Administrators</b> permitted under UN House security governance. Currently assigned: <b>${adminCount} / 3</b>.
+  </div>`+
   (pend?`<div class="banner">${pend} new account${pend>1?"s are":" is"} waiting for a role.</div>`:"")+
   `<div class="panel"><div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>${list.map(s=>{const self=s.uid===me.uid;return `<tr>
     <td><b>${esc(s.name)}</b>${self?' <span class="small">(you)</span>':""}</td><td class="small">${esc(s.email)}</td>
-    <td><select data-role="${esc(s.uid)}" ${self?"disabled":""} aria-label="Role for ${esc(s.name)}">${Object.entries(ROLES).map(([k,l])=>`<option value="${k}" ${s.role===k?"selected":""}>${l}</option>`).join("")}</select></td>
+    <td><select data-role="${esc(s.uid)}" ${self?"disabled":""} aria-label="Role for ${esc(s.name)}">${Object.entries(ROLES).map(([k,l])=>{
+      const disAdmin = k==="admin" && s.role!=="admin" && adminCount>=3;
+      return `<option value="${k}" ${s.role===k?"selected":""} ${disAdmin?"disabled":""}>${l}${disAdmin?" (Max 3 reached)":""}</option>`;
+    }).join("")}</select></td>
     <td>${s.active===false?'<span class="pill p-rejected">Deactivated</span>':s.role==="pending"?'<span class="pill p-pending">Awaiting role</span>':'<span class="pill p-in">Active</span>'}</td>
     <td>${self?"":`<button class="btn ${s.active===false?"":"bad"}" data-toggle="${esc(s.uid)}">${s.active===false?"Reactivate":"Deactivate"}</button>`}</td></tr>`}).join("")}</tbody></table></div></div>
   <div class="panel"><h2>Optional features</h2><p class="small">These send visitor details to Google's Gemini AI service. Keep them off until UN data protection approves that service.</p>
@@ -701,9 +708,17 @@ const staffView=()=>{
     ${features.updatedAt?`<span class="small">Last changed ${fmtD(features.updatedAt)}</span>`:""}
    </div></div>
   <div class="note">Public visitor rules page: <a href="?rules" target="_blank" rel="noopener">${esc(location.origin+location.pathname)}?rules</a>. Put it on a sign at the gate or in emails.</div>
-  <div class="note">Role permissions: Gate officers admit approved visitors. Documentation officers issue tags. Receptionists check visitors in and out. VIP gate officers handle VIPs only. Staff hosts see and register only their own guests. Approvers decide approvals (never their own requests) and manage contractors. Administrators do everything and manage staff.</div>`;
+  <div class="note">Role permissions: Gate officers approve incoming requests, verify credentials, admit visitors, and register walk-ins. Documentation officers issue tags. Receptionists check visitors in and out. VIP gate officers handle VIPs only. Staff hosts see and register only their own guests. Approvers decide approvals and manage contractors. Administrators do everything and manage staff (maximum of 3 administrators).</div>`;
 };
 async function setStaff(uid,patch){
+  if(patch.role==="admin"){
+    const activeAdmins=staffList.filter(s=>s.role==="admin" && s.uid!==uid && s.active!==false).length;
+    if(activeAdmins>=3){
+      toast("Maximum of 3 administrators allowed by UN House policy.");
+      render();
+      return;
+    }
+  }
   try{await db.collection("staff").doc(uid).update(patch);toast("Staff record updated.")}catch(e){toast(e.code==="permission-denied"?"Only an administrator can change roles.":"Could not update: "+e.message)}
 }
 
@@ -721,6 +736,12 @@ const overstay=v=>v.status==="in"&&v.inAt&&now()>stayLimit(v);
 const contractorExpired=v=>v.type==="contractor"&&v.accessTo&&now()>v.accessTo&&!["out","rejected","suspended"].includes(v.status);
 const contractorExpiring=v=>v.type==="contractor"&&v.accessTo&&!contractorExpired(v)&&v.accessTo-now()<2*864e5&&v.status!=="suspended";
 const late=v=>v.status==="approved"&&v.expected&&now()-v.expected>45*60e3&&isToday(v.expected);
+function nextAvailableTag(type="visitor"){
+  const pre=type==="contractor"?"C":type==="vip"?"P":"V";
+  const used=new Set(visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag));
+  let i=1; while(used.has(pre+"-"+String(i).padStart(3,"0"))) i++;
+  return pre+"-"+String(i).padStart(3,"0");
+}
 // Alerts: lvl "act" = needs action now, "soon" = coming up, "info" = for awareness. Sorted in that order.
 function alerts(){
   const a=[], since=t=>dur(now()-t);
@@ -2019,12 +2040,16 @@ V.dashboard=()=>{
 V.gate=()=>{
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
   const list=filterQ(visitors.filter(v=>["approved","pending","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
-  return head("Gate reception","Station 1. Confirm the visitor is approved, verify them, and admit. VIP guests automatically check in upon arrival with diplomatic courtesies without queuing. Walk-ins can be registered here.")+
+  return head("Gate reception","Station 1. Gate reception approves visitor requests, auto-assigns available tag numbers upon admission, and registers walk-ins. VIP guests auto check-in directly.")+
   `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>{
     if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
     if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Verify & admit","pri");
-    if(v.status==="pending") return `<div style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="small" style="color:var(--warn);font-weight:600">Awaiting approval</span>${canAct("phoneadmit")?B(v.id,"phoneadmit","📞 Host Phone Confirmed","ok"):""}</div>`;
+    if(v.status==="pending"){
+      if(v.type==="vip") return B(v.id,"vipadmit","Approve & VIP Check-in","ok")+B(v.id,"reject","Reject","bad");
+      return B(v.id,"gateapprove","Approve & Admit","ok")+B(v.id,"approve","Approve request","pri")+B(v.id,"reject","Reject","bad");
+    }
     if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
+    if(v.status==="arrived"&&v.type!=="vip") return `<div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"><b class="mono" style="font-size:13px;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(v.assignedTag||"Tag assigned")}</b><span class="small">Sent to Station 2</span></div>`;
     return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
   },"No expected visitors match.")}</div></div>
   <div class="panel"><h2>Walk-in visitor</h2>${regForm(true)}</div>`;
@@ -2032,8 +2057,15 @@ V.gate=()=>{
 V.tagging=()=>{
   const list=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
   const out=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
-  return head("Documentation & visitor tags","Station 2. Record the identity document, assign a tag, and print the badge details.")+
-  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>B(v.id,"tag","Document & tag","pri"),"No visitors are waiting for documentation.")}</div></div>
+  return head("Documentation & visitor tags","Station 2. Gate 1 automatically assigns the available tag number. Documentation officers verify Government agency ID or photo ID, exchange the physical tag, and complete documentation.")+
+  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>{
+    const tag = v.assignedTag || v.tag || nextAvailableTag(v.type);
+    return `<div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--muted)">Pre-assigned by Gate 1:</span>
+      <b class="mono" style="font-size:15px;color:#0369a1;background:#e0f2fe;padding:3px 9px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(tag)}</b>
+      ${B(v.id,"tag",`Exchange ID for Tag ${esc(tag)}`,"pri")}
+    </div>`;
+  },"No visitors are waiting for documentation.")}</div></div>
   ${tagSheetPanel()}
   <div class="panel"><h2>Tags in circulation <span class="cnt">${out.length}</span></h2>${out.length?`<div class="tw"><table><thead><tr><th>Tag</th><th>Holder</th><th>Issued</th><th>Status</th></tr></thead><tbody>${out.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="mono">${fmtT(v.taggedAt||v.arrivedAt)}</td><td>${pill(v)} <button class="btn" data-print="${esc(v.id)}">Print badge</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags are returned.</div>`}</div>`;
 };
@@ -2856,11 +2888,12 @@ async function register(){
   const ref=newRef();
   const phoneCleared=$("#r_phone_cleared")&&$("#r_phone_cleared").checked, isVip=type==="vip";
   const st=phoneCleared?(isVip?"in":"arrived"):"pending";
-  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),backupHost:$("#r_backup")?g("r_backup"):"",agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),room:g("r_room"),vehicle:$("#r_vehicle")?g("r_vehicle").toUpperCase():"",purpose:g("r_purpose"),...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),restricted,escort,requestedBy:op(),requestedByUid:myUid(),status:st,arrivedAt:phoneCleared?now():null,inAt:phoneCleared&&isVip?now():null,vipReceived:phoneCleared&&isVip?true:false,decidedBy:phoneCleared?`${op()} (Host phone clearance)`:"",decidedByUid:phoneCleared?myUid():"",decidedAt:phoneCleared?now():0,verbalApproval:phoneCleared,verbalApprovalNote:phoneCleared?"Host confirmed via phone / intercom at gate":"",hostNotified:phoneCleared?now():null,log:[]};
+  const assignedTag=phoneCleared&&!isVip?nextAvailableTag(type):null;
+  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),backupHost:$("#r_backup")?g("r_backup"):"",agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),room:g("r_room"),vehicle:$("#r_vehicle")?g("r_vehicle").toUpperCase():"",purpose:g("r_purpose"),...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),restricted,escort,requestedBy:op(),requestedByUid:myUid(),status:st,arrivedAt:phoneCleared?now():null,inAt:phoneCleared&&isVip?now():null,vipReceived:phoneCleared&&isVip?true:false,assignedTag,decidedBy:phoneCleared?`${op()} (Host phone clearance)`:"",decidedByUid:phoneCleared?myUid():"",decidedAt:phoneCleared?now():0,verbalApproval:phoneCleared,verbalApprovalNote:phoneCleared?"Host confirmed via phone / intercom at gate":"",hostNotified:phoneCleared?now():null,log:[]};
   if(type==="contractor"){const f0=day0(when),toStr=g("r_to");v.accessFrom=f0;v.accessTo=toStr?new Date(toStr+"T23:59:59.999").getTime():f0+864e5-1}
-  await act(v,phoneCleared?`Registered & admitted with verbal phone clearance from host ${v.host}`:"Registered; sent for approval");
+  await act(v,phoneCleared?`Registered & admitted with verbal phone clearance from host ${v.host}${assignedTag?`; assigned tag ${assignedTag}`:""}`:"Registered; sent for approval");
   $("#reg")?.reset();
-  toast(phoneCleared?(isVip?`✨ ${v.name} (VIP) registered and auto checked in!`:`📞 ${v.name} admitted with host phone clearance. Send to documentation.`):`${v.name} registered as ${ref}. Sent for approval.`);
+  toast(phoneCleared?(isVip?`✨ ${v.name} (VIP) registered and auto checked in!`:`📞 ${v.name} admitted. Assigned Tag: ${assignedTag}. Send to Station 2.`):`${v.name} registered as ${ref}. Sent for approval.`);
 }
 /* ---------- bulk upload: CSV, typed PDF, scanned PDF or photo → review → register ---------- */
 let bulkRows=[], bulkFile="", bulkGroup="";
@@ -3021,7 +3054,34 @@ function doAct(a,v){
     if(v.type==="vip"){
       return act(v,"VIP Auto Check-in · Diplomatic courtesies applied",{status:"in",arrivedAt:t,inAt:t,vipReceived:true,hostNotified:opNow(v,2)}).then(()=>toast(`✨ ${v.name} (VIP) Auto Checked In! Host ${v.host} notified.`));
     }
-    return act(v,"Verified at gate",{status:"arrived",arrivedAt:t}).then(()=>toast(`${v.name} admitted. Send to documentation.`));
+    const tag=nextAvailableTag(v.type);
+    return act(v,`Verified at Gate 1; auto-assigned tag ${tag}`,{status:"arrived",arrivedAt:t,assignedTag:tag}).then(()=>toast(`✅ ${v.name} admitted. Assigned Tag: ${tag}. Send to Station 2.`));
+  }
+  if(a==="gateapprove"){
+    if(ownRequest(v)) return toast("You cannot decide on your own request.");
+    const t=opNow(v,3);
+    if(v.type==="vip"){
+      return act(v,"Approved & VIP Auto Checked In at Gate Reception",{
+        status:"in",
+        arrivedAt:t,
+        inAt:t,
+        vipReceived:true,
+        decidedBy:op(),
+        decidedByUid:myUid(),
+        decidedAt:now(),
+        hostNotified:opNow(v,2)
+      }).then(()=>toast(`✨ ${v.name} (VIP) approved & auto checked in! Host ${v.host} notified.`));
+    }
+    const tag=nextAvailableTag(v.type);
+    return act(v,`Approved & admitted at Gate 1; auto-assigned tag ${tag}`,{
+      status:"arrived",
+      arrivedAt:t,
+      assignedTag:tag,
+      decidedBy:op(),
+      decidedByUid:myUid(),
+      decidedAt:now(),
+      hostNotified:opNow(v,2)
+    }).then(()=>toast(`✅ ${v.name} approved & admitted at Gate 1. Assigned Tag: ${tag}. Send to Station 2.`));
   }
   if(a==="vipadmit"){
     const t=opNow(v,2);
@@ -3088,19 +3148,39 @@ function doAct(a,v){
       ()=>{const r=$("#m_rej").value.trim(); if(!r){$("#m_err").textContent="Enter a short reason so the host knows what to fix.";return false}
         act(v,`Rejected: ${r}`,{status:"rejected",rejectReason:r,decidedBy:op(),decidedByUid:myUid(),decidedAt:now()}).then(()=>toast(`${v.name} rejected.`))}); }
   if(a==="tag"){
-    const used=new Set(visitors.filter(x=>x.tag&&["tagged","in"].includes(x.status)).map(x=>x.tag));
-    const pre=v.type==="contractor"?"C":v.type==="vip"?"P":"V"; let i=1; while(used.has(pre+"-"+String(i).padStart(3,"0"))) i++;
-    modal(`<h2>Document & tag ${esc(v.name)}</h2>
-      <div class="f"><label for="m_id">ID document checked</label><select id="m_id"><option>National ID (NIN)</option><option>International passport</option><option>Driver's licence</option><option>Staff / agency ID</option><option>Other</option></select></div>
-      <div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_print" style="width:auto" ${passFor(v)?"":"checked"}><label for="m_print">Print a paper badge${passFor(v)?" (visitor has a digital pass)":""}</label></div>
-      ${v.agreedAt?`<div class="small" style="color:var(--ok)">✓ <a href="?rules" target="_blank" rel="noopener">Visitor rules</a> accepted ${fmtD(v.agreedAt)}</div>`:`<div class="f" style="flex-direction:row;gap:8px;align-items:center"><input type="checkbox" id="m_agree" style="width:auto"><label for="m_agree">Visitor has read and accepted the <a href="?rules" target="_blank" rel="noopener">visitor rules and privacy notice</a></label></div>`}
+    const assigned = v.assignedTag || v.tag || nextAvailableTag(v.type);
+    const used = new Set(visitors.filter(x=>x.id!==v.id && x.tag && ["tagged","in"].includes(x.status)).map(x=>x.tag));
+    modal(`<h2>Documentation Desk · Exchange ID for Tag ${esc(assigned)}</h2>
+      <div class="note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e40af;margin:6px 0 12px;padding:12px 14px">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Pre-assigned by Gate 1</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+          <span style="font-size:24px;font-weight:800;font-family:var(--mono);color:#0284c7">🏷️ ${esc(assigned)}</span>
+          <span style="font-size:13px;line-height:1.4">Pick physical lanyard badge <b class="mono" style="color:#0369a1">${esc(assigned)}</b> from your tray/rack and exchange it for <b>${esc(v.name)}</b>'s ID.</span>
+        </div>
+      </div>
+      <div class="f"><label for="m_id">Government / Photo ID document presented *</label><select id="m_id"><option>Government agency ID</option><option>National ID (NIN)</option><option>International passport</option><option>Driver's licence</option><option>Diplomatic ID</option><option>Staff / agency ID</option><option>Other valid photo ID</option></select></div>
+      <div class="f"><label for="m_tag">Physical tag number to exchange &amp; issue</label><input id="m_tag" value="${esc(assigned)}" class="mono" style="font-weight:700;font-size:15px"></div>
+      <div class="f" style="flex-direction:row;gap:8px;align-items:center;background:#f0fdf4;border:1px solid #bbf7d0;padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:auto"><label for="m_exchange_done" style="margin:0;font-weight:600;color:#166534">Exchange their ID with available tag <span class="mono">${esc(assigned)}</span> and documentation is completed</label></div>
       <div class="f"><label for="m_items">Items brought in (one per line, e.g. "Laptop, Dell, serial 5CD12")</label><textarea id="m_items" style="min-height:56px"></textarea></div>
-      <div class="f"><label for="m_tag">Tag number</label><input id="m_tag" value="${pre}-${String(i).padStart(3,"0")}"></div>
-      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · ${fmtD(now())}</div></div>`,
-      ()=>{const tag=$("#m_tag").value.trim(), printIt=$("#m_print").checked, t=opNow(v,4); if(!tag) return false; if(used.has(tag)){toast(`Tag ${tag} is already issued.`);return false}
-        act(v,`Documented (${$("#m_id").value}); tag ${tag} issued`,{status:"tagged",tag,idType:$("#m_id").value,taggedAt:t,
-          ...($("#m_agree")&&$("#m_agree").checked?{agreedAt:t,agreement:AGREEMENT.version}:{}),
-          ...($("#m_items").value.trim()?{items:$("#m_items").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,20).map(d=>({d,out:false}))}:{})}).then(()=>{toast(`Tag ${tag} issued to ${v.name}.`);if(printIt)printBadge({...v,tag,taggedAt:t})})});
+      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono">${esc(assigned)}</b></div></div>`,
+      ()=>{
+        const tag=$("#m_tag").value.trim(), t=opNow(v,4);
+        if(!tag) return false;
+        if(used.has(tag)){toast(`Tag ${tag} is already in circulation.`);return false}
+        act(v,`ID verified (${$("#m_id").value}); exchanged ID with available tag ${tag}; documentation completed`,{
+          status:"tagged",
+          tag,
+          assignedTag:tag,
+          idType:$("#m_id").value,
+          taggedAt:t,
+          documentationCompleted:true,
+          ...($("#m_items").value.trim()?{items:$("#m_items").value.split("\n").map(x=>x.trim()).filter(Boolean).slice(0,20).map(d=>({d,out:false}))}:{})
+        }).then(()=>{
+          toast(`🏷️ ID exchanged with available tag ${tag}. Documentation completed for ${v.name}. Proceed to Station 3.`);
+        });
+      }
+    );
+    const okBtn=$("#mOk"); if(okBtn) okBtn.textContent=`Exchange ID with Tag ${assigned} & Complete Documentation`;
     return;
   }
   if(a==="checkout"){
