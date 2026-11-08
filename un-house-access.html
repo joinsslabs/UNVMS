@@ -384,12 +384,12 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","events","parking","assets","dob","sweep","exec","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","events","parking","assets","dob","sweep","exec","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
-  gate:["dashboard","gate","parking","assets","dob","sweep","register","deliveries","evac","history"],
+  admin:["settings","dashboard","gate","tagging","reception","vip","events","parking","assets","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","events","parking","assets","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
+  gate:["dashboard","gate","parking","assets","register","deliveries","evac","history"],
   docs:["dashboard","tagging","assets","evac","history"],
-  reception:["dashboard","reception","events","parking","assets","dob","sweep","register","deliveries","kiosk","evac","history"],
-  vip:["dashboard","vip","parking","dob","evac","history"],
+  reception:["dashboard","reception","events","parking","assets","register","deliveries","kiosk","evac","history"],
+  vip:["dashboard","vip","parking","evac","history"],
   host:["myguests","events","assets","register","history"]
 };
 const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
@@ -745,9 +745,6 @@ const VIEWS=[
   ["events","Conferences & Events","Stations",'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>'],
   ["parking","Vehicles & Parking","Stations",'<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 6l2-3h10l2 3M9 11h6"/>'],
   ["assets","Material Gate Pass","Stations",'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'],
-  ["dob","Security Occurrence (DOB)","Safety & Analytics",'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="13" y2="11"/>'],
-  ["sweep","End-of-day Sweep","Safety & Analytics",'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>'],
-  ["exec","Executive Brief","Safety & Analytics",'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>'],
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
   ["register","Register visitors","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
   ["myguests","My guests","Access & Guests",'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'],
@@ -770,7 +767,6 @@ function renderNav(){
   c.events=events.filter(e=>e.status!=="ended").length;
   c.parking=visitors.filter(v=>v.vehicle&&v.status==="in").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
-  c.dob=dobs.filter(d=>isToday(d.at)).length;
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
     const hdr=sec!==lastSec?(lastSec=sec,`<div class="nav-sec">${esc(sec)}</div>`):"";
@@ -1356,7 +1352,7 @@ const VW_reports=()=>{
   <div class="panel"><h2>Busiest hours</h2>${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}<p class="small">Arrivals by hour of day, 06:00 to 20:00.</p></div></div>
   <div class="grid2"><div class="panel"><h2>By agency</h2><div class="tw"><table><tbody>${Object.entries(byAgency).sort((a,b)=>b[1]-a[1]).map(([a,n])=>`<tr><td>${esc(a)}</td><td class="mono" style="text-align:right">${n}</td></tr>`).join("")||`<tr><td class="small">No arrivals yet.</td></tr>`}</tbody></table></div></div>
   <div class="panel"><h2>Tags not returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags returned.</div>`}</div></div>
-  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn pri" id="rp_ho">Shift handover summary</button></div></div>`;
+  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">Shift handover summary</button></div></div>`;
 };
 function printHandoverSheet(h){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
@@ -1525,7 +1521,37 @@ function openHandover(){
 function wireReports(){const c=$("#rp_csv"); if(c) c.onclick=()=>{const days=30,start=today0()-(days-1)*864e5;
   const rows=[...Array(days)].map((_,i)=>{const d0=start+i*864e5;return new Date(d0).toISOString().slice(0,10)+","+visitors.filter(v=>v.arrivedAt>=d0&&v.arrivedAt<d0+864e5).length});
   copyText("date,arrivals\n"+rows.join("\n"))};
-  const h=$("#rp_ho"); if(h) h.onclick=openHandover;}
+  const h=$("#rp_ho"); if(h) h.onclick=openHandover;
+  const ex=$("#rp_exec"); if(ex) ex.onclick=printExecutiveBrief;}
+function printExecutiveBrief(){
+  let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
+  const arrToday=visitors.filter(v=>isToday(v.arrivedAt||v.inAt||v.expected));
+  const vipCount=arrToday.filter(v=>v.type==="vip").length;
+  const conCount=arrToday.filter(v=>v.type==="contractor").length;
+  p.innerHTML=`<div style="padding:14mm;font-family:'IBM Plex Sans',Arial,sans-serif;color:#111">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172542;padding-bottom:10px;margin-bottom:14px">
+      <div><h2 style="margin:0;color:#172542">UNITED NATIONS SYSTEM IN NIGERIA</h2><div style="font-size:10pt;color:#555">UN House Abuja · Daily Access &amp; Operations Executive Brief</div></div>
+      <div style="text-align:right;font-size:9pt"><b>Date:</b> ${new Date().toLocaleDateString()}<br><b>Time:</b> ${fmtT(now())}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;font-size:10pt">
+      <div style="border:1px solid #ccc;padding:8px"><b>Total Visitors Processed:</b> ${arrToday.length}</div>
+      <div style="border:1px solid #ccc;padding:8px"><b>High-Level VIP Dignitaries:</b> ${vipCount}</div>
+      <div style="border:1px solid #ccc;padding:8px"><b>Contractors &amp; Maintenance:</b> ${conCount}</div>
+    </div>
+    <div style="font-weight:700;margin:8px 0 4px">Agency Visitor Traffic Today:</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9pt"><thead><tr style="background:#f1f5f9"><th style="border:1px solid #ccc;padding:4px;text-align:left">Agency</th><th style="border:1px solid #ccc;padding:4px;text-align:right">Visitors</th></tr></thead><tbody>
+      ${AGENCIES.map(a=>[a,visitors.filter(v=>v.agency===a&&isToday(v.expected||v.inAt)).length]).filter(x=>x[1]).map(([a,n])=>`<tr><td style="border:1px solid #ccc;padding:4px">${esc(a)}</td><td style="border:1px solid #ccc;padding:4px;text-align:right"><b>${n}</b></td></tr>`).join("")||`<tr><td colspan="2" style="border:1px solid #ccc;padding:4px">No visits recorded today</td></tr>`}
+    </tbody></table>
+    <div style="font-weight:700;margin:8px 0 4px">Security &amp; Facilities Compliance:</div>
+    <div style="border:1px solid #ccc;padding:8px;font-size:9pt;line-height:1.6">
+      • UNDSS Watchlist Screenings: 100% automated check on all registrations<br>
+      • Digital Photo Passes: Active live clocks with anti-screenshot security<br>
+      • Staff Escort Compliance: Escort handshakes enforced for restricted zones<br>
+      • Compound Security Status: Normal operations
+    </div>
+  </div>`;
+  document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},100);
+}
 
 /* ---------- 10. Visitor pages in English and French ---------- */
 const TX={en:{passFor:"Visitor",group:"Delegation",vip:"VIP guest",contractor:"Contractor",loading:"Opening your pass…",notFound:"Pass not found",notFoundSub:"Check you opened the whole link, or ask your host to send it again.",cantOpen:"This pass can't be opened",cantOpenSub:"Check your internet connection and reload the page.",
@@ -2081,110 +2107,6 @@ V.assets=()=>{
   </tbody></table></div></div>`;
 };
 
-/* 4. Daily Occurrence Book (DOB) */
-V.dob=()=>{
-  const list=dobs.slice().sort((a,b)=>b.at-a.at);
-  return head("Daily Occurrence Book (DOB)","Official UNDSS Security Station Logbook for operational events, facility alerts, and security incidents.")+
-  `<div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <h2>Station Occurrence Log (${list.length})</h2><button class="btn pri" id="dob_new_entry">+ Record New Occurrence</button>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
-      ${list.map(d=>`<div class="vcard" style="border-left:4px solid ${d.severity==="incident"?"var(--bad)":d.severity==="alert"?"var(--warn)":"var(--accent)"}">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-          <div>
-            <span class="pill ${d.severity==="incident"?"p-rejected":d.severity==="alert"?"p-pending":"p-in"}">${esc(d.severity.toUpperCase())}</span>
-            <span class="small" style="margin-left:6px;font-weight:600">${esc(d.category)}</span>
-            <h3 style="margin:4px 0">${esc(d.title)}</h3>
-          </div>
-          <span class="mono small">${fmtD(d.at)}</span>
-        </div>
-        <p style="margin:4px 0 6px;font-size:13.5px">${esc(d.detail)}</p>
-        <div class="small" style="color:var(--muted)">Logged at <b>${esc(d.station||"Station 1")}</b> by <b>${esc(d.officer)}</b></div>
-      </div>`).join("")||`<div class="empty">No occurrences recorded today. All stations quiet.</div>`}
-    </div>
-  </div>`;
-};
-
-/* 5. End-of-Day Security Sweep */
-V.sweep=()=>{
-  const onSite=visitors.filter(v=>v.status==="in"||v.status==="tagged"||(v.type==="vip"&&v.status==="arrived"));
-  const unreturnedTags=visitors.filter(v=>v.tagReturned===false&&isToday(v.outAt||0));
-  const waitingParcels=deliveries.filter(d=>d.status==="waiting");
-  return head("End-of-Day Compound Security Sweep","Daily 17:00 operational sweep: verify everyone remaining on premises, account for visitor tags, and clear pending items.")+
-  `<div class="kpis">
-    <div class="kpi ${onSite.length?"alert":"ok"}"><div class="n">${onSite.length}</div><div class="l">Visitors remaining on site</div></div>
-    <div class="kpi ${unreturnedTags.length?"alert":"ok"}"><div class="n">${unreturnedTags.length}</div><div class="l">Unreturned physical tags</div></div>
-    <div class="kpi"><div class="n">${waitingParcels.length}</div><div class="l">Parcels at reception</div></div>
-  </div>
-  <div class="panel">
-    <h2>1. Visitors &amp; Contractors Currently On Site (${onSite.length})</h2>
-    ${table(onSite, v=>`<div class="acts" style="flex-wrap:nowrap"><button class="btn bad" data-sweep-out="${esc(v.id)}">Sign out &amp; Clear</button>${B(v.id,"extendstay","Extend stay")}</div>`,"All visitors have departed compound.")}
-  </div>
-  <div class="panel">
-    <h2>2. Closing Security Sweep Sign-Off</h2>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;font-size:13px">
-      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_bld" checked style="width:auto"> All building wings &amp; conference rooms physically checked</label>
-      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_gates" checked style="width:auto"> Station 1 &amp; Station 4 vehicular gates secured</label>
-      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_keys" checked style="width:auto"> Master keys and radios accounted in armory</label>
-      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_handover" checked style="width:auto"> Shift Handover signed with Night Guard Commander</label>
-    </div>
-    <div class="acts">
-      <button class="btn ok" id="sw_complete_btn">Record Completed Daily Sweep</button>
-      <button class="btn" id="sw_print_btn">Print Closing Sweep Log</button>
-    </div>
-  </div>`;
-};
-
-/* 6. Executive Management Brief (UNDP / UN House Abuja) */
-V.exec=()=>{
-  const arrToday=visitors.filter(v=>isToday(v.arrivedAt||v.inAt||v.expected));
-  const vipCount=arrToday.filter(v=>v.type==="vip").length;
-  const conCount=arrToday.filter(v=>v.type==="contractor").length;
-  const staffActive=staffList.filter(s=>s.active!==false).length;
-  return head("Executive Management Brief","Official high-level operational summary for Resident Coordinator, OMT, and UNDSS Security Cell.")+
-  `<div class="panel" style="padding:20px;background:var(--surface)">
-    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:16px">
-      <div>
-        <h1 style="font-size:20px;color:var(--navy);margin:0">UNITED NATIONS SYSTEM IN NIGERIA</h1>
-        <div style="font-size:12px;color:var(--muted)">UN House Abuja · Daily Access &amp; Operations Executive Brief</div>
-      </div>
-      <div style="text-align:right" class="small">
-        <b>Date:</b> ${new Date().toLocaleDateString([], {weekday:"long",day:"numeric",month:"long",year:"numeric"})}<br>
-        <b>Report Generated:</b> ${fmtT(now())}
-      </div>
-    </div>
-    <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
-      <div class="kpi"><div class="n">${arrToday.length}</div><div class="l">Total Visitors Processed</div></div>
-      <div class="kpi"><div class="n">${vipCount}</div><div class="l">High-Level VIP Dignitaries</div></div>
-      <div class="kpi"><div class="n">${conCount}</div><div class="l">Contractors &amp; Maintenance</div></div>
-      <div class="kpi ok"><div class="n">${Math.max(1, events.length)}</div><div class="l">Interagency Conferences</div></div>
-    </div>
-    <div class="grid2" style="margin-top:16px">
-      <div class="panel" style="background:var(--surface2)">
-        <h3 style="margin-top:0">Agency Traffic Distribution</h3>
-        <div class="tw"><table><tbody>
-          ${AGENCIES.map(a=>[a,visitors.filter(v=>v.agency===a&&isToday(v.expected||v.inAt)).length]).filter(x=>x[1]).map(([a,n])=>`<tr><td><b>${esc(a)}</b></td><td class="mono" style="text-align:right">${n} visitor(s)</td></tr>`).join("")||`<tr><td>No visitors today</td></tr>`}
-        </tbody></table></div>
-      </div>
-      <div class="panel" style="background:var(--surface2)">
-        <h3 style="margin-top:0">Security &amp; Facilities Compliance</h3>
-        <ul style="line-height:1.8;padding-left:20px;margin:0;font-size:13px">
-          <li><b>UNDSS Watchlist Screenings:</b> 100% automated check on all registrations</li>
-          <li><b>Digital Photo Passes:</b> Active live clocks with anti-screenshot security</li>
-          <li><b>Staff Escort Compliance:</b> Escort handshakes enforced for restricted zones</li>
-          <li><b>Vehicle Gates:</b> S1 (Main Gate) &amp; S4 (VIP Gate) synchronized live</li>
-          <li><b>Operational Status:</b> Normal security condition</li>
-        </ul>
-      </div>
-    </div>
-    <div class="acts" style="margin-top:16px">
-      <button class="btn pri" id="exec_print">Print Executive PDF Report</button>
-      <button class="btn" id="exec_copy">Copy Summary for Resident Coordinator / OMT</button>
-    </div>
-  </div>`;
-};
-
 // Move to a screen and record it in the browser history (Back returns to the previous screen).
 function goView(v,opts={}){
   if(!v) return;
@@ -2360,53 +2282,6 @@ function wire(){
     if(db) await db.collection("assets").doc(id).update({verifiedAt:now(),verifiedBy:op()});
     toast(`Material pass verified. Equipment cleared to exit gate.`); render();
   });
-
-  const dobEntry=$("#dob_new_entry");
-  if(dobEntry) dobEntry.onclick=()=>{
-    modal(`<h2>Record Security Occurrence (Daily Occurrence Book)</h2>
-      <div class="f"><label for="dob_m_title">Occurrence Summary</label><input id="dob_m_title" placeholder="e.g. Public Power Disruption / Routine Patrol Completed"></div>
-      <div class="f"><label for="dob_m_cat">Category</label><select id="dob_m_cat"><option>Power / Utilities</option><option>Access Control / Gate Incident</option><option>Diplomatic Motorcade Movement</option><option>Tailgating / Suspicious Activity</option><option>Medical / First Aid</option><option>Routine Shift Checklist</option></select></div>
-      <div class="f"><label for="dob_m_sev">Severity Level</label><select id="dob_m_sev"><option value="routine">Routine</option><option value="alert">Alert / Warning</option><option value="incident">Critical Incident</option></select></div>
-      <div class="f"><label for="dob_m_detail">Full Operational Details</label><textarea id="dob_m_detail" placeholder="State observations, actions taken, and notifications made..."></textarea></div>`,
-      async ()=>{
-        const title=$("#dob_m_title").value.trim(), detail=$("#dob_m_detail").value.trim();
-        if(!title) return false;
-        const rec={title,category:$("#dob_m_cat").value,severity:$("#dob_m_sev").value,detail,station:STATIONS[station()]||"Station 1",officer:op(),at:now()};
-        if(db) await db.collection("dob").add(rec); else dobs.unshift({...rec,id:"dob-"+now()});
-        toast("Occurrence logged in Daily Occurrence Book."); render();
-      });
-  };
-
-  const swComplete=$("#sw_complete_btn");
-  if(swComplete) swComplete.onclick=()=>{
-    const rem=visitors.filter(v=>v.status==="in").length;
-    toast(`End-of-day sweep completed by ${op()}. ${rem} visitor(s) remaining on premises reconciled.`);
-  };
-  document.querySelectorAll("[data-sweep-out]").forEach(b=>b.onclick=()=>{
-    const v=visitors.find(x=>x.id===b.dataset.sweepOut);
-    if(v) doAct("checkout",v);
-  });
-  const swPrint=$("#sw_print_btn");
-  if(swPrint) swPrint.onclick=()=>{
-    let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
-    const onSite=visitors.filter(v=>v.status==="in");
-    p.innerHTML=`<div style="padding:14mm;font-family:sans-serif">
-      <h2>UN HOUSE ABUJA — CLOSING SECURITY SWEEP LOG</h2>
-      <div><b>Date:</b> ${new Date().toLocaleDateString()} · <b>Officer:</b> ${esc(op())}</div>
-      <hr style="margin:10px 0">
-      <h3>Visitors Remaining: ${onSite.length}</h3>
-      ${onSite.map(v=>`<div>• ${esc(v.name)} (${esc(v.tag||v.ref)}) · Host: ${esc(v.host)} (${esc(v.building)})</div>`).join("")||"<div>None. Compound fully cleared.</div>"}
-    </div>`;
-    document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},100);
-  };
-
-  const execPrint=$("#exec_print");
-  if(execPrint) execPrint.onclick=()=>window.print();
-  const execCopy=$("#exec_copy");
-  if(execCopy) execCopy.onclick=async()=>{
-    const t=`UN HOUSE ABUJA — EXECUTIVE OPERATIONAL BRIEF\nDate: ${new Date().toLocaleDateString()}\nTotal Visitors: ${visitors.filter(v=>isToday(v.inAt||v.expected)).length}\nVIP Dignitaries: ${visitors.filter(v=>v.type==="vip"&&isToday(v.inAt||v.expected)).length}\nStatus: Normal operations, 100% watchlist screening compliance.`;
-    await navigator.clipboard.writeText(t); toast("Executive brief copied for email dispatch.");
-  };
 }
 async function loadExamples(silent){
   lsDel("unhNoAutoSample");
