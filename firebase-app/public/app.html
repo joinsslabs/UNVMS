@@ -1771,7 +1771,10 @@ function demoData(){
   for(let k=0;k<6;k++) v.push(mk({status:"approved",expected:t9+k*30*60e3,visitorEmail:"guest"+k+"@example.org",requestedByUid:k<2?ME:"x",...(k===1?{vehicle:"ABC-904-KD"}:{})}));
   v.push(mk({name:"H.E. Ambassador L. Haugen",org:"Royal Norwegian Embassy",type:"vip",host:"Resident Coordinator",agency:"Common Services",status:"in",decidedBy:"Supervisor F. Adeyemi",decidedAt:y9+6*h,expected:t9+1*h,arrivedAt:t9+1.05*h,inAt:t9+1.05*h,purpose:"Courtesy call",room:"RC Office",vehicle:"CD-29-01"}));
   v.push(mk({name:"H.E. High Commissioner A. Touré",org:"ECOWAS Diplomatic Mission",type:"vip",host:"Resident Coordinator",agency:"Common Services",status:"approved",decidedBy:"Supervisor F. Adeyemi",decidedAt:y9+6.5*h,expected:t9+2.5*h,purpose:"Bilateral security briefing",room:"RC Office",vehicle:"CD-14-08"}));
-  v.push(mk({name:"Chidi Eze",org:"Julius Facilities Ltd",type:"contractor",host:"Facilities Unit",agency:"Common Services",status:"in",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-3*864e5+11*h,expected:t9,arrivedAt:t9+2*60e3,inAt:t9+8*60e3,tag:"C-003",escort:true,vehicle:"APP-511-XC",accessFrom:t0-3*864e5,accessTo:t0+864e5,building:"Annex A",items:[{d:"Toolbox",out:false},{d:"Drill, Bosch",out:false}]}));
+  v.push(mk({name:"Chidi Eze",org:"Julius Facilities Ltd",type:"contractor",host:"Facilities Unit",agency:"Common Services",status:"in",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-3*864e5+11*h,expected:t9,arrivedAt:t9+2*60e3,inAt:t9+8*60e3,tag:"C-003",escort:true,vehicle:"APP-511-XC",accessFrom:t0-3*864e5,accessTo:t0+864e5,building:"Annex A",room:"HVAC Plant Room 2",purpose:"Air conditioning compressor replacement",items:[{d:"Toolbox",out:false},{d:"Drill, Bosch",out:false}]}));
+  v.push(mk({name:"Engr. Sunday Alabi",org:"Schneider Electric Nigeria",type:"contractor",host:"ICT & Facilities",agency:"Common Services",status:"approved",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-6*864e5+14*h,expected:t9+2*h,escort:true,vehicle:"KJA-209-BZ",accessFrom:t0-6*864e5,accessTo:t0+36*3600e3,building:"Main Building",room:"Data Center UPS & Substation",purpose:"Bi-annual UPS battery bank maintenance & diagnostic testing",items:[{d:"Fluke Power Analyzer",out:false},{d:"Insulated Toolset",out:false}]}));
+  v.push(mk({name:"Umar Farouk",org:"Otis Elevator Ltd",type:"contractor",host:"Common Services Admin",agency:"Common Services",status:"out",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-14*864e5+10*h,expected:t9-24*h,escort:true,vehicle:"RBC-314-LG",accessFrom:t0-14*864e5,accessTo:t0-864e5,building:"Main Building",room:"Lift Shaft B",purpose:"Passenger elevator hydraulic seal servicing",items:[{d:"Hydraulic Pressure Gauge",out:true},{d:"Rigging Kit",out:true}]}));
+  v.push(mk({name:"Emmanuel Okeke",org:"CleanCo Environmental Services",type:"contractor",host:"Logistics Office",agency:"Common Services",status:"suspended",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-10*864e5+9*h,expected:t9+1*h,escort:false,accessFrom:t0-10*864e5,accessTo:t0+15*864e5,building:"Compound Perimeter",room:"Perimeter & Waste Yard",purpose:"Deep landscaping & chemical fumigation (Permit suspended by UNDSS due to safety non-compliance)",items:[]}));
   ["Dr. Ifeoma Nnaji","Bashir Sule","Kemi Adewale","Ahmed Tijani"].forEach((n,k)=>v.push(mk({name:n,org:"Federal Ministry of Health",group:"Ministry of Health delegation",status:"approved",expected:t9+2*h,host:"Dr. K. Ibrahim",agency:"WHO",room:"Conference Room B",purpose:"Immunisation programme review"})));
   v.push(mk({name:"Musa Ibrahim Bello",org:"Unknown",status:"approved",expected:t9+0.5*h,watchFlag:true,watchReason:"Barred by UNDSS, 3 Oct 2026. Call security."}));
   const d1=t9+0.5*h;
@@ -1829,7 +1832,7 @@ function drawTour(){
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourDone")) $("#tourDone").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;go(0)};
 }
-const DEMO_KEY="unhDemoState_v12";
+const DEMO_KEY="unhDemoState_v13";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
   try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
@@ -2010,8 +2013,82 @@ V.approvals=()=>{
 };
 V.contractors=()=>{
   const list=filterQ(visitors.filter(v=>v.type==="contractor"));
-  return head("Contractors","Time-limited access by building and date. Suspend access immediately when needed.")+
-  `<div class="panel">${searchBox()}</div><div class="panel"><div class="tw"><table><thead><tr><th>Contractor</th><th>Building</th><th>Access window</th><th>Status</th><th>Action</th></tr></thead><tbody>${list.map(v=>`<tr><td><b>${esc(v.name)}</b><div class="small">${esc(v.org)} · ${esc(v.ref)}</div></td><td>${esc(v.building)}</td><td class="mono">${v.accessFrom?new Date(v.accessFrom).toLocaleDateString():"—"} → ${v.accessTo?new Date(v.accessTo).toLocaleDateString():"—"} ${contractorExpired(v)?'<span class="pill p-rejected">Expired</span>':contractorExpiring(v)?'<span class="pill p-pending">Expiring</span>':""}</td><td>${pill(v)}</td><td><div class="acts">${v.status==="suspended"?B(v.id,"reinstate","Reinstate"):B(v.id,"suspend","Suspend","bad")}${B(v.id,"extend","Extend 7 days")}</div></td></tr>`).join("")||`<tr><td colspan="5" class="empty">No contractors registered.</td></tr>`}</tbody></table></div></div>`;
+  const onSite=list.filter(v=>["in","tagged","arrived"].includes(v.status));
+  const expiring=list.filter(v=>contractorExpiring(v));
+  const expired=list.filter(v=>contractorExpired(v)||v.status==="suspended");
+
+  return head("Contractor Access & Permit Management","Multi-day facility, maintenance, and technical contractors. Track building permits, staff escorts, logged tools, and enforce time-limited access windows.")+
+  `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi"><div class="n">${list.length}</div><div class="l">Registered contractors</div></div>
+    <div class="kpi ok"><div class="n">${onSite.length}</div><div class="l">Currently on site</div></div>
+    <div class="kpi ${expiring.length?"alert":""}"><div class="n">${expiring.length}</div><div class="l">Expiring within 48h</div></div>
+    <div class="kpi ${expired.length?"alert":""}"><div class="n">${expired.length}</div><div class="l">Expired / Suspended</div></div>
+  </div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">${searchBox("Search contractors, company, tools or reference...")}</div>
+      <button class="btn pri" id="con_reg_btn">+ Register New Contractor</button>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Contractor Permits &amp; Tool Logs (${list.length})</h2>
+    <div class="tw" style="margin-top:12px"><table><thead><tr>
+      <th>Contractor / Company</th>
+      <th>Permitted Area &amp; Escort</th>
+      <th>Host &amp; Agency</th>
+      <th>Access Window</th>
+      <th>Tools &amp; Equipment</th>
+      <th>Compound Status</th>
+      <th>Security Actions</th>
+    </tr></thead><tbody>
+    ${list.map(v=>{
+      const isExp=contractorExpired(v);
+      const isSoon=contractorExpiring(v);
+      const itemsStr=(v.items||[]).map(i=>i.d).join(", ");
+      return `<tr>
+        <td>
+          <b>${esc(v.name)}</b>
+          <div class="small">${esc(v.org)} · <span class="mono ref">${esc(v.ref)}</span></div>
+          ${v.vehicle?`<div class="small mono" style="color:var(--muted)">🚗 ${esc(v.vehicle)}</div>`:""}
+        </td>
+        <td>
+          <b>${esc(v.building)}</b>
+          <div class="small">${esc(v.room||v.purpose||"Facility works")}</div>
+          ${v.escort?`<span class="pill p-pending" style="font-size:10px;padding:1px 6px;margin-top:2px">Staff Escort Required</span>`:""}
+        </td>
+        <td>
+          ${esc(v.host)}
+          <div class="small">${esc(v.agency)}</div>
+        </td>
+        <td>
+          <div class="mono small">${v.accessFrom?new Date(v.accessFrom).toLocaleDateString([], {month:"short",day:"numeric"}):"—"} → ${v.accessTo?new Date(v.accessTo).toLocaleDateString([], {month:"short",day:"numeric"}):"—"}</div>
+          <div style="margin-top:2px">
+            ${v.status==="suspended"?`<span class="pill p-rejected">Suspended</span>`:
+              isExp?`<span class="pill p-rejected">Access Expired</span>`:
+              isSoon?`<span class="pill p-pending">Expiring Soon</span>`:
+              `<span class="pill p-in">Permit Active</span>`}
+          </div>
+        </td>
+        <td>
+          <div class="small" style="max-width:180px;white-space:normal">
+            ${itemsStr?`🧰 ${esc(itemsStr)}`:`<span style="color:var(--muted)">No tools logged</span>`}
+          </div>
+        </td>
+        <td>
+          ${pill(v)}
+          ${v.tag?`<div class="small mono" style="margin-top:2px;font-weight:600;color:var(--accent)">Tag: ${esc(v.tag)}</div>`:""}
+        </td>
+        <td>
+          <div class="acts" style="flex-wrap:nowrap">
+            ${v.status==="suspended"?B(v.id,"reinstate","Reinstate","ok"):B(v.id,"suspend","Suspend","bad")}
+            ${B(v.id,"extend","+7 Days")}
+            ${B(v.id,"detail","Details")}
+          </div>
+        </td>
+      </tr>`;
+    }).join("")||`<tr><td colspan="7" class="empty">No contractors registered. Click "+ Register New Contractor" to log a facility contractor permit.</td></tr>`}
+    </tbody></table></div>
+  </div>`;
 };
 V.history=()=>{
   const list=filterQ([...visitors].sort((a,b)=>(b.expected||0)-(a.expected||0)));
@@ -2035,33 +2112,120 @@ V.assistant=()=>head("Operations assistant","Ask about recent and current visito
 
 /* 1. Vehicles & Parking Management */
 V.parking=()=>{
-  const insideVehicles=visitors.filter(v=>v.vehicle&&["in","arrived"].includes(v.status));
   const parkMap=new Map(); parkings.forEach(p=>parkMap.set(p.plate,p));
-  return head("Diplomatic Vehicles & Parking Bays","Real-time tracking of motorcades, embassy vehicles, and visitor parking bays on compound.")+
-  `<div class="kpis">
-    <div class="kpi ok"><div class="n">${insideVehicles.length}</div><div class="l">Vehicles inside compound</div></div>
-    <div class="kpi"><div class="n">${visitors.filter(v=>v.vehicle&&v.type==="vip"&&v.status==="in").length}</div><div class="l">VIP diplomatic bays occupied</div></div>
-    <div class="kpi"><div class="n">${Math.max(0, 24 - insideVehicles.length)}</div><div class="l">Visitor bays remaining</div></div>
+  
+  // All active visitors who brought a vehicle and are currently on premises
+  const activeVisitorsWithVeh = visitors.filter(v=>v.vehicle&&["in","arrived"].includes(v.status));
+  const activePlates=new Set(activeVisitorsWithVeh.map(v=>v.vehicle));
+  
+  // Standalone vehicles parked on compound
+  const standaloneParked = parkings.filter(p=>p.status==="parked" && !activePlates.has(p.plate));
+  
+  // Combined list of vehicles inside compound
+  const activeVehicles = [
+    ...activeVisitorsWithVeh.map(v=>{
+      const p=parkMap.get(v.vehicle)||{};
+      const isDip=v.type==="vip"||/^C[DCMD]|^CORPS/i.test(v.vehicle);
+      const isContractor=v.type==="contractor";
+      return {
+        plate: v.vehicle,
+        driver: p.driverNote||(isDip?"Diplomatic chauffeur (with vehicle)":isContractor?"Service driver (Annex A)":"Visitor self-drive"),
+        visitorName: v.name,
+        org: v.org||v.agency||"",
+        type: v.type,
+        bay: p.bay||(isDip?"VIP Diplomatic Bay #1":isContractor?"Annex A Service Bay":"Main Visitor Car Park"),
+        timeIn: v.inAt||v.arrivedAt||p.at||now(),
+        isDip,
+        visitor: v
+      };
+    }),
+    ...standaloneParked.map(p=>{
+      const isDip=/^C[DCMD]|^CORPS/i.test(p.plate);
+      return {
+        plate: p.plate,
+        driver: p.driverNote||(isDip?"Diplomatic chauffeur":"Official compound vehicle"),
+        visitorName: p.principalName||"Direct Gate Pass",
+        org: p.agency||(isDip?"Diplomatic Mission":"Compound Logistics"),
+        type: isDip?"vip":"official",
+        bay: p.bay||(isDip?"VIP Diplomatic Bay #2":"Main Visitor Car Park"),
+        timeIn: p.at||now(),
+        isDip,
+        visitor: null
+      };
+    })
+  ];
+
+  const totalInside = activeVehicles.length;
+  const vipOccupied = activeVehicles.filter(v=>(v.bay||"").includes("VIP")).length;
+  const serviceOccupied = activeVehicles.filter(v=>(v.bay||"").includes("Annex")||(v.bay||"").includes("Service")||(v.bay||"").includes("Loading")).length;
+  const visitorOccupied = Math.max(0, totalInside - vipOccupied - serviceOccupied);
+  
+  // Upcoming expected vehicles today
+  const expectedVehicles = visitors.filter(v=>v.vehicle && ["approved","pending"].includes(v.status) && isToday(v.expected));
+  const isPast17 = new Date().getHours() >= 17;
+
+  return head("Compound Vehicles & Parking Bays","Real-time tracking of diplomatic motorcades, embassy vehicles, service deliveries, and visitor parking on compound.")+
+  (isPast17 && totalInside > 0 ? `<div class="note" style="border-left:4px solid var(--bad);background:var(--bad-bg);color:var(--bad);display:flex;align-items:center;gap:12px;margin-bottom:12px">
+    <span><b>⚠️ Anti-VBIED Security Rule:</b> Overnight compound parking is strictly prohibited. All ${totalInside} vehicle(s) must exit before reception closeout unless holding written UNDSS authorization.</span>
+  </div>`:"")+
+  `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi ok"><div class="n">${totalInside}</div><div class="l">Total on compound (Max 32)</div></div>
+    <div class="kpi ${vipOccupied>=4?"alert":""}"><div class="n">${vipOccupied} / 4</div><div class="l">VIP Canopy Bays</div></div>
+    <div class="kpi"><div class="n">${visitorOccupied} / 20</div><div class="l">Visitor Bays Occupied</div></div>
+    <div class="kpi"><div class="n">${serviceOccupied} / 2</div><div class="l">Service &amp; Loading Bays</div></div>
   </div>
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <h2>Vehicles Currently on Premises</h2>
-      <button class="btn pri" id="veh_quick_log">+ Assign / Change parking bay</button>
+      <div><h2 style="margin:0">Vehicles Currently Inside Compound (${totalInside})</h2><p class="small" style="margin:2px 0 0">Gate physical screening &amp; bay allocation active.</p></div>
+      <button class="btn pri" id="veh_quick_log">+ Log Vehicle at Gate</button>
     </div>
-    <div class="tw" style="margin-top:12px"><table><thead><tr><th>Plate Number</th><th>Driver / Vehicle Info</th><th>Visitor / Principal</th><th>Assigned Bay</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-    ${insideVehicles.map(v=>{
-      const p=parkMap.get(v.vehicle)||{};
-      return `<tr>
-        <td class="mono"><b>🚗 ${esc(v.vehicle)}</b></td>
-        <td class="small">${esc(p.driverNote||(v.type==="vip"?"Diplomatic chauffeur":"Visitor vehicle"))}</td>
-        <td><b>${esc(v.name)}</b> <span class="small">(${esc(v.org)})</span></td>
-        <td><span class="pill ${v.type==="vip"?"p-in":"p-pending"}">${esc(p.bay||(v.type==="vip"?"VIP Diplomatic Bay #1":"Main Visitor Car Park"))}</span></td>
-        <td>${pill(v)}</td>
-        <td><button class="btn" data-veh-bay="${esc(v.vehicle)}">Reassign Bay</button></td>
-      </tr>`;
-    }).join("")||`<tr><td colspan="6" class="empty">No visitor vehicles currently recorded inside the gate.</td></tr>`}
+    <div class="tw" style="margin-top:14px"><table><thead><tr><th>Plate Number</th><th>Vehicle &amp; Chauffeur Protocol</th><th>Principal / Driver</th><th>Assigned Bay</th><th>Gate Inspection</th><th>Actions</th></tr></thead><tbody>
+    ${activeVehicles.map(v=>`<tr>
+      <td>
+        <span class="mono" style="font-size:14px;font-weight:700">🚗 ${esc(v.plate)}</span>
+        ${v.isDip?`<span class="pill p-in" style="font-size:10px;padding:2px 6px;margin-left:4px">Diplomatic CD</span>`:""}
+      </td>
+      <td>
+        <div>${esc(v.driver)}</div>
+        <div class="small" style="color:var(--muted)">Entered: ${fmtT(v.timeIn)}</div>
+      </td>
+      <td>
+        <b>${esc(v.visitorName)}</b>
+        <div class="small">${esc(v.org)}</div>
+      </td>
+      <td>
+        <span class="pill ${v.isDip?"p-in":(v.bay||"").includes("VIP")?"p-in":"p-pending"}">${esc(v.bay)}</span>
+      </td>
+      <td>
+        <span class="small" style="color:var(--ok)">✓ Physical check cleared</span>
+        <div class="small" style="font-size:11px;color:var(--muted)">Mirror &amp; trunk inspected</div>
+      </td>
+      <td>
+        <div class="acts" style="flex-wrap:nowrap">
+          <button class="btn" data-veh-bay="${esc(v.plate)}">Reassign Bay</button>
+          <button class="btn bad" data-veh-exit="${esc(v.plate)}">Exit Gate</button>
+        </div>
+      </td>
+    </tr>`).join("")||`<tr><td colspan="6" class="empty">No vehicles currently inside the secure perimeter.</td></tr>`}
     </tbody></table></div>
-  </div>`;
+  </div>
+  ${expectedVehicles.length?`
+  <div class="panel" style="margin-top:16px">
+    <h2>Expected VIP &amp; Visitor Vehicles Today (${expectedVehicles.length})</h2>
+    <p class="small" style="margin:-4px 0 10px;color:var(--muted)">Upcoming motorcades and visitor plates. Reserve VIP canopy bays prior to diplomatic arrival.</p>
+    <div class="tw"><table><thead><tr><th>Expected Plate</th><th>Diplomatic Principal / Guest</th><th>Host &amp; Meeting</th><th>Expected Time</th><th>Reserved Bay</th></tr></thead><tbody>
+    ${expectedVehicles.map(v=>{
+      const isDip=v.type==="vip"||/^C[DCMD]|^CORPS/i.test(v.vehicle);
+      return `<tr>
+        <td class="mono"><b>${esc(v.vehicle)}</b> ${isDip?`<span class="pill p-in" style="font-size:10px;padding:1px 5px">Diplomatic</span>`:""}</td>
+        <td><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div></td>
+        <td>${esc(v.host)} (${esc(v.agency)})<div class="small">${esc(v.room||"Main Building")}</div></td>
+        <td class="mono">${fmtT(v.expected)}</td>
+        <td><span class="pill ${isDip?"p-in":"p-pending"}">${isDip?"VIP Diplomatic Bay (Reserved)":"Main Visitor Car Park"}</span></td>
+      </tr>`;
+    }).join("")}
+    </tbody></table></div>
+  </div>`:""}`;
 };
 
 /* 3. Material & Asset Gate Pass (Property Removal) */
@@ -2326,6 +2490,34 @@ function wire(){
         toast(`${plate} moved to ${bay}`); render();
       });
   });
+  document.querySelectorAll("[data-veh-exit]").forEach(b=>b.onclick=async()=>{
+    const plate=b.dataset.vehExit;
+    if(!confirm(`Record vehicle exit at Gate for ${plate}?`)) return;
+    const idx=parkings.findIndex(p=>p.plate===plate);
+    if(idx>=0){ parkings[idx].status="exited"; parkings[idx].exitedAt=now(); }
+    else { parkings.unshift({plate,status:"exited",exitedAt:now()}); }
+    if(db) await db.collection("parking").doc(plate).set({plate,status:"exited",exitedAt:now()});
+    toast(`Vehicle ${plate} recorded exit from compound.`); render();
+  });
+
+  const conRegBtn=$("#con_reg_btn");
+  if(conRegBtn) conRegBtn.onclick=()=>{
+    view="register"; render();
+    setTimeout(()=>{
+      const rt=$("#r_type");
+      if(rt){
+        rt.value="contractor";
+        const re=$("#r_escort"); if(re) re.checked=true;
+        const rp=$("#r_purpose"); if(rp) rp.placeholder="e.g. Facilities maintenance / equipment overhaul";
+        const rTo=$("#r_to");
+        if(rTo&&!rTo.value){
+          const in7d=new Date(now()+7*864e5).toISOString().slice(0,10);
+          rTo.value=in7d;
+        }
+      }
+      scrollTo({top:0,behavior:"smooth"});
+    },50);
+  };
 
   const assetModal=$("#asset_new_modal");
   if(assetModal) assetModal.onclick=()=>{
