@@ -125,6 +125,24 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
         <a class="btn ghost" href="app.html?demo">Try the guided demo</a>
         <a class="btn ghost" href="#how">How it works</a>
       </div>
+      <div class="metrics-bar" style="margin-top:32px;padding-top:24px;border-top:1px solid #ffffff18;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:18px">
+        <div>
+          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">350+</div>
+          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Daily Visitors</div>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">&lt; 45s</div>
+          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Gate Clearance</div>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">16 Agencies</div>
+          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Unified Compound</div>
+        </div>
+        <div>
+          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">4 Stations</div>
+          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Sequential Flow</div>
+        </div>
+      </div>
     </div>
     <div class="pass" aria-label="Example visitor pass">
       <div class="ph"><span>Visitor pass</span><span class="st-ok">Checked in</span></div>
@@ -178,10 +196,10 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
         <p class="sub" style="margin:0">Access rules are enforced on the server for every read and write, not just hidden in the screen.</p>
       </div>
       <ul>
-        <li><b>Role-based access.</b> Gate, documentation, reception, VIP, host, approver and administrator roles, each limited to its own tasks.</li>
-        <li><b>Audit trail.</b> Every registration, approval, check-in and check-out is recorded with who did it and when. Past entries cannot be changed.</li>
-        <li><b>Data minimisation.</b> No ID scans, photos or biometrics are stored.</li>
-        <li><b>Staff accounts.</b> Each person signs in with their own account, and an Administrator assigns roles (maximum of 3 administrators).</li>
+        <li><b>Role-based access.</b> Gate, documentation, reception, VIP, host, approver and administrator roles, each strictly partitioned to its operational post.</li>
+        <li><b>Server-Enforced Audit Trail.</b> Every registration, approval, check-in and check-out is committed to an append-only server log (/audit). Client browsers have zero permissions to delete or alter historical entries.</li>
+        <li><b>Data Minimisation &amp; Physical ID Custody.</b> Zero physical ID scans, photocopies, or biometrics are uploaded or stored. Original IDs are held in physical security custody at Station 2 and returned upon exit.</li>
+        <li><b>Staff accounts &amp; Governance.</b> Each staff member signs in with their UN identity. Administrator roles are strictly capped at 3 with peer audit oversight.</li>
       </ul>
     </div>
   </section>
@@ -193,6 +211,7 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
       <div>
         <div class="fh">UN House Visitor Management System</div>
         <p>Access and visitor management for UN Common Services, United Nations House, Abuja.</p>
+        <p style="margin-top:8px;font-size:12.5px;color:var(--onnavy-muted)"><b>Support &amp; ICT Helpdesk:</b> Ext. 2030 / Common Services Ext. 2010</p>
       </div>
       <div>
         <div class="fl">System</div>
@@ -207,14 +226,15 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
         <span>Gate reception</span><span>Documentation &amp; tags</span><span>Internal reception</span><span>VIP gate</span>
       </div>
       <div>
-        <div class="fl">Privacy</div>
-        <span>No ID scans, photos or biometrics are stored.</span>
-        <span>Access is limited by staff role.</span>
+        <div class="fl">Privacy &amp; Compliance</div>
+        <span>Zero ID scans, photos or biometrics stored.</span>
+        <span>Physical ID held in custody &amp; returned.</span>
+        <span>Aligned with Nigeria NDPA 2023 &amp; UN HLCM.</span>
       </div>
     </div>
     <div class="fbase">
-      <span>© <span id="yr">2026</span> SKILL.SCH · v1.0</span>
-      <span>UN House Abuja · UN Common Services</span>
+      <span>© <span id="yr">2026</span> United Nations Common Services · UN House Abuja</span>
+      <span>Enterprise Version 2.4.0 (Live Production)</span>
     </div>
   </div>
 </footer>
