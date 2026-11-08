@@ -7,7 +7,6 @@
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
 </head><body>
 <title>UN House Visitor Management System</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: operations console — station bar on top, sidebar nav, work area with dense tables */
@@ -674,7 +673,6 @@ async function connect(){
     document.body.classList.add("guest-mode","pass-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode);
   }
   if(QS.has("rules")){ document.body.classList.add("guest-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(true,"Visitor rules"); return showRules(); }
-  try{ if(window.claude?.use) db=await window.claude.use("db"); }catch(e){db=null}
   if(!db){ visitors=sampleData(); setSync(false,"Demo mode · changes stay on this device"); render(); return; }
   setSync(false,"Loading shared records…");
   const timer=setTimeout(()=>setSync(false,"Shared records not reachable yet"),10000);
@@ -683,7 +681,6 @@ async function connect(){
     if(!snap.metadata.fromCache){clearTimeout(timer);setSync(true,"Live · all stations synced")}
     render();
   },e=>{clearTimeout(timer);setSync(false,"Sync stopped ("+e.code+")")});
-  try{sample=window.claude?.use?await window.claude.use("sample"):null}catch(e){sample=null}
 }
 /* ---------- Firebase: sign-in, staff profile, role-scoped data ---------- */
 function connectFirebase(){
