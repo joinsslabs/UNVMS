@@ -1522,7 +1522,7 @@ function openHandover(){
       const patch={ackBy:op(),ackByUid:myUid(),ackAt:now()};
       Object.assign(h,patch);
       if(db){try{await db.collection("handovers").doc(id).update(patch)}catch(e){}}
-      toast(`Handover acknowledged by ${op()}.`); draw($("#ho_txt").value); render();
+      m.hidden=true; toast(`Handover acknowledged by ${op()}.`); render();
     });
     m.querySelectorAll("[data-ho-view]").forEach(b=>b.onclick=()=>{
       const h=handovers.find(x=>x.id===b.dataset.hoView); if(h) printHandoverSheet(h);
@@ -1900,7 +1900,7 @@ V.dashboard=()=>{
   const max=Math.max(1,...byB.map(x=>x[1]));
   const al=alerts(), unackHo=handovers.find(h=>!h.ackBy);
   return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">${head("Live overview",`Everything happening across the four stations right now. Updated ${fmtT(now())}.`)}<button class="btn ${unackHo?"pri":""}" id="db_ho">Shift handover${unackHo?` · 1 pending sign-off`:""}</button></div>`+
-  (unackHo?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span><b>Incoming shift handover (${esc(unackHo.stationLabel||"All stations")}):</b> ${esc(unackHo.fromOfficer)} handed over to <b>${esc(unackHo.toOfficer||"next shift")}</b> at ${fmtT(unackHo.at)} · ${(unackHo.onsite||[]).length} on site, ${(unackHo.parcels||[]).length} parcels.</span><button class="btn pri" id="db_ho_open">Review &amp; acknowledge</button></div>`:"")+
+  (unackHo?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span><b>Incoming shift handover (${esc(unackHo.stationLabel||"All stations")}):</b> ${esc(unackHo.fromOfficer)} handed over to <b>${esc(unackHo.toOfficer||"next shift")}</b> at ${fmtT(unackHo.at)} · ${(unackHo.onsite||[]).length} on site, ${(unackHo.parcels||[]).length} parcels.</span><div class="acts" style="flex-wrap:nowrap"><button class="btn" id="db_ho_open">Review</button><button class="btn pri" id="db_ho_ack">Acknowledge</button></div></div>`:"")+
   (visitors.some(v=>v.example)?`<div class="banner"><span>These are example records for testing.</span><div class="acts"><button class="btn" id="loadEx">Reset sample records</button><button class="btn" id="clearEx">Remove example records</button></div></div>`:!DEMO?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>${visitors.length?"Showing live records only.":"No visitors recorded yet. Register the first one under <b>Register visitors</b>, or load sample records to try the workflow."}</span><div class="acts"><button class="btn pri" id="loadEx">Load sample records</button><a class="btn" href="?demo">Guided demo</a></div></div>`:"")+
   `<div class="kpis">
     <div class="kpi"><div class="n">${exp.length}</div><div class="l">Expected today</div></div>
@@ -2242,6 +2242,11 @@ function wire(){
   wireWatch(); wireEvac(); wireDeliveries(); wireReports(); wireRepeat();
   const dbHo=$("#db_ho"); if(dbHo) dbHo.onclick=openHandover;
   const dbHo2=$("#db_ho_open"); if(dbHo2) dbHo2.onclick=openHandover;
+  const dbAck=$("#db_ho_ack"); if(dbAck) dbAck.onclick=async()=>{
+    const pend=handovers.filter(h=>!h.ackBy), patch={ackBy:op(),ackByUid:myUid(),ackAt:now()};
+    for(const h of pend){Object.assign(h,patch); if(db){try{await db.collection("handovers").doc(h.id).update(patch)}catch(e){}}}
+    toast(`Handover acknowledged by ${op()}.`); render();
+  };
   const ks=$("#k_start"); if(ks) ks.onclick=startKiosk;
   const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
   const ib=$("#invNew"); if(ib) ib.onclick=createInvite;
