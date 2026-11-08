@@ -380,7 +380,7 @@ let OVERSTAY_H=9;
 let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
 try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
 /* ---------- staff, roles and permissions ---------- */
-let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[], watchlist=[], rollcalls=[], deliveries=[], handovers=[];
+let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[], watchlist=[], rollcalls=[], deliveries=[], handovers=[], events=[], assetPasses=[], dobs=[], parkings=[];
 const FN_BASE="https://europe-west1-unhouse-vms-abj26.cloudfunctions.net/";
 async function callFn(name,body){
   const tok=await firebase.auth().currentUser.getIdToken();
@@ -392,10 +392,13 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
-  gate:["dashboard","gate","register","deliveries","evac","history"], docs:["dashboard","tagging","evac","history"],
-  reception:["dashboard","reception","register","deliveries","kiosk","evac","history"], vip:["dashboard","vip","evac","history"], host:["myguests","register","history"]
+  admin:["settings","dashboard","gate","tagging","reception","vip","events","parking","assets","dob","sweep","exec","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","events","parking","assets","dob","sweep","exec","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
+  gate:["dashboard","gate","parking","assets","dob","sweep","register","deliveries","evac","history"],
+  docs:["dashboard","tagging","assets","evac","history"],
+  reception:["dashboard","reception","events","parking","assets","dob","sweep","register","deliveries","kiosk","evac","history"],
+  vip:["dashboard","vip","parking","dob","evac","history"],
+  host:["myguests","events","assets","register","history"]
 };
 const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
   checkout:["reception","vip","gate","admin"],extendstay:["reception","approver","gate","vip","host","admin"],approve:["approver","admin"],reject:["approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
@@ -601,6 +604,10 @@ function startData(){
     unsubs.push(db.collection("rollcalls").orderBy("startedAt","desc").limit(20).onSnapshot(s=>{rollcalls=s.docs.map(d=>({...d.data(),id:d.id}));render()},()=>{}));
     unsubs.push(db.collection("deliveries").orderBy("at","desc").limit(150).onSnapshot(s=>{deliveries=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="deliveries")render()},()=>{}));
     unsubs.push(db.collection("handovers").orderBy("at","desc").limit(30).onSnapshot(s=>{handovers=s.docs.map(d=>({...d.data(),id:d.id}));if(["dashboard","reports"].includes(view))render()},()=>{}));
+    unsubs.push(db.collection("events").orderBy("date","desc").limit(20).onSnapshot(s=>{events=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="events")render()},()=>{}));
+    unsubs.push(db.collection("assets").orderBy("at","desc").limit(50).onSnapshot(s=>{assetPasses=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="assets")render()},()=>{}));
+    unsubs.push(db.collection("dob").orderBy("at","desc").limit(100).onSnapshot(s=>{dobs=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="dob")render()},()=>{}));
+    unsubs.push(db.collection("parking").limit(100).onSnapshot(s=>{parkings=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="parking")render()},()=>{}));
   }
   { const pq=me.role==="host"?db.collection("passes").where("requestedByUid","==",me.uid):db.collection("passes");
     unsubs.push(pq.onSnapshot(s=>{passes=s.docs.map(d=>({...d.data(),id:d.id}))},()=>{})); }
@@ -743,6 +750,12 @@ const VIEWS=[
   ["tagging","Documentation & tags","Stations",'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
   ["reception","Internal reception","Stations",'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'],
   ["vip","VIP gate","Stations",'<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>'],
+  ["events","Conferences & Events","Stations",'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>'],
+  ["parking","Vehicles & Parking","Stations",'<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 6l2-3h10l2 3M9 11h6"/>'],
+  ["assets","Material Gate Pass","Stations",'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'],
+  ["dob","Security Occurrence (DOB)","Safety & Analytics",'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="9" y1="7" x2="15" y2="7"/><line x1="9" y1="11" x2="13" y2="11"/>'],
+  ["sweep","End-of-day Sweep","Safety & Analytics",'<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/>'],
+  ["exec","Executive Brief","Safety & Analytics",'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>'],
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
   ["register","Register visitors","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
   ["myguests","My guests","Access & Guests",'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'],
@@ -762,6 +775,10 @@ function renderNav(){
     tagging:visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,reception:visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length};
   c.staff=staffList.filter(s=>s.role==="pending").length; c.deliveries=deliveries.filter(d=>d.status==="waiting").length;
+  c.events=events.filter(e=>e.status!=="ended").length;
+  c.parking=visitors.filter(v=>v.vehicle&&v.status==="in").length;
+  c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
+  c.dob=dobs.filter(d=>isToday(d.at)).length;
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
     const hdr=sec!==lastSec?(lastSec=sec,`<div class="nav-sec">${esc(sec)}</div>`):"";
@@ -1714,7 +1731,7 @@ function enterWall(){document.body.classList.add("wall-mode");view="wall";render
 /* ---------- Scripted demo mode: app.html?demo ---------- */
 let DEMO=false;
 function demoDb(){
-  const COLS={visitors:()=>visitors,deliveries:()=>deliveries,rollcalls:()=>rollcalls,watchlist:()=>watchlist,passes:()=>passes,invites:()=>invites,handovers:()=>handovers,config:()=>[]};
+  const COLS={visitors:()=>visitors,deliveries:()=>deliveries,rollcalls:()=>rollcalls,watchlist:()=>watchlist,passes:()=>passes,invites:()=>invites,handovers:()=>handovers,events:()=>events,assets:()=>assetPasses,dob:()=>dobs,parking:()=>parkings,config:()=>[]};
   const col=name=>{const arr=()=>COLS[name]?COLS[name]():[];const q={
     add:async d=>{const id="d"+Math.random().toString(36).slice(2,9);arr().unshift({...d,id});setTimeout(render);return {id}},
     doc:id=>({id,set:async d=>{if(name==="visitors")return;const a=arr(),i=a.findIndex(x=>x.id===id);if(i>=0)a[i]={...d,id};else a.unshift({...d,id});setTimeout(render)},
@@ -1767,7 +1784,11 @@ function demoData(){
     deliveries:[{id:"dl1",forName:"Dr. K. Ibrahim",email:"k.ibrahim@example.org",phone:"0803 123 4567",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation",at:d1,by:"N. Okafor",status:"waiting"},
       {id:"dl2",forName:"S. Garba",agency:"UNDP",from:"Courier",desc:"Envelope",at:d1+h,by:"N. Okafor",status:"waiting",notifiedAt:d1+1.2*h,notifiedVia:"WhatsApp"},
       {id:"dl3",forName:"T. Musa",agency:"UNICEF",from:"Jumia",desc:"Small parcel",at:y9+2*h,by:"N. Okafor",status:"collected",collectedAt:y9+5*h,collectedBy:"N. Okafor"}],
-    handovers:[{id:"ho1",at:t9-0.5*h,stationKey:"S1",stationLabel:"S1 · Reception / Initial Access",fromOfficer:"Night Duty Officer M. Danjuma",fromUid:"demo",toOfficer:"Security Officer A. Bello",stats:{arrivals:14,checkedOut:13},onsite:[{id:"UNH-EX-0010",ref:"UNH-EX-0010",name:"Chidi Eze",tag:"C-003",host:"Facilities Unit",agency:"Common Services",building:"Annex A",status:"in",note:"Checked in"}],lostTags:[],parcels:[{id:"dl1",forName:"Dr. K. Ibrahim",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation"}],checks:{tags:true,equip:true,keys:true,vip:true},notes:"Morning shift handover: Contractor Chidi Eze (Julius Facilities) already on site in Annex A. 1 DHL box at reception for Dr. K. Ibrahim (WHO). Tag stock V-001 to V-050 verified."}]};
+    handovers:[{id:"ho1",at:t9-0.5*h,stationKey:"S1",stationLabel:"S1 · Reception / Initial Access",fromOfficer:"Night Duty Officer M. Danjuma",fromUid:"demo",toOfficer:"Security Officer A. Bello",stats:{arrivals:14,checkedOut:13},onsite:[{id:"UNH-EX-0010",ref:"UNH-EX-0010",name:"Chidi Eze",tag:"C-003",host:"Facilities Unit",agency:"Common Services",building:"Annex A",status:"in",note:"Checked in"}],lostTags:[],parcels:[{id:"dl1",forName:"Dr. K. Ibrahim",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation"}],checks:{tags:true,equip:true,keys:true,vip:true},notes:"Morning shift handover: Contractor Chidi Eze (Julius Facilities) already on site in Annex A. 1 DHL box at reception for Dr. K. Ibrahim (WHO). Tag stock V-001 to V-050 verified."}],
+    events:[{id:"ev1",title:"UNDSS Annual Security & Safety Briefing",room:"Conference Room A",building:"Conference Centre",agency:"UNDSS",host:"Chief of Security (UNDSS)",date:fmtD(t9+1.5*h),expectedCount:35,approvedCount:28,checkedInCount:14,status:"active",code:"EV-SEC-2026",desc:"Mandatory security briefing for incoming diplomatic missions and agency heads."}],
+    assets:[{id:"as1",ref:"MP-2026-0041",item:"HP ZBook Studio Workstation & Dual Monitor Set",serial:"5CD23910KL",staffName:"Tunde Balogun",staffEmail:"t.balogun@undp.org",agency:"UNDP",dest:"UNDP Country Office / Field Visit (Kano)",status:"approved",approvedBy:"Supervisor F. Adeyemi",validUntil:t0+7*864e5,at:t9-1*h,verifiedAt:null}],
+    dobs:[{id:"dob1",at:t9-1.2*h,severity:"routine",category:"Power / Utilities",title:"Main Grid to Generator Switchover",detail:"FCT public power failure; automatic switch to 500kVA generator completed normally with zero disruption.",station:"S1",officer:"A. Bello"}],
+    parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Diplomatic Bay #1",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}]};
 }
 const TOUR=[
   ["Live overview","Everything happening across the four stations at once: who is expected, who is on site, and what needs attention. Each alert has a button that deals with it.",()=>{view="dashboard"}],
@@ -1795,9 +1816,9 @@ function drawTour(){
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourDone")) $("#tourDone").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;go(0)};
 }
-const DEMO_KEY="unhDemoState_v8";
+const DEMO_KEY="unhDemoState_v9";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
-  try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
+  try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
 function loadDemo(){ try{ const d=JSON.parse(sessionStorage.getItem(DEMO_KEY)||"null"); return d&&d.visitors&&now()-d.at<12*3600e3?d:null; }catch(e){ return null; } }
 window.addEventListener("storage",e=>{
@@ -1811,6 +1832,7 @@ function startDemo(){
   DEMO=true; fb={demo:true}; db=demoDb();
   me={uid:"demo-admin",name:"Demo Administrator",role:"admin",email:"demo@example.org",active:true};
   const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[]; handovers=d.handovers||[];
+  events=d.events||(demoData().events||[]); assetPasses=d.assetPasses||d.assets||(demoData().assets||[]); dobs=d.dobs||(demoData().dobs||[]); parkings=d.parkings||(demoData().parkings||[]);
   if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role){me.role=saved.role;me.name=saved.role==="admin"?"Demo Administrator":ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
@@ -1989,6 +2011,188 @@ V.assistant=()=>head("Operations assistant","Ask about recent and current visito
    ${chat.map(c=>`<div><div class="small"><b>${esc(c.q)}</b></div><div class="ans">${esc(c.a)}</div></div>`).join("")}
   </div><div class="panel"><h2>Automatic reminders</h2>${alertList()}</div>`;
 
+/* 1. Conferences & Events Mode */
+V.events=()=>{
+  const list=events.slice().sort((a,b)=>(b.at||0)-(a.at||0));
+  return head("Conferences & Events Accreditation","Host inter-agency workshops, summits, and delegations. Create registration links and manage fast-track arrivals.")+
+  `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <h2>Registered Conferences &amp; Events (${list.length})</h2><button class="btn pri" id="ev_new_modal">+ Create new event</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:14px">
+    ${list.map(e=>`<div class="vcard" style="display:flex;flex-direction:column;align-items:stretch;gap:8px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><span class="pill ${e.status==="active"?"p-in":"p-pending"}">${esc(e.status==="active"?"Active · Accreditation open":"Draft")}</span><h3 style="margin:6px 0 2px">${esc(e.title)}</h3><div class="small">${esc(e.agency)} · ${esc(e.building)} (${esc(e.room)})</div></div>
+        <span class="mono ref">${esc(e.code)}</span>
+      </div>
+      <div class="small" style="color:var(--muted)">${esc(e.desc||"")}</div>
+      <div class="kpis" style="grid-template-columns:1fr 1fr 1fr;margin:4px 0">
+        <div class="kpi" style="padding:6px"><div class="n" style="font-size:18px">${e.expectedCount||0}</div><div class="l">Expected</div></div>
+        <div class="kpi ok" style="padding:6px"><div class="n" style="font-size:18px">${e.approvedCount||0}</div><div class="l">Approved</div></div>
+        <div class="kpi" style="padding:6px"><div class="n" style="font-size:18px">${e.checkedInCount||0}</div><div class="l">Checked in</div></div>
+      </div>
+      <div class="acts" style="margin-top:auto">
+        <button class="btn pri" data-ev-roster="${esc(e.id)}">View Attendee Roster</button>
+        <button class="btn" data-ev-copy="${esc(e.code)}">Copy Registration Link</button>
+        <button class="btn ok" data-ev-badges="${esc(e.id)}">Print Batch Badges</button>
+      </div>
+    </div>`).join("")||`<div class="empty">No events scheduled. Click "+ Create new event" to start.</div>`}
+  </div></div>`;
+};
+
+/* 2. Vehicles & Parking Management */
+V.parking=()=>{
+  const insideVehicles=visitors.filter(v=>v.vehicle&&["in","arrived"].includes(v.status));
+  const parkMap=new Map(); parkings.forEach(p=>parkMap.set(p.plate,p));
+  return head("Diplomatic Vehicles & Parking Bays","Real-time tracking of motorcades, embassy vehicles, and visitor parking bays on compound.")+
+  `<div class="kpis">
+    <div class="kpi ok"><div class="n">${insideVehicles.length}</div><div class="l">Vehicles inside compound</div></div>
+    <div class="kpi"><div class="n">${visitors.filter(v=>v.vehicle&&v.type==="vip"&&v.status==="in").length}</div><div class="l">VIP diplomatic bays occupied</div></div>
+    <div class="kpi"><div class="n">${Math.max(0, 24 - insideVehicles.length)}</div><div class="l">Visitor bays remaining</div></div>
+  </div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <h2>Vehicles Currently on Premises</h2>
+      <button class="btn pri" id="veh_quick_log">+ Assign / Change parking bay</button>
+    </div>
+    <div class="tw" style="margin-top:12px"><table><thead><tr><th>Plate Number</th><th>Driver / Vehicle Info</th><th>Visitor / Principal</th><th>Assigned Bay</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+    ${insideVehicles.map(v=>{
+      const p=parkMap.get(v.vehicle)||{};
+      return `<tr>
+        <td class="mono"><b>🚗 ${esc(v.vehicle)}</b></td>
+        <td class="small">${esc(p.driverNote||(v.type==="vip"?"Diplomatic chauffeur":"Visitor vehicle"))}</td>
+        <td><b>${esc(v.name)}</b> <span class="small">(${esc(v.org)})</span></td>
+        <td><span class="pill ${v.type==="vip"?"p-in":"p-pending"}">${esc(p.bay||(v.type==="vip"?"VIP Diplomatic Bay #1":"Main Visitor Car Park"))}</span></td>
+        <td>${pill(v)}</td>
+        <td><button class="btn" data-veh-bay="${esc(v.vehicle)}">Reassign Bay</button></td>
+      </tr>`;
+    }).join("")||`<tr><td colspan="6" class="empty">No visitor vehicles currently recorded inside the gate.</td></tr>`}
+    </tbody></table></div>
+  </div>`;
+};
+
+/* 3. Material & Asset Gate Pass (Property Removal) */
+V.assets=()=>{
+  const list=assetPasses.slice().sort((a,b)=>(b.at||0)-(a.at||0));
+  return head("Material & Asset Gate Pass","Strict property removal control. Authorise and record official UN assets and equipment leaving UN House Abuja.")+
+  `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <h2>Asset Removal Passes (${list.length})</h2><button class="btn pri" id="asset_new_modal">+ Request Material Pass</button>
+  </div>
+  <div class="tw" style="margin-top:12px"><table><thead><tr><th>Pass Ref</th><th>Item Description &amp; Serial #</th><th>Staff Custodian</th><th>Agency / Destination</th><th>Authorisation</th><th>Station Verification</th></tr></thead><tbody>
+  ${list.map(a=>`<tr>
+    <td class="mono"><b>${esc(a.ref)}</b></td>
+    <td><b>${esc(a.item)}</b><div class="small mono">SN: ${esc(a.serial||"N/A")}</div></td>
+    <td>${esc(a.staffName)}<div class="small">${esc(a.staffEmail)}</div></td>
+    <td><b>${esc(a.agency)}</b><div class="small">To: ${esc(a.dest)}</div></td>
+    <td>${a.status==="approved"?`<span class="pill p-in">Approved by ${esc(a.approvedBy)}</span>`:a.status==="pending"?`<span class="pill p-pending">Awaiting Supervisor</span>`:`<span class="pill p-rejected">${esc(a.status)}</span>`}</td>
+    <td>${a.verifiedAt?`<span class="small" style="color:var(--ok)">✓ Cleared at Station 1 (${fmtT(a.verifiedAt)})</span>`:(a.status==="approved"&&canAct("arrive")?`<button class="btn ok" data-asset-verify="${esc(a.id)}">Verify &amp; Clear at Gate</button>`:`<span class="small">Pending Gate Verification</span>`)}</td>
+  </tr>`).join("")||`<tr><td colspan="6" class="empty">No property removal passes logged.</td></tr>`}
+  </tbody></table></div></div>`;
+};
+
+/* 4. Daily Occurrence Book (DOB) */
+V.dob=()=>{
+  const list=dobs.slice().sort((a,b)=>b.at-a.at);
+  return head("Daily Occurrence Book (DOB)","Official UNDSS Security Station Logbook for operational events, facility alerts, and security incidents.")+
+  `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h2>Station Occurrence Log (${list.length})</h2><button class="btn pri" id="dob_new_entry">+ Record New Occurrence</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+      ${list.map(d=>`<div class="vcard" style="border-left:4px solid ${d.severity==="incident"?"var(--bad)":d.severity==="alert"?"var(--warn)":"var(--accent)"}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <span class="pill ${d.severity==="incident"?"p-rejected":d.severity==="alert"?"p-pending":"p-in"}">${esc(d.severity.toUpperCase())}</span>
+            <span class="small" style="margin-left:6px;font-weight:600">${esc(d.category)}</span>
+            <h3 style="margin:4px 0">${esc(d.title)}</h3>
+          </div>
+          <span class="mono small">${fmtD(d.at)}</span>
+        </div>
+        <p style="margin:4px 0 6px;font-size:13.5px">${esc(d.detail)}</p>
+        <div class="small" style="color:var(--muted)">Logged at <b>${esc(d.station||"Station 1")}</b> by <b>${esc(d.officer)}</b></div>
+      </div>`).join("")||`<div class="empty">No occurrences recorded today. All stations quiet.</div>`}
+    </div>
+  </div>`;
+};
+
+/* 5. End-of-Day Security Sweep */
+V.sweep=()=>{
+  const onSite=visitors.filter(v=>v.status==="in"||v.status==="tagged"||(v.type==="vip"&&v.status==="arrived"));
+  const unreturnedTags=visitors.filter(v=>v.tagReturned===false&&isToday(v.outAt||0));
+  const waitingParcels=deliveries.filter(d=>d.status==="waiting");
+  return head("End-of-Day Compound Security Sweep","Daily 17:00 operational sweep: verify everyone remaining on premises, account for visitor tags, and clear pending items.")+
+  `<div class="kpis">
+    <div class="kpi ${onSite.length?"alert":"ok"}"><div class="n">${onSite.length}</div><div class="l">Visitors remaining on site</div></div>
+    <div class="kpi ${unreturnedTags.length?"alert":"ok"}"><div class="n">${unreturnedTags.length}</div><div class="l">Unreturned physical tags</div></div>
+    <div class="kpi"><div class="n">${waitingParcels.length}</div><div class="l">Parcels at reception</div></div>
+  </div>
+  <div class="panel">
+    <h2>1. Visitors &amp; Contractors Currently On Site (${onSite.length})</h2>
+    ${table(onSite, v=>`<div class="acts" style="flex-wrap:nowrap"><button class="btn bad" data-sweep-out="${esc(v.id)}">Sign out &amp; Clear</button>${B(v.id,"extendstay","Extend stay")}</div>`,"All visitors have departed compound.")}
+  </div>
+  <div class="panel">
+    <h2>2. Closing Security Sweep Sign-Off</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0;font-size:13px">
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_bld" checked style="width:auto"> All building wings &amp; conference rooms physically checked</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_gates" checked style="width:auto"> Station 1 &amp; Station 4 vehicular gates secured</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_keys" checked style="width:auto"> Master keys and radios accounted in armory</label>
+      <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sw_handover" checked style="width:auto"> Shift Handover signed with Night Guard Commander</label>
+    </div>
+    <div class="acts">
+      <button class="btn ok" id="sw_complete_btn">Record Completed Daily Sweep</button>
+      <button class="btn" id="sw_print_btn">Print Closing Sweep Log</button>
+    </div>
+  </div>`;
+};
+
+/* 6. Executive Management Brief (UNDP / UN House Abuja) */
+V.exec=()=>{
+  const arrToday=visitors.filter(v=>isToday(v.arrivedAt||v.inAt||v.expected));
+  const vipCount=arrToday.filter(v=>v.type==="vip").length;
+  const conCount=arrToday.filter(v=>v.type==="contractor").length;
+  const staffActive=staffList.filter(s=>s.active!==false).length;
+  return head("Executive Management Brief","Official high-level operational summary for Resident Coordinator, OMT, and UNDSS Security Cell.")+
+  `<div class="panel" style="padding:20px;background:var(--surface)">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:16px">
+      <div>
+        <h1 style="font-size:20px;color:var(--navy);margin:0">UNITED NATIONS SYSTEM IN NIGERIA</h1>
+        <div style="font-size:12px;color:var(--muted)">UN House Abuja · Daily Access &amp; Operations Executive Brief</div>
+      </div>
+      <div style="text-align:right" class="small">
+        <b>Date:</b> ${new Date().toLocaleDateString([], {weekday:"long",day:"numeric",month:"long",year:"numeric"})}<br>
+        <b>Report Generated:</b> ${fmtT(now())}
+      </div>
+    </div>
+    <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kpi"><div class="n">${arrToday.length}</div><div class="l">Total Visitors Processed</div></div>
+      <div class="kpi"><div class="n">${vipCount}</div><div class="l">High-Level VIP Dignitaries</div></div>
+      <div class="kpi"><div class="n">${conCount}</div><div class="l">Contractors &amp; Maintenance</div></div>
+      <div class="kpi ok"><div class="n">${Math.max(1, events.length)}</div><div class="l">Interagency Conferences</div></div>
+    </div>
+    <div class="grid2" style="margin-top:16px">
+      <div class="panel" style="background:var(--surface2)">
+        <h3 style="margin-top:0">Agency Traffic Distribution</h3>
+        <div class="tw"><table><tbody>
+          ${AGENCIES.map(a=>[a,visitors.filter(v=>v.agency===a&&isToday(v.expected||v.inAt)).length]).filter(x=>x[1]).map(([a,n])=>`<tr><td><b>${esc(a)}</b></td><td class="mono" style="text-align:right">${n} visitor(s)</td></tr>`).join("")||`<tr><td>No visitors today</td></tr>`}
+        </tbody></table></div>
+      </div>
+      <div class="panel" style="background:var(--surface2)">
+        <h3 style="margin-top:0">Security &amp; Facilities Compliance</h3>
+        <ul style="line-height:1.8;padding-left:20px;margin:0;font-size:13px">
+          <li><b>UNDSS Watchlist Screenings:</b> 100% automated check on all registrations</li>
+          <li><b>Digital Photo Passes:</b> Active live clocks with anti-screenshot security</li>
+          <li><b>Staff Escort Compliance:</b> Escort handshakes enforced for restricted zones</li>
+          <li><b>Vehicle Gates:</b> S1 (Main Gate) &amp; S4 (VIP Gate) synchronized live</li>
+          <li><b>Operational Status:</b> Normal security condition</li>
+        </ul>
+      </div>
+    </div>
+    <div class="acts" style="margin-top:16px">
+      <button class="btn pri" id="exec_print">Print Executive PDF Report</button>
+      <button class="btn" id="exec_copy">Copy Summary for Resident Coordinator / OMT</button>
+    </div>
+  </div>`;
+};
+
 // Move to a screen and record it in the browser history (Back returns to the previous screen).
 function goView(v,opts={}){
   if(!v) return;
@@ -2006,6 +2210,7 @@ function render(){
   if(DEMO) saveDemo();
   if(fb&&(!me||me.role==="pending"||me.active===false)) return;
   V.staff=staffView; Object.assign(V,{watch:VW_watch,evac:VW_evac,kiosk:VW_kiosk,myguests:VW_myguests,deliveries:VW_deliveries,reports:VW_reports,wall:VW_wall,settings:VW_settings});
+  if(!V[view]) view=defaultView();
   if(!canView(view)) view=defaultView();
   const sameView=render.lastView===view; render.lastView=view;
   const saved={}; let focusId=null, sel=null;
@@ -2070,6 +2275,141 @@ function wire(){
   const ab=$("#askBtn"); if(ab) ab.onclick=()=>ask($("#ask").value);
   const ai=$("#ask"); if(ai) ai.onkeydown=e=>{if(e.key==="Enter")ask(ai.value)};
   document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>ask(b.dataset.q));
+
+  /* Wire new features: Events, Parking, Assets, DOB, Sweep, Exec */
+  const evNew=$("#ev_new_modal");
+  if(evNew) evNew.onclick=()=>{
+    modal(`<h2>Create New Event / Delegation</h2>
+      <div class="f"><label for="ev_m_title">Event Title</label><input id="ev_m_title" placeholder="e.g. Regional Climate &amp; Health Summit"></div>
+      <div class="f"><label for="ev_m_desc">Description / Agenda</label><input id="ev_m_desc" placeholder="e.g. High-level ministerial consultation"></div>
+      <div class="f"><label for="ev_m_agency">Lead Agency</label><select id="ev_m_agency">${AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("")}</select></div>
+      <div class="f"><label for="ev_m_room">Meeting Room</label><input id="ev_m_room" value="Conference Room A"></div>
+      <div class="f"><label for="ev_m_building">Building</label><select id="ev_m_building">${BUILDINGS.map(b=>`<option>${esc(b)}</option>`).join("")}</select></div>
+      <div class="f"><label for="ev_m_exp">Expected Attendees</label><input id="ev_m_exp" type="number" value="40"></div>`,
+      async ()=>{
+        const title=$("#ev_m_title").value.trim(); if(!title) return false;
+        const code="EV-"+Math.random().toString(36).slice(2,6).toUpperCase();
+        const ev={title,desc:$("#ev_m_desc").value.trim(),agency:$("#ev_m_agency").value,room:$("#ev_m_room").value.trim(),building:$("#ev_m_building").value,expectedCount:+$("#ev_m_exp").value||20,approvedCount:0,checkedInCount:0,status:"active",code,at:now()};
+        if(db) await db.collection("events").add(ev); else events.unshift({...ev,id:"ev-"+now()});
+        toast(`Event created: ${title}. Code: ${code}`); render();
+      });
+  };
+  document.querySelectorAll("[data-ev-copy]").forEach(b=>b.onclick=()=>copyText(location.origin+location.pathname+"?event="+encodeURIComponent(b.dataset.evCopy)));
+  document.querySelectorAll("[data-ev-badges]").forEach(b=>b.onclick=()=>{
+    const ev=events.find(e=>e.id===b.dataset.evBadges);
+    if(ev) printTagSheet();
+  });
+  document.querySelectorAll("[data-ev-roster]").forEach(b=>b.onclick=()=>{
+    const ev=events.find(e=>e.id===b.dataset.evRoster);
+    if(!ev) return;
+    const attendees=visitors.filter(v=>v.group===ev.title||v.room===ev.room);
+    modal(`<h2>Attendee Roster · ${esc(ev.title)}</h2><p class="small">${esc(ev.agency)} · ${esc(ev.room)} · Code: <b>${esc(ev.code)}</b></p>
+      <div class="tw" style="max-height:280px;overflow:auto"><table><thead><tr><th>Name</th><th>Organisation</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+      ${attendees.map(a=>`<tr><td><b>${esc(a.name)}</b></td><td>${esc(a.org)}</td><td>${pill(a)}</td><td>${a.status==="approved"?B(a.id,"arrive","Admit"):a.status==="arrived"?B(a.id,"checkin","Check in"):""}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">No individual attendees registered yet under this event. Use registration link to distribute.</td></tr>`}
+      </tbody></table></div>`, ()=>{});
+  });
+
+  const vehQuick=$("#veh_quick_log");
+  if(vehQuick) vehQuick.onclick=()=>{
+    modal(`<h2>Assign / Change Parking Bay</h2>
+      <div class="f"><label for="pk_m_plate">Vehicle Plate Number</label><input id="pk_m_plate" placeholder="e.g. CD-29-01 or ABJ-402-XY"></div>
+      <div class="f"><label for="pk_m_bay">Assigned Parking Bay</label><select id="pk_m_bay"><option>VIP Diplomatic Bay #1</option><option>VIP Diplomatic Bay #2</option><option>Agency Head Bay</option><option>Main Visitor Car Park</option><option>Annex A Loading Bay</option></select></div>
+      <div class="f"><label for="pk_m_driver">Driver / Chauffeur Instructions</label><input id="pk_m_driver" placeholder="e.g. Chauffeur remains with vehicle"></div>`,
+      async ()=>{
+        const plate=$("#pk_m_plate").value.trim().toUpperCase(), bay=$("#pk_m_bay").value, driverNote=$("#pk_m_driver").value.trim();
+        if(!plate) return false;
+        const pk={plate,bay,driverNote,at:now(),status:"parked"};
+        const idx=parkings.findIndex(p=>p.plate===plate);
+        if(idx>=0) parkings[idx]={...parkings[idx],...pk}; else parkings.unshift(pk);
+        if(db) await db.collection("parking").doc(plate).set(pk);
+        toast(`Parking bay assigned: ${plate} -> ${bay}`); render();
+      });
+  };
+  document.querySelectorAll("[data-veh-bay]").forEach(b=>b.onclick=()=>{
+    const plate=b.dataset.vehBay;
+    modal(`<h2>Reassign Bay · ${esc(plate)}</h2>
+      <div class="f"><label for="re_bay">Select New Bay</label><select id="re_bay"><option>VIP Diplomatic Bay #1</option><option>VIP Diplomatic Bay #2</option><option>Agency Head Bay</option><option>Main Visitor Car Park</option><option>Loading Bay</option></select></div>`,
+      async ()=>{
+        const bay=$("#re_bay").value;
+        const idx=parkings.findIndex(p=>p.plate===plate);
+        if(idx>=0) parkings[idx].bay=bay; else parkings.unshift({plate,bay,status:"parked",at:now()});
+        if(db) await db.collection("parking").doc(plate).set({plate,bay,status:"parked",at:now()});
+        toast(`${plate} moved to ${bay}`); render();
+      });
+  });
+
+  const assetModal=$("#asset_new_modal");
+  if(assetModal) assetModal.onclick=()=>{
+    modal(`<h2>Request Material &amp; Asset Gate Pass (Property Removal)</h2>
+      <div class="f"><label for="as_m_item">Item Description &amp; Model</label><input id="as_m_item" placeholder="e.g. Dell Latitude 5420 Laptop + Projector"></div>
+      <div class="f"><label for="as_m_serial">Serial Number / Asset Tag</label><input id="as_m_serial" placeholder="e.g. SN: 9JK2011 / UNDP-ABJ-049"></div>
+      <div class="f"><label for="as_m_name">Custodian Staff Full Name</label><input id="as_m_name" value="${esc(op())}"></div>
+      <div class="f"><label for="as_m_email">Staff Email</label><input id="as_m_email" type="email" value="${esc(fb&&me?me.email:"")}"></div>
+      <div class="f"><label for="as_m_agency">Agency</label><select id="as_m_agency">${AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("")}</select></div>
+      <div class="f"><label for="as_m_dest">Official Destination / Purpose</label><input id="as_m_dest" placeholder="e.g. Field mission to Maiduguri / Equipment servicing"></div>`,
+      async ()=>{
+        const item=$("#as_m_item").value.trim(), serial=$("#as_m_serial").value.trim(), staffName=$("#as_m_name").value.trim();
+        if(!item||!staffName) return false;
+        const ref="MP-"+new Date().getFullYear()+"-"+String(Math.floor(Math.random()*9000)+1000);
+        const passRec={ref,item,serial,staffName,staffEmail:$("#as_m_email").value.trim().toLowerCase(),agency:$("#as_m_agency").value,dest:$("#as_m_dest").value.trim(),status:["admin","approver"].includes(myRole())?"approved":"pending",approvedBy:["admin","approver"].includes(myRole())?op():"",at:now()};
+        if(db) await db.collection("assets").add(passRec); else assetPasses.unshift({...passRec,id:"as-"+now()});
+        toast(`Material Pass ${ref} requested.`); render();
+      });
+  };
+  document.querySelectorAll("[data-asset-verify]").forEach(b=>b.onclick=async()=>{
+    const id=b.dataset.assetVerify, a=assetPasses.find(x=>x.id===id);
+    if(!a) return;
+    a.verifiedAt=now(); a.verifiedBy=op();
+    if(db) await db.collection("assets").doc(id).update({verifiedAt:now(),verifiedBy:op()});
+    toast(`Material pass verified. Equipment cleared to exit gate.`); render();
+  });
+
+  const dobEntry=$("#dob_new_entry");
+  if(dobEntry) dobEntry.onclick=()=>{
+    modal(`<h2>Record Security Occurrence (Daily Occurrence Book)</h2>
+      <div class="f"><label for="dob_m_title">Occurrence Summary</label><input id="dob_m_title" placeholder="e.g. Public Power Disruption / Routine Patrol Completed"></div>
+      <div class="f"><label for="dob_m_cat">Category</label><select id="dob_m_cat"><option>Power / Utilities</option><option>Access Control / Gate Incident</option><option>Diplomatic Motorcade Movement</option><option>Tailgating / Suspicious Activity</option><option>Medical / First Aid</option><option>Routine Shift Checklist</option></select></div>
+      <div class="f"><label for="dob_m_sev">Severity Level</label><select id="dob_m_sev"><option value="routine">Routine</option><option value="alert">Alert / Warning</option><option value="incident">Critical Incident</option></select></div>
+      <div class="f"><label for="dob_m_detail">Full Operational Details</label><textarea id="dob_m_detail" placeholder="State observations, actions taken, and notifications made..."></textarea></div>`,
+      async ()=>{
+        const title=$("#dob_m_title").value.trim(), detail=$("#dob_m_detail").value.trim();
+        if(!title) return false;
+        const rec={title,category:$("#dob_m_cat").value,severity:$("#dob_m_sev").value,detail,station:STATIONS[station()]||"Station 1",officer:op(),at:now()};
+        if(db) await db.collection("dob").add(rec); else dobs.unshift({...rec,id:"dob-"+now()});
+        toast("Occurrence logged in Daily Occurrence Book."); render();
+      });
+  };
+
+  const swComplete=$("#sw_complete_btn");
+  if(swComplete) swComplete.onclick=()=>{
+    const rem=visitors.filter(v=>v.status==="in").length;
+    toast(`End-of-day sweep completed by ${op()}. ${rem} visitor(s) remaining on premises reconciled.`);
+  };
+  document.querySelectorAll("[data-sweep-out]").forEach(b=>b.onclick=()=>{
+    const v=visitors.find(x=>x.id===b.dataset.sweepOut);
+    if(v) doAct("checkout",v);
+  });
+  const swPrint=$("#sw_print_btn");
+  if(swPrint) swPrint.onclick=()=>{
+    let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
+    const onSite=visitors.filter(v=>v.status==="in");
+    p.innerHTML=`<div style="padding:14mm;font-family:sans-serif">
+      <h2>UN HOUSE ABUJA — CLOSING SECURITY SWEEP LOG</h2>
+      <div><b>Date:</b> ${new Date().toLocaleDateString()} · <b>Officer:</b> ${esc(op())}</div>
+      <hr style="margin:10px 0">
+      <h3>Visitors Remaining: ${onSite.length}</h3>
+      ${onSite.map(v=>`<div>• ${esc(v.name)} (${esc(v.tag||v.ref)}) · Host: ${esc(v.host)} (${esc(v.building)})</div>`).join("")||"<div>None. Compound fully cleared.</div>"}
+    </div>`;
+    document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},100);
+  };
+
+  const execPrint=$("#exec_print");
+  if(execPrint) execPrint.onclick=()=>window.print();
+  const execCopy=$("#exec_copy");
+  if(execCopy) execCopy.onclick=async()=>{
+    const t=`UN HOUSE ABUJA — EXECUTIVE OPERATIONAL BRIEF\nDate: ${new Date().toLocaleDateString()}\nTotal Visitors: ${visitors.filter(v=>isToday(v.inAt||v.expected)).length}\nVIP Dignitaries: ${visitors.filter(v=>v.type==="vip"&&isToday(v.inAt||v.expected)).length}\nStatus: Normal operations, 100% watchlist screening compliance.`;
+    await navigator.clipboard.writeText(t); toast("Executive brief copied for email dispatch.");
+  };
 }
 async function loadExamples(silent){
   lsDel("unhNoAutoSample");
@@ -2333,8 +2673,19 @@ function doAct(a,v){
     return;
   }
   if(a==="detail"){
-    const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:560px"><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">×</button><h2>${esc(v.name)} ${tpill(v)}</h2><div class="small">${esc(v.org)} · <span class="ref">${esc(v.ref)}</span> · ${pill(v)}${v.vehicle?` · <span class="mono">🚗 ${esc(v.vehicle)}</span>`:""}</div><div class="small">Host ${esc(v.host)} (${esc(v.agency)})${v.backupHost?` · Backup: ${esc(v.backupHost)}`:""} · ${esc(v.building)}${v.room?" · "+esc(v.room):""} · ${esc(v.purpose)}${v.escort||v.restricted?" · <b>Escort required</b>":""}</div><div class="small">Requested by ${esc(v.requestedBy||v.host)}${v.decidedBy?` · ${v.status==="rejected"?"Rejected":"Approved"} by <b>${esc(v.decidedBy)}</b>${v.decidedAt?" ("+fmtD(v.decidedAt)+")":""}`:" · awaiting approval"}</div>${v.rejectReason?`<div class="small" style="color:var(--bad)">Rejection reason: <b>${esc(v.rejectReason)}</b></div>`:""}<div class="tw" style="max-height:300px;overflow:auto"><table><tbody>${(v.log||[]).slice().reverse().map(l=>`<tr><td class="mono">${fmtD(l.t)}</td><td>${esc(l.a)}<div class="small">${esc(l.by)} · ${esc(l.st)}</div></td></tr>`).join("")}</tbody></table></div><div class="acts">${passLive(v.status)&&canAct("pass")?`<button class="btn pri" id="mPass">Live digital pass</button>`:""}${v.status==="rejected"&&canAct("resubmit")?`<button class="btn pri" id="mResub">Edit & resubmit</button>`:""}${v.status==="in"&&canAct("extendstay")?`<button class="btn" id="mExt">Extend stay (host permission)</button>`:""}<button class="btn" id="mNo">Close</button></div></div>`;
-    m.hidden=false; $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true; if($("#mPass")) $("#mPass").onclick=()=>openPass(v); if($("#mExt")) $("#mExt").onclick=()=>doAct("extendstay",v); if($("#mResub")) $("#mResub").onclick=()=>doAct("resubmit",v); $("#mNo").focus();
+    const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:560px"><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">×</button><h2>${esc(v.name)} ${tpill(v)}</h2><div class="small">${esc(v.org)} · <span class="ref">${esc(v.ref)}</span> · ${pill(v)}${v.vehicle?` · <span class="mono">🚗 ${esc(v.vehicle)}</span>`:""}</div>
+    ${v.type==="vip"?`<div class="banner" style="background:#e0ecff;color:#1e40af;border-color:#bfdbfe;margin:8px 0;padding:8px 12px;font-size:12.5px"><b>VIP Protocol Note:</b> Pre-cleared diplomatic courtesies. Flag protocol active. Security escort to ${esc(v.room||"RC Office")}. Chauffeur holding bay assigned.</div>`:""}
+    <div class="small">Host ${esc(v.host)} (${esc(v.agency)})${v.backupHost?` · Backup: ${esc(v.backupHost)}`:""} · ${esc(v.building)}${v.room?" · "+esc(v.room):""} · ${esc(v.purpose)}${v.escort||v.restricted?" · <b>Escort required</b>":""}</div>
+    ${v.escortOfficer?`<div class="small" style="color:var(--ok)">✓ <b>Designated Staff Escort:</b> ${esc(v.escortOfficer)} (${fmtT(v.escortHandshakeAt||v.inAt)})</div>`:""}
+    <div class="small">Requested by ${esc(v.requestedBy||v.host)}${v.decidedBy?` · ${v.status==="rejected"?"Rejected":"Approved"} by <b>${esc(v.decidedBy)}</b>${v.decidedAt?" ("+fmtD(v.decidedAt)+")":""}`:" · awaiting approval"}</div>${v.rejectReason?`<div class="small" style="color:var(--bad)">Rejection reason: <b>${esc(v.rejectReason)}</b></div>`:""}<div class="tw" style="max-height:240px;overflow:auto"><table><tbody>${(v.log||[]).slice().reverse().map(l=>`<tr><td class="mono">${fmtD(l.t)}</td><td>${esc(l.a)}<div class="small">${esc(l.by)} · ${esc(l.st)}</div></td></tr>`).join("")}</tbody></table></div>
+    <div class="acts">${(v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?`<button class="btn ok" id="mEscort">${v.escortOfficer?"Change Escort":"Confirm Staff Escort Handshake"}</button>`:""}${passLive(v.status)&&canAct("pass")?`<button class="btn pri" id="mPass">Live digital pass</button>`:""}${v.status==="rejected"&&canAct("resubmit")?`<button class="btn pri" id="mResub">Edit & resubmit</button>`:""}${v.status==="in"&&canAct("extendstay")?`<button class="btn" id="mExt">Extend stay (host permission)</button>`:""}<button class="btn" id="mNo">Close</button></div></div>`;
+    m.hidden=false; $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true; if($("#mPass")) $("#mPass").onclick=()=>openPass(v); if($("#mExt")) $("#mExt").onclick=()=>doAct("extendstay",v); if($("#mResub")) $("#mResub").onclick=()=>doAct("resubmit",v);
+    if($("#mEscort")) $("#mEscort").onclick=()=>{
+      modal(`<h2>Staff Escort Handshake · ${esc(v.name)}</h2><p class="small">Security requires physical handover to a designated staff member for restricted or escorted visits.</p>
+        <div class="f"><label for="m_esc">Designated Staff Escort Name</label><input id="m_esc" value="${esc(v.escortOfficer||v.host||op())}"></div>`,
+        ()=>{const escName=$("#m_esc").value.trim();if(!escName)return false;act(v,`Physical escort handed over to ${escName}`,{escortOfficer:escName,escortHandshakeAt:now()}).then(()=>toast(`Escort handshake logged for ${v.name}: ${escName}`));});
+    };
+    $("#mNo").focus();
   }
 }
 async function copyCsv(){
