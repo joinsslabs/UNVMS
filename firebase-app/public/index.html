@@ -12,19 +12,19 @@
 /* Layout: navy masthead band with sign-in, then a station strip, capabilities grid, security notes, footer */
 :root{
   --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --fg:#0f172a; --muted:#526077; --line:#e2e8f0;
-  --navy:#172542; --navy2:#0f1a30; --accent:#1d6ce0; --accent-fg:#ffffff; --onnavy:#ffffff; --onnavy-muted:#b9c4d8;
-  --ok:#15803d; --ok-bg:#dcfce7;
-  --shadow:0 1px 3px rgba(15,23,42,.05),0 8px 24px -8px rgba(15,23,42,.07);
+  --navy:#0f1a30; --navy2:#080e1c; --accent:#0284c7; --accent-fg:#ffffff; --onnavy:#ffffff; --onnavy-muted:#94a3b8;
+  --ok:#0284c7; --ok-bg:#e0f2fe;
+  --shadow:0 1px 3px rgba(15,23,42,.04),0 10px 25px -5px rgba(15,23,42,.08);
   --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
-  --navy:#090f1c; --navy2:#060a13; --accent:#5ea2ff; --accent-fg:#08101f;
-  --ok:#4ade80; --ok-bg:#133223; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}}
+  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
+  --ok:#38bdf8; --ok-bg:#0c2d48; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
-  --navy:#090f1c; --navy2:#060a13; --accent:#5ea2ff; --accent-fg:#08101f;
-  --ok:#4ade80; --ok-bg:#133223; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}
+  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
+  --ok:#38bdf8; --ok-bg:#0c2d48; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:smooth}
@@ -51,14 +51,14 @@ header.band{background:radial-gradient(900px 420px at 85% 20%,rgba(29,108,224,.2
 .btn:focus-visible{outline:2px solid var(--onnavy);outline-offset:3px}
 .hero{padding-block:54px 64px;display:grid;grid-template-columns:1.2fr .8fr;gap:44px;align-items:center}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--onnavy-muted);background:#ffffff12;border:1px solid #ffffff22;padding:4px 12px;border-radius:999px}
-.eyebrow i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px #4ade8033}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.25)}
 h1{font-size:clamp(30px,4.5vw,46px);line-height:1.12;margin:14px 0 16px;text-wrap:balance;font-weight:700;letter-spacing:-.02em}
 .lead{font-size:18px;color:var(--onnavy-muted);max-width:56ch;margin:0 0 28px}
 .ctas{display:flex;gap:12px;flex-wrap:wrap}
-.pass{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 24px 50px -12px rgba(0,0,0,.45);max-width:350px;justify-self:end;width:100%;border-top:5px solid var(--ok)}
+.pass{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 24px 50px -12px rgba(0,0,0,.45);max-width:350px;justify-self:end;width:100%;border-top:4px solid var(--accent)}
 .pass .ph{background:var(--navy2);color:var(--onnavy);padding:11px 18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;font-weight:600}
-.pass .ph .st-ok{color:#4ade80;display:inline-flex;align-items:center;gap:5px}
-.pass .ph .st-ok::before{content:"";width:6px;height:6px;border-radius:50%;background:#4ade80}
+.pass .ph .st-ok{color:#38bdf8;display:inline-flex;align-items:center;gap:5px}
+.pass .ph .st-ok::before{content:"";width:6px;height:6px;border-radius:50%;background:#38bdf8}
 .pass .pb{padding:20px 18px;display:grid;gap:11px}
 .pass .top-r{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .pass .nm{font-size:21px;font-weight:700;line-height:1.2}
@@ -125,22 +125,20 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
         <a class="btn ghost" href="app.html?demo">Try the guided demo</a>
         <a class="btn ghost" href="#how">How it works</a>
       </div>
-      <div class="metrics-bar" style="margin-top:32px;padding-top:24px;border-top:1px solid #ffffff18;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:18px">
-        <div>
-          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">350+</div>
-          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Daily Visitors</div>
+      <div class="metrics-bar" style="margin-top:34px;padding:16px 24px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:14px;display:inline-flex;gap:32px;align-items:center;box-shadow:0 8px 24px -6px rgba(0,0,0,0.25)">
+        <div style="display:flex;flex-direction:column;white-space:nowrap">
+          <span style="font-size:22px;font-weight:700;color:#fff;font-family:var(--mono);line-height:1;letter-spacing:-0.02em;white-space:nowrap">&lt; 45s</span>
+          <span style="font-size:10.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap">Gate Clearance</span>
         </div>
-        <div>
-          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">&lt; 45s</div>
-          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Gate Clearance</div>
+        <div style="width:1px;height:26px;background:rgba(255,255,255,0.14);flex:none"></div>
+        <div style="display:flex;flex-direction:column;white-space:nowrap">
+          <span style="font-size:22px;font-weight:700;color:#fff;font-family:var(--mono);line-height:1;letter-spacing:-0.02em;white-space:nowrap">16 Agencies</span>
+          <span style="font-size:10.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap">Unified Compound</span>
         </div>
-        <div>
-          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">16 Agencies</div>
-          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Unified Compound</div>
-        </div>
-        <div>
-          <div style="font-size:24px;font-weight:700;color:#fff;font-family:var(--mono)">4 Stations</div>
-          <div style="font-size:11px;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:2px">Sequential Flow</div>
+        <div style="width:1px;height:26px;background:rgba(255,255,255,0.14);flex:none"></div>
+        <div style="display:flex;flex-direction:column;white-space:nowrap">
+          <span style="font-size:22px;font-weight:700;color:#fff;font-family:var(--mono);line-height:1;letter-spacing:-0.02em;white-space:nowrap">4 Stations</span>
+          <span style="font-size:10.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap">Sequential Flow</span>
         </div>
       </div>
     </div>
