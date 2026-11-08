@@ -182,22 +182,168 @@ textarea{min-height:70px;resize:vertical}
 .appfoot a{color:var(--muted)}
 .appfoot a:hover{color:var(--fg)}
 #printArea{display:none}
-@media print{body.print-sheet{margin:0}body.print-sheet #printArea{display:block!important}
-.tsheet{display:grid;grid-template-columns:86mm 86mm;gap:4mm 6mm;padding:8mm;justify-content:center}
-.tcard{width:86mm;height:54mm;box-sizing:border-box;border:1px dashed #555;display:flex;flex-direction:column;font-family:Arial,sans-serif;color:#000;break-inside:avoid}
-.tc-h{background:#1e2f52!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;justify-content:space-between;padding:2mm 3mm;font-size:8pt;font-weight:bold;text-transform:uppercase}
-.tc-b{flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 4mm}.tc-n{font-family:monospace;font-size:30pt;font-weight:bold}.tc-b img{width:26mm;height:26mm}
-.tc-f{font-size:6pt;text-align:center;padding:1mm;border-top:1px solid #000}}
-@media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important}}
-/* Single badges print on card size; the tag sheet uses its own A4 page. */
-@page{size:86mm 54mm;margin:0}
-@page sheet{size:A4 portrait;margin:0}
-@media print{body.print-sheet .tsheet{page:sheet}
-.pbadge{width:86mm;height:54mm;box-sizing:border-box;border:1px solid #000;font-family:Arial,sans-serif;color:#000;display:flex;flex-direction:column}
-.pb-h{background:#1e2f52!important;color:#fff!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;justify-content:space-between;padding:2mm 3mm;font-size:8pt;font-weight:bold;text-transform:uppercase;letter-spacing:.08em}
-.pb-b{flex:1;display:flex;justify-content:space-between;gap:2mm;padding:2mm 3mm}.pb-b img{width:24mm;height:24mm}
-.pb-n{font-size:12pt;font-weight:bold}.pb-o{font-size:8pt}.pb-t{font-family:monospace;font-size:16pt;font-weight:bold;margin:1mm 0}.pb-r{font-size:7pt}.pb-ref{font-family:monospace;font-size:7pt;margin-top:1mm}
-.pb-f{font-size:6pt;padding:1mm 3mm;border-top:1px solid #000}}
+@media print{
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    width: 100% !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body > *:not(#printArea) {
+    display: none !important;
+  }
+  #printArea {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-sizing: border-box !important;
+  }
+  .print-doc {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+  .print-doc table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .print-doc tr, .print-doc td, .print-doc th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .tsheet {
+    display: grid;
+    grid-template-columns: 86mm 86mm;
+    gap: 4mm 6mm;
+    padding: 4mm 8mm;
+    justify-content: center;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .tcard {
+    width: 86mm;
+    height: 54mm;
+    box-sizing: border-box;
+    border: 1px dashed #555;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    color: #000;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .tc-h {
+    background: #1e2f52 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    display: flex;
+    justify-content: space-between;
+    padding: 2mm 3mm;
+    font-size: 8pt;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  .tc-b {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4mm;
+  }
+  .tc-n {
+    font-family: monospace;
+    font-size: 30pt;
+    font-weight: bold;
+  }
+  .tc-b img {
+    width: 26mm;
+    height: 26mm;
+  }
+  .tc-f {
+    font-size: 6pt;
+    text-align: center;
+    padding: 1mm;
+    border-top: 1px solid #000;
+  }
+  .pbadge {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    color: #000;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  body.print-badge .pbadge {
+    width: 86mm;
+    height: 54mm;
+    border: 1px solid #000;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+  .pb-h {
+    background: #1e2f52 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    display: flex;
+    justify-content: space-between;
+    padding: 2mm 3mm;
+    font-size: 8pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .pb-b {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 2mm;
+    padding: 2mm 3mm;
+  }
+  .pb-b img {
+    width: 24mm;
+    height: 24mm;
+  }
+  .pb-n { font-size: 12pt; font-weight: bold; }
+  .pb-o { font-size: 8pt; }
+  .pb-t { font-family: monospace; font-size: 16pt; font-weight: bold; margin: 1mm 0; }
+  .pb-r { font-size: 7pt; }
+  .pb-ref { font-family: monospace; font-size: 8pt; font-weight: bold; margin-top: 1mm; }
+  .pb-f { font-size: 6pt; padding: 1mm 3mm; border-top: 1px solid #000; }
+}
+/* Default print page: standard A4 portrait with clean margins for reports, closeouts, and passes */
+@page {
+  size: A4 portrait;
+  margin: 10mm 12mm;
+}
+/* Tag sheet page: full A4 portrait with tight margins */
+body.print-sheet {
+  page: sheet;
+}
+@page sheet {
+  size: A4 portrait;
+  margin: 6mm 8mm;
+}
+/* Single badges print on 86x54mm ID card paper */
+body.print-badge {
+  page: card;
+}
+@page card {
+  size: 86mm 54mm;
+  margin: 0;
+}
 .scan-band{border-radius:12px;padding:16px;font-size:20px;font-weight:700;text-align:center}
 .scan-band.ok{background:var(--ok-bg);color:var(--ok)} .scan-band.no{background:var(--warn-bg);color:var(--warn)} .scan-band.info{background:var(--info-bg);color:var(--accent)}
 .vpass{max-width:400px;width:100%;margin:12px auto;background:var(--surface);border-radius:20px;padding:22px;box-shadow:0 20px 50px -25px #0006;display:flex;flex-direction:column;gap:12px;border-top:6px solid var(--muted)}
@@ -778,12 +924,53 @@ const overstay=v=>v.type!=="vip"&&v.status==="in"&&v.inAt&&now()>stayLimit(v);
 const contractorExpired=v=>v.type==="contractor"&&v.accessTo&&now()>v.accessTo&&!["out","rejected","suspended"].includes(v.status);
 const contractorExpiring=v=>v.type==="contractor"&&v.accessTo&&!contractorExpired(v)&&v.accessTo-now()<2*864e5&&v.status!=="suspended";
 const late=v=>v.status==="approved"&&v.expected&&now()-v.expected>45*60e3&&isToday(v.expected);
-function nextAvailableTag(type="visitor"){
-  const pre=type==="contractor"?"C":"V";
-  const used=new Set(visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag));
-  let i=1; while(used.has(pre+"-"+String(i).padStart(3,"0"))) i++;
-  return pre+"-"+String(i).padStart(3,"0");
+
+/* ---------- Gate 1 Available Tag Stock Management ---------- */
+const DEFAULT_GATE_TAGS = [
+  ...Array.from({length:50}, (_,i)=>`V-${String(i+1).padStart(3,"0")}`),
+  ...Array.from({length:20}, (_,i)=>`C-${String(i+1).padStart(3,"0")}`)
+];
+function loadGateTagStock(){
+  try{
+    const saved = localStorage.getItem("unhGateTagStock");
+    if(saved) return JSON.parse(saved);
+  }catch(e){}
+  return [...DEFAULT_GATE_TAGS];
 }
+function saveGateTagStock(stock){
+  try{ localStorage.setItem("unhGateTagStock", JSON.stringify(stock)); }catch(e){}
+}
+let gateTagStock = loadGateTagStock();
+
+function getAvailableTags(type="visitor"){
+  const pre = type==="contractor"?"C":"V";
+  const used = new Set(
+    visitors
+      .filter(x => (x.tag || x.assignedTag) && ["arrived", "tagged", "in"].includes(x.status))
+      .map(x => x.tag || x.assignedTag)
+  );
+  return gateTagStock.filter(t => t.startsWith(pre + "-") && !used.has(t));
+}
+
+function nextAvailableTag(type="visitor"){
+  const avail = getAvailableTags(type);
+  if (avail.length > 0) return avail[0];
+  const pre = type==="contractor"?"C":"V";
+  const used = new Set(
+    visitors
+      .filter(x => (x.tag || x.assignedTag) && ["arrived", "tagged", "in"].includes(x.status))
+      .map(x => x.tag || x.assignedTag)
+  );
+  let i = 1;
+  while (used.has(pre + "-" + String(i).padStart(3, "0"))) i++;
+  const fallback = pre + "-" + String(i).padStart(3, "0");
+  if(!gateTagStock.includes(fallback)){
+    gateTagStock.push(fallback);
+    saveGateTagStock(gateTagStock);
+  }
+  return fallback;
+}
+
 // Alerts: lvl "act" = needs action now, "soon" = coming up, "info" = for awareness. Sorted in that order.
 function alerts(){
   const a=[], since=t=>dur(now()-t);
@@ -850,8 +1037,10 @@ function mailPill(v){const m=v.mail;if(!v.hostEmail)return `<span class="small">
 const QRLIB="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js", SCANLIB="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js";
 async function printBadge(v){
   if(!v) return;
+  const tagRef = v.tag || v.assignedTag || v.ref;
   try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool. Check the internet connection.")}
-  const holder=document.createElement("div"); new QRCode(holder,{text:v.ref,width:160,height:160,correctLevel:QRCode.CorrectLevel.M});
+  const qrPayload = (v.tag || v.assignedTag) ? ("UNHTAG:" + tagRef) : v.ref;
+  const holder=document.createElement("div"); new QRCode(holder,{text:qrPayload,width:160,height:160,correctLevel:QRCode.CorrectLevel.M});
   await new Promise(r=>setTimeout(r,60));
   const img=(holder.querySelector("img")&&holder.querySelector("img").src)||(holder.querySelector("canvas")&&holder.querySelector("canvas").toDataURL());
   const kind=v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor";
@@ -859,10 +1048,14 @@ async function printBadge(v){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   p.innerHTML=`<div class="pbadge"><div class="pb-h"><span>UN House Abuja</span><span>${kind}</span></div>
     <div class="pb-b"><div><div class="pb-n">${esc(v.name)}</div><div class="pb-o">${esc(v.org||"")}</div>
-    <div class="pb-t">${esc(v.tag||"")}</div><div class="pb-r">Host: ${esc(v.host)}</div><div class="pb-r">${esc(v.building||"")}</div>
-    <div class="pb-r">Valid until ${esc(until)}</div><div class="pb-ref">${esc(v.ref)}</div></div>${img?`<img src="${img}" alt="QR code ${esc(v.ref)}">`:""}</div>
-    <div class="pb-f">Wear this badge at all times. Return it on leaving.</div></div>`;
-  setTimeout(()=>window.print(),80);
+    <div class="pb-t">TAG: ${esc(tagRef)}</div><div class="pb-r">Host: ${esc(v.host)}</div><div class="pb-r">${esc(v.building||"")}</div>
+    <div class="pb-r">Valid until ${esc(until)}</div><div class="pb-ref">Ref: ${esc(tagRef)}</div></div>${img?`<img src="${img}" alt="QR code ${esc(tagRef)}">`:""}</div>
+    <div class="pb-f">Ref: ${esc(tagRef)} · Wear this badge at all times. Return it on leaving.</div></div>`;
+  document.body.classList.add("print-badge");
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>document.body.classList.remove("print-badge"),500);
+  },80);
 }
 async function printAssetPass(a){
   if(!a) return;
@@ -1041,7 +1234,7 @@ async function handleScan(txt){
   } else if(txt.startsWith("UNHTAG:")){
     const t=txt.slice(7); v=visitors.find(x=>x.tag===t&&["tagged","in"].includes(x.status));
     if(!v) return scanResult(null,null,`Tag ${t} is free`,"Nobody is holding this tag right now. It can be issued to the next visitor.");
-  } else v=visitors.find(x=>x.ref===txt);
+  } else v=visitors.find(x=>x.ref===txt || x.tag===txt || x.assignedTag===txt || ("UNHTAG:"+x.tag)===txt);
   if(!v) return scanResult(null,p,"Not found here",p?`${p.name}'s visit is not visible to your station.`:`No visitor matches ${txt}.`);
   scanResult(v,p);
 }
@@ -1140,7 +1333,7 @@ async function printTagSheet(){
   if(to<from) return toast("The last number must be the same as or after the first.");
   try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool.")}
   const kind={V:"Visitor",C:"Contractor",P:"VIP"}[pre], cards=[];
-  for(let n=from;n<=to;n++){const t=`${pre}-${String(n).padStart(3,"0")}`;cards.push(`<div class="tcard"><div class="tc-h"><span>UN House Abuja</span><span>${kind}</span></div><div class="tc-b"><div class="tc-n">${t}</div><img src="${await qrDataUrl("UNHTAG:"+t,140)}" alt=""></div><div class="tc-f">Property of UN Common Services · Return on leaving</div></div>`)}
+  for(let n=from;n<=to;n++){const t=`${pre}-${String(n).padStart(3,"0")}`;cards.push(`<div class="tcard"><div class="tc-h"><span>UN House Abuja</span><span>${kind}</span></div><div class="tc-b"><div class="tc-n">${t}</div><img src="${await qrDataUrl("UNHTAG:"+t,140)}" alt=""></div><div class="tc-f">Ref: ${t} · Property of UN Common Services · Return on leaving</div></div>`)}
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   p.innerHTML=`<div class="tsheet">${cards.join("")}</div>`;
   document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},120);
@@ -1346,7 +1539,7 @@ const VW_reports=()=>{
 function printHandoverSheet(h){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   const chk=h.checks||{};
-  p.innerHTML=`<div style="font-family:'IBM Plex Sans',Arial,sans-serif;padding:14mm;color:#111;font-size:10pt;line-height:1.45">
+  p.innerHTML=`<div class="print-doc" style="font-family:'IBM Plex Sans',Arial,sans-serif;color:#111;font-size:9.5pt;line-height:1.45;width:100%;box-sizing:border-box">
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172542;padding-bottom:8px;margin-bottom:12px">
       <div><div style="font-size:14pt;font-weight:700;color:#172542">UN HOUSE ABUJA — 17:00 DAILY RECEPTION CLOSEOUT</div><div style="font-size:9pt;color:#555">UNDP · UN Common Services · Security &amp; Reception Operations</div></div>
       <div style="text-align:right;font-size:9pt"><b>Date / Time:</b> ${esc(fmtD(h.at||now()))}<br><b>Station:</b> ${esc(h.stationLabel||"Main Reception (S1)")}</div>
@@ -1488,7 +1681,7 @@ function printExecutiveBrief(){
   const arrToday=visitors.filter(v=>isToday(v.arrivedAt||v.inAt||v.expected));
   const vipCount=arrToday.filter(v=>v.type==="vip").length;
   const conCount=arrToday.filter(v=>v.type==="contractor").length;
-  p.innerHTML=`<div style="padding:14mm;font-family:'IBM Plex Sans',Arial,sans-serif;color:#111">
+  p.innerHTML=`<div class="print-doc" style="font-family:'IBM Plex Sans',Arial,sans-serif;color:#111;font-size:9.5pt;line-height:1.45;width:100%;box-sizing:border-box">
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172542;padding-bottom:10px;margin-bottom:14px">
       <div><h2 style="margin:0;color:#172542">UNITED NATIONS SYSTEM IN NIGERIA</h2><div style="font-size:10pt;color:#555">UN House Abuja · Daily Access &amp; Operations Executive Brief</div></div>
       <div style="text-align:right;font-size:9pt"><b>Date:</b> ${new Date().toLocaleDateString()}<br><b>Time:</b> ${fmtT(now())}</div>
@@ -1924,13 +2117,84 @@ V.gate=()=>{
   const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
   const done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
 
-  return head("Gate reception & approvals","Station 1. Review and approve visitor requests, verify credentials, auto-assign tag numbers upon gate admission, and register walk-ins.")+
+  const availV = getAvailableTags("visitor");
+  const availC = getAvailableTags("contractor");
+  const usedTags = visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag);
+
+  return head("Gate reception & approvals","Station 1. Manage physical tag stock, review visitor requests, verify credentials, auto-assign tags upon gate admission, and register walk-ins.")+
+  
+  /* Gate 1 Available Tags Feed & Inventory Space */
+  `<div class="panel" style="border-top:4px solid var(--accent);background:var(--surface)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;display:flex;align-items:center;gap:8px">🏷️ Feed Available Physical Tags (Gate 1 Inventory)</h2>
+        <p class="small" style="margin:4px 0 0">Feed physical tags available in your tray/rack into the system. As visitors arrive, the system automatically pulls the next available tag from this stock.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btn_feed_default" title="Load standard UN House starter tags (V-001 to V-050, C-001 to C-020)">✨ Load Standard Stock</button>
+        <button class="btn" id="btn_restock_returned" title="Restock all checked-out tags into available pool">🔄 Restock Returned</button>
+      </div>
+    </div>
+
+    <!-- Live Stock Indicator -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px">
+      <div style="background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--line)">
+        <div class="small" style="color:var(--muted)">Available Visitor Tags</div>
+        <div style="font-size:22px;font-weight:700;color:${availV.length<5?'var(--bad)':'var(--ok)'}">${availV.length} <span style="font-size:12px;font-weight:400;color:var(--muted)">in rack</span></div>
+      </div>
+      <div style="background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--line)">
+        <div class="small" style="color:var(--muted)">Available Contractor Tags</div>
+        <div style="font-size:22px;font-weight:700;color:${availC.length<5?'var(--bad)':'var(--ok)'}">${availC.length} <span style="font-size:12px;font-weight:400;color:var(--muted)">in rack</span></div>
+      </div>
+      <div style="background:var(--surface2);padding:10px 14px;border-radius:8px;border:1px solid var(--line)">
+        <div class="small" style="color:var(--muted)">Tags Currently in Compound</div>
+        <div style="font-size:22px;font-weight:700;color:var(--navy)">${usedTags.length} <span style="font-size:12px;font-weight:400;color:var(--muted)">with visitors</span></div>
+      </div>
+    </div>
+
+    <!-- Feed Controls -->
+    <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:8px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <div class="f" style="flex:1;min-width:200px">
+        <label for="tag_feed_batch" class="small"><b>Scan or Type Tags to Feed</b> (e.g. V-001, V-002, V-005, C-010)</label>
+        <input id="tag_feed_batch" placeholder="Scan barcode/QR or type comma-separated tag numbers">
+      </div>
+      <div class="f" style="width:110px">
+        <label for="tag_feed_pre" class="small"><b>Prefix</b></label>
+        <select id="tag_feed_pre"><option value="V">Visitor (V)</option><option value="C">Contractor (C)</option></select>
+      </div>
+      <div class="f" style="width:85px">
+        <label for="tag_feed_from" class="small"><b>From #</b></label>
+        <input type="number" id="tag_feed_from" value="1" min="1" max="999">
+      </div>
+      <div class="f" style="width:85px">
+        <label for="tag_feed_to" class="small"><b>To #</b></label>
+        <input type="number" id="tag_feed_to" value="50" min="1" max="999">
+      </div>
+      <div class="acts" style="margin-bottom:2px">
+        <button class="btn pri" id="btn_feed_range">+ Feed Range</button>
+        <button class="btn" id="btn_feed_batch">+ Feed Scanned</button>
+      </div>
+    </div>
+
+    <!-- Active Available Tag Stock Chips -->
+    <div style="margin-top:12px">
+      <div class="small" style="font-weight:600;margin-bottom:6px">Tags Currently Ready to Issue at Gate 1:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;max-height:100px;overflow-y:auto;padding:4px 0">
+        ${availV.slice(0,35).map(t=>`<span class="mono" style="font-size:11px;background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:5px;border:1px solid #bae6fd">${esc(t)}</span>`).join("")}
+        ${availV.length>35?`<span class="small" style="align-self:center">+ ${availV.length-35} more visitor tags</span>`:""}
+        ${availC.slice(0,20).map(t=>`<span class="mono" style="font-size:11px;background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:5px;border:1px solid #fde68a">${esc(t)}</span>`).join("")}
+        ${availC.length>20?`<span class="small" style="align-self:center">+ ${availC.length-20} more contractor tags</span>`:""}
+      </div>
+    </div>
+  </div>`+
+
+  /* Pending Approvals */
   (pend.length?`<div class="panel" style="border-left:4px solid var(--accent);background:var(--surface)">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
       <h2 style="margin:0;display:flex;align-items:center;gap:8px">Pending Approvals <span class="cnt hot">${pend.length}</span></h2>
       ${batchBar?`<div class="acts">${batchBar}</div>`:""}
     </div>
-    <p class="small">Review incoming requests before admission. Use <b>Approve & Admit</b> for visitors already at the gate to approve and auto-issue a tag in one step.</p>
+    <p class="small">Review incoming requests before admission. Use <b>Approve & Admit</b> for visitors already at the gate to approve and auto-issue an available tag in one step.</p>
     ${table(pend,v=>{
       const own=ownRequest(v);
       if(own) return `<span class="small">Your request. Another officer must decide.</span>`;
@@ -1938,6 +2202,8 @@ V.gate=()=>{
       return B(v.id,"gateapprove","Approve & Admit","ok")+B(v.id,"approve","Approve request","pri")+B(v.id,"reject","Reject","bad");
     },"No pending approvals.")}
   </div>`:`<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><span>✓ <b>No pending approvals.</b> All visitor requests have been decided.</span></div>`)+
+
+  /* Expected & Admitted Visitors */
   `<div class="panel">
     <h2>Expected & Admitted Visitors</h2>
     ${searchBox()}
@@ -1945,7 +2211,7 @@ V.gate=()=>{
       if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
       if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Verify & admit","pri");
       if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
-      if(v.status==="arrived"&&v.type!=="vip") return `<div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"><b class="mono" style="font-size:13px;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(v.assignedTag||"Tag assigned")}</b><span class="small">Sent to Station 2</span></div>`;
+      if(v.status==="arrived"&&v.type!=="vip") return `<div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"><b class="mono" style="font-size:13px;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(v.assignedTag||v.tag||"Tag assigned")}</b><span class="small">Sent to Station 2</span></div>`;
       return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
     },"No expected visitors match.")}</div>
   </div>
@@ -2729,6 +2995,72 @@ function wire(){
   document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>printBadge(visitors.find(v=>v.id===b.dataset.print)));
   const q=$("#q"); if(q){ q.onkeydown=e=>{if(e.key==="Enter"){const t=q.value.trim();if(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")||/^UNH-/i.test(t)){render.q="";handleScan(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")?t:t.toUpperCase())}}};q.oninput=()=>{render.q=q.value;const p=q.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)};$("#qclear").onclick=()=>{render.q="";render()}}
   document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{b.classList.add("sent");return doAct(b.dataset.act,visitors.find(v=>v.id===b.dataset.id))});
+  
+  // Wire Gate 1 Tag Feed Controls
+  const btnFeedRange = $("#btn_feed_range");
+  if(btnFeedRange) btnFeedRange.onclick = () => {
+    const pre = $("#tag_feed_pre").value || "V";
+    const from = Math.max(1, parseInt($("#tag_feed_from").value, 10) || 1);
+    const to = Math.max(from, parseInt($("#tag_feed_to").value, 10) || from);
+    let added = 0;
+    for(let i=from; i<=to; i++){
+      const tag = pre + "-" + String(i).padStart(3, "0");
+      if(!gateTagStock.includes(tag)){
+        gateTagStock.push(tag);
+        added++;
+      }
+    }
+    gateTagStock.sort();
+    saveGateTagStock(gateTagStock);
+    toast(`Loaded ${added} physical tags (${pre}-${String(from).padStart(3,"0")} to ${pre}-${String(to).padStart(3,"0")}) into Gate 1 stock.`);
+    render();
+  };
+
+  const btnFeedBatch = $("#btn_feed_batch");
+  if(btnFeedBatch) btnFeedBatch.onclick = () => {
+    const raw = ($("#tag_feed_batch")?.value || "").trim();
+    if(!raw) return toast("Enter or scan tag numbers first.");
+    const tags = raw.split(/[,\s]+/).map(t => t.trim().toUpperCase()).filter(Boolean);
+    let added = 0;
+    for(const t of tags){
+      const formatted = /^[VC]-\d+$/i.test(t) ? t : (/^\d+$/.test(t) ? "V-" + t.padStart(3,"0") : t);
+      if(!gateTagStock.includes(formatted)){
+        gateTagStock.push(formatted);
+        added++;
+      }
+    }
+    gateTagStock.sort();
+    saveGateTagStock(gateTagStock);
+    toast(`Added ${added} tags to Gate 1 stock.`);
+    render();
+  };
+
+  const btnFeedDefault = $("#btn_feed_default");
+  if(btnFeedDefault) btnFeedDefault.onclick = () => {
+    gateTagStock = [...DEFAULT_GATE_TAGS];
+    saveGateTagStock(gateTagStock);
+    toast("Loaded standard UN House physical tag inventory (50 visitor + 20 contractor tags).");
+    render();
+  };
+
+  const btnRestockReturned = $("#btn_restock_returned");
+  if(btnRestockReturned) btnRestockReturned.onclick = () => {
+    const checkedOutTags = visitors
+      .filter(v => v.status === "out" && (v.tag || v.assignedTag))
+      .map(v => v.tag || v.assignedTag);
+    let restored = 0;
+    for(const t of checkedOutTags){
+      if(!gateTagStock.includes(t)){
+        gateTagStock.push(t);
+        restored++;
+      }
+    }
+    gateTagStock.sort();
+    saveGateTagStock(gateTagStock);
+    toast(`Restocked ${restored} returned tags into available rack.`);
+    render();
+  };
+
   const f=$("#reg"); if(f) f.onsubmit=e=>{e.preventDefault();register()};
   const c=$("#csv"); if(c){ c.onchange=bulk; renderBulk(); }
   const ce=$("#clearEx"); if(ce) ce.onclick=clearExamples;
