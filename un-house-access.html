@@ -348,7 +348,7 @@ main{gap:20px}
   <div class="f" style="gap:2px"><label for="operator">Operator</label>
     <select id="operator">
       <option>Security Officer A. Bello</option><option>Receptionist N. Okafor</option>
-      <option>Supervisor F. Adeyemi</option><option>House Management Administrator</option><option>Security Administrator</option>
+      <option>Supervisor F. Adeyemi</option><option>Administrator</option><option>Security Administrator</option>
     </select></div>
   </div>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
@@ -386,7 +386,7 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator (House Management)",sec_admin:"Administrator (Security / UNDSS)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
+const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
   admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
@@ -423,7 +423,7 @@ const ACT_ROLES={
 const myRole=()=>{
   if(fb) return me?.role||"pending";
   const opVal=$("#operator")?$("#operator").value:"";
-  if(opVal.includes("House Management Administrator")) return "admin";
+  if(opVal.includes("Administrator") && !opVal.includes("Security")) return "admin";
   if(opVal.includes("Security Administrator")) return "sec_admin";
   if(opVal.includes("Supervisor")) return "approver";
   const st=$("#station")?$("#station").value:"S1";
@@ -708,12 +708,12 @@ const staffView=()=>{
   const pend=list.filter(s=>s.role==="pending").length;
   const houseAdminCount=list.filter(s=>s.role==="admin"&&s.active!==false).length;
   const secAdminCount=list.filter(s=>s.role==="sec_admin"&&s.active!==false).length;
-  return head("Staff and roles","Assign staff roles across stations and administration. Maximum of 3 Administrators for House Management and 3 for Security. Administrators oversee operations and cannot bypass operational station staff.")+
+  return head("Staff and roles","Assign staff roles across stations and administration. Maximum of 3 Administrators and 3 Security Administrators. Administrators oversee operations and cannot bypass operational station staff.")+
   `<div class="note" style="margin-bottom:12px;background:var(--surface2);border-color:var(--line);display:grid;gap:6px">
     <div><b>Role Governance &amp; Administrator Quotas:</b></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:2px">
       <div style="background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--line)">
-        🏢 <b>House Management Administrators:</b> <b>${houseAdminCount} / 3</b> assigned
+        🏢 <b>Administrators:</b> <b>${houseAdminCount} / 3</b> assigned
       </div>
       <div style="background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--line)">
         🛡️ <b>Security Administrators (UNDSS):</b> <b>${secAdminCount} / 3</b> assigned
@@ -749,7 +749,7 @@ async function setStaff(uid,patch){
   if(patch.role==="admin"){
     const activeHouseAdmins=staffList.filter(s=>s.role==="admin" && s.uid!==uid && s.active!==false).length;
     if(activeHouseAdmins>=3){
-      toast("Maximum of 3 House Management Administrators allowed by UN House policy.");
+      toast("Maximum of 3 Administrators allowed by UN House policy.");
       render();
       return;
     }
