@@ -1985,7 +1985,10 @@ function demoData(){
   const t9=t0+9*h, y9=t0-24*h+9*h;
   for(let k=0;k<9;k++){const ex=t9+k*15*60e3;v.push(mk({status:"in",expected:ex,arrivedAt:ex+4*60e3,inAt:ex+10*60e3,tag:"V-0"+(20+k),hostNotified:ex+7*60e3,...(k===0?{vehicle:"ABJ-402-XY"}:k===2?{backupHost:"A. Lawal (0803 555 0192)"}:{})}))}
   v.push(mk({status:"in",expected:y9,arrivedAt:y9+5*60e3,inAt:y9+12*60e3,tag:"V-019",purpose:"Training workshop"}));
-  v.push(mk({name:"Yusuf Danladi",org:"Daily Trust",status:"tagged",expected:t9+1.5*h,arrivedAt:t9+1.6*h,tag:"V-031",purpose:"Interview",backupHost:"M. Okorie (Comms · Ext. 214)"}));
+  v.push(mk({name:"Yusuf Danladi",org:"Daily Trust",status:"tagged",expected:t9+1.5*h,arrivedAt:t9+1.6*h,taggedAt:t9+1.7*h,tag:"V-031",assignedTag:"V-031",documentationCompleted:true,purpose:"Interview",backupHost:"M. Okorie (Comms · Ext. 214)"}));
+  v.push(mk({name:"Fatima Abubakar",org:"Federal Ministry of Budget",status:"tagged",expected:t9+2*h,arrivedAt:t9+2.1*h,taggedAt:t9+2.2*h,tag:"V-032",assignedTag:"V-032",documentationCompleted:true,purpose:"UN Cooperation Framework Meeting",host:"S. Garba",agency:"UNDP"}));
+  v.push(mk({name:"Chinedu Okafor",org:"ActionAid Nigeria",status:"arrived",expected:t9+2.2*h,arrivedAt:t9+2.3*h,assignedTag:"V-033",purpose:"CSO Partnership Forum",host:"T. Musa",agency:"UNICEF"}));
+  v.push(mk({name:"Zainab Haruna",org:"National Planning Commission",status:"arrived",expected:t9+2.4*h,arrivedAt:t9+2.5*h,assignedTag:"V-034",purpose:"Joint Monitoring Review",host:"A. Lawal",agency:"WFP"}));
   v.push(mk({name:"Grace Okon",org:"Independent consultant",status:"pending",expected:t9+4*h,restricted:true,escort:true,purpose:"Server room access",requestedByUid:"x"}));
   v.push(mk({name:"Ibrahim Danjuma",org:"NCDC",status:"pending",expected:t9+3*h,vehicle:"FCT-819-NG",purpose:"Disease surveillance briefing",requestedByUid:"x"}));
   ["Dr. Amina Bello","Kofi Mensah","Dr. Seydou Traoré"].forEach(n=>v.push(mk({name:n,org:"ECOWAS Commission",group:"ECOWAS Health Technical Team",status:"pending",expected:t9+3.5*h,host:"Dr. K. Ibrahim",agency:"WHO",room:"Conference Room A",purpose:"Cross-border health readiness",requestedByUid:"x"})));
@@ -2453,11 +2456,25 @@ function promptHostCall(v){
 }
 
 V.reception=()=>{
-  const wait=filterQ(visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived))))), inside=filterQ(visitors.filter(v=>v.status==="in"||(v.type==="vip"&&v.status==="arrived")));
-  return head("Internal reception","Station 3, Main UN House Building. Receive documented visitors and VIP guests sent from the VIP gate, contact hosts to receive them, and check them into the building. (Compound exit and tag returns are processed at Gate 1).")+
+  const wait=filterQ(visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))));
+  const enRoute=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
+  const inside=filterQ(visitors.filter(v=>v.status==="in"||(v.type==="vip"&&v.status==="arrived")));
+  return head("Internal reception","Station 3, Main UN House Building. Sequential flow: Gate 1 → Station 2 Documentation Reception → Station 3 Internal Reception.")+
   `<div class="panel">${searchBox()}</div>
-  <div class="panel"><h2>Waiting for host <span class="cnt">${wait.length}</span></h2>${table(wait,v=>(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Mark host notified"))+mailPill(v)+B(v.id,"checkin",v.type==="vip"?"Host received VIP":"Check in","ok"),"Nobody is waiting.")}</div>
-  <div class="panel"><h2>Checked in <span class="cnt">${inside.length}</span></h2>${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Notify host"))+B(v.id,"checkin","Host received","ok"):"")+B(v.id,"checkout",v.tag?"Check out & collect tag":"Check out"),"Nobody is checked in.")}</div>`;
+  <div class="panel">
+    <h2>Waiting for host <span class="cnt">${wait.length}</span></h2>
+    <p class="small">Documented visitors from Station 2. Notify the host and record check-in when host receives visitor.</p>
+    ${table(wait,v=>(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Mark host notified"))+mailPill(v)+B(v.id,"checkin",v.type==="vip"?"Host received VIP":"Check in","ok"),"Nobody is currently waiting for host.")}
+  </div>
+  ${enRoute.length ? `<div class="panel" style="border-left:4px solid #0284c7;background:var(--surface2)">
+    <h2>En Route · In Documentation at Station 2 <span class="cnt">${enRoute.length}</span></h2>
+    <p class="small">These visitors have passed Gate 1 and are currently at <b>Station 2 Documentation Reception</b> exchanging photo ID for physical tags. They will automatically move to "Waiting for host" above once documentation is completed.</p>
+    ${table(enRoute, v=>`<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">In Station 2 Documentation Desk</span>`,"")}
+  </div>` : ""}
+  <div class="panel">
+    <h2>Checked in with host <span class="cnt">${inside.length}</span></h2>
+    ${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Notify host"))+B(v.id,"checkin","Host received","ok"):"")+`<span class="pill p-in">Checked in with host</span>`,"Nobody is currently checked in.")}
+  </div>`;
 };
 V.vip=()=>{
   const list=filterQ(visitors.filter(v=>v.type==="vip"&&["approved","arrived","in","pending"].includes(v.status)));
@@ -3502,6 +3519,9 @@ function doAct(a,v){
   if(a==="pass") return openPass(v);
   if(a==="grouppass") return openGroupPass(v);
   if(a==="arrive"){
+    if(v.status!=="approved" && !(v.type==="contractor" && v.status==="out" && (v.accessTo||0)>now())){
+      return toast("Sequential access violation: Visitor request must be approved before admission at Gate 1.");
+    }
     const t=opNow(v,3);
     if(v.type==="vip"){
       return act(v,"VIP Auto Check-in · Diplomatic courtesies applied",{status:"in",arrivedAt:t,inAt:t,vipReceived:true,hostNotified:opNow(v,2)}).then(()=>toast(`✨ ${v.name} (VIP) Auto Checked In! Host ${v.host} notified.`));
@@ -3567,7 +3587,12 @@ function doAct(a,v){
     );
   }
   if(a==="notify") return act(v,`Host ${v.host} notified of arrival`,{hostNotified:opNow(v,2)}).then(()=>toast(`${v.host} notified that ${v.name} is waiting.`));
-  if(a==="checkin") return act(v,v.type==="vip"?`VIP received at Station 3 by host ${v.host}`:"Checked in at internal reception",{status:"in",inAt:v.inAt||opNow(v,5),...(v.type==="vip"?{vipReceived:true,vipReceivedAt:opNow(v,5),hostNotified:v.hostNotified||opNow(v,4)}:{})}).then(()=>toast(v.type==="vip"?`${v.name} received by ${v.host} at Station 3.`:`${v.name} checked in.`));
+  if(a==="checkin"){
+    if(v.type!=="vip" && v.status!=="tagged"){
+      return toast("Sequential access violation: Visitor must first complete documentation & tag exchange at Station 2 before checking in.");
+    }
+    return act(v,v.type==="vip"?`VIP received at Station 3 by host ${v.host}`:"Checked in at internal reception",{status:"in",inAt:v.inAt||opNow(v,5),...(v.type==="vip"?{vipReceived:true,vipReceivedAt:opNow(v,5),hostNotified:v.hostNotified||opNow(v,4)}:{})}).then(()=>toast(v.type==="vip"?`${v.name} received by ${v.host} at Station 3.`:`${v.name} checked in.`));
+  }
   if(a==="suspend") return act(v,"Contractor access suspended",{status:"suspended",prevStatus:v.status}).then(()=>toast(`${v.name}'s access suspended.`));
   if(a==="reinstate") return act(v,"Contractor access reinstated",{status:v.prevStatus&&v.prevStatus!=="suspended"?v.prevStatus:"approved"});
   if(a==="extend") return act(v,"Contractor access extended 7 days",{accessTo:Math.max(v.accessTo||now(),now())+7*864e5,...(v.status==="out"?{status:"approved"}:{})}).then(()=>toast("Access extended by 7 days."));
@@ -3600,6 +3625,9 @@ function doAct(a,v){
       ()=>{const r=$("#m_rej").value.trim(); if(!r){$("#m_err").textContent="Enter a short reason so the host knows what to fix.";return false}
         act(v,`Rejected: ${r}`,{status:"rejected",rejectReason:r,decidedBy:op(),decidedByUid:myUid(),decidedAt:now()}).then(()=>toast(`${v.name} rejected.`))}); }
   if(a==="tag"){
+    if(v.status!=="arrived"){
+      return toast("Sequential access violation: Visitor must be admitted through Gate 1 first before documentation.");
+    }
     const assigned = v.assignedTag || v.tag || nextAvailableTag(v.type);
     const used = new Set(visitors.filter(x=>x.id!==v.id && x.tag && ["tagged","in"].includes(x.status)).map(x=>x.tag));
     modal(`<h2>Documentation Desk · Exchange ID for Tag ${esc(assigned)}</h2>
