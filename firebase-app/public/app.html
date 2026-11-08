@@ -405,7 +405,7 @@ const ROLE_VIEWS={
   vip:["dashboard","vip","evac","history"],
   host:["myguests","assets","register","history"]
 };
-const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver","gate","reception"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
+const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver","gate","reception"],phoneadmit:["gate","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
   checkout:["reception","vip","gate","admin"],extendstay:["reception","approver","gate","vip","host","admin"],approve:["approver","admin"],reject:["approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
 const myRole=()=>fb?(me?.role||"pending"):"admin";
 const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole());
@@ -1938,7 +1938,7 @@ function startDemo(){
 }
 
 function ownRequest(v){return v.requestedByUid?v.requestedByUid===myUid():(v.requestedBy||"")===op()}
-function pill(v){const tip=v.decidedBy?`${v.status==="rejected"?"Rejected":"Approved"} by ${v.decidedBy}${v.rejectReason?" — "+v.rejectReason:""}`:v.requestedBy?`Requested by ${v.requestedBy}`:"";return `<span class="pill p-${v.status}"${tip?` title="${esc(tip)}"`:""}>${STATUS[v.status]}</span>`}
+function pill(v){const tip=v.decidedBy?`${v.status==="rejected"?"Rejected":"Approved"} by ${v.decidedBy}${v.rejectReason?" — "+v.rejectReason:""}`:v.requestedBy?`Requested by ${v.requestedBy}`:"";return `<span class="pill p-${v.status}"${tip?` title="${esc(tip)}"`:""}>${STATUS[v.status]}</span>${v.verbalApproval?` <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:2px 6px" title="${esc(v.verbalApprovalNote||"Host verbal clearance on phone")}">📞 Phone Clearance</span>`:""}`}
 function tpill(v){return (v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor</span>`:"")+((v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?` <span class="pill p-pending" title="Requires staff escort while inside">Escort</span>`:"")}
 // Expected time, plus the actual arrival, check-in and check-out times once they happen.
 function times(v){
@@ -2023,7 +2023,7 @@ V.gate=()=>{
   `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>{
     if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
     if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Verify & admit","pri");
-    if(v.status==="pending") return `<span class="small">Awaiting approval</span>`;
+    if(v.status==="pending") return `<div style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="small" style="color:var(--warn);font-weight:600">Awaiting approval</span>${canAct("phoneadmit")?B(v.id,"phoneadmit","📞 Host Phone Confirmed","ok"):""}</div>`;
     if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
     return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
   },"No expected visitors match.")}</div></div>
@@ -2073,8 +2073,9 @@ function regForm(walkin){
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_restricted" type="checkbox" style="width:auto"><label for="r_restricted" style="margin:0">Needs access to a restricted area</label></div>
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_escort" type="checkbox" style="width:auto"><label for="r_escort" style="margin:0">Requires staff escort while inside</label></div>
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_agree" type="checkbox" style="width:auto"><label for="r_agree" style="margin:0">The visitor has accepted the <a href="?rules" target="_blank" rel="noopener">visitor rules and privacy notice</a></label></div>
+   ${walkin?`<div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.35);padding:10px 14px;border-radius:10px"><input id="r_phone_cleared" type="checkbox" style="width:auto"><label for="r_phone_cleared" style="margin:0;font-weight:600;color:var(--ok);cursor:pointer">📞 Fast-Track Admission: Host has been contacted via phone / intercom and verbally cleared this visitor</label></div>`:""}
   </div><div class="acts" style="margin-top:14px"><button class="btn pri" type="submit">${walkin?"Register walk-in":"Register visitor"}</button></div>
-  <p class="small">Every registered visitor starts as <b>Pending approval</b> until approved by an approver, after which they appear as <b>Approved · expected</b> at the gate. No ID scans are stored.</p></form>`;
+  <p class="small">${walkin?"Walk-in visitors can be admitted immediately if the host confirms verbally, or placed in <b>Pending approval</b> for supervisor clearance.":"Every registered visitor starts as <b>Pending approval</b> until approved by an approver, after which they appear as <b>Approved · expected</b> at the gate. No ID scans are stored."}</p></form>`;
 }
 V.register=()=>head("Register visitors","Register one visitor, send a guest a link to fill in their own details, or upload a list.")+inviteView()+
   `<div class="panel"><h2>Single visitor</h2>${regForm(false)}</div>
@@ -2853,11 +2854,13 @@ async function register(){
   const when=g("r_when")?new Date(g("r_when")).getTime():defaultWorkTime();
   if(!inWorkHours(when)) return toast("Expected arrival cannot be outside working hours (08:00 to 17:00).");
   const ref=newRef();
-  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),backupHost:$("#r_backup")?g("r_backup"):"",agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),room:g("r_room"),vehicle:$("#r_vehicle")?g("r_vehicle").toUpperCase():"",purpose:g("r_purpose"),...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),restricted,escort,requestedBy:op(),requestedByUid:myUid(),status:"pending",log:[]};
+  const phoneCleared=$("#r_phone_cleared")&&$("#r_phone_cleared").checked, isVip=type==="vip";
+  const st=phoneCleared?(isVip?"in":"arrived"):"pending";
+  const v={id:ref,ref,name:g("r_name"),org:g("r_org"),phone:g("r_phone"),visitorEmail:g("r_vemail").toLowerCase(),type,host:g("r_host"),hostEmail:g("r_hostEmail").toLowerCase(),backupHost:$("#r_backup")?g("r_backup"):"",agency:g("r_agency"),building:g("r_building"),expected:when,group:g("r_group"),room:g("r_room"),vehicle:$("#r_vehicle")?g("r_vehicle").toUpperCase():"",purpose:g("r_purpose"),...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),restricted,escort,requestedBy:op(),requestedByUid:myUid(),status:st,arrivedAt:phoneCleared?now():null,inAt:phoneCleared&&isVip?now():null,vipReceived:phoneCleared&&isVip?true:false,decidedBy:phoneCleared?`${op()} (Host phone clearance)`:"",decidedByUid:phoneCleared?myUid():"",decidedAt:phoneCleared?now():0,verbalApproval:phoneCleared,verbalApprovalNote:phoneCleared?"Host confirmed via phone / intercom at gate":"",hostNotified:phoneCleared?now():null,log:[]};
   if(type==="contractor"){const f0=day0(when),toStr=g("r_to");v.accessFrom=f0;v.accessTo=toStr?new Date(toStr+"T23:59:59.999").getTime():f0+864e5-1}
-  await act(v,"Registered; sent for approval");
+  await act(v,phoneCleared?`Registered & admitted with verbal phone clearance from host ${v.host}`:"Registered; sent for approval");
   $("#reg")?.reset();
-  toast(`${v.name} registered as ${ref}. Sent for approval.`);
+  toast(phoneCleared?(isVip?`✨ ${v.name} (VIP) registered and auto checked in!`:`📞 ${v.name} admitted with host phone clearance. Send to documentation.`):`${v.name} registered as ${ref}. Sent for approval.`);
 }
 /* ---------- bulk upload: CSV, typed PDF, scanned PDF or photo → review → register ---------- */
 let bulkRows=[], bulkFile="", bulkGroup="";
@@ -3023,6 +3026,33 @@ function doAct(a,v){
   if(a==="vipadmit"){
     const t=opNow(v,2);
     return act(v,"VIP Auto Check-in · VIP protocol & diplomatic courtesies applied",{status:"in",arrivedAt:t,inAt:t,vipReceived:true,hostNotified:opNow(v,1)}).then(()=>toast(`✨ ${v.name} (VIP) Auto Checked In! Host ${v.host} notified immediately.`));
+  }
+  if(a==="phoneadmit"){
+    return modal(`<h2>Admit walk-in visitor · ${esc(v.name)}</h2>
+      <p class="small">Host: <b>${esc(v.host)}</b> (${esc(v.agency)}) · Purpose: ${esc(v.purpose||"—")}</p>
+      <div class="note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e40af;margin:8px 0">
+        <b>SOP Protocol:</b> Confirm you have contacted host <b>${esc(v.host)}</b> via phone / intercom and received direct verbal clearance to admit this unscheduled visitor.
+      </div>
+      <div class="f"><label for="m_phoneby">Officer logging phone clearance</label><input id="m_phoneby" value="${esc(op())}"></div>
+      <div class="f"><label for="m_phonenote">Phone / Intercom note (optional)</label><input id="m_phonenote" placeholder="e.g. Host confirmed verbally from Ext. 412 / WhatsApp call"></div>`,
+      ()=>{
+        const by=$("#m_phoneby").value.trim()||op(), note=$("#m_phonenote").value.trim();
+        const t=opNow(v,2), isVip=v.type==="vip";
+        return act(v,`Approved & admitted via verbal phone clearance from host ${v.host}${note?` (${note})`:""}`,{
+          status: isVip?"in":"arrived",
+          arrivedAt: t,
+          ...(isVip?{inAt:t,vipReceived:true}:{}),
+          decidedBy: `${by} (Host phone clearance)`,
+          decidedByUid: myUid(),
+          decidedAt: now(),
+          verbalApproval: true,
+          verbalApprovalNote: note||"Host confirmed via phone / intercom at gate",
+          hostNotified: t
+        }).then(()=>{
+          toast(isVip?`✨ ${v.name} (VIP) Auto Checked In with host verbal clearance!`:`📞 ${v.name} admitted with host phone clearance. Send to documentation.`);
+        });
+      }
+    );
   }
   if(a==="notify") return act(v,`Host ${v.host} notified of arrival`,{hostNotified:opNow(v,2)}).then(()=>toast(`${v.host} notified that ${v.name} is waiting.`));
   if(a==="checkin") return act(v,v.type==="vip"?`VIP received at Station 3 by host ${v.host}`:"Checked in at internal reception",{status:"in",inAt:v.inAt||opNow(v,5),...(v.type==="vip"?{vipReceived:true,vipReceivedAt:opNow(v,5),hostNotified:v.hostNotified||opNow(v,4)}:{})}).then(()=>toast(v.type==="vip"?`${v.name} received by ${v.host} at Station 3.`:`${v.name} checked in.`));
