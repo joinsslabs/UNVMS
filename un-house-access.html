@@ -795,6 +795,53 @@ async function printBadge(v){
     <div class="pb-f">Wear this badge at all times. Return it on leaving.</div></div>`;
   setTimeout(()=>window.print(),80);
 }
+async function printAssetPass(a){
+  if(!a) return;
+  try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool.")}
+  const holder=document.createElement("div"); new QRCode(holder,{text:a.ref,width:140,height:140,correctLevel:QRCode.CorrectLevel.M});
+  await new Promise(r=>setTimeout(r,60));
+  const img=(holder.querySelector("img")&&holder.querySelector("img").src)||(holder.querySelector("canvas")&&holder.querySelector("canvas").toDataURL());
+  const schedDate=a.expectedRemovalDate?new Date(a.expectedRemovalDate).toLocaleDateString([],{weekday:"short",year:"numeric",month:"short",day:"numeric"}):"Scheduled";
+  let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
+  p.innerHTML=`<div class="pbadge" style="width:380px;min-height:500px;padding:22px;border:2px solid #000;background:#fff;color:#000;font-family:sans-serif;box-sizing:border-box">
+    <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:12px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#1e40af">UNITED NATIONS COMMON SERVICES · UN HOUSE ABUJA</div>
+      <div style="font-size:15px;font-weight:800;margin-top:3px">OFFICIAL PROPERTY REMOVAL PASS</div>
+      <div style="font-size:13px;font-family:monospace;font-weight:700;margin-top:3px">${esc(a.ref)}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+      <div style="flex:1">
+        <div style="font-size:9.5px;text-transform:uppercase;color:#555;font-weight:700">Equipment Description</div>
+        <div style="font-size:13.5px;font-weight:700">${esc(a.item)}</div>
+        <div style="font-size:11.5px;font-family:monospace;margin-top:2px;font-weight:700;background:#f1f5f9;padding:2px 4px;border-radius:3px;display:inline-block">SN: ${esc(a.serial||"N/A")}</div>
+        <div style="font-size:9.5px;text-transform:uppercase;color:#555;font-weight:700;margin-top:8px">Custodian Staff</div>
+        <div style="font-size:12.5px;font-weight:600">${esc(a.staffName)}</div>
+        <div style="font-size:11px;color:#333">${esc(a.staffEmail)} · <b>${esc(a.agency)}</b></div>
+      </div>
+      ${img?`<div style="text-align:center"><img src="${img}" alt="QR" style="width:96px;height:96px"><div style="font-size:9px;font-family:monospace;margin-top:2px">${esc(a.ref)}</div></div>`:""}
+    </div>
+    <div style="border-top:1px solid #ccc;padding-top:8px;font-size:11.5px;margin-bottom:10px;line-height:1.45">
+      <div><b>Scheduled Removal:</b> ${esc(schedDate)}</div>
+      <div><b>Authorized Destination:</b> ${esc(a.dest)}</div>
+      <div><b>Advance Lead Time:</b> Requested ${fmtD(a.requestedAt||a.at||now())}</div>
+      ${a.validUntil?`<div><b>Pass Valid Until:</b> ${new Date(a.validUntil).toLocaleDateString()}</div>`:""}
+    </div>
+    <div style="border:1px solid #000;padding:8px 10px;border-radius:4px;margin-bottom:8px;background:#f8fafc">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#333">1. Agency Supervisor Certification</div>
+      <div style="font-size:11.5px;font-weight:700;color:${a.status==="approved"?"#15803d":"#b91c1c"};margin-top:2px">${a.status==="approved"?`✓ CERTIFIED & APPROVED by ${esc(a.approvedBy)}`:"PENDING AGENCY SUPERVISOR APPROVAL"}</div>
+      ${a.approvedAt?`<div style="font-size:10px;color:#555">${fmtD(a.approvedAt)}</div>`:""}
+    </div>
+    <div style="border:1px solid #000;padding:8px 10px;border-radius:4px;background:#f8fafc">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;color:#333">2. Station 1 Gate Security Clearance</div>
+      <div style="font-size:11.5px;font-weight:700;color:${a.verifiedAt?"#15803d":"#444"};margin-top:2px">${a.verifiedAt?`✓ CLEARED AT GATE: ${esc(a.verifiedBy)} (${fmtT(a.verifiedAt)})`:"AWAITING PHYSICAL GATE SCREENING"}</div>
+      <div style="font-size:9.5px;color:#666;margin-top:2px">Undersigned gate officer physically matched device serial number against this pass.</div>
+    </div>
+    <div style="margin-top:12px;text-align:center;font-size:8.5px;color:#666;border-top:1px solid #ccc;padding-top:6px">
+      Official property of the United Nations. Must accompany equipment at all times until return to UN House Abuja.
+    </div>
+  </div>`;
+  setTimeout(()=>window.print(),80);
+}
 async function scanBadge(){
   const m=$("#modal"); m.innerHTML=`<div class="modal"><h2>Scan a badge</h2><p class="small">Hold the QR code on the badge up to the camera. A handheld USB scanner works too: click the search box and scan.</p><div id="qrReader" style="width:100%"></div><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`; m.hidden=false;
   let sc=null; const close=()=>{m.hidden=true;if(sc)sc.stop().catch(()=>{}).then(()=>sc.clear())};
@@ -1793,7 +1840,8 @@ function demoData(){
     events:[],
     assets:[
       {id:"as1",ref:"MP-2026-0041",item:"HP ZBook Studio Workstation & Dual Monitor Set",serial:"5CD23910KL",staffName:"Tunde Balogun",staffEmail:"t.balogun@undp.org",agency:"UNDP",dest:"UNDP Country Office / Field Visit (Kano)",status:"approved",requestedAt:t9-3*864e5,expectedRemovalDate:t9,approvedBy:"Operations Manager S. Garba (UNDP)",approvedAt:t9-24*3600e3,validUntil:t0+7*864e5,at:t9-3*864e5,verifiedAt:null},
-      {id:"as2",ref:"MP-2026-4084",item:"MacBook Pro M3 Max",serial:"SN64578999",staffName:"Demo Administrator",staffEmail:"demo@example.org",agency:"UNDP",dest:"Field work",status:"pending",approverEmail:"operations.supervisor@undp.org",approverPhone:"08031234567",requestedAt:t9,expectedRemovalDate:t9+2*864e5,validUntil:t9+7*864e5,at:t9,verifiedAt:null}
+      {id:"as2",ref:"MP-2026-4084",item:"MacBook Pro M3 Max",serial:"SN64578999",staffName:"Demo Administrator",staffEmail:"demo@example.org",agency:"UNDP",dest:"Field work",status:"pending",approverEmail:"operations.supervisor@undp.org",approverPhone:"08031234567",requestedAt:t9,expectedRemovalDate:t9+2*864e5,validUntil:t9+7*864e5,at:t9,verifiedAt:null},
+      {id:"as3",ref:"MP-2026-3119",item:"Dell Latitude 7440 & Satellite Phone Kit",serial:"DL9912048",staffName:"Dr. K. Ibrahim",staffEmail:"k.ibrahim@who.int",agency:"WHO",dest:"Borno State Polio Campaign Coordination",status:"approved",requestedAt:t9-4*864e5,expectedRemovalDate:t9-1*864e5,approvedBy:"WHO Operations Officer C. Nnamdi",approvedAt:t9-48*3600e3,validUntil:t0+14*864e5,at:t9-4*864e5,verifiedAt:t9-1.5*h,verifiedBy:"Security Officer A. Bello (Station 1 Gate)"}
     ],
     dobs:[{id:"dob1",at:t9-1.2*h,severity:"routine",category:"Power / Utilities",title:"Main Grid to Generator Switchover",detail:"FCT public power failure; automatic switch to 500kVA generator completed normally with zero disruption.",station:"S1",officer:"A. Bello"}],
     parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Diplomatic Bay #1",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}]};
@@ -1824,7 +1872,7 @@ function drawTour(){
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourDone")) $("#tourDone").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;go(0)};
 }
-const DEMO_KEY="unhDemoState_v13";
+const DEMO_KEY="unhDemoState_v14";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
   try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
@@ -2275,6 +2323,12 @@ V.parking=()=>{
 };
 
 /* 3. Material & Asset Gate Pass (Property Removal) */
+const itemIcon=str=>/macbook|laptop|dell|hp|thinkpad|computer/i.test(str)?"💻":
+                    /phone|iphone|galaxy|satellite|handset/i.test(str)?"📱":
+                    /camera|lens|tripod|camcorder/i.test(str)?"📷":
+                    /projector|screen|monitor|display/i.test(str)?"📽️":
+                    /printer|scanner|copier/i.test(str)?"🖨️":"📦";
+
 V.assets=()=>{
   const list=assetPasses.slice().sort((a,b)=>(b.at||0)-(a.at||0));
   const canApproveAgency=a=>{
@@ -2286,43 +2340,104 @@ V.assets=()=>{
     const myE=(fb&&me&&me.email?me.email:(op()||"").toLowerCase());
     return (a.staffEmail&&myE&&a.staffEmail.toLowerCase()===myE.toLowerCase())||(a.staffName&&a.staffName.toLowerCase()===op().toLowerCase());
   };
-  return head("Material & Asset Gate Pass","Official UN property removal control. Equipment must be requested at least 24–48 hours in advance and approved by an authorized agency supervisor before gate security can clear it.")+
-  `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <div><h2 style="margin:0">Asset Removal Passes (${list.length})</h2><p class="small" style="margin:4px 0 0">Advance request mandatory · Agency supervisor approval required prior to gate clearance.</p></div>
-    <button class="btn pri" id="asset_new_modal">+ Request Material Pass (Advance)</button>
+
+  const total=list.length;
+  const verified=list.filter(a=>!!a.verifiedAt).length;
+  const ready=list.filter(a=>a.status==="approved"&&!a.verifiedAt).length;
+  const pending=list.filter(a=>a.status==="pending").length;
+
+  const q=(render.q||"").toLowerCase().trim();
+  const filtered=q?list.filter(a=>[a.ref,a.item,a.serial,a.staffName,a.staffEmail,a.agency,a.dest,a.approvedBy].join(" ").toLowerCase().includes(q)):list;
+
+  return head("Material & Asset Gate Pass","Official UN property removal control. Equipment must be requested at least 24–48 hours in advance and certified by an authorized agency supervisor before gate security can clear exit.")+
+  `<div class="note" style="border-left:4px solid var(--accent);background:var(--surface);margin-bottom:14px;padding:12px 16px">
+    <div style="font-weight:700;font-size:13px;color:var(--accent);display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <span>📋 Official UN House Asset Removal Procedure (Security SOP 24–48h Rule)</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;font-size:12.5px;color:var(--text)">
+      <div><b>1. 24–48h Advance Notice:</b> Custodian staff must submit pass requests in advance with device serial number and destination.</div>
+      <div><b>2. Independent Certification:</b> Agency Head / Operations Supervisor must certify; custodians cannot self-approve.</div>
+      <div><b>3. Station 1 Gate Screening:</b> Security physically matches serial numbers against this pass before barrier clearance.</div>
+    </div>
   </div>
-  <div class="tw" style="margin-top:14px"><table><thead><tr><th>Pass Ref</th><th>Item Description &amp; Serial #</th><th>Custodian Staff</th><th>Agency &amp; Destination</th><th>Removal Date &amp; Notice</th><th>Agency Approval</th><th>Gate Clearance (Station 1)</th></tr></thead><tbody>
-  ${list.map(a=>{
-    const daysNotice=a.expectedRemovalDate&&a.requestedAt?Math.round((a.expectedRemovalDate-a.requestedAt)/(864e5)):0;
-    const isReady=a.status==="approved"&&!a.verifiedAt;
-    const isEarly=a.expectedRemovalDate&&day0(now())<day0(a.expectedRemovalDate);
-    return `<tr>
-      <td class="mono"><b>${esc(a.ref)}</b></td>
-      <td><b>${esc(a.item)}</b><div class="small mono">SN: ${esc(a.serial||"N/A")}</div></td>
-      <td>${esc(a.staffName)}<div class="small">${esc(a.staffEmail)}</div></td>
-      <td><b>${esc(a.agency)}</b><div class="small">To: ${esc(a.dest)}</div></td>
-      <td><span class="mono">${a.expectedRemovalDate?new Date(a.expectedRemovalDate).toLocaleDateString([], {day:"numeric",month:"short"}):"—"}</span><div class="small">${daysNotice>0?`${daysNotice} day(s) advance notice`:"Same day"}</div></td>
-      <td>
-        ${a.status==="approved"?`<span class="pill p-in">Approved by ${esc(a.approvedBy)}</span>${a.approvedAt?`<div class="small">${fmtD(a.approvedAt)}</div>`:""}`:
-          a.status==="pending"?`<span class="pill p-pending">Awaiting ${esc(a.agency)} Supervisor</span>${
-            a.notifiedApproverAt?`<div class="small" style="color:var(--muted);margin-top:2px">🔔 Request fired ${fmtT(a.notifiedApproverAt)} (${esc(a.notifiedVia||"msg")})</div>`:""
-          }<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
-            <button class="btn" data-asset-notify="${esc(a.id)}" style="font-size:12px;padding:4px 9px" title="Send pre-written approval request to agency supervisor">📨 Notify Approver</button>
-            ${!isCustodian(a)&&canApproveAgency(a)?`<button class="btn ok" data-asset-approve="${esc(a.id)}" style="font-size:12px;padding:4px 9px">Approve for ${esc(a.agency)}</button>`:""}
-          </div>${
-            isCustodian(a)?`<div class="small" style="color:var(--muted);margin-top:4px;font-style:italic">Custodian cannot self-approve · Click 'Notify Approver' to dispatch request</div>`:""
-          }`:
-          `<span class="pill p-rejected">${esc(a.status)}</span>`}
-      </td>
-      <td>
-        ${a.verifiedAt?`<span class="small" style="color:var(--ok)">✓ Cleared at Station 1 (${fmtT(a.verifiedAt)}) by ${esc(a.verifiedBy||"Gate")}</span>`:
-          isReady&&canAct("arrive")?`<button class="btn ok" data-asset-verify="${esc(a.id)}">Verify &amp; Clear at Gate</button>${isEarly?`<div class="small" style="color:var(--warn)">Early clearance</div>`:""}`:
-          a.status==="pending"?`<span class="small" style="color:var(--bad)">Cannot clear: Awaiting agency approval</span>`:
-          `<span class="small">Pending Gate Verification</span>`}
-      </td>
-    </tr>`;
-  }).join("")||`<tr><td colspan="7" class="empty">No property removal passes logged. Click "+ Request Material Pass" to log an advance removal request.</td></tr>`}
-  </tbody></table></div></div>`;
+  <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi"><div class="n">${total}</div><div class="l">Total Property Passes</div></div>
+    <div class="kpi ok"><div class="n">${verified}</div><div class="l">Cleared at Gate (Exited)</div></div>
+    <div class="kpi ok"><div class="n">${ready}</div><div class="l">Approved &amp; Ready for Exit</div></div>
+    <div class="kpi ${pending?"alert":""}"><div class="n">${pending}</div><div class="l">Awaiting Agency Approval</div></div>
+  </div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:240px">${searchBox("Search pass ref (e.g. MP-2026-4084), item, serial number, custodian, or agency...")}</div>
+      <button class="btn pri" id="asset_new_modal">+ Request Material Pass (24–48h Advance)</button>
+    </div>
+  </div>
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div><h2 style="margin:0">Official Property Removal Passes (${filtered.length})</h2><p class="small" style="margin:2px 0 0">Mandatory equipment passes for laptops, vehicles, audiovisual, and field project gear.</p></div>
+    </div>
+    <div class="tw" style="margin-top:14px"><table><thead><tr>
+      <th>Pass Ref &amp; Item</th>
+      <th>Custodian Staff</th>
+      <th>Agency &amp; Destination</th>
+      <th>Scheduled Removal &amp; Notice</th>
+      <th>Agency Certification</th>
+      <th>Gate Clearance (Station 1)</th>
+      <th>Actions</th>
+    </tr></thead><tbody>
+    ${filtered.map(a=>{
+      const daysNotice=a.expectedRemovalDate&&a.requestedAt?Math.round((a.expectedRemovalDate-a.requestedAt)/(864e5)):0;
+      const isReady=a.status==="approved"&&!a.verifiedAt;
+      const isEarly=a.expectedRemovalDate&&day0(now())<day0(a.expectedRemovalDate);
+      return `<tr>
+        <td>
+          <span class="mono ref" style="font-size:13px;font-weight:700">🏷️ ${esc(a.ref)}</span>
+          <div style="font-weight:600;margin-top:2px">${itemIcon(a.item)} ${esc(a.item)}</div>
+          <div style="margin-top:3px"><span class="mono" style="font-size:11px;font-weight:600;background:var(--surface2);padding:1px 6px;border-radius:3px;border:1px solid var(--line)">SN: ${esc(a.serial||"N/A")}</span></div>
+        </td>
+        <td>
+          <b>${esc(a.staffName)}</b>
+          <div class="small">${esc(a.staffEmail)}</div>
+        </td>
+        <td>
+          <b>${esc(a.agency)}</b>
+          <div class="small">📍 ${esc(a.dest)}</div>
+        </td>
+        <td>
+          <div class="mono" style="font-weight:700">${a.expectedRemovalDate?new Date(a.expectedRemovalDate).toLocaleDateString([],{weekday:"short",month:"short",day:"numeric"}):"—"}</div>
+          <div style="margin-top:3px">
+            ${daysNotice>=2?`<span class="pill p-in" style="font-size:10.5px;padding:2px 6px">✓ 48h+ Advance Notice</span>`:
+              daysNotice===1?`<span class="pill p-in" style="font-size:10.5px;padding:2px 6px">✓ 24h Advance Notice</span>`:
+              `<span class="pill p-pending" style="font-size:10.5px;padding:2px 6px">⚠️ Short Notice (&lt;24h)</span>`}
+          </div>
+        </td>
+        <td>
+          ${a.status==="approved"?`<span class="pill p-in">✓ Certified: ${esc(a.approvedBy)}</span>${a.approvedAt?`<div class="small mono" style="color:var(--muted);margin-top:2px">${fmtD(a.approvedAt)}</div>`:""}`:
+            a.status==="pending"?`<span class="pill p-pending">⏳ Awaiting ${esc(a.agency)} Supervisor</span>${
+              a.notifiedApproverAt?`<div class="small" style="color:var(--accent);margin-top:2px">🔔 Request sent ${fmtT(a.notifiedApproverAt)} (${esc(a.notifiedVia||"msg")})</div>`:""
+            }<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
+              <button class="btn ok" data-asset-notify="${esc(a.id)}" style="font-size:11.5px;padding:3px 8px" title="Send notification to agency supervisor">📨 Notify Approver</button>
+              ${!isCustodian(a)&&canApproveAgency(a)?`<button class="btn pri" data-asset-approve="${esc(a.id)}" style="font-size:11.5px;padding:3px 8px">Approve for ${esc(a.agency)}</button>`:""}
+            </div>${
+              isCustodian(a)?`<div class="small" style="color:var(--muted);margin-top:4px;font-style:italic">Custodian self-approval restricted</div>`:""
+            }`:
+            `<span class="pill p-rejected">${esc(a.status)}</span>`}
+        </td>
+        <td>
+          ${a.verifiedAt?`<span class="pill p-in" style="background:#dcfce7;color:#166534">✓ Gate Cleared</span><div class="small mono" style="margin-top:2px">${esc(a.verifiedBy)}</div><div class="small mono" style="color:var(--muted)">${fmtT(a.verifiedAt)}</div>`:
+            isReady&&canAct("arrive")?`<button class="btn ok" data-asset-verify="${esc(a.id)}" style="font-size:12px;padding:4px 8px">Verify &amp; Clear at Gate</button>${isEarly?`<div class="small" style="color:var(--warn);margin-top:2px">Early clearance</div>`:`<div class="small" style="color:var(--muted);margin-top:2px">Inspect SN on device</div>`}`:
+            a.status==="pending"?`<span class="pill p-rejected" style="font-size:11px">⛔ Exit Barred</span><div class="small" style="color:var(--bad);margin-top:2px">Awaiting supervisor</div>`:
+            `<span class="small">Pending Gate Verification</span>`}
+        </td>
+        <td>
+          <div class="acts" style="flex-wrap:nowrap">
+            <button class="btn" data-asset-print="${esc(a.id)}" title="Print Official UN House Property Removal Certificate">📄 Print Pass</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join("")||`<tr><td colspan="7" class="empty">No property removal passes found matching your search.</td></tr>`}
+    </tbody></table></div>
+  </div>`;
 };
 
 function openAssetNotifyModal(a){
@@ -2651,6 +2766,10 @@ function wire(){
     a.verifiedAt=now(); a.verifiedBy=op()+" (Station 1 Gate)";
     if(db) await db.collection("assets").doc(id).update({verifiedAt:now(),verifiedBy:a.verifiedBy});
     toast(`Material pass verified. Equipment cleared to exit gate.`); render();
+  });
+  document.querySelectorAll("[data-asset-print]").forEach(b=>b.onclick=()=>{
+    const id=b.dataset.assetPrint, a=assetPasses.find(x=>x.id===id);
+    if(a) printAssetPass(a);
   });
 }
 async function loadExamples(silent){
