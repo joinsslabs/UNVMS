@@ -542,32 +542,36 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",gate:"Gate Reception Officer & Approver (Station 1)",docs:"Documentation Reception Officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","kiosk","watch","reports","history","assistant","staff"],
-  sec_admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","kiosk","watch","reports","history","assistant","staff"],
-  gate:["dashboard","gate","contractors","assets","register","watch","reports","history"],
-  docs:["dashboard","tagging","assets","history"],
-  reception:["dashboard","reception","assets","register","kiosk","history"],
-  vip:["dashboard","vip","history"],
-  host:["assets","register","history"]
+  admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","watch","reports","history","assistant","settings","staff"],
+  sec_admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","watch","reports","history","assistant","settings","staff"],
+  gate:["gate","contractors","register","watch","history"],
+  docs:["tagging","contractors","history"],
+  reception:["reception","kiosk","history"],
+  vip:["vip","history"]
 };
 const ACT_ROLES={
   reply:["admin","sec_admin"],
   reschedule:["admin","sec_admin"],
-  resubmit:["gate","reception","admin","sec_admin"],
+  resubmit:["gate","admin","sec_admin"],
   cancel:["admin","sec_admin"],
-  pass:["admin","sec_admin","gate","reception","vip","docs"],
-  invite:["admin","sec_admin","gate","reception","host"],
+  pass:["admin","sec_admin","gate","docs","reception","vip"],
+  invite:["admin","sec_admin","gate"],
+  // Station 1: Gate Reception & Approvals only
   arrive:["gate","admin","sec_admin"],
-  vipadmit:["vip","admin","sec_admin","gate","reception"],
   phoneadmit:["gate","admin","sec_admin"],
-  tag:["docs","admin","sec_admin","gate"],
-  notify:["reception","gate","admin","sec_admin"],
-  checkin:["reception","gate","admin","sec_admin"],
-  checkout:["reception","vip","gate","docs","admin","sec_admin"],
-  extendstay:["reception","gate","vip","admin","sec_admin"],
   approve:["gate","admin","sec_admin"],
   reject:["gate","admin","sec_admin"],
   gateapprove:["gate","admin","sec_admin"],
+  // Station 2: Documentation Reception only
+  tag:["docs","admin","sec_admin"],
+  // Station 3: Internal Reception only
+  checkin:["reception","admin","sec_admin"],
+  notify:["reception","admin","sec_admin"],
+  checkout:["reception","gate","admin","sec_admin"],
+  extendstay:["reception","gate","admin","sec_admin"],
+  // Station 4: VIP Gate only
+  vipadmit:["vip","admin","sec_admin"],
+  // Approvals & Contractor Governance
   suspend:["gate","admin","sec_admin"],
   reinstate:["gate","admin","sec_admin"],
   extend:["gate","admin","sec_admin"]
