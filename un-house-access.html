@@ -2721,7 +2721,7 @@ V.reception=()=>{
       const ext = getHostExt(v.host, v.agency);
       const notifBtn = v.hostNotified
         ? `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600" title="${esc(v.hostNotifiedNote||"")}">✓ Host contacted (${fmtT(v.hostNotified)})</span> <button class="btn small" data-act="notify" data-id="${esc(v.id)}" title="Call or notify host again" style="padding:2px 8px;font-size:11px">Re-notify</button>`
-        : `<button class="btn" data-act="notify" data-id="${esc(v.id)}" style="background:#f0f9ff;border-color:#bae6fd;color:#0369a1;font-weight:600" title="Call host on intercom (Ext. ${esc(ext)}) or send notification">📞 Call Host or Notify Host (Ext. ${esc(ext)})</button>`;
+        : B(v.id, "notify", "Notify host");
       return notifBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "ok");
     }, "Nobody is currently waiting for host.")}
   </div>
@@ -2732,7 +2732,7 @@ V.reception=()=>{
   </div>` : ""}
   <div class="panel">
     <h2>Checked in with host <span class="cnt">${inside.length}</span></h2>
-    ${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify","📞 Call Host or Notify Host"))+B(v.id,"checkin","Host received","ok"):"")+`<span class="pill p-in">Checked in with host</span>`,"Nobody is currently checked in.")}
+    ${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify","Notify host"))+B(v.id,"checkin","Host received","ok"):"")+`<span class="pill p-in">Checked in with host</span>`,"Nobody is currently checked in.")}
   </div>`;
 };
 V.vip=()=>{
@@ -3979,7 +3979,7 @@ function doAct(a,v){
   }
   if(a==="notify"){
     const ext = getHostExt(v.host, v.agency);
-    return modal(`<h2>📞 Call Host or Notify Host · Station 3 Reception</h2>
+    return modal(`<h2>📞 Notify Host · Station 3 Reception</h2>
       <p class="small"><b>${esc(v.name)}</b> (${esc(v.org||"Visitor")}) has completed documentation and is waiting at Station 3 Internal Reception.</p>
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin:12px 0">
         <div style="font-weight:700;color:#1e40af;font-size:14px">Host: ${esc(v.host)} (${esc(v.agency)})</div>
