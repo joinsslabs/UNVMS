@@ -7,7 +7,7 @@
   --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --fg:#0f172a; --muted:#526077; --line:#e2e8f0;
   --navy:#172542; --navy2:#0f1a30; --accent:#1d6ce0; --accent-fg:#ffffff;
   --ok:#15803d; --ok-bg:#dcfce7; --warn:#b45309; --warn-bg:#fef3c7; --bad:#be123c; --bad-bg:#ffe4e6; --info-bg:#e0ecff;
-  --shadow:0 1px 3px rgba(15,23,42,.05),0 6px 16px -6px rgba(15,23,42,.06);
+  --shadow:0 1px 3px rgba(15,23,42,.04),0 10px 24px -6px rgba(15,23,42,.07);
   --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -62,7 +62,7 @@ main{padding-block:22px 44px;padding-left:max(22px,env(safe-area-inset-left,0px)
 h1{font-size:22px;margin:0;text-wrap:balance}
 h2{font-size:15px;font-weight:650;margin:0 0 12px;letter-spacing:-.005em;display:flex;align-items:center;gap:8px}
 .sub{color:var(--muted);margin:4px 0 0;max-width:72ch;font-size:13.5px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 22px;min-width:0;box-shadow:var(--shadow)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;min-width:0;box-shadow:var(--shadow);transition:border-color .15s ease}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:14px;padding:15px 18px;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease;position:relative;overflow:hidden}
 .kpi:hover{transform:translateY(-2px);box-shadow:0 8px 20px -8px rgba(15,23,42,.12)}
@@ -73,9 +73,9 @@ h2{font-size:15px;font-weight:650;margin:0 0 12px;letter-spacing:-.005em;display
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
 .tw{overflow-x:auto;border-radius:10px}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;padding:10px 10px;background:var(--surface2);border-bottom:1px solid var(--line);white-space:nowrap}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700;padding:11px 12px;background:#f8fafc;border-bottom:2px solid var(--line);white-space:nowrap}
 th:first-child{border-top-left-radius:8px} th:last-child{border-top-right-radius:8px}
-td{padding:12px 10px;border-bottom:1px solid color-mix(in srgb,var(--line) 75%,transparent);vertical-align:top}
+td{padding:13px 12px;border-bottom:1px solid color-mix(in srgb,var(--line) 65%,transparent);vertical-align:middle}
 tbody tr{transition:background .15s}
 tbody tr:hover{background:var(--surface2)}
 tr:last-child td{border-bottom:0}
@@ -2173,7 +2173,7 @@ V.gate=()=>{
   return head("Gate reception, approvals & exit","Station 1. Review visitor requests, admit visitors, manage physical tag stock, and check out departing visitors at Gate 1.")+
   
   /* Gate 1 Available Tags Feed & Inventory Space */
-  `<div class="panel" style="border-top:4px solid var(--accent);background:var(--surface)">
+  `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:0 2px 8px rgba(2,132,199,.06)">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
       <div>
         <h2 style="margin:0;display:flex;align-items:center;gap:8px">🏷️ Feed Available Physical Tags (Gate 1 Inventory)</h2>
