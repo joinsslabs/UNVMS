@@ -43,18 +43,19 @@ header.band{background:radial-gradient(900px 420px at 85% 20%,rgba(29,108,224,.2
 .tbtn{all:unset;cursor:pointer;width:38px;height:38px;border-radius:9px;display:grid;place-items:center;background:#ffffff14;border:1px solid #ffffff28;color:#fff;transition:background .15s,transform .12s}
 .tbtn:hover{background:#ffffff26}
 .tbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent;transition:transform .14s ease,filter .15s,background .15s,box-shadow .2s}
-.btn.pri{background:var(--accent);color:var(--accent-fg);box-shadow:0 6px 18px -6px rgba(29,108,224,.7)}
-.btn.ghost{border-color:#ffffff38;background:#ffffff0d;color:var(--onnavy)}
-.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;font-weight:600;font-size:13.5px;text-decoration:none;border:1px solid transparent;transition:transform .14s ease,filter .15s,background .15s,box-shadow .2s;white-space:nowrap}
+.btn.pri{background:linear-gradient(135deg,#0284c7,#0369a1);color:#ffffff;box-shadow:0 4px 14px -3px rgba(2,132,199,.7);border:1px solid rgba(255,255,255,0.2)}
+.btn.ghost{border-color:rgba(255,255,255,0.22);background:rgba(255,255,255,0.07);color:var(--onnavy);backdrop-filter:blur(8px)}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1.5px);box-shadow:0 6px 18px -4px rgba(0,0,0,.35)}
+.btn.pri:hover{box-shadow:0 6px 20px -3px rgba(2,132,199,.85)}
 .btn:active{transform:translateY(0)}
 .btn:focus-visible{outline:2px solid var(--onnavy);outline-offset:3px}
 .hero{padding-block:54px 64px;display:grid;grid-template-columns:1.2fr .8fr;gap:44px;align-items:center}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--onnavy-muted);background:#ffffff12;border:1px solid #ffffff22;padding:4px 12px;border-radius:999px}
 .eyebrow i{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.25)}
 h1{font-size:clamp(30px,4.5vw,46px);line-height:1.12;margin:14px 0 16px;text-wrap:balance;font-weight:700;letter-spacing:-.02em}
-.lead{font-size:18px;color:var(--onnavy-muted);max-width:56ch;margin:0 0 28px}
-.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.lead{font-size:17px;color:var(--onnavy-muted);max-width:56ch;margin:0 0 24px;line-height:1.55}
+.ctas{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pass{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 24px 50px -12px rgba(0,0,0,.45);max-width:350px;justify-self:end;width:100%;border-top:4px solid var(--accent)}
 .pass .ph{background:var(--navy2);color:var(--onnavy);padding:11px 18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;font-weight:600}
 .pass .ph .st-ok{color:#38bdf8;display:inline-flex;align-items:center;gap:5px}
@@ -122,25 +123,34 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
       <h1>Every visitor registered, approved, tagged and accounted for.</h1>
       <p class="lead">One shared visitor record for the gate, documentation, internal reception and the VIP entrance. It replaces logbooks and spreadsheets with live, role-based access control.</p>
       <div class="ctas">
-        <a class="btn pri" href="app.html">Open the system</a>
-        <a class="btn ghost" href="app.html#register">✉️ Staff: Invite a visitor</a>
-        <a class="btn ghost" href="app.html?demo">Try the guided demo</a>
+        <a class="btn pri" href="app.html">Open system &rarr;</a>
+        <a class="btn ghost" href="app.html#register">✉️ Staff: Invite visitor</a>
+        <a class="btn ghost" href="app.html?demo">✨ Guided demo</a>
         <a class="btn ghost" href="#how">How it works</a>
       </div>
-      <div class="metrics-bar" style="margin-top:34px;padding:16px 24px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:14px;display:inline-flex;gap:32px;align-items:center;box-shadow:0 8px 24px -6px rgba(0,0,0,0.25)">
-        <div style="display:flex;flex-direction:column;white-space:nowrap">
-          <span style="font-size:22px;font-weight:700;color:#fff;font-family:var(--mono);line-height:1;letter-spacing:-0.02em;white-space:nowrap">&lt; 45s</span>
-          <span style="font-size:10.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap">Gate Clearance</span>
+      <div class="metrics-bar" style="margin-top:22px;padding:9px 18px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border-radius:999px;display:inline-flex;gap:18px;align-items:center;box-shadow:0 6px 20px -6px rgba(0,0,0,0.3);flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:13px">⚡</span>
+          <div style="display:flex;flex-direction:column;line-height:1.15">
+            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">&lt; 45s</span>
+            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Gate Clearance</span>
+          </div>
         </div>
-        <div style="width:1px;height:26px;background:rgba(255,255,255,0.14);flex:none"></div>
-        <div style="display:flex;flex-direction:column;white-space:nowrap">
-          <span style="font-size:22px;font-weight:700;color:#fff;font-family:var(--mono);line-height:1;letter-spacing:-0.02em;white-space:nowrap">16 Agencies</span>
-          <span style="font-size:10.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap">Unified Compound</span>
+        <div style="width:1px;height:18px;background:rgba(255,255,255,0.16);flex:none"></div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:13px">🏛️</span>
+          <div style="display:flex;flex-direction:column;line-height:1.15">
+            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">16 Agencies</span>
+            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Unified Compound</span>
+          </div>
         </div>
-        <div style="width:1px;height:26px;background:rgba(255,255,255,0.14);flex:none"></div>
-        <div style="display:flex;flex-direction:column;white-space:nowrap">
-          <span style="font-size:22px;font-weight:700;color:#fff;font-family:var(--mono);line-height:1;letter-spacing:-0.02em;white-space:nowrap">4 Stations</span>
-          <span style="font-size:10.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap">Sequential Flow</span>
+        <div style="width:1px;height:18px;background:rgba(255,255,255,0.16);flex:none"></div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:13px">🛡️</span>
+          <div style="display:flex;flex-direction:column;line-height:1.15">
+            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">4 Stations</span>
+            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Sequential Flow</span>
+          </div>
         </div>
       </div>
     </div>
