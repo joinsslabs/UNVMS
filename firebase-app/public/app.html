@@ -12,20 +12,20 @@
 /* Layout: operations console — station bar on top, sidebar nav, work area with dense tables */
 :root{
   --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --fg:#0f172a; --muted:#526077; --line:#e2e8f0;
-  --navy:#172542; --navy2:#0f1a30; --accent:#1d6ce0; --accent-fg:#ffffff;
-  --ok:#15803d; --ok-bg:#dcfce7; --warn:#b45309; --warn-bg:#fef3c7; --bad:#be123c; --bad-bg:#ffe4e6; --info-bg:#e0ecff;
-  --shadow:0 1px 3px rgba(15,23,42,.04),0 10px 24px -6px rgba(15,23,42,.07);
+  --navy:#172542; --navy2:#0f1a30; --accent:#0284c7; --accent-fg:#ffffff;
+  --ok:#0284c7; --ok-bg:#e0f2fe; --warn:#b45309; --warn-bg:#fef3c7; --bad:#be123c; --bad-bg:#ffe4e6; --info-bg:#e0f2fe;
+  --shadow:0 1px 3px rgba(15,23,42,.04),0 8px 24px -6px rgba(15,23,42,.08);
   --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
-  --navy:#090f1c; --navy2:#060a13; --accent:#5ea2ff; --accent-fg:#08101f;
-  --ok:#4ade80; --ok-bg:#133223; --warn:#fbbf24; --warn-bg:#382810; --bad:#fb7185; --bad-bg:#3b1822; --info-bg:#172b49;
+  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
+  --ok:#38bdf8; --ok-bg:#0c2d48; --warn:#fbbf24; --warn-bg:#382810; --bad:#fb7185; --bad-bg:#3b1822; --info-bg:#102845;
   --shadow:0 2px 10px rgba(0,0,0,.35); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
-  --navy:#090f1c; --navy2:#060a13; --accent:#5ea2ff; --accent-fg:#08101f;
-  --ok:#4ade80; --ok-bg:#133223; --warn:#fbbf24; --warn-bg:#382810; --bad:#fb7185; --bad-bg:#3b1822; --info-bg:#172b49;
+  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
+  --ok:#38bdf8; --ok-bg:#0c2d48; --warn:#fbbf24; --warn-bg:#382810; --bad:#fb7185; --bad-bg:#3b1822; --info-bg:#102845;
   --shadow:0 2px 10px rgba(0,0,0,.35); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -70,19 +70,19 @@ h1{font-size:22px;margin:0;text-wrap:balance}
 h2{font-size:15px;font-weight:650;margin:0 0 12px;letter-spacing:-.005em;display:flex;align-items:center;gap:8px}
 .sub{color:var(--muted);margin:4px 0 0;max-width:72ch;font-size:13.5px}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px 24px;min-width:0;box-shadow:var(--shadow);transition:border-color .15s ease}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:14px;padding:15px 18px;box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease;position:relative;overflow:hidden}
-.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 20px -8px rgba(15,23,42,.12)}
-.kpi .n{font-size:32px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1.1;margin-bottom:4px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-top:3.5px solid var(--accent);border-radius:14px;padding:16px 20px;box-shadow:var(--shadow);transition:all .18s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
+.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 24px -6px rgba(2,132,199,0.16);border-color:var(--accent)}
+.kpi .n{font-size:32px;font-weight:700;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1.1;margin-bottom:4px;color:var(--navy)}
 .kpi .l{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
-.kpi.ok{border-top-color:var(--ok)} .kpi.ok .n{color:var(--ok)}
+.kpi.ok{border-top-color:#0284c7} .kpi.ok .n{color:#0284c7}
 .kpi.alert{border-top-color:var(--warn);background:color-mix(in srgb,var(--warn-bg) 35%,var(--surface))} .kpi.alert .n{color:var(--warn)}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
-.tw{overflow-x:auto;border-radius:10px}
+.tw{overflow-x:auto;border-radius:10px;border:1px solid var(--line);background:var(--surface)}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700;padding:11px 12px;background:#f8fafc;border-bottom:2px solid var(--line);white-space:nowrap}
+th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:#475569;font-weight:700;padding:12px 14px;background:#f8fafc;border-bottom:2px solid var(--line);white-space:nowrap}
 th:first-child{border-top-left-radius:8px} th:last-child{border-top-right-radius:8px}
-td{padding:13px 12px;border-bottom:1px solid color-mix(in srgb,var(--line) 65%,transparent);vertical-align:middle}
+td{padding:12px 14px;border-bottom:1px solid color-mix(in srgb,var(--line) 65%,transparent);vertical-align:middle}
 tbody tr{transition:background .15s}
 tbody tr:hover{background:var(--surface2)}
 tr:last-child td{border-bottom:0}
@@ -91,22 +91,22 @@ tr:last-child td{border-bottom:0}
 .small{font-size:12px;color:var(--muted)}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap;background:var(--surface2);color:var(--fg);border:1px solid color-mix(in srgb,currentColor 18%,transparent)}
 .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.85}
-.p-pending{background:var(--warn-bg);color:var(--warn)} .p-approved{background:var(--info-bg);color:var(--accent)}
-.p-arrived,.p-tagged{background:var(--info-bg);color:var(--accent)} .p-in{background:var(--ok-bg);color:var(--ok)}
-.p-out,.p-cancelled{background:var(--surface2);color:var(--muted)} .p-watch{background:#3b2a00;color:#ffd166} .p-rejected,.p-suspended{background:var(--bad-bg);color:var(--bad)}
+.p-pending{background:var(--warn-bg);color:var(--warn);border-color:#fde68a} .p-approved{background:#e0f2fe;color:#0369a1;border-color:#bae6fd}
+.p-arrived,.p-tagged{background:#e0f2fe;color:#0369a1;border-color:#bae6fd} .p-in{background:#e0f2fe;color:#0369a1;border-color:#bae6fd}
+.p-out,.p-cancelled{background:var(--surface2);color:var(--muted);border-color:var(--line)} .p-watch{background:#3b2a00;color:#ffd166} .p-rejected,.p-suspended{background:var(--bad-bg);color:var(--bad);border-color:#fecdd3}
 .t-vip{background:var(--navy);color:#fff;border-color:transparent} .t-vip::before{background:#ffd166} .t-contractor{background:var(--warn-bg);color:var(--warn)}
-/* Buttons: secondary = white with a hairline border; primary = solid accent; ok = solid green; bad = soft amber (no red). */
-.btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:10px;
+/* Buttons: secondary = white with a hairline border; primary = solid accent; ok = solid UN blue; bad = soft amber (no red). */
+.btn{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;height:34px;padding:0 14px;border-radius:9px;
   font-weight:600;font-size:13px;letter-spacing:.005em;line-height:1;white-space:nowrap;
-  background:var(--surface);color:var(--fg);border:1px solid var(--line);box-shadow:0 1px 0 color-mix(in srgb,var(--fg) 6%,transparent);
-  transition:transform .12s ease,background .15s,border-color .15s,box-shadow .2s,color .15s}
-.btn:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--accent);box-shadow:0 2px 8px -3px color-mix(in srgb,var(--accent) 35%,transparent)}
-.btn:active{transform:translateY(1px) scale(.98);box-shadow:none}
-.btn:focus-visible{outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 35%,transparent)}
-.btn.pri{background:var(--accent);color:var(--accent-fg);border-color:transparent;box-shadow:0 4px 12px -5px color-mix(in srgb,var(--accent) 70%,transparent)}
-.btn.pri:hover{background:color-mix(in srgb,var(--accent) 88%,#000);color:var(--accent-fg);box-shadow:0 6px 16px -6px color-mix(in srgb,var(--accent) 80%,transparent)}
-.btn.ok{background:var(--ok);color:#fff;border-color:transparent;box-shadow:0 4px 12px -5px color-mix(in srgb,var(--ok) 70%,transparent)}
-.btn.ok:hover{background:color-mix(in srgb,var(--ok) 88%,#000);color:#fff}
+  background:var(--surface);color:var(--fg);border:1px solid var(--line);box-shadow:0 1px 2px rgba(15,23,42,.04);
+  transition:all .15s cubic-bezier(0.4, 0, 0.2, 1)}
+.btn:hover{border-color:var(--accent);color:var(--accent);box-shadow:0 3px 8px -2px rgba(2,132,199,0.25);transform:translateY(-1px)}
+.btn:active{transform:translateY(0);box-shadow:none}
+.btn:focus-visible{outline:none;box-shadow:0 0 0 3px rgba(2,132,199,0.25)}
+.btn.pri{background:#0284c7;color:#fff;border-color:transparent;box-shadow:0 2px 6px -1px rgba(2,132,199,0.4)}
+.btn.pri:hover{background:#0369a1;color:#fff;box-shadow:0 4px 12px -2px rgba(2,132,199,0.5);transform:translateY(-1px)}
+.btn.ok{background:#0284c7;color:#fff;border-color:transparent;box-shadow:0 2px 6px -1px rgba(2,132,199,0.4)}
+.btn.ok:hover{background:#0369a1;color:#fff;box-shadow:0 4px 12px -2px rgba(2,132,199,0.5);transform:translateY(-1px)}
 .btn.bad{background:var(--warn-bg);color:var(--warn);border-color:transparent;box-shadow:none}
 .btn.bad:hover{background:color-mix(in srgb,var(--warn) 18%,var(--warn-bg));color:var(--warn);border-color:transparent}
 .btn[disabled]{opacity:.45;pointer-events:none;box-shadow:none}
@@ -1342,12 +1342,16 @@ async function printTagSheet(){
   p.innerHTML=`<div class="tsheet">${cards.join("")}</div>`;
   document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},120);
 }
-function tagSheetPanel(){return `<div class="panel"><h2>Print reusable tags</h2><p class="small">Print a sheet of numbered tags to cut out and laminate. Each tag has a QR code: scanning it finds who is holding that tag. Ten tags per A4 page.</p>
-  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:10px">
-   <div class="f"><label for="ts_pre">Type</label><select id="ts_pre"><option value="V">Visitor (V-)</option><option value="C">Contractor (C-)</option><option value="P">VIP (P-)</option></select></div>
-   <div class="f"><label for="ts_from">From number</label><input id="ts_from" type="number" min="1" value="1" style="width:110px"></div>
-   <div class="f"><label for="ts_to">To number</label><input id="ts_to" type="number" min="1" value="50" style="width:110px"></div>
-   <button class="btn pri" id="ts_go">Print tag sheet</button></div></div>`}
+function tagSheetPanel(){return `<details class="panel" style="padding:14px 20px;border-radius:12px;margin:12px 0">
+  <summary style="font-weight:700;font-size:14px;color:var(--navy);cursor:pointer;display:flex;align-items:center;gap:8px;user-select:none">
+    🖨️ Print Reusable Lanyard Tag Sheet (10 per A4 page)
+  </summary>
+  <p class="small" style="margin:8px 0 0">Print a sheet of numbered tags to cut out and laminate. Each tag has a QR code: scanning it finds who is holding that tag.</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+   <div class="f"><label for="ts_pre" class="small"><b>Type</b></label><select id="ts_pre"><option value="V">Visitor (V-)</option><option value="C">Contractor (C-)</option><option value="P">VIP (P-)</option></select></div>
+   <div class="f"><label for="ts_from" class="small"><b>From #</b></label><input id="ts_from" type="number" min="1" value="1" style="width:110px"></div>
+   <div class="f"><label for="ts_to" class="small"><b>To #</b></label><input id="ts_to" type="number" min="1" value="50" style="width:110px"></div>
+   <button class="btn pri" id="ts_go">Print tag sheet</button></div></details>`}
 
 /* ================= world-class features ================= */
 
@@ -1512,7 +1516,7 @@ const VW_myguests=()=>{
   const up=mine.filter(v=>["pending","approved"].includes(v.status)).sort((a,b)=>a.expected-b.expected);
   const here=mine.filter(v=>["arrived","tagged","in"].includes(v.status));
   const past=mine.filter(v=>["out","cancelled","rejected"].includes(v.status)).sort((a,b)=>(b.expected||0)-(a.expected||0)).slice(0,20);
-  const hostBtns=v=>((v.status==="tagged"||v.status==="arrived"||(v.type==="vip"&&v.status==="in"&&!v.vipReceived))&&!v.hostReply?`<button class="btn ok" data-act="reply" data-id="${esc(v.id)}">I'm coming down</button>`:v.hostReply?`<span class="pill p-in">You replied ${fmtT(v.hostReplyAt)}</span>`:"")+(overstay(v)?B(v.id,"extendstay","Extend overstay","pri"):B(v.id,"detail","Details"));
+  const hostBtns=v=>((v.status==="tagged"||v.status==="arrived"||(v.type==="vip"&&v.status==="in"&&!v.vipReceived))&&!v.hostReply?`<button class="btn pri" data-act="reply" data-id="${esc(v.id)}">I'm coming down</button>`:v.hostReply?`<span class="pill p-in">You replied ${fmtT(v.hostReplyAt)}</span>`:"")+(overstay(v)?B(v.id,"extendstay","Extend overstay","pri"):B(v.id,"detail","Details"));
   const pastBtns=v=>(v.status==="rejected"?B(v.id,"resubmit","Edit & resubmit","pri"):"")+B(v.id,"detail","Details");
   return head("My guests","Your upcoming and current visitors. Change a time, cancel a visit, or tell reception you are on your way.")+
   (here.length?`<div class="panel"><h2>Here now <span class="cnt">${here.length}</span></h2>${table(here,hostBtns,"")}</div>`:"")+
@@ -2192,7 +2196,7 @@ function table(list,actions,empty){
 const B=(id,act,label,cls="")=>!canAct(act)?"":`<button class="btn ${cls}" data-id="${esc(id)}" data-act="${act}">${label}</button>`;
 function searchBox(ph="Search by name, reference, tag or organisation"){return `<div class="search"><div class="search-in"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="${ph}" value="${esc(render.q||"")}"><kbd title="Press / to search">/</kbd></div><button class="btn" id="qscan" title="Scan a badge QR code with the camera">Scan badge</button><button class="btn" id="qclear">Clear</button></div>`}
 function filterQ(list){const q=(render.q||"").toLowerCase().trim(); if(!q) return list; return list.filter(v=>[v.name,v.ref,v.org,v.host,v.tag,v.agency,v.type==="vip"?v.vehicle:"",v.group,v.backupHost].join(" ").toLowerCase().includes(q))}
-function head(t,s){return `<div><h1>${t}</h1><p class="sub">${s}</p></div>`}
+function head(t,s){return `<div class="page-head" style="margin-bottom:6px"><h1 style="font-size:22px;font-weight:700;color:var(--navy);margin:0">${t}</h1><p class="sub" style="font-size:13.5px;color:var(--muted);margin:3px 0 0;line-height:1.45">${s}</p></div>`}
 
 const V={};
 V.dashboard=()=>{
@@ -2221,12 +2225,12 @@ V.dashboard=()=>{
     </div>
     <div class="panel"><h2>Alerts and reminders</h2>${alertList()}</div>
   </div>
-  <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>canAct("checkout")?B(v.id,"checkout","Check out","ok"):"","Nobody is checked in.")}</div>`;
+  <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>canAct("checkout")?B(v.id,"checkout","Check out","pri"):"","Nobody is checked in.")}</div>`;
 };
 V.gate=()=>{
   const pend=visitors.filter(v=>v.status==="pending");
   const grps={}; pend.filter(v=>v.group&&!ownRequest(v)).forEach(v=>{(grps[v.group]=grps[v.group]||[]).push(v)});
-  const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn ok" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
+  const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn pri" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
   const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
   const insideList=filterQ(visitors.filter(v=>v.status==="in"||v.status==="tagged"||(v.type==="vip"&&["arrived","in"].includes(v.status))));
@@ -2354,17 +2358,17 @@ V.gate=()=>{
       const ext=getHostExt(v.host, v.agency);
       const isUnsch = v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
       return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Station 1 must call and confirm with host on desk phone first">📞 Confirm with Host First (Ext. ${esc(ext)})</button>` : "")
-        + B(v.id,"approve","Approve request","ok")
+        + B(v.id,"approve","Approve request","pri")
         + B(v.id,"reject","Reject","bad");
     },"No pending approvals.")}
   </div>`:`<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><span>✓ <b>No pending approvals.</b> All visitor requests have been decided.</span></div>`)+
 
   /* Expected & Admitted Visitors */
   `<div class="panel">
-    <h2>Expected & Admitted Visitors</h2>
+    <h2>Expected &amp; Admitted Visitors</h2>
     ${searchBox()}
     <div style="margin-top:12px">${table(expList,v=>{
-      if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
+      if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","pri");
       if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Admit","pri");
       if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
       if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">✓ Admitted Station 1 · Sent to Station 2 Documentation Reception</span>`;
@@ -2640,8 +2644,8 @@ function promptGateHostConfirm(v){
     <div class="acts" style="justify-content:flex-end;gap:8px;margin-top:16px">
       <button class="btn" id="mNo" type="button">Close</button>
       <button class="btn bad" id="mHostRej" type="button">Host Declined</button>
-      <button class="btn pri" id="mHostAppDirect" type="button">Approve Request</button>
-      <button class="btn ok" id="mHostConfirmApp" type="button">📞 Confirmed &amp; Approve</button>
+      <button class="btn" id="mHostAppDirect" type="button">Approve Request</button>
+      <button class="btn pri" id="mHostConfirmApp" type="button">📞 Confirmed &amp; Approve</button>
     </div>
   </div>`;
 
@@ -2701,7 +2705,7 @@ function promptHostCall(v){
     <p class="small" style="color:var(--text)">Pick up the Station 3 reception desk phone and dial <b>${esc(ext)}</b>. Because email notifications might not be answered immediately, phone contact ensures the host comes down to receive their visitor.</p>
     <div class="acts" style="justify-content:flex-end;margin-top:16px">
       <button class="btn" id="mNo" type="button">Close</button>
-      <button class="btn ok" id="mCallMark" type="button">✅ Mark Host Called on Desk Phone</button>
+      <button class="btn pri" id="mCallMark" type="button">📞 Mark Host Called on Desk Phone</button>
     </div>
   </div>`;
   m.hidden=false;
@@ -2733,7 +2737,7 @@ V.reception=()=>{
       const notifBtn = v.hostNotified
         ? `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600" title="${esc(v.hostNotifiedNote||"")}">✓ Host contacted (${fmtT(v.hostNotified)})</span> <button class="btn small" data-act="notify" data-id="${esc(v.id)}" title="Call or notify host again" style="padding:2px 8px;font-size:11px">Re-notify</button>`
         : B(v.id, "notify", "Notify host");
-      return notifBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "ok");
+      return notifBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "pri");
     }, "Nobody is currently waiting for host.")}
   </div>
   ${enRoute.length ? `<div class="panel" style="border-left:4px solid #0284c7;background:var(--surface2)">
@@ -2743,7 +2747,7 @@ V.reception=()=>{
   </div>` : ""}
   <div class="panel">
     <h2>Checked in with host <span class="cnt">${inside.length}</span></h2>
-    ${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify","Notify host"))+B(v.id,"checkin","Host received","ok"):"")+`<span class="pill p-in">Checked in with host</span>`,"Nobody is currently checked in.")}
+    ${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify","Notify host"))+B(v.id,"checkin","Host received","pri"):"")+`<span class="pill p-in">Checked in with host</span>`,"Nobody is currently checked in.")}
   </div>`;
 };
 V.vip=()=>{
@@ -2751,8 +2755,8 @@ V.vip=()=>{
   return head("Station 4 · VIP Gate","Station 4. Accredited VIP guests, Ambassadorial delegations, and Diplomatic Mission Heads check in directly with diplomatic courtesy.")+
 
   `<div class="panel">${searchBox("Search VIP name, plate or reference")}</div>
-  <div style="display:flex;flex-direction:column;gap:10px">${list.length?list.map(v=>`<div class="vcard"><div><div class="nm">${esc(v.name)}</div><div class="small">${esc(v.org)} · Host: ${esc(v.host)} · Expected ${fmtT(v.expected)}${v.type==="vip"&&v.vehicle?` · <span class="mono">🚗 ${esc(v.vehicle)}</span>`:""}</div><div style="margin-top:6px">${pill(v)} <span class="ref">${esc(v.ref)}</span>${["in","arrived"].includes(v.status)?` · <span class="small">✨ Auto Checked In · Host notified ${fmtT(v.hostNotified||v.inAt)}</span>`:""}</div></div><div class="acts">${
-    v.status==="approved"?B(v.id,"vipadmit","VIP Auto Check-in","ok"):["arrived","in"].includes(v.status)?B(v.id,"checkout","Record VIP exit (Optional)"):v.status==="pending"?`<span class="pill p-pending">Not yet approved. Do not admit.</span>`:""}${passBtn(v)}</div></div>`).join(""):`<div class="panel empty">No VIP guests expected.</div>`}</div>`;
+  <div style="display:flex;flex-direction:column;gap:10px">${list.length?list.map(v=>`<div class="vcard" style="border-left:4px solid #0284c7"><div><div class="nm">${esc(v.name)}</div><div class="small">${esc(v.org)} · Host: ${esc(v.host)} · Expected ${fmtT(v.expected)}${v.type==="vip"&&v.vehicle?` · <span class="mono" style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:700">🚗 ${esc(v.vehicle)}</span>`:""}</div><div style="margin-top:6px">${pill(v)} <span class="ref">${esc(v.ref)}</span>${["in","arrived"].includes(v.status)?` · <span class="small">✨ Auto Checked In · Host notified ${fmtT(v.hostNotified||v.inAt)}</span>`:""}</div></div><div class="acts">${
+    v.status==="approved"?B(v.id,"vipadmit","VIP Auto Check-in","pri"):["arrived","in"].includes(v.status)?B(v.id,"checkout","Record VIP exit (Optional)"):v.status==="pending"?`<span class="pill p-pending">Not yet approved. Do not admit.</span>`:""}${passBtn(v)}</div></div>`).join(""):`<div class="panel empty">No VIP guests expected.</div>`}</div>`;
 };
 function regForm(walkin){
   return `<form id="reg"><div class="fields">
@@ -2795,7 +2799,7 @@ function regForm(walkin){
         <input id="r_host_note" placeholder="e.g. Host confirmed on Ext. 214 - available to receive visitor" style="background:#fff">
       </div>
     </div>`:""}
-  </div><div class="acts" style="margin-top:14px"><button class="btn ${walkin?"ok":"pri"}" type="submit">${walkin?"✓ Register & Process Unscheduled Visitor":"Register visitor"}</button></div>
+  </div><div class="acts" style="margin-top:14px"><button class="btn pri" type="submit" ${walkin?'style="background:#1e3a8a;border-color:#1e3a8a"':""}>${walkin?"✓ Register & Process Unscheduled Visitor":"Register visitor"}</button></div>
   <p class="small">${walkin?"Unscheduled visitors confirmed by host are admitted at Station 1 (tag allocated) and proceed to Station 2 Documentation. If host has not yet confirmed, they enter Pending Approvals until phone clearance is logged.":"Every registered visitor starts as <b>Pending approval</b> until approved by an approver, after which they appear as <b>Approved · expected</b> at the gate. No ID scans are stored."}</p></form>`;
 }
 V.register=()=>head("Register visitors","Register one visitor, send a guest a link to fill in their own details, or upload a list.")+inviteView()+
@@ -2872,7 +2876,7 @@ V.contractors=()=>{
         </td>
         <td>
           <div class="acts" style="flex-wrap:nowrap">
-            ${v.status==="suspended"?B(v.id,"reinstate","Reinstate","ok"):B(v.id,"suspend","Suspend","bad")}
+            ${v.status==="suspended"?B(v.id,"reinstate","Reinstate","pri"):B(v.id,"suspend","Suspend","bad")}
             ${B(v.id,"extend","+7 Days")}
             ${B(v.id,"detail","Details")}
           </div>
@@ -3022,7 +3026,7 @@ V.parking=()=>{
       </td>
       <td>
         <div class="acts" style="flex-wrap:nowrap">
-          ${v.visitor?`<button class="btn ok" data-act="pass" data-id="${esc(v.visitor.id)}" title="Show Digital Visitor Pass">Show Pass</button>`:""}
+          ${v.visitor?`<button class="btn pri" data-act="pass" data-id="${esc(v.visitor.id)}" title="Show Digital Visitor Pass">Show Pass</button>`:""}
           <button class="btn" data-veh-bay="${esc(v.plate)}">Reassign Bay</button>
           <button class="btn bad" data-veh-exit="${esc(v.plate)}">Exit Gate</button>
         </div>
@@ -3069,7 +3073,7 @@ V.parking=()=>{
         </td>
         <td>
           <div class="acts" style="flex-wrap:nowrap">
-            <button class="btn ok" data-act="pass" data-id="${esc(v.id)}" title="Show Live Digital Pass">Show Pass</button>
+            <button class="btn pri" data-act="pass" data-id="${esc(v.id)}" title="Show Live Digital Pass">Show Pass</button>
             ${v.status==="approved"?B(v.id,"vipadmit","Admit VIP Motorcade","pri"):
               `<span class="small" style="color:var(--bad);font-weight:600">Hold at Gate</span>`}
           </div>
@@ -3164,7 +3168,7 @@ V.assets=()=>{
             a.status==="pending"?`<span class="pill p-pending">⏳ Awaiting ${esc(a.agency)} Supervisor</span>${
               a.notifiedApproverAt?`<div class="small" style="color:var(--accent);margin-top:2px">🔔 Request sent ${fmtT(a.notifiedApproverAt)} (${esc(a.notifiedVia||"msg")})</div>`:""
             }<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px">
-              <button class="btn ok" data-asset-notify="${esc(a.id)}" style="font-size:11.5px;padding:3px 8px" title="Send notification to agency supervisor">📨 Notify Approver</button>
+              <button class="btn" data-asset-notify="${esc(a.id)}" style="font-size:11.5px;padding:3px 8px;background:#f0f9ff;color:#0369a1;border-color:#bae6fd" title="Send notification to agency supervisor">📨 Notify Approver</button>
               ${!isCustodian(a)&&canApproveAgency(a)?`<button class="btn pri" data-asset-approve="${esc(a.id)}" style="font-size:11.5px;padding:3px 8px">Approve for ${esc(a.agency)}</button>`:""}
             </div>${
               isCustodian(a)?`<div class="small" style="color:var(--muted);margin-top:4px;font-style:italic">Custodian self-approval restricted</div>`:""
@@ -3173,7 +3177,7 @@ V.assets=()=>{
         </td>
         <td>
           ${a.verifiedAt?`<span class="pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">✓ Gate Cleared</span><div class="small mono" style="margin-top:2px">${esc(a.verifiedBy)}</div><div class="small mono" style="color:var(--muted)">${fmtT(a.verifiedAt)}</div>`:
-            isReady&&canAct("arrive")?`<button class="btn ok" data-asset-verify="${esc(a.id)}" style="font-size:12px;padding:4px 8px">Verify &amp; Clear at Gate</button>${isEarly?`<div class="small" style="color:var(--warn);margin-top:2px">Early clearance</div>`:`<div class="small" style="color:var(--muted);margin-top:2px">Inspect SN on device</div>`}`:
+            isReady&&canAct("arrive")?`<button class="btn pri" data-asset-verify="${esc(a.id)}" style="font-size:12px;padding:4px 8px">Verify &amp; Clear at Gate</button>${isEarly?`<div class="small" style="color:var(--warn);margin-top:2px">Early clearance</div>`:`<div class="small" style="color:var(--muted);margin-top:2px">Inspect SN on device</div>`}`:
             a.status==="pending"?`<span class="pill p-rejected" style="font-size:11px">⛔ Exit Barred</span><div class="small" style="color:var(--bad);margin-top:2px">Awaiting supervisor</div>`:
             `<span class="small">Pending Gate Verification</span>`}
         </td>
@@ -3221,7 +3225,7 @@ UN House Security & Common Services`;
     <div class="f"><label for="an_msg">Pre-written Notification Message</label><textarea id="an_msg" style="min-height:160px;font-family:var(--mono);font-size:12px;line-height:1.45">${esc(defMsg)}</textarea></div>
     <div class="acts" style="flex-wrap:wrap;gap:8px;margin-top:10px">
       <a class="btn pri" id="an_email_btn" href="#">📧 Send via Email</a>
-      <a class="btn ok" id="an_wa_btn" href="#" target="_blank" rel="noopener">💬 Send via WhatsApp</a>
+      <a class="btn pri" id="an_wa_btn" href="#" target="_blank" rel="noopener">💬 Send via WhatsApp</a>
       <button class="btn" id="an_copy_btn">📋 Copy Message</button>
       <button class="btn" id="mNo">Close</button>
     </div></div>`;
@@ -4269,7 +4273,7 @@ function doAct(a,v){
     <div class="small">Host ${esc(v.host)} (${esc(v.agency)})${v.backupHost?` · Backup: ${esc(v.backupHost)}`:""} · ${esc(v.building)}${v.room?" · "+esc(v.room):""} · ${esc(v.purpose)}${v.escort||v.restricted?" · <b>Escort required</b>":""}</div>
     ${v.escortOfficer?`<div class="small" style="color:var(--ok)">✓ <b>Designated Staff Escort:</b> ${esc(v.escortOfficer)} (${fmtT(v.escortHandshakeAt||v.inAt)})</div>`:""}
     <div class="small">Requested by ${esc(v.requestedBy||v.host)}${v.decidedBy?` · ${v.status==="rejected"?"Rejected":"Approved"} by <b>${esc(v.decidedBy)}</b>${v.decidedAt?" ("+fmtD(v.decidedAt)+")":""}`:" · awaiting approval"}</div>${v.rejectReason?`<div class="small" style="color:var(--bad)">Rejection reason: <b>${esc(v.rejectReason)}</b></div>`:""}<div class="tw" style="max-height:240px;overflow:auto"><table><tbody>${(v.log||[]).slice().reverse().map(l=>`<tr><td class="mono">${fmtD(l.t)}</td><td>${esc(l.a)}<div class="small">${esc(l.by)} · ${esc(l.st)}</div></td></tr>`).join("")}</tbody></table></div>
-    <div class="acts">${(v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?`<button class="btn ok" id="mEscort">${v.escortOfficer?"Change Escort":"Confirm Staff Escort Handshake"}</button>`:""}${passLive(v.status)&&canAct("pass")?`<button class="btn pri" id="mPass">Live digital pass</button>`:""}${v.status==="rejected"&&canAct("resubmit")?`<button class="btn pri" id="mResub">Edit & resubmit</button>`:""}${v.status==="in"&&canAct("extendstay")?`<button class="btn" id="mExt">Extend stay (host permission)</button>`:""}<button class="btn" id="mNo">Close</button></div></div>`;
+    <div class="acts">${(v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?`<button class="btn pri" id="mEscort">${v.escortOfficer?"Change Escort":"Confirm Staff Escort Handshake"}</button>`:""}${passLive(v.status)&&canAct("pass")?`<button class="btn pri" id="mPass">Live digital pass</button>`:""}${v.status==="rejected"&&canAct("resubmit")?`<button class="btn pri" id="mResub">Edit & resubmit</button>`:""}${v.status==="in"&&canAct("extendstay")?`<button class="btn" id="mExt">Extend stay (host permission)</button>`:""}<button class="btn" id="mNo">Close</button></div></div>`;
     m.hidden=false; $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true; if($("#mPass")) $("#mPass").onclick=()=>openPass(v); if($("#mExt")) $("#mExt").onclick=()=>doAct("extendstay",v); if($("#mResub")) $("#mResub").onclick=()=>doAct("resubmit",v);
     if($("#mEscort")) $("#mEscort").onclick=()=>{
       modal(`<h2>Staff Escort Handshake · ${esc(v.name)}</h2><p class="small">Security requires physical handover to a designated staff member for restricted or escorted visits.</p>
