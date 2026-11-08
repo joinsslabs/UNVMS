@@ -515,7 +515,7 @@ function startData(){
   },()=>{}));
   if(me.role==="admin") unsubs.push(db.collection("staff").onSnapshot(s=>{staffList=s.docs.map(d=>({...d.data(),uid:d.id}));if(view==="staff")render()}));
   renderSitePicker();
-  view=defaultView(); render();
+  { const h=location.hash.slice(1); view=h&&canView(h)?h:defaultView(); } render();
   if(new URLSearchParams(location.search).has("wall")) enterWall();
 }
 function showGate(title,msg,waiting){
@@ -659,7 +659,7 @@ function renderNav(){
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived"].includes(v.status)).length};
   c.staff=staffList.filter(s=>s.role==="pending").length; c.deliveries=deliveries.filter(d=>d.status==="waiting").length;
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l])=>`<button class="${view===k?"on":""}" data-v="${k}">${l}${c[k]?`<span class="cnt">${c[k]}</span>`:""}</button>`).join("");
-  $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{view=b.dataset.v;selected=null;render()});
+  $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{goView(b.dataset.v)});
 }
 // Email delivery status, written back by the server function.
 function mailPill(v){const m=v.mail;if(!v.hostEmail)return `<span class="small">No host email</span>`;if(!m)return "";
@@ -1364,25 +1364,37 @@ function drawTour(){
   const [title,text]=TOUR[tourStep];
   t.innerHTML=`<div class="tour-h"><span>Guided demo · ${tourStep+1} of ${TOUR.length}</span><button id="tourX" aria-label="Hide the guide">×</button></div><h3>${esc(title)}</h3><p>${esc(text)}</p>
     <div class="tour-bar"><span style="width:${(tourStep+1)/TOUR.length*100}%"></span></div>
-    <div class="acts"><button class="btn" id="tourB" ${tourStep?"":"disabled"}>Back</button>${tourStep===TOUR.length-1?`<button class="btn pri" id="tourWall">Show full screen</button>`:`<button class="btn pri" id="tourN">Next</button>`}</div>`;
+    <div class="acts"><button class="btn" id="tourR" title="Start the demo again with fresh sample data">Restart demo</button><button class="btn" id="tourB" ${tourStep?"":"disabled"}>Back</button>${tourStep===TOUR.length-1?`<button class="btn pri" id="tourWall">Show full screen</button>`:`<button class="btn pri" id="tourN">Next</button>`}</div>`;
   $("#tourX").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false};
-  const go=i=>{tourStep=i;$("#modal").hidden=true;document.body.classList.remove("wall-mode");TOUR[i][2]();render();drawTour();scrollTo({top:0,behavior:"smooth"})};
+  const go=i=>{tourStep=i;$("#modal").hidden=true;document.body.classList.remove("wall-mode");TOUR[i][2]();goView(view);drawTour();scrollTo({top:0,behavior:"smooth"})};
   if($("#tourB")) $("#tourB").onclick=()=>go(tourStep-1);
+  $("#tourR").onclick=()=>modal(`<h2>Restart the demo?</h2><p>All changes made in this demo are cleared and a fresh sample day is loaded.</p>`,()=>{try{sessionStorage.removeItem(DEMO_KEY)}catch(e){}location.href=location.pathname+"?demo"});
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourWall")) $("#tourWall").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;enterWall()};
 }
+const DEMO_KEY="unhDemoState";
+function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
+  try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
+},150); }
+function loadDemo(){ try{ const d=JSON.parse(sessionStorage.getItem(DEMO_KEY)||"null"); return d&&d.visitors&&now()-d.at<12*3600e3?d:null; }catch(e){ return null; } }
 function startDemo(){
   DEMO=true; fb={demo:true}; db=demoDb();
   me={uid:"demo-admin",name:"Demo Administrator",role:"admin",email:"demo@example.org",active:true};
-  const d=demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist; deliveries=d.deliveries;
+  const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[];
+  if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role){me.role=saved.role;me.name=saved.role==="admin"?"Demo Administrator":ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
   $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["admin","approver","gate","docs","reception","vip","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
-  $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";view=defaultView();document.body.classList.remove("wall-mode");render();toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
+  $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
   const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
   open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
-  view="dashboard"; render(); drawTour();
+  const startView=location.hash.slice(1)||(saved&&saved.view)||"dashboard";
+  view=startView; try{history.replaceState({view,tour:tourStep},"",location.pathname+location.search+"#"+view)}catch(e){}
+  render(); drawTour();
+  if(saved&&saved.tourHidden){$("#tour").hidden=true;open.hidden=false}
+  if(saved&&saved.role){const r=$("#demoRole");if(r)r.value=saved.role}
+  if(saved) toast("Demo resumed where you left off. Use Restart demo for a fresh start.");
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.body.classList.contains("wall-mode")){document.body.classList.remove("wall-mode");render()}});
 }
 
@@ -1536,7 +1548,21 @@ V.assistant=()=>head("Operations assistant","Ask about recent and current visito
    ${chat.map(c=>`<div><div class="small"><b>${esc(c.q)}</b></div><div class="ans">${esc(c.a)}</div></div>`).join("")}
   </div><div class="panel"><h2>Automatic reminders</h2>${alertList()}</div>`;
 
+// Move to a screen and record it in the browser history (Back returns to the previous screen).
+function goView(v,opts={}){
+  if(!v) return;
+  view=v; selected=null; if(v!=="wall") document.body.classList.remove("wall-mode");
+  if(!opts.fromHistory){ try{ const url=location.pathname+location.search+"#"+v; if(location.hash.slice(1)!==v) history.pushState({view:v,tour:DEMO?tourStep:null},"",url); }catch(e){} }
+  render();
+}
+window.addEventListener("popstate",e=>{
+  const v=(e.state&&e.state.view)||location.hash.slice(1);
+  if(!v||!V[v]&&!["wall","settings","evac","watch","kiosk","myguests","deliveries","reports"].includes(v)) return;
+  if(DEMO&&e.state&&e.state.tour!=null){tourStep=e.state.tour; if($("#tour")&&!$("#tour").hidden) drawTour();}
+  $("#modal").hidden=true; goView(v,{fromHistory:true});
+});
 function render(){
+  if(DEMO) saveDemo();
   if(fb&&(!me||me.role==="pending"||me.active===false)) return;
   V.staff=staffView; Object.assign(V,{watch:VW_watch,evac:VW_evac,kiosk:VW_kiosk,myguests:VW_myguests,deliveries:VW_deliveries,reports:VW_reports,wall:VW_wall,settings:VW_settings});
   if(!canView(view)) view=defaultView();
