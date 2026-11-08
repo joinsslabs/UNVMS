@@ -1351,39 +1351,39 @@ const VW_reports=()=>{
   <div class="panel"><h2>Busiest hours</h2>${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}<p class="small">Arrivals by hour of day, 06:00 to 20:00.</p></div></div>
   <div class="grid2"><div class="panel"><h2>By agency</h2><div class="tw"><table><tbody>${Object.entries(byAgency).sort((a,b)=>b[1]-a[1]).map(([a,n])=>`<tr><td>${esc(a)}</td><td class="mono" style="text-align:right">${n}</td></tr>`).join("")||`<tr><td class="small">No arrivals yet.</td></tr>`}</tbody></table></div></div>
   <div class="panel"><h2>Tags not returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags returned.</div>`}</div></div>
-  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">Shift handover summary</button></div></div>`;
+  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">17:00 Daily Closeout summary</button></div></div>`;
 };
 function printHandoverSheet(h){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   const chk=h.checks||{};
   p.innerHTML=`<div style="font-family:'IBM Plex Sans',Arial,sans-serif;padding:14mm;color:#111;font-size:10pt;line-height:1.45">
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172542;padding-bottom:8px;margin-bottom:12px">
-      <div><div style="font-size:14pt;font-weight:700;color:#172542">UN HOUSE ABUJA — SHIFT HANDOVER LOG</div><div style="font-size:9pt;color:#555">UNDP · UN Common Services · Security &amp; Reception Operations</div></div>
-      <div style="text-align:right;font-size:9pt"><b>Date / Time:</b> ${esc(fmtD(h.at||now()))}<br><b>Station:</b> ${esc(h.stationLabel||"All stations")}</div>
+      <div><div style="font-size:14pt;font-weight:700;color:#172542">UN HOUSE ABUJA — 17:00 DAILY RECEPTION CLOSEOUT</div><div style="font-size:9pt;color:#555">UNDP · UN Common Services · Security &amp; Reception Operations</div></div>
+      <div style="text-align:right;font-size:9pt"><b>Date / Time:</b> ${esc(fmtD(h.at||now()))}<br><b>Station:</b> ${esc(h.stationLabel||"Main Reception (S1)")}</div>
     </div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9.5pt">
-      <tr><td style="border:1px solid #ccc;padding:6px"><b>Outgoing Officer:</b> ${esc(h.fromOfficer)}</td><td style="border:1px solid #ccc;padding:6px"><b>Incoming Officer:</b> ${esc(h.toOfficer||"—")}</td><td style="border:1px solid #ccc;padding:6px"><b>Status:</b> ${h.ackBy?`Acknowledged by ${esc(h.ackBy)} (${esc(fmtT(h.ackAt))})`:"Pending incoming sign-off"}</td></tr>
-      <tr><td style="border:1px solid #ccc;padding:6px"><b>Arrivals Today:</b> ${h.stats?.arrivals??0} (${h.stats?.checkedOut??0} checked out)</td><td style="border:1px solid #ccc;padding:6px"><b>Carried Over On Site:</b> ${(h.onsite||[]).length}</td><td style="border:1px solid #ccc;padding:6px"><b>Unreturned Tags:</b> ${(h.lostTags||[]).length} · <b>Waiting Parcels:</b> ${(h.parcels||[]).length}</td></tr>
+      <tr><td style="border:1px solid #ccc;padding:6px"><b>Duty Officer:</b> ${esc(h.dutyOfficer||h.fromOfficer)}</td><td style="border:1px solid #ccc;padding:6px"><b>Visiting Hours:</b> 08:00 – 17:00 (Closed)</td><td style="border:1px solid #ccc;padding:6px"><b>Closeout Status:</b> <span style="color:#059669;font-weight:700">✓ 17:00 Certified</span></td></tr>
+      <tr><td style="border:1px solid #ccc;padding:6px"><b>Arrivals Today:</b> ${h.stats?.arrivals??0} (${h.stats?.checkedOut??0} checked out)</td><td style="border:1px solid #ccc;padding:6px"><b>Visitors Remaining on Compound:</b> ${(h.onsite||[]).length}</td><td style="border:1px solid #ccc;padding:6px"><b>Unreturned Tags:</b> ${(h.lostTags||[]).length} · <b>Custody Deliveries:</b> ${(h.parcels||[]).length}</td></tr>
     </table>
-    <div style="font-weight:700;margin:8px 0 4px">1. Visitors &amp; Contractors Carried Over On Site (${(h.onsite||[]).length})</div>
-    ${(h.onsite||[]).length?`<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9pt"><thead><tr style="background:#f1f5f9"><th style="border:1px solid #ccc;padding:4px;text-align:left">Ref</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Name</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Tag</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Host / Agency</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Building &amp; Status</th></tr></thead><tbody>${h.onsite.map(v=>`<tr><td style="border:1px solid #ccc;padding:4px">${esc(v.ref)}</td><td style="border:1px solid #ccc;padding:4px"><b>${esc(v.name)}</b></td><td style="border:1px solid #ccc;padding:4px">${esc(v.tag||"—")}</td><td style="border:1px solid #ccc;padding:4px">${esc(v.host)} (${esc(v.agency)})</td><td style="border:1px solid #ccc;padding:4px">${esc(v.building)}${v.note?" · "+esc(v.note):""}</td></tr>`).join("")}</tbody></table>`:`<div style="margin-bottom:10px;color:#555">None — all visitors checked out.</div>`}
-    <div style="font-weight:700;margin:8px 0 4px">2. Unreturned Tags (${(h.lostTags||[]).length}) &amp; Uncollected Deliveries (${(h.parcels||[]).length})</div>
+    <div style="font-weight:700;margin:8px 0 4px">1. Compound Clearance Verification (${(h.onsite||[]).length} on site at 17:00)</div>
+    ${(h.onsite||[]).length?`<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9pt"><thead><tr style="background:#fee2e2"><th style="border:1px solid #ccc;padding:4px;text-align:left">Ref</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Name</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Tag</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Host / Agency</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Building &amp; Alert</th></tr></thead><tbody>${h.onsite.map(v=>`<tr><td style="border:1px solid #ccc;padding:4px">${esc(v.ref)}</td><td style="border:1px solid #ccc;padding:4px"><b>${esc(v.name)}</b></td><td style="border:1px solid #ccc;padding:4px">${esc(v.tag||"—")}</td><td style="border:1px solid #ccc;padding:4px">${esc(v.host)} (${esc(v.agency)})</td><td style="border:1px solid #ccc;padding:4px;color:#dc2626"><b>${esc(v.building)} (${esc(v.note||"OVERSTAY")})</b></td></tr>`).join("")}</tbody></table>`:`<div style="margin-bottom:10px;color:#059669;font-weight:600">✓ Compound fully cleared. Zero external visitors inside UN House Abuja after 17:00.</div>`}
+    <div style="font-weight:700;margin:8px 0 4px">2. Physical Inventory Reconciliation (Tags &amp; Parcels in Safe)</div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9pt"><tbody>
-      <tr><td style="border:1px solid #ccc;padding:6px;width:50%;vertical-align:top"><b>Unreturned Tags:</b><br>${(h.lostTags||[]).length?h.lostTags.map(t=>`• <b>${esc(t.tag)}</b> — ${esc(t.name)} (Host: ${esc(t.host)})`).join("<br>"):"None"}</td>
-      <td style="border:1px solid #ccc;padding:6px;width:50%;vertical-align:top"><b>Uncollected Deliveries:</b><br>${(h.parcels||[]).length?h.parcels.map(d=>`• For <b>${esc(d.forName)}</b> (${esc(d.agency)}): ${esc(d.desc)} (${esc(d.from||"courier")})`).join("<br>"):"None"}</td></tr>
+      <tr><td style="border:1px solid #ccc;padding:6px;width:50%;vertical-align:top"><b>Unreturned Tags:</b><br>${(h.lostTags||[]).length?h.lostTags.map(t=>`• <b>${esc(t.tag)}</b> — ${esc(t.name)} (Host: ${esc(t.host)})`).join("<br>"):"All tags returned & accounted for."}</td>
+      <td style="border:1px solid #ccc;padding:6px;width:50%;vertical-align:top"><b>Parcels Secured in Custody:</b><br>${(h.parcels||[]).length?h.parcels.map(d=>`• For <b>${esc(d.forName)}</b> (${esc(d.agency)}): ${esc(d.desc)} (${esc(d.from||"courier")})`).join("<br>"):"None in custody."}</td></tr>
     </tbody></table>
-    <div style="font-weight:700;margin:8px 0 4px">3. Station Equipment &amp; Security Checklist</div>
+    <div style="font-weight:700;margin:8px 0 4px">3. End-of-Day Security &amp; Compound Checklist</div>
     <div style="border:1px solid #ccc;padding:6px;margin-bottom:10px;font-size:9pt">
-      [${chk.tags?"✓":" "}] Visitor tag stock counted &amp; verified &nbsp;&nbsp;
-      [${chk.equip?"✓":" "}] Computer / tablet &amp; QR scanner operational &nbsp;&nbsp;
-      [${chk.keys?"✓":" "}] Keys, radio &amp; physical logbook handed over &nbsp;&nbsp;
-      [${chk.vip?"✓":" "}] VIP &amp; restricted-area logs reconciled
+      [${chk.clearance||chk.tags?"✓":" "}] Compound clearance verified (0 unauthorized visitors) &nbsp;&nbsp;
+      [${chk.tags?"✓":" "}] Visitor tags returned to Station 2 stock &nbsp;&nbsp;
+      [${chk.custody||chk.keys||chk.safe?"✓":" "}] Reception safes, keys &amp; parcels secured &nbsp;&nbsp;
+      [${chk.peri||chk.vip?"✓":" "}] Station turned over to Compound Night Perimeter Guard
     </div>
-    <div style="font-weight:700;margin:8px 0 4px">4. Shift Notes &amp; Handover Instructions</div>
-    <div style="border:1px solid #ccc;padding:8px;min-height:48px;white-space:pre-wrap;margin-bottom:18px;font-size:9.5pt">${esc(h.notes||"All stations operating normally.")}</div>
+    <div style="font-weight:700;margin:8px 0 4px">4. Duty Officer Daily Closeout Remarks</div>
+    <div style="border:1px solid #ccc;padding:8px;min-height:48px;white-space:pre-wrap;margin-bottom:18px;font-size:9.5pt">${esc(h.notes||"Visiting hours closed at 17:00. Daily reconciliation completed normally.")}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;padding-top:12px">
-      <div style="border-top:1px solid #000;padding-top:4px"><b>Outgoing Officer Signature:</b> ${esc(h.fromOfficer)}</div>
-      <div style="border-top:1px solid #000;padding-top:4px"><b>Incoming Officer Signature:</b> ${esc(h.toOfficer||"")}</div>
+      <div style="border-top:1px solid #000;padding-top:4px"><b>Duty Reception Officer:</b> ${esc(h.dutyOfficer||h.fromOfficer)}</div>
+      <div style="border-top:1px solid #000;padding-top:4px"><b>UNDSS Security Supervisor / Night Guard:</b> ___________________________</div>
     </div>
   </div>`;
   document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},100);
@@ -1398,121 +1398,92 @@ function openHandover(){
     return {onsite,lostTags,parcels,pend,stats:{arrivals,checkedOut}};
   };
   let snap=collectLive();
-  const staffOpts=[...new Set(["Security Officer A. Bello","Receptionist N. Okafor","Supervisor F. Adeyemi","House Manager",...staffList.map(s=>s.name)].filter(x=>x&&x!==op()))];
   const m=$("#modal");
   const draw=(customNotes)=>{
     const {onsite,lostTags,parcels,pend,stats}=snap;
-    const defNotes=customNotes??`• Today's traffic: ${stats.arrivals} arrivals, ${stats.checkedOut} checked out.\n• ${onsite.length} visitor(s) still on site handed over to incoming shift.\n• ${lostTags.length?`${lostTags.length} unreturned tag(s) to follow up with hosts.`:`All departed visitor tags returned.`}\n• ${parcels.length?`${parcels.length} parcel(s) waiting at reception for collection.`:`No uncollected parcels.`}`;
+    const defNotes=customNotes??`• Visiting hours ended at 17:00. Today's traffic: ${stats.arrivals} arrivals, ${stats.checkedOut} checked out.\n• ${onsite.length?`SECURITY ALERT: ${onsite.length} visitor(s) still inside compound after 17:00. Immediate check required.`:`Compound clearance verified: 0 external visitors on site.`}\n• ${lostTags.length?`${lostTags.length} unreturned tag(s) logged for recovery.`:`All visitor tags accounted for in Station 2 stock.`}\n• ${parcels.length?`${parcels.length} parcel(s) secured in reception safe.`:`Zero outstanding parcels.`}\n• Reception secured for Compound Night Perimeter Security.`;
     m.innerHTML=`<div class="modal" style="max-width:680px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
-        <div><h2 style="margin:0">Shift handover &amp; station transfer</h2><p class="small" style="margin:2px 0 0">Live visitors on site, unreturned tags, and uncollected deliveries are automatically transferred into this handover.</p></div>
+        <div><h2 style="margin:0">🔒 17:00 End-of-Day Reception Closeout</h2><p class="small" style="margin:2px 0 0">UN House Abuja visiting hours end at 17:00. Verify compound clearance, tag reconciliation, and sign off the daily security log.</p></div>
         <div class="acts" style="flex-wrap:nowrap">
-          <button class="btn" type="button" id="ho_pull" title="Re-pull live station counts and tables">↻ Pull live data</button>
-          <button class="btn" type="button" id="ho_log" title="Append today's station activity log into shift notes">+ Insert today's log</button>
-          <label class="btn" style="cursor:pointer;margin:0" title="Import notes or records from a .json, .csv, or .txt file">📂 Import file<input type="file" id="ho_file" accept=".json,.csv,.txt" hidden></label>
+          <button class="btn" type="button" id="ho_pull" title="Re-pull live station counts">↻ Refresh live status</button>
+          <button class="btn" type="button" id="ho_log" title="Append today's station activity log into closeout remarks">+ Insert today's log</button>
           <button class="modal-x" type="button" id="ho_x" title="Close (Esc)" aria-label="Close">×</button>
         </div>
       </div>
-      <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
+      <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
         <div class="kpi"><div class="n">${stats.arrivals}</div><div class="l">Arrivals today</div></div>
-        <div class="kpi ${onsite.length?"alert":""}"><div class="n">${onsite.length}</div><div class="l">Carry over on site</div></div>
+        <div class="kpi ${onsite.length?"alert":""}"><div class="n" style="${onsite.length?"color:var(--bad)":""}">${onsite.length}</div><div class="l">${onsite.length?"Visitors inside (Alert)":"On site (0 Cleared)"}</div></div>
         <div class="kpi ${lostTags.length?"alert":""}"><div class="n">${lostTags.length}</div><div class="l">Unreturned tags</div></div>
-        <div class="kpi"><div class="n">${parcels.length}</div><div class="l">Waiting parcels</div></div>
-        <div class="kpi"><div class="n">${pend.length}</div><div class="l">Pending approvals</div></div>
+        <div class="kpi"><div class="n">${parcels.length}</div><div class="l">Parcels in safe</div></div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
-        <div class="f"><label for="ho_st">Station being handed over</label><select id="ho_st"><option value="ALL">All stations (Full shift)</option>${Object.entries(STATIONS).map(([k,v])=>`<option value="${k}" ${station()===k?"selected":""}>${k} · ${esc(v)}</option>`).join("")}</select></div>
-        <div class="f"><label for="ho_from">Outgoing officer (signing off)</label><input id="ho_from" value="${esc(op())}"></div>
-        <div class="f"><label for="ho_to">Incoming officer (taking over)</label><input id="ho_to" list="ho_staff" placeholder="Select or type incoming officer" value="${esc(staffOpts[0]||"")}"><datalist id="ho_staff">${staffOpts.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="f"><label for="ho_st">Closing Post / Station</label><input id="ho_st" value="S1 · Main Reception / Initial Access" readonly></div>
+        <div class="f"><label for="ho_from">Duty Officer (Certifying Closeout)</label><input id="ho_from" value="${esc(op())}"></div>
       </div>
       <div class="panel" style="padding:10px 12px;background:var(--surface2)">
-        <div class="small" style="font-weight:700;margin-bottom:6px">Auto-transferred carry-over records (untick any item already resolved):</div>
+        <div class="small" style="font-weight:700;margin-bottom:6px">17:00 Compound clearance &amp; inventory check:</div>
         <div style="max-height:135px;overflow:auto;display:grid;gap:4px;font-size:12.5px">
-          ${onsite.map((v,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-on="${i}" checked style="width:auto"> <span><b>[On site]</b> ${esc(v.name)} (<span class="mono">${esc(v.tag||v.ref)}</span>) · Host: ${esc(v.host)} (${esc(v.agency)}) · ${esc(v.building)} <span class="pill p-in" style="font-size:10px;padding:1px 6px">${esc(v.note)}</span></span></label>`).join("")}
+          ${onsite.map((v,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-on="${i}" checked style="width:auto"> <span><b style="color:var(--bad)">[Visitor Still on Compound]</b> ${esc(v.name)} (<span class="mono">${esc(v.tag||v.ref)}</span>) · Host: ${esc(v.host)} (${esc(v.agency)}) · ${esc(v.building)} <span class="pill p-rejected" style="font-size:10px;padding:1px 6px">17:00 Overstay</span></span></label>`).join("")}
           ${lostTags.map((t,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-tag="${i}" checked style="width:auto"> <span><b style="color:var(--warn)">[Unreturned tag ${esc(t.tag)}]</b> ${esc(t.name)} · Host: ${esc(t.host)} (out ${fmtT(t.outAt)})</span></label>`).join("")}
-          ${parcels.map((d,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-del="${i}" checked style="width:auto"> <span><b>[Parcel]</b> For ${esc(d.forName)} (${esc(d.agency)}): ${esc(d.desc)} (${esc(d.from||"courier")})</span></label>`).join("")}
-          ${!onsite.length&&!lostTags.length&&!parcels.length?`<div class="small">No open visitors, unreturned tags, or uncollected parcels to carry over.</div>`:""}
+          ${parcels.map((d,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-del="${i}" checked style="width:auto"> <span><b>[Custody Parcel]</b> For ${esc(d.forName)} (${esc(d.agency)}): ${esc(d.desc)} (${esc(d.from||"courier")})</span></label>`).join("")}
+          ${!onsite.length&&!lostTags.length&&!parcels.length?`<div class="small" style="color:var(--ok);font-weight:600">✓ Compound cleared: All visitors checked out, all tags returned, zero outstanding items.</div>`:""}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12.5px">
-        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_tags" checked style="width:auto"> Visitor tag stock counted &amp; verified</label>
-        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_equip" checked style="width:auto"> Computer / tablet &amp; scanner operational</label>
-        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_keys" checked style="width:auto"> Keys, radio &amp; logbook handed over</label>
-        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_vip" checked style="width:auto"> VIP &amp; restricted movements reconciled</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_clear" ${onsite.length===0?"checked":""} style="width:auto"> Compound clearance verified (0 visitors inside)</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_tags" checked style="width:auto"> Visitor tags counted &amp; returned to stock</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_safe" checked style="width:auto"> Reception safes, keys &amp; parcels secured</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_peri" checked style="width:auto"> Turned over to Compound Night Guard</label>
       </div>
-      <div class="f"><label for="ho_txt">Shift notes &amp; instructions for incoming officer</label><textarea id="ho_txt" style="min-height:80px;font-size:12.5px">${esc(defNotes)}</textarea></div>
+      <div class="f"><label for="ho_txt">Daily Closeout Remarks &amp; Security Log</label><textarea id="ho_txt" style="min-height:80px;font-size:12.5px">${esc(defNotes)}</textarea></div>
       <div class="acts" style="justify-content:space-between;flex-wrap:nowrap">
         <div class="acts" style="flex-wrap:nowrap">
-          <button class="btn pri" id="ho_save" type="button">Record &amp; transfer shift</button>
-          <button class="btn" id="ho_print" type="button">Print official sheet</button>
-          <button class="btn" id="ho_copy" type="button">Copy text</button>
+          <button class="btn pri" id="ho_save" type="button">🔒 Sign &amp; Close Reception for Today</button>
+          <button class="btn" id="ho_print" type="button">🖨️ Print Official Closeout Sheet</button>
+          <button class="btn" id="ho_copy" type="button">Copy Remarks</button>
         </div>
         <button class="btn" id="mNo" type="button">Close</button>
       </div>
-      ${handovers.length?`<div style="border-top:1px solid var(--line);padding-top:10px"><div class="small" style="font-weight:700;margin-bottom:6px">Recent recorded handovers (${handovers.length})</div>
-        <div class="tw" style="max-height:130px;overflow:auto"><table><thead><tr><th>When</th><th>Station</th><th>Outgoing → Incoming</th><th>Carried over</th><th>Status</th><th></th></tr></thead><tbody>
-        ${handovers.slice(0,10).map(h=>`<tr><td class="mono small">${fmtD(h.at)}</td><td class="small">${esc(h.stationKey||"ALL")}</td><td class="small"><b>${esc(h.fromOfficer)}</b> → ${esc(h.toOfficer||"—")}</td><td class="small">${(h.onsite||[]).length} on site · ${(h.lostTags||[]).length} tags · ${(h.parcels||[]).length} parcels</td>
-          <td>${h.ackBy?`<span class="pill p-in">Received by ${esc(h.ackBy)}</span>`:`<span class="pill p-pending">Awaiting sign-off</span>`}</td>
-          <td><div class="acts" style="flex-wrap:nowrap">${!h.ackBy?`<button class="btn ok" style="padding:4px 8px;font-size:11.5px" data-ho-ack="${esc(h.id)}">Acknowledge</button>`:""}<button class="btn" style="padding:4px 8px;font-size:11.5px" data-ho-view="${esc(h.id)}">Print</button></div></td></tr>`).join("")}
+      ${handovers.length?`<div style="border-top:1px solid var(--line);padding-top:10px"><div class="small" style="font-weight:700;margin-bottom:6px">Recent 17:00 Closeout Logs (${handovers.length})</div>
+        <div class="tw" style="max-height:130px;overflow:auto"><table><thead><tr><th>Date</th><th>Certified By</th><th>Traffic</th><th>Compound Status</th><th></th></tr></thead><tbody>
+        ${handovers.slice(0,10).map(h=>`<tr><td class="mono small">${fmtD(h.at)}</td><td class="small"><b>${esc(h.dutyOfficer||h.fromOfficer)}</b></td><td class="small">${h.stats?.arrivals??0} in · ${h.stats?.checkedOut??0} out</td><td class="small">${(h.onsite||[]).length?`<span class="pill p-rejected">${(h.onsite||[]).length} on site at 17:00</span>`:`<span class="pill p-in">0 on site · Cleared</span>`}</td>
+          <td><div class="acts" style="flex-wrap:nowrap"><button class="btn" style="padding:4px 8px;font-size:11.5px" data-ho-view="${esc(h.id)}">Print sheet</button></div></td></tr>`).join("")}
         </tbody></table></div></div>`:""}
     </div>`;
     m.hidden=false;
     const buildRecord=()=>{
-      const stKey=$("#ho_st").value;
       const selOn=onsite.filter((_,i)=>{const el=m.querySelector(`[data-ho-on="${i}"]`);return !el||el.checked});
       const selTags=lostTags.filter((_,i)=>{const el=m.querySelector(`[data-ho-tag="${i}"]`);return !el||el.checked});
       const selDel=parcels.filter((_,i)=>{const el=m.querySelector(`[data-ho-del="${i}"]`);return !el||el.checked});
-      return {at:now(),stationKey:stKey,stationLabel:stKey==="ALL"?"All stations":`${stKey} · ${STATIONS[stKey]}`,fromOfficer:$("#ho_from").value.trim()||op(),fromUid:myUid(),toOfficer:$("#ho_to").value.trim(),
-        stats,onsite:selOn,lostTags:selTags,parcels:selDel,checks:{tags:$("#hc_tags").checked,equip:$("#hc_equip").checked,keys:$("#hc_keys").checked,vip:$("#hc_vip").checked},notes:$("#ho_txt").value.trim()};
+      return {at:now(),type:"closeout_1700",dateStr:new Date().toISOString().slice(0,10),stationKey:"S1",stationLabel:"S1 · Reception / Initial Access",
+        dutyOfficer:$("#ho_from").value.trim()||op(),fromOfficer:$("#ho_from").value.trim()||op(),fromUid:myUid(),
+        stats,onsite:selOn,lostTags:selTags,parcels:selDel,checks:{clearance:$("#hc_clear").checked,tags:$("#hc_tags").checked,safe:$("#hc_safe").checked,peri:$("#hc_peri").checked},notes:$("#ho_txt").value.trim()};
     };
     $("#mNo").onclick=()=>m.hidden=true;
     $("#ho_x").onclick=()=>m.hidden=true;
-    $("#ho_pull").onclick=()=>{snap=collectLive();draw();toast("Live station data refreshed.")};
+    $("#ho_pull").onclick=()=>{snap=collectLive();draw();toast("Live status refreshed.")};
     $("#ho_log").onclick=()=>{
       const ev=visitors.flatMap(v=>(v.log||[]).map(l=>({...l,name:v.name,ref:v.ref}))).filter(l=>isToday(l.t)).sort((a,b)=>b.t-a.t).slice(0,12);
       const logLines=ev.length?ev.map(e=>`  [${fmtT(e.t)}] ${e.name} (${e.ref}): ${e.a} — ${e.by}`).join("\n"):"  No activity logged today.";
       $("#ho_txt").value=($("#ho_txt").value?$("#ho_txt").value+"\n\n":"")+`TODAY'S ACTIVITY LOG (${ev.length} recent events):\n`+logLines;
-      toast("Today's activity log inserted into shift notes.");
-    };
-    $("#ho_file").onchange=async e=>{
-      const f=e.target.files[0]; if(!f) return;
-      const txt=await f.text();
-      try{
-        const j=JSON.parse(txt);
-        if(j.notes) $("#ho_txt").value=j.notes;
-        if(j.toOfficer) $("#ho_to").value=j.toOfficer;
-        toast(`Imported handover data from ${f.name}.`);
-      }catch(_){
-        $("#ho_txt").value=($("#ho_txt").value?$("#ho_txt").value+"\n\n":"")+`--- Imported from ${f.name} ---\n`+txt.trim();
-        toast(`Imported notes from ${f.name}.`);
-      }
+      toast("Today's activity log inserted into closeout notes.");
     };
     $("#ho_save").onclick=async()=>{
       const rec=buildRecord();
-      if(!rec.toOfficer) return toast("Enter or select the incoming officer taking over the shift.");
       $("#ho_save").setAttribute("disabled","");
       try{
         if(db){const ref=await db.collection("handovers").add(rec); if(!fb||DEMO) handovers.unshift({...rec,id:ref.id});}
         else handovers.unshift({...rec,id:"ho-"+now()});
-        toast(`Shift handover recorded and transferred to ${rec.toOfficer}.`);
+        toast("17:00 Daily Reception Closeout certified and recorded.");
         draw(rec.notes); render();
-      }catch(e){$("#ho_save").removeAttribute("disabled");toast("Could not save handover: "+e.message)}
+      }catch(e){$("#ho_save").removeAttribute("disabled");toast("Could not save closeout: "+e.message)}
     };
     $("#ho_print").onclick=()=>printHandoverSheet(buildRecord());
-    $("#ho_copy").onclick=async()=>{
-      const r=buildRecord();
-      const txt=`UN HOUSE ABUJA — SHIFT HANDOVER (${fmtD(r.at)})\nStation: ${r.stationLabel}\nOutgoing: ${r.fromOfficer} -> Incoming: ${r.toOfficer||"—"}\nCarried Over: ${r.onsite.length} on site, ${r.lostTags.length} unreturned tags, ${r.parcels.length} waiting parcels\n\nON SITE (${r.onsite.length}):\n${r.onsite.map(v=>`- ${v.name} (${v.tag||v.ref}) · Host: ${v.host} (${v.agency}) · ${v.building} [${v.note}]`).join("\n")||"- None"}\n\nNOTES:\n${r.notes}`;
-      try{await navigator.clipboard.writeText(txt);toast("Handover summary copied.")}catch(e){}
-    };
-    m.querySelectorAll("[data-ho-ack]").forEach(b=>b.onclick=async()=>{
-      const id=b.dataset.hoAck, h=handovers.find(x=>x.id===id); if(!h) return;
-      const patch={ackBy:op(),ackByUid:myUid(),ackAt:now()};
-      Object.assign(h,patch);
-      if(db){try{await db.collection("handovers").doc(id).update(patch)}catch(e){}}
-      m.hidden=true; toast(`Handover acknowledged by ${op()}.`); render();
-    });
+    $("#ho_copy").onclick=()=>{copyText($("#ho_txt").value);toast("Closeout notes copied.")};
     m.querySelectorAll("[data-ho-view]").forEach(b=>b.onclick=()=>{
-      const h=handovers.find(x=>x.id===b.dataset.hoView); if(h) printHandoverSheet(h);
+      const h=handovers.find(x=>x.id===b.dataset.hoView);
+      if(h) printHandoverSheet(h);
     });
   };
   draw();
@@ -1801,8 +1772,22 @@ function demoData(){
     deliveries:[{id:"dl1",forName:"Dr. K. Ibrahim",email:"k.ibrahim@example.org",phone:"0803 123 4567",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation",at:d1,by:"N. Okafor",status:"waiting"},
       {id:"dl2",forName:"S. Garba",agency:"UNDP",from:"Courier",desc:"Envelope",at:d1+h,by:"N. Okafor",status:"waiting",notifiedAt:d1+1.2*h,notifiedVia:"WhatsApp"},
       {id:"dl3",forName:"T. Musa",agency:"UNICEF",from:"Jumia",desc:"Small parcel",at:y9+2*h,by:"N. Okafor",status:"collected",collectedAt:y9+5*h,collectedBy:"N. Okafor"}],
-    handovers:[{id:"ho1",at:t9-0.5*h,stationKey:"S1",stationLabel:"S1 · Reception / Initial Access",fromOfficer:"Night Duty Officer M. Danjuma",fromUid:"demo",toOfficer:"Security Officer A. Bello",stats:{arrivals:14,checkedOut:13},onsite:[{id:"UNH-EX-0010",ref:"UNH-EX-0010",name:"Chidi Eze",tag:"C-003",host:"Facilities Unit",agency:"Common Services",building:"Annex A",status:"in",note:"Checked in"}],lostTags:[],parcels:[{id:"dl1",forName:"Dr. K. Ibrahim",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation"}],checks:{tags:true,equip:true,keys:true,vip:true},notes:"Morning shift handover: Contractor Chidi Eze (Julius Facilities) already on site in Annex A. 1 DHL box at reception for Dr. K. Ibrahim (WHO). Tag stock V-001 to V-050 verified."}],
-    events:[{id:"ev1",title:"UNDSS Annual Security & Safety Briefing",room:"Conference Room A",building:"Conference Centre",agency:"UNDSS",host:"Chief of Security (UNDSS)",date:fmtD(t9+1.5*h),expectedCount:35,approvedCount:28,checkedInCount:14,status:"active",code:"EV-SEC-2026",desc:"Mandatory security briefing for incoming diplomatic missions and agency heads."}],
+    handovers:[{
+      id:"ho1",
+      at:y9+8*h,
+      type:"closeout_1700",
+      stationKey:"S1",
+      stationLabel:"S1 · Reception / Initial Access",
+      dutyOfficer:"Security Officer A. Bello",
+      fromOfficer:"Security Officer A. Bello",
+      stats:{arrivals:28,checkedOut:28},
+      onsite:[],
+      lostTags:[],
+      parcels:[{id:"dl1",forName:"Dr. K. Ibrahim",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation"}],
+      checks:{clearance:true,tags:true,safe:true,peri:true},
+      notes:"17:00 Daily Reception Closeout: All 28 visitors checked out and exited compound. All tags (V-001 to V-050) returned to stock. 1 DHL box secured in reception safe for Dr. Ibrahim (WHO). Station secured and turned over to Compound Night Guard."
+    }],
+    events:[],
     assets:[
       {id:"as1",ref:"MP-2026-0041",item:"HP ZBook Studio Workstation & Dual Monitor Set",serial:"5CD23910KL",staffName:"Tunde Balogun",staffEmail:"t.balogun@undp.org",agency:"UNDP",dest:"UNDP Country Office / Field Visit (Kano)",status:"approved",requestedAt:t9-3*864e5,expectedRemovalDate:t9,approvedBy:"Operations Manager S. Garba (UNDP)",approvedAt:t9-24*3600e3,validUntil:t0+7*864e5,at:t9-3*864e5,verifiedAt:null},
       {id:"as2",ref:"MP-2026-4084",item:"MacBook Pro M3 Max",serial:"SN64578999",staffName:"Demo Administrator",staffEmail:"demo@example.org",agency:"UNDP",dest:"Field work",status:"pending",approverEmail:"operations.supervisor@undp.org",approverPhone:"08031234567",requestedAt:t9,expectedRemovalDate:t9+2*864e5,validUntil:t9+7*864e5,at:t9,verifiedAt:null}
@@ -1836,7 +1821,7 @@ function drawTour(){
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourDone")) $("#tourDone").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;go(0)};
 }
-const DEMO_KEY="unhDemoState_v11";
+const DEMO_KEY="unhDemoState_v12";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
   try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
@@ -1918,9 +1903,18 @@ V.dashboard=()=>{
   const tagsOut=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
   const byB=BUILDINGS.map(b=>[b,inside.filter(v=>v.building===b).length]);
   const max=Math.max(1,...byB.map(x=>x[1]));
-  const al=alerts(), unackHo=handovers.find(h=>!h.ackBy);
-  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">${head("Live overview",`Everything happening across the four stations right now. Updated ${fmtT(now())}.`)}<button class="btn ${unackHo?"pri":""}" id="db_ho">Shift handover${unackHo?` · 1 pending sign-off`:""}</button></div>`+
-  (unackHo?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span><b>Incoming shift handover (${esc(unackHo.stationLabel||"All stations")}):</b> ${esc(unackHo.fromOfficer)} handed over to <b>${esc(unackHo.toOfficer||"next shift")}</b> at ${fmtT(unackHo.at)} · ${(unackHo.onsite||[]).length} on site, ${(unackHo.parcels||[]).length} parcels.</span><div class="acts" style="flex-wrap:nowrap"><button class="btn" id="db_ho_open">Review</button><button class="btn pri" id="db_ho_ack">Acknowledge</button></div></div>`:"")+
+  const al=alerts();
+  const todayCloseout=handovers.find(h=>isToday(h.at||0));
+  const isPast17=new Date().getHours()>=17;
+  const showCloseoutAlert=isPast17 && inside.length>0 && !todayCloseout;
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    ${head("Live overview",`Everything happening across the four stations right now. Visiting hours: 08:00 – 17:00. Updated ${fmtT(now())}.`)}
+    <button class="btn ${todayCloseout?"":"pri"}" id="db_ho">${todayCloseout?`✓ 17:00 Closeout Certified`:`🔒 End-of-Day Closeout (17:00)`}</button>
+  </div>`+
+  (showCloseoutAlert?`<div class="note" style="border-left:4px solid var(--bad);background:var(--bad-bg);color:var(--bad);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+    <span><b>⚠️ 17:00 Visiting Hours Closed:</b> ${inside.length} visitor(s) still recorded inside compound. Security SOP requires all visitors to exit and return tags before reception closeout.</span>
+    <div class="acts"><button class="btn pri" id="db_ho_open">Perform 17:00 Closeout</button></div>
+  </div>`:"")+
   (visitors.some(v=>v.example)?`<div class="banner"><span>These are example records for testing.</span><div class="acts"><button class="btn" id="loadEx">Reset sample records</button><button class="btn" id="clearEx">Remove example records</button></div></div>`:!DEMO?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>${visitors.length?"Showing live records only.":"No visitors recorded yet. Register the first one under <b>Register visitors</b>, or load sample records to try the workflow."}</span><div class="acts"><button class="btn pri" id="loadEx">Load sample records</button><a class="btn" href="?demo">Guided demo</a></div></div>`:"")+
   `<div class="kpis">
     <div class="kpi"><div class="n">${exp.length}</div><div class="l">Expected today</div></div>
