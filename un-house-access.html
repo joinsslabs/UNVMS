@@ -2158,7 +2158,7 @@ V.gate=()=>{
   const availC = getAvailableTags("contractor");
   const usedTags = visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag);
 
-  return head("Station 1 · Gate Reception, Approvals & Compound Access","Station 1 · Access Gate. Review incoming visitor requests, verify expected guests, manage physical tag inventory rack, and admit visitors through Station 1.")+
+  return head("Station 1 · Reception, Approvals & Compound Access","Station 1. Review incoming visitor requests, verify expected guests, manage physical tag inventory rack, and admit visitors through Station 1 to Station 2.")+
   
   /* Gate 1 Available Tags Feed & Physical Rack Inventory */
   `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:0 3px 12px rgba(2,132,199,.08);border-radius:12px;padding:18px 20px">
@@ -2292,51 +2292,6 @@ V.gate=()=>{
       if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">✓ Admitted Station 1 · Sent to Station 2 Documentation Reception</span>`;
       return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
     },"No expected visitors match.")}</div>
-  </div>
-
-  /* On premises now · Compound Exit & Check Out at Gate 1 */
-  <div class="panel" style="border-left:4px solid var(--ok);background:linear-gradient(180deg,var(--surface),#f8fafc);box-shadow:0 3px 12px rgba(22,163,74,.06);border-radius:12px;padding:18px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <h2 style="margin:0;display:flex;align-items:center;gap:8px;font-size:18px;color:var(--navy)">
-            🏢 On Premises Now · Compound Exit & Departure Desk
-          </h2>
-          <span class="cnt ok" style="font-size:12px;padding:2px 10px">${insideList.length} Active Inside</span>
-        </div>
-        <p class="small" style="margin:5px 0 0;color:var(--muted);max-width:700px;line-height:1.45">
-          All authorized visitors, contractors, and VIP guests currently inside the UN House compound. When a guest departs through Station 1: <b>collect their physical tag</b> (automatically restocked to the inventory rack above), verify items/vehicles, and click <b>Check out</b>.
-        </p>
-      </div>
-
-      <!-- Live situational count chips -->
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #bae6fd">
-          🏷️ ${insideList.filter(v=>v.tag).length} Tags in Circulation
-        </span>
-        ${insideList.filter(v=>v.type==="vip"&&v.vehicle).length ? `<span class="pill" style="background:#f1f5f9;color:#334155;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #cbd5e1">🚗 ${insideList.filter(v=>v.type==="vip"&&v.vehicle).length} VIP Motorcade(s) on Compound</span>` : ""}
-        ${insideList.filter(v=>v.type==="vip").length ? `<span class="pill" style="background:#fef3c7;color:#92400e;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #fde68a">👑 ${insideList.filter(v=>v.type==="vip").length} VIPs</span>` : ""}
-      </div>
-    </div>
-
-    <!-- Quick Exit by Tag Bar & Fast Search -->
-    <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <div class="f" style="flex:1;min-width:240px">
-        <label for="quick_exit_input" class="small"><b>⚡ Fast Check-Out by Tag / Name</b> (Scan barcode or type tag like V-024)</label>
-        <input id="quick_exit_input" placeholder="Type or scan tag number (e.g. V-024) and press Enter to check out...">
-      </div>
-      <button class="btn ok" id="btn_quick_exit" style="margin-top:16px;height:36px;padding:0 18px" title="Instantly check out the visitor holding this tag">
-        🚪 Fast Check-Out
-      </button>
-    </div>
-
-    <!-- Exit Table -->
-    <div style="margin-top:12px">
-      ${table(insideList, v=>{
-        if(v.type==="vip") return B(v.id,"checkout","VIP Departed","ok");
-        return B(v.id,"checkout","Check out","ok");
-      },"Nobody is currently on the premises.")}
-    </div>
   </div>
 
   /* Register Unscheduled Visitor (Station 1 Walk-In) */
