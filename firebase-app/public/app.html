@@ -2256,10 +2256,11 @@ V.gate=()=>{
       ${batchBar?`<div class="acts">${batchBar}</div>`:""}
     </div>
     <p class="small">Review incoming visitor requests. Click <b>Approve request</b> to approve the visit and allocate an available tag from Gate 1 stock.</p>
-    ${table(pend,v=>{
-      const own=ownRequest(v);
-      if(own) return `<span class="small">Your request. Another officer must decide.</span>`;
-      return B(v.id,"approve","Approve request","ok")+B(v.id,"reject","Reject","bad");
+        ${table(pend,v=>{
+      const ext=getHostExt(v.host, v.agency);
+      return `<button class="btn" data-confirm-host="${esc(v.id)}" title="Call host on desk phone to confirm before approving">📞 Confirm with Host (Ext. ${esc(ext)})</button>`
+        + B(v.id,"approve","Approve request","ok")
+        + B(v.id,"reject","Reject","bad");
     },"No pending approvals.")}
   </div>`:`<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><span>✓ <b>No pending approvals.</b> All visitor requests have been decided.</span></div>`)+
 
@@ -2420,6 +2421,89 @@ function openExtensionDirectory(filter=""){
     navigator.clipboard.writeText(b.dataset.copyExt);
     toast(`Extension ${b.dataset.copyExt} copied to clipboard.`);
   });
+}
+
+
+function promptGateHostConfirm(v){
+  const ext=getHostExt(v.host, v.agency);
+  const tag=(v.type!=="vip"&&!v.assignedTag)?nextAvailableTag(v.type):(v.assignedTag||null);
+  const m=$("#modal");
+  m.innerHTML=`<div class="modal" style="max-width:520px">
+    <button class="modal-x" id="mX" type="button" title="Close" aria-label="Close" style="position:absolute;top:14px;right:14px">×</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#e0f2fe;display:grid;place-items:center;font-size:22px">📞</div>
+      <div>
+        <h2 style="margin:0;font-size:17px">Confirm with Host · Gate 1 Clearance</h2>
+        <p class="small" style="margin:2px 0 0">Call host to verify visitor before approving entry</p>
+      </div>
+    </div>
+
+    <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0;display:grid;gap:8px;font-size:13px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--muted)">Visitor:</span>
+        <b>${esc(v.name)} (${esc(v.org||"Visitor")})</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--muted)">Host:</span>
+        <b>${esc(v.host)} (${esc(v.agency)})</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--muted)">Purpose:</span>
+        <span>${esc(v.purpose||"Meeting")}</span>
+      </div>
+      ${tag ? `<div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="color:var(--muted)">Allocated Tag:</span>
+        <b class="mono" style="font-size:13px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:5px;border:1px solid #bae6fd">🏷️ ${esc(tag)}</b>
+      </div>` : ""}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;border-top:1px dashed var(--line)">
+        <span style="font-weight:600">Host Desk Extension:</span>
+        <b class="mono" style="font-size:22px;color:#0284c7;background:#e0f2fe;padding:3px 12px;border-radius:8px;border:1px solid #bae6fd">Ext. ${esc(ext)}</b>
+      </div>
+    </div>
+
+    <p class="small" style="line-height:1.45;color:var(--muted)">
+      Dial <b>Ext. ${esc(ext)}</b> from the Gate 1 desk phone / intercom to confirm that <b>${esc(v.host)}</b> is expecting <b>${esc(v.name)}</b>. Once confirmed, approve the request below.
+    </p>
+
+    <div class="acts" style="justify-content:flex-end;gap:8px;margin-top:16px">
+      <button class="btn" id="mNo" type="button">Close</button>
+      <button class="btn bad" id="mHostRej" type="button">Host Declined</button>
+      <button class="btn pri" id="mHostAppDirect" type="button">Approve Request</button>
+      <button class="btn ok" id="mHostConfirmApp" type="button">📞 Confirmed &amp; Approve</button>
+    </div>
+  </div>`;
+
+  m.hidden=false;
+  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+
+  $("#mHostConfirmApp").onclick=()=>{
+    m.hidden=true;
+    act(v, `Confirmed with host ${v.host} via desk phone (Ext. ${ext}) & approved at Gate 1`, {
+      status: "approved",
+      assignedTag: tag,
+      decidedBy: `${op()} (Host phone clearance Ext. ${ext})`,
+      decidedByUid: myUid(),
+      decidedAt: now(),
+      verbalApproval: true,
+      verbalApprovalNote: `Host confirmed on desk phone Ext. ${ext}`,
+      hostCalledExt: ext,
+      hostPhoneCalled: true,
+      hostNotified: now(),
+      rejectReason: ""
+    }).then(()=>{
+      toast(`📞 Confirmed with ${v.host} (Ext. ${ext})! ${v.name} approved.${tag ? ` Tag ${tag} allocated.` : ""}`);
+    });
+  };
+
+  $("#mHostAppDirect").onclick=()=>{
+    m.hidden=true;
+    doAct("approve", v);
+  };
+
+  $("#mHostRej").onclick=()=>{
+    m.hidden=true;
+    doAct("reject", v);
+  };
 }
 
 function promptHostCall(v){
@@ -3623,9 +3707,18 @@ function doAct(a,v){
     const eod=document.querySelector("[data-ext-eod]"); if(eod) eod.onclick=()=>{const dt=new Date();dt.setHours(23,59,0,0);$("#m_extuntil").value=fmtIn(dt)};
     return;
   }
-  if(a==="approve"){ if(ownRequest(v)) return toast("You cannot decide on your own request.");
-    return act(v,"Approved",{status:"approved",decidedBy:op(),decidedByUid:myUid(),decidedAt:now(),rejectReason:""}).then(()=>toast(`${v.name} approved.`)); }
-  if(a==="reject"){ if(ownRequest(v)) return toast("You cannot decide on your own request.");
+  if(a==="approve"){
+    const tag=(v.type!=="vip"&&!v.assignedTag)?nextAvailableTag(v.type):(v.assignedTag||null);
+    return act(v,`Approved at Gate 1${tag?`; assigned tag ${tag}`:""}`,{
+      status:"approved",
+      assignedTag:tag,
+      decidedBy:op(),
+      decidedByUid:myUid(),
+      decidedAt:now(),
+      rejectReason:""
+    }).then(()=>toast(`${v.name} approved at Gate 1.${tag?` Assigned Tag: ${tag}.`:""}`));
+  }
+  if(a==="reject"){
     return modal(`<h2>Reject ${esc(v.name)}'s request?</h2>
       <p class="small">Host: <b>${esc(v.host)}</b> (${esc(v.agency)}) · Purpose: ${esc(v.purpose||"—")}. The host will see your reason and can edit and resubmit.</p>
       <div class="f"><label for="m_rej">Reason for rejection</label><input id="m_rej" placeholder="e.g. Please attach agency clearance or specify meeting room"></div>
