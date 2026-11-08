@@ -1365,13 +1365,8 @@ function inviteView(){
   const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
   const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
   return `<div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-      <div>
-        <h2 style="margin:0;display:flex;align-items:center;gap:8px">✉️ Invite a Visitor <span class="cnt hot">For Any UN Staff Host</span></h2>
-        <p class="small" style="margin:4px 0 0;color:var(--muted)">Generate a personalized pre-registration link for your visitor. Visitors fill in their own name, phone, organisation and arrival time without needing an account. Gate 1 automatically receives their registration for immediate compound clearance.</p>
-      </div>
-      <button class="btn pri" id="invQuickBtn" type="button" style="gap:6px">🔗 Quick Invite Link Generator</button>
-    </div>
+    <h2 style="margin:0;display:flex;align-items:center;gap:8px">✉️ Invite a Visitor <span class="cnt hot">For Any UN Staff Host</span></h2>
+    <p class="small" style="margin:4px 0 0;color:var(--muted)">Generate a personalized pre-registration link for your visitor. Visitors fill in their own name, phone, organisation and arrival time without needing an account. Gate 1 automatically receives their registration for immediate compound clearance.</p>
     
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0 10px">
       <div class="f">
@@ -1402,8 +1397,8 @@ function inviteView(){
         <input id="inv_room" placeholder="e.g. Room 302, 3rd Floor">
       </div>
     </div>
-    <div class="acts">
-      <button class="btn pri" id="invNew" type="button" style="font-weight:700">🔗 Create &amp; Share Visitor Link</button>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn pri" id="invNew" type="button" style="font-weight:700">Create &amp; Share Visitor Link</button>
     </div>
     <p class="small" style="color:var(--muted);margin:8px 0 0">Visitor greeting preview: <i>"[Host Name] ([Host Agency]) has invited you. Fill in your details so the gate can expect you."</i></p>
 
@@ -3823,7 +3818,6 @@ function wire(){
   const ks=$("#k_start"); if(ks) ks.onclick=startKiosk;
   const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
   const ib=$("#invNew"); if(ib) ib.onclick=createInvite;
-  const iqb=$("#invQuickBtn"); if(iqb) iqb.onclick=openInviteDialog;
   const tib=$("#top_inv_btn"); if(tib) tib.onclick=openInviteDialog;
   const invH=$("#inv_host"), invAg=$("#inv_agency");
   if(invH&&invAg){
