@@ -487,7 +487,7 @@ main{gap:20px}
   <div class="f" style="gap:2px"><label for="station">Station</label>
     <select id="station">
       <option value="S1">1 · Reception / Initial Access (Computer 1)</option>
-      <option value="S2">2 · Documentation &amp; Tagging (Computer 2)</option>
+      <option value="S2">2 · Documentation Reception (Computer 2)</option>
       <option value="S3">3 · Internal Reception, Main Building (Computer 3)</option>
       <option value="S4">4 · VIP Gate (Tablet 1)</option>
     </select></div>
@@ -531,23 +531,23 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",gate:"Gate Reception Officer & Approver (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
+const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",gate:"Gate Reception Officer & Approver (Station 1)",docs:"Documentation Reception Officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
-  sec_admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
+  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","kiosk","watch","reports","history","assistant","staff"],
+  sec_admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","kiosk","watch","reports","history","assistant","staff"],
   gate:["dashboard","gate","contractors","assets","register","watch","reports","history"],
   docs:["dashboard","tagging","assets","history"],
   reception:["dashboard","reception","assets","register","kiosk","history"],
   vip:["dashboard","vip","history"],
-  host:["myguests","assets","register","history"]
+  host:["assets","register","history"]
 };
 const ACT_ROLES={
-  reply:["host","admin","sec_admin"],
-  reschedule:["host","admin","sec_admin"],
-  resubmit:["host","gate","reception","admin","sec_admin"],
-  cancel:["host","admin","sec_admin"],
-  pass:["admin","sec_admin","gate","reception","host","vip","docs"],
+  reply:["admin","sec_admin"],
+  reschedule:["admin","sec_admin"],
+  resubmit:["gate","reception","admin","sec_admin"],
+  cancel:["admin","sec_admin"],
+  pass:["admin","sec_admin","gate","reception","vip","docs"],
   invite:["admin","sec_admin","gate","reception","host"],
   arrive:["gate","admin","sec_admin"],
   vipadmit:["vip","admin","sec_admin","gate","reception"],
@@ -556,7 +556,7 @@ const ACT_ROLES={
   notify:["reception","gate","admin","sec_admin"],
   checkin:["reception","gate","admin","sec_admin"],
   checkout:["reception","vip","gate","docs","admin","sec_admin"],
-  extendstay:["reception","gate","vip","host","admin","sec_admin"],
+  extendstay:["reception","gate","vip","admin","sec_admin"],
   approve:["gate","admin","sec_admin"],
   reject:["gate","admin","sec_admin"],
   gateapprove:["gate","admin","sec_admin"],
@@ -584,7 +584,7 @@ const myUid=()=>fb&&me?me.uid:"demo:"+$("#operator").value;
 $("#station").onchange=()=>{try{localStorage.setItem("station",station())}catch(e){} view=defaultView(); render()};
 $("#operator").onchange=()=>{try{localStorage.setItem("op",op())}catch(e){} render()};
 function defaultView(){
-  if(fb){const r=myRole(); return {gate:"gate",docs:"tagging",reception:"reception",vip:"vip",host:"myguests"}[r]||"dashboard"}
+  if(fb){const r=myRole(); return {gate:"gate",docs:"tagging",reception:"reception",vip:"vip"}[r]||"dashboard"}
   return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()] || "dashboard"}
 
 const now=()=>Date.now();
@@ -890,7 +890,7 @@ const staffView=()=>{
     ${features.updatedAt?`<span class="small">Last changed ${fmtD(features.updatedAt)}</span>`:""}
    </div></div>
   <div class="note">Public visitor rules page: <a href="?rules" target="_blank" rel="noopener">${esc(location.origin+location.pathname)}?rules</a>. Put it on a sign at the gate or in emails.</div>
-  <div class="note">Role separation: Gate reception & approval officers approve requests, verify credentials, admit visitors, manage tag inventory, and register walk-ins. Documentation officers issue tags and verify IDs. Receptionists check visitors in. VIP gate officers handle VIP protocol. Staff hosts manage their own guests. Approvers decide requests and manage contractors. Administrators manage staff and system governance without bypassing operational controls.</div>`;
+  <div class="note">Role separation: Gate reception & approval officers approve requests, verify credentials, admit visitors, manage tag inventory, and register walk-ins. Documentation Reception officers verify IDs, exchange physical tags, and document visitors. Receptionists check visitors in. VIP gate officers handle VIP protocol. Approvers decide requests and manage contractors. Administrators manage staff and system governance without bypassing operational controls.</div>`;
 };
 async function setStaff(uid,patch){
   if(patch.role==="admin"){
@@ -1001,13 +1001,12 @@ function alertList(limit){
 const VIEWS=[
   ["dashboard","Dashboard","Overview",'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
   ["gate","Gate reception","Stations",'<path d="M12 2.5l7.5 3.2v5.8c0 5-3.2 9.4-7.5 11-4.3-1.6-7.5-6-7.5-11V5.7L12 2.5z"/>'],
-  ["tagging","Documentation & tags","Stations",'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
+  ["tagging","Documentation Reception","Stations",'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
   ["reception","Internal reception","Stations",'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'],
   ["vip","VIP gate","Stations",'<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>'],
   ["assets","Material Gate Pass","Stations",'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'],
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
   ["register","Register visitors","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
-  ["myguests","My guests","Access & Guests",'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'],
   ["contractors","Contractors & Service Staff","Access & Guests",'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>'],
   ["watch","UNDSS Watchlist","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>'],
   ["reports","Reports","Safety & Analytics",'<path d="M18 20V10M12 20V4M6 20v-6"/>'],
@@ -1990,8 +1989,7 @@ const TOUR=[
   ["Gate: a watchlist match","Every registration is checked automatically against the UNDSS watchlist. A match is blocked at the gate; only an approver can override, with a written reason.",()=>{view="gate";const v=visitors.find(x=>x.watchFlag);if(v)setTimeout(()=>scanResult(v,null),150)}],
   ["Documentation and tags","The officer records the ID checked and any equipment brought in, then issues a numbered tag. Paper badges are optional when the visitor has a digital pass.",()=>{view="tagging"}],
   ["Self check-in kiosk","A reception tablet becomes a kiosk: visitors scan their own pass, the host is notified, and staff only handle exceptions.",()=>{view="kiosk"}],
-  ["The host's view","Hosts see their own guests, move or cancel visits, and tell reception \"I'm coming down\" with one tap.",()=>{view="myguests"}],
-  ["Reports","Thirty days of arrivals, busiest hours, waiting times, overstays and unreturned tags: ready for management.",()=>{view="reports"}]
+    ["Reports","Thirty days of arrivals, busiest hours, waiting times, overstays and unreturned tags: ready for management.",()=>{view="reports"}]
 ];
 let tourStep=0;
 function drawTour(){
@@ -2028,7 +2026,7 @@ function startDemo(){
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
-  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["admin","gate","docs","reception","vip","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
+  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["admin","gate","docs","reception","vip"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
   $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
   const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
   open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
@@ -2223,8 +2221,8 @@ V.approvals=V.gate;
 V.tagging=()=>{
   const list=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
   const out=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
-  return head("Documentation & visitor tags","Station 2. Gate 1 automatically assigns the available tag number. Documentation officers verify Government agency ID or photo ID, exchange the physical tag, and complete documentation.")+
-  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>{
+  return head("Documentation Reception","Station 2. Verify Government agency ID or photo ID, log equipment, exchange physical lanyard tags, and complete visitor documentation before they proceed to Station 3 Internal Reception.")+
+  `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="margin:0">Visitors Waiting for Documentation &amp; Physical Tag Exchange <span class="cnt ${list.length?'hot':''}">${list.length}</span></h2></div><p class="small">These visitors have been admitted through Gate 1. Verify their Government agency or photo ID, log any equipment brought in, and exchange their ID for a physical lanyard tag.</p>${searchBox()}<div style="margin-top:12px">${table(list,v=>{
     const tag = v.assignedTag || v.tag || nextAvailableTag(v.type);
     return `<div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap">
       <span style="font-size:12px;color:var(--muted)">Pre-assigned by Gate 1:</span>
@@ -2233,7 +2231,7 @@ V.tagging=()=>{
     </div>`;
   },"No visitors are waiting for documentation.")}</div></div>
   ${tagSheetPanel()}
-  <div class="panel"><h2>Tags in circulation <span class="cnt">${out.length}</span></h2>${out.length?`<div class="tw"><table><thead><tr><th>Tag</th><th>Holder</th><th>Issued</th><th>Status</th></tr></thead><tbody>${out.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="mono">${fmtT(v.taggedAt||v.arrivedAt)}</td><td>${pill(v)} <button class="btn" data-print="${esc(v.id)}">Print badge</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags are returned.</div>`}</div>`;
+  <div class="panel"><h2>Tags in circulation <span class="cnt">${out.length}</span></h2>${out.length?`<div class="tw"><table><thead><tr><th>Tag</th><th>Holder</th><th>Issued</th><th>Status</th></tr></thead><tbody>${out.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="mono">${fmtT(v.taggedAt||v.arrivedAt)}</td><td>${pill(v)} <button class="btn" data-print="${esc(v.id)}" title="View digital badge (No printing needed)">View badge</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags are returned.</div>`}</div>`;
 };
 
 /* ---------- UN House Desk Phone Extension Directory ---------- */
@@ -2925,7 +2923,7 @@ function goView(v,opts={}){
 }
 window.addEventListener("popstate",e=>{
   const v=(e.state&&e.state.view)||location.hash.slice(1);
-  if(!v||!V[v]&&!["wall","settings","watch","kiosk","myguests","reports"].includes(v)) return;
+  if(!v||!V[v]&&!["wall","settings","watch","kiosk","reports"].includes(v)) return;
   if(DEMO&&e.state&&e.state.tour!=null){tourStep=e.state.tour; if($("#tour")&&!$("#tour").hidden) drawTour();}
   $("#modal").hidden=true; goView(v,{fromHistory:true});
 });
@@ -3612,7 +3610,7 @@ function doAct(a,v){
   }
 }
 async function copyCsv(){
-  const cols=["ref","name","org","type","host","backupHost","agency","building","room","vehicle","escort","status","tag","expected","arrivedAt","inAt","outAt"];
+  const cols=["ref","name","org","type","backupHost","agency","building","room","vehicle","escort","status","tag","expected","arrivedAt","inAt","outAt"];
   const csv=[cols.join(",")].concat(visitors.map(v=>cols.map(c=>{let x=v[c]??"";if(/At$|expected/.test(c)&&x)x=new Date(x).toISOString();return '"'+String(x).replace(/"/g,'""')+'"'}).join(","))).join("\n");
   try{await navigator.clipboard.writeText(csv);toast("Report copied. Paste it into Excel.")}catch(e){modal(`<h2>Copy the report</h2><textarea id="m_csv" style="min-height:200px">${esc(csv)}</textarea>`,()=>{});setTimeout(()=>$("#m_csv").select(),0)}
 }
