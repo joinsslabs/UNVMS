@@ -198,6 +198,10 @@ service cloud.firestore {
       allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
+    match /handovers/{id} {
+      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
+      allow delete: if isStaff() && resource.data.get('example', false) == true;
+    }
 
     // Server audit trail: written only by the Cloud Function, never by a browser.
     match /audit/{id} {

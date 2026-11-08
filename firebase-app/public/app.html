@@ -374,7 +374,7 @@ let OVERSTAY_H=9;
 let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
 try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
 /* ---------- staff, roles and permissions ---------- */
-let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[], watchlist=[], rollcalls=[], deliveries=[];
+let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[], watchlist=[], rollcalls=[], deliveries=[], handovers=[];
 const FN_BASE="https://europe-west1-unhouse-vms-abj26.cloudfunctions.net/";
 async function callFn(name,body){
   const tok=await firebase.auth().currentUser.getIdToken();
@@ -594,6 +594,7 @@ function startData(){
     unsubs.push(db.collection("watchlist").onSnapshot(s=>{watchlist=s.docs.map(d=>({...d.data(),id:d.id}));if(["watch","register","gate"].includes(view))render()},()=>{}));
     unsubs.push(db.collection("rollcalls").orderBy("startedAt","desc").limit(20).onSnapshot(s=>{rollcalls=s.docs.map(d=>({...d.data(),id:d.id}));render()},()=>{}));
     unsubs.push(db.collection("deliveries").orderBy("at","desc").limit(150).onSnapshot(s=>{deliveries=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="deliveries")render()},()=>{}));
+    unsubs.push(db.collection("handovers").orderBy("at","desc").limit(30).onSnapshot(s=>{handovers=s.docs.map(d=>({...d.data(),id:d.id}));if(["dashboard","reports"].includes(view))render()},()=>{}));
   }
   { const pq=me.role==="host"?db.collection("passes").where("requestedByUid","==",me.uid):db.collection("passes");
     unsubs.push(pq.onSnapshot(s=>{passes=s.docs.map(d=>({...d.data(),id:d.id}))},()=>{})); }
@@ -1342,35 +1343,167 @@ const VW_reports=()=>{
   <div class="panel"><h2>Tags not returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags returned.</div>`}</div></div>
   <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn pri" id="rp_ho">Shift handover summary</button></div></div>`;
 };
+function printHandoverSheet(h){
+  let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
+  const chk=h.checks||{};
+  p.innerHTML=`<div style="font-family:'IBM Plex Sans',Arial,sans-serif;padding:14mm;color:#111;font-size:10pt;line-height:1.45">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172542;padding-bottom:8px;margin-bottom:12px">
+      <div><div style="font-size:14pt;font-weight:700;color:#172542">UN HOUSE ABUJA — SHIFT HANDOVER LOG</div><div style="font-size:9pt;color:#555">UNDP · UN Common Services · Security &amp; Reception Operations</div></div>
+      <div style="text-align:right;font-size:9pt"><b>Date / Time:</b> ${esc(fmtD(h.at||now()))}<br><b>Station:</b> ${esc(h.stationLabel||"All stations")}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9.5pt">
+      <tr><td style="border:1px solid #ccc;padding:6px"><b>Outgoing Officer:</b> ${esc(h.fromOfficer)}</td><td style="border:1px solid #ccc;padding:6px"><b>Incoming Officer:</b> ${esc(h.toOfficer||"—")}</td><td style="border:1px solid #ccc;padding:6px"><b>Status:</b> ${h.ackBy?`Acknowledged by ${esc(h.ackBy)} (${esc(fmtT(h.ackAt))})`:"Pending incoming sign-off"}</td></tr>
+      <tr><td style="border:1px solid #ccc;padding:6px"><b>Arrivals Today:</b> ${h.stats?.arrivals??0} (${h.stats?.checkedOut??0} checked out)</td><td style="border:1px solid #ccc;padding:6px"><b>Carried Over On Site:</b> ${(h.onsite||[]).length}</td><td style="border:1px solid #ccc;padding:6px"><b>Unreturned Tags:</b> ${(h.lostTags||[]).length} · <b>Waiting Parcels:</b> ${(h.parcels||[]).length}</td></tr>
+    </table>
+    <div style="font-weight:700;margin:8px 0 4px">1. Visitors &amp; Contractors Carried Over On Site (${(h.onsite||[]).length})</div>
+    ${(h.onsite||[]).length?`<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9pt"><thead><tr style="background:#f1f5f9"><th style="border:1px solid #ccc;padding:4px;text-align:left">Ref</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Name</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Tag</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Host / Agency</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Building &amp; Status</th></tr></thead><tbody>${h.onsite.map(v=>`<tr><td style="border:1px solid #ccc;padding:4px">${esc(v.ref)}</td><td style="border:1px solid #ccc;padding:4px"><b>${esc(v.name)}</b></td><td style="border:1px solid #ccc;padding:4px">${esc(v.tag||"—")}</td><td style="border:1px solid #ccc;padding:4px">${esc(v.host)} (${esc(v.agency)})</td><td style="border:1px solid #ccc;padding:4px">${esc(v.building)}${v.note?" · "+esc(v.note):""}</td></tr>`).join("")}</tbody></table>`:`<div style="margin-bottom:10px;color:#555">None — all visitors checked out.</div>`}
+    <div style="font-weight:700;margin:8px 0 4px">2. Unreturned Tags (${(h.lostTags||[]).length}) &amp; Uncollected Deliveries (${(h.parcels||[]).length})</div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9pt"><tbody>
+      <tr><td style="border:1px solid #ccc;padding:6px;width:50%;vertical-align:top"><b>Unreturned Tags:</b><br>${(h.lostTags||[]).length?h.lostTags.map(t=>`• <b>${esc(t.tag)}</b> — ${esc(t.name)} (Host: ${esc(t.host)})`).join("<br>"):"None"}</td>
+      <td style="border:1px solid #ccc;padding:6px;width:50%;vertical-align:top"><b>Uncollected Deliveries:</b><br>${(h.parcels||[]).length?h.parcels.map(d=>`• For <b>${esc(d.forName)}</b> (${esc(d.agency)}): ${esc(d.desc)} (${esc(d.from||"courier")})`).join("<br>"):"None"}</td></tr>
+    </tbody></table>
+    <div style="font-weight:700;margin:8px 0 4px">3. Station Equipment &amp; Security Checklist</div>
+    <div style="border:1px solid #ccc;padding:6px;margin-bottom:10px;font-size:9pt">
+      [${chk.tags?"✓":" "}] Visitor tag stock counted &amp; verified &nbsp;&nbsp;
+      [${chk.equip?"✓":" "}] Computer / tablet &amp; QR scanner operational &nbsp;&nbsp;
+      [${chk.keys?"✓":" "}] Keys, radio &amp; physical logbook handed over &nbsp;&nbsp;
+      [${chk.vip?"✓":" "}] VIP &amp; restricted-area logs reconciled
+    </div>
+    <div style="font-weight:700;margin:8px 0 4px">4. Shift Notes &amp; Handover Instructions</div>
+    <div style="border:1px solid #ccc;padding:8px;min-height:48px;white-space:pre-wrap;margin-bottom:18px;font-size:9.5pt">${esc(h.notes||"All stations operating normally.")}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;padding-top:12px">
+      <div style="border-top:1px solid #000;padding-top:4px"><b>Outgoing Officer Signature:</b> ${esc(h.fromOfficer)}</div>
+      <div style="border-top:1px solid #000;padding-top:4px"><b>Incoming Officer Signature:</b> ${esc(h.toOfficer||"")}</div>
+    </div>
+  </div>`;
+  document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},100);
+}
 function openHandover(){
-  const onsite=visitors.filter(v=>["arrived","tagged","in"].includes(v.status));
-  const lost=visitors.filter(v=>v.tagReturned===false&&isToday(v.outAt||0));
-  const waitDel=deliveries.filter(d=>d.status==="waiting");
-  const pend=visitors.filter(v=>v.status==="pending");
-  const lines=[
-    `UN HOUSE ABUJA — SHIFT HANDOVER (${fmtD(now())})`,
-    `Officer signing off: ${op()} (${STATIONS[station()]||station()})`,
-    `--------------------------------------------------`,
-    `1. STILL ON SITE (${onsite.length}):`,
-    ...(onsite.length?onsite.map(v=>`   - ${v.name} (${v.ref}) · ${v.tag||"no tag"} · Host: ${v.host} (${v.agency}) · ${v.building}${v.extendedUntil?` [Extended to ${fmtT(v.extendedUntil)}]`:overstay(v)?" [OVERSTAY]":""}`):["   - None"]),
-    `2. UNRETURNED TAGS TODAY (${lost.length}):`,
-    ...(lost.length?lost.map(v=>`   - ${v.tag}: ${v.name} (Host: ${v.host}, out ${fmtT(v.outAt)})`):["   - All tags returned"]),
-    `3. DELIVERIES WAITING AT RECEPTION (${waitDel.length}):`,
-    ...(waitDel.length?waitDel.map(d=>`   - For ${d.forName} (${d.agency}): ${d.desc} from ${d.from||"courier"}`):["   - None"]),
-    `4. PENDING APPROVALS (${pend.length}):`,
-    ...(pend.length?pend.map(v=>`   - ${v.name} (${v.org||"Visitor"}) · Host: ${v.host} · Expected ${fmtD(v.expected)}`):["   - None"])
-  ];
+  const collectLive=()=>{
+    const onsite=visitors.filter(v=>["arrived","tagged","in"].includes(v.status)).map(v=>({id:v.id,ref:v.ref,name:v.name,tag:v.tag||"",host:v.host||"",agency:v.agency||"",building:v.building||"",status:v.status,note:v.extendedUntil?`Extended to ${fmtT(v.extendedUntil)}`:overstay(v)?"OVERSTAY":STATUS[v.status]}));
+    const lostTags=visitors.filter(v=>v.tagReturned===false&&isToday(v.outAt||0)).map(v=>({id:v.id,tag:v.tag,name:v.name,host:v.host,outAt:v.outAt}));
+    const parcels=deliveries.filter(d=>d.status==="waiting").map(d=>({id:d.id,forName:d.forName,agency:d.agency,from:d.from,desc:d.desc}));
+    const pend=visitors.filter(v=>v.status==="pending").map(v=>({id:v.id,ref:v.ref,name:v.name,host:v.host,expected:v.expected}));
+    const arrivals=visitors.filter(v=>isToday(v.arrivedAt||0)).length, checkedOut=visitors.filter(v=>v.status==="out"&&isToday(v.outAt||0)).length;
+    return {onsite,lostTags,parcels,pend,stats:{arrivals,checkedOut}};
+  };
+  let snap=collectLive();
+  const staffOpts=[...new Set(["Security Officer A. Bello","Receptionist N. Okafor","Supervisor F. Adeyemi","House Manager",...staffList.map(s=>s.name)].filter(x=>x&&x!==op()))];
   const m=$("#modal");
-  m.innerHTML=`<div class="modal" style="max-width:580px"><h2>End-of-day shift handover</h2>
-    <p class="small">Review everyone still on site, unreturned tags, and uncollected parcels before handing over the station.</p>
-    <div class="kpis" style="grid-template-columns:repeat(4,1fr)"><div class="kpi ${onsite.length?"alert":""}"><div class="n">${onsite.length}</div><div class="l">Still on site</div></div><div class="kpi ${lost.length?"alert":""}"><div class="n">${lost.length}</div><div class="l">Tags out</div></div><div class="kpi"><div class="n">${waitDel.length}</div><div class="l">Parcels</div></div><div class="kpi"><div class="n">${pend.length}</div><div class="l">Pending</div></div></div>
-    <div class="f"><label for="ho_txt">Handover report &amp; shift notes</label><textarea id="ho_txt" style="min-height:170px;font-family:var(--mono);font-size:12px">${esc(lines.join("\n")+"\n5. SHIFT NOTES:\n   - All stations operating normally.")}</textarea></div>
-    <div class="acts"><button class="btn pri" id="ho_copy">Copy handover report</button><button class="btn" id="ho_print">Print handover</button><button class="btn" id="mNo">Close</button></div></div>`;
-  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
-  $("#ho_copy").onclick=async()=>{try{await navigator.clipboard.writeText($("#ho_txt").value);toast("Shift handover report copied.")}catch(e){$("#ho_txt").select()}};
-  $("#ho_print").onclick=()=>{let p=$("#printArea");if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
-    p.innerHTML=`<div style="font-family:monospace;white-space:pre-wrap;padding:18mm;font-size:10pt;color:#000">${esc($("#ho_txt").value)}</div>`;
-    document.body.classList.add("print-sheet");setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},100)};
+  const draw=(customNotes)=>{
+    const {onsite,lostTags,parcels,pend,stats}=snap;
+    const defNotes=customNotes??`• Today's traffic: ${stats.arrivals} arrivals, ${stats.checkedOut} checked out.\n• ${onsite.length} visitor(s) still on site handed over to incoming shift.\n• ${lostTags.length?`${lostTags.length} unreturned tag(s) to follow up with hosts.`:`All departed visitor tags returned.`}\n• ${parcels.length?`${parcels.length} parcel(s) waiting at reception for collection.`:`No uncollected parcels.`}`;
+    m.innerHTML=`<div class="modal" style="max-width:680px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+        <div><h2 style="margin:0">Shift handover &amp; station transfer</h2><p class="small" style="margin:2px 0 0">Live visitors on site, unreturned tags, and uncollected deliveries are automatically transferred into this handover.</p></div>
+        <div class="acts">
+          <button class="btn" type="button" id="ho_pull" title="Re-pull live station counts and tables">↻ Pull live data</button>
+          <button class="btn" type="button" id="ho_log" title="Append today's station activity log into shift notes">+ Insert today's log</button>
+          <label class="btn" style="cursor:pointer;margin:0" title="Import notes or records from a .json, .csv, or .txt file">📂 Import file<input type="file" id="ho_file" accept=".json,.csv,.txt" hidden></label>
+        </div>
+      </div>
+      <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi"><div class="n">${stats.arrivals}</div><div class="l">Arrivals today</div></div>
+        <div class="kpi ${onsite.length?"alert":""}"><div class="n">${onsite.length}</div><div class="l">Carry over on site</div></div>
+        <div class="kpi ${lostTags.length?"alert":""}"><div class="n">${lostTags.length}</div><div class="l">Unreturned tags</div></div>
+        <div class="kpi"><div class="n">${parcels.length}</div><div class="l">Waiting parcels</div></div>
+        <div class="kpi"><div class="n">${pend.length}</div><div class="l">Pending approvals</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+        <div class="f"><label for="ho_st">Station being handed over</label><select id="ho_st"><option value="ALL">All stations (Full shift)</option>${Object.entries(STATIONS).map(([k,v])=>`<option value="${k}" ${station()===k?"selected":""}>${k} · ${esc(v)}</option>`).join("")}</select></div>
+        <div class="f"><label for="ho_from">Outgoing officer (signing off)</label><input id="ho_from" value="${esc(op())}"></div>
+        <div class="f"><label for="ho_to">Incoming officer (taking over)</label><input id="ho_to" list="ho_staff" placeholder="Select or type incoming officer" value="${esc(staffOpts[0]||"")}"><datalist id="ho_staff">${staffOpts.map(n=>`<option value="${esc(n)}">`).join("")}</datalist></div>
+      </div>
+      <div class="panel" style="padding:10px 12px;background:var(--surface2)">
+        <div class="small" style="font-weight:700;margin-bottom:6px">Auto-transferred carry-over records (untick any item already resolved):</div>
+        <div style="max-height:135px;overflow:auto;display:grid;gap:4px;font-size:12.5px">
+          ${onsite.map((v,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-on="${i}" checked style="width:auto"> <span><b>[On site]</b> ${esc(v.name)} (<span class="mono">${esc(v.tag||v.ref)}</span>) · Host: ${esc(v.host)} (${esc(v.agency)}) · ${esc(v.building)} <span class="pill p-in" style="font-size:10px;padding:1px 6px">${esc(v.note)}</span></span></label>`).join("")}
+          ${lostTags.map((t,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-tag="${i}" checked style="width:auto"> <span><b style="color:var(--warn)">[Unreturned tag ${esc(t.tag)}]</b> ${esc(t.name)} · Host: ${esc(t.host)} (out ${fmtT(t.outAt)})</span></label>`).join("")}
+          ${parcels.map((d,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-del="${i}" checked style="width:auto"> <span><b>[Parcel]</b> For ${esc(d.forName)} (${esc(d.agency)}): ${esc(d.desc)} (${esc(d.from||"courier")})</span></label>`).join("")}
+          ${!onsite.length&&!lostTags.length&&!parcels.length?`<div class="small">No open visitors, unreturned tags, or uncollected parcels to carry over.</div>`:""}
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12.5px">
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_tags" checked style="width:auto"> Visitor tag stock counted &amp; verified</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_equip" checked style="width:auto"> Computer / tablet &amp; scanner operational</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_keys" checked style="width:auto"> Keys, radio &amp; logbook handed over</label>
+        <label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="hc_vip" checked style="width:auto"> VIP &amp; restricted movements reconciled</label>
+      </div>
+      <div class="f"><label for="ho_txt">Shift notes &amp; instructions for incoming officer</label><textarea id="ho_txt" style="min-height:80px;font-size:12.5px">${esc(defNotes)}</textarea></div>
+      <div class="acts" style="justify-content:space-between;flex-wrap:nowrap">
+        <div class="acts" style="flex-wrap:nowrap">
+          <button class="btn pri" id="ho_save" type="button">Record &amp; transfer shift</button>
+          <button class="btn" id="ho_print" type="button">Print official sheet</button>
+          <button class="btn" id="ho_copy" type="button">Copy text</button>
+        </div>
+        <button class="btn" id="mNo" type="button">Close</button>
+      </div>
+      ${handovers.length?`<div style="border-top:1px solid var(--line);padding-top:10px"><div class="small" style="font-weight:700;margin-bottom:6px">Recent recorded handovers (${handovers.length})</div>
+        <div class="tw" style="max-height:130px;overflow:auto"><table><thead><tr><th>When</th><th>Station</th><th>Outgoing → Incoming</th><th>Carried over</th><th>Status</th><th></th></tr></thead><tbody>
+        ${handovers.slice(0,10).map(h=>`<tr><td class="mono small">${fmtD(h.at)}</td><td class="small">${esc(h.stationKey||"ALL")}</td><td class="small"><b>${esc(h.fromOfficer)}</b> → ${esc(h.toOfficer||"—")}</td><td class="small">${(h.onsite||[]).length} on site · ${(h.lostTags||[]).length} tags · ${(h.parcels||[]).length} parcels</td>
+          <td>${h.ackBy?`<span class="pill p-in">Received by ${esc(h.ackBy)}</span>`:`<span class="pill p-pending">Awaiting sign-off</span>`}</td>
+          <td><div class="acts" style="flex-wrap:nowrap">${!h.ackBy?`<button class="btn ok" style="padding:4px 8px;font-size:11.5px" data-ho-ack="${esc(h.id)}">Acknowledge</button>`:""}<button class="btn" style="padding:4px 8px;font-size:11.5px" data-ho-view="${esc(h.id)}">Print</button></div></td></tr>`).join("")}
+        </tbody></table></div></div>`:""}
+    </div>`;
+    m.hidden=false;
+    const buildRecord=()=>{
+      const stKey=$("#ho_st").value;
+      const selOn=onsite.filter((_,i)=>{const el=m.querySelector(`[data-ho-on="${i}"]`);return !el||el.checked});
+      const selTags=lostTags.filter((_,i)=>{const el=m.querySelector(`[data-ho-tag="${i}"]`);return !el||el.checked});
+      const selDel=parcels.filter((_,i)=>{const el=m.querySelector(`[data-ho-del="${i}"]`);return !el||el.checked});
+      return {at:now(),stationKey:stKey,stationLabel:stKey==="ALL"?"All stations":`${stKey} · ${STATIONS[stKey]}`,fromOfficer:$("#ho_from").value.trim()||op(),fromUid:myUid(),toOfficer:$("#ho_to").value.trim(),
+        stats,onsite:selOn,lostTags:selTags,parcels:selDel,checks:{tags:$("#hc_tags").checked,equip:$("#hc_equip").checked,keys:$("#hc_keys").checked,vip:$("#hc_vip").checked},notes:$("#ho_txt").value.trim()};
+    };
+    $("#mNo").onclick=()=>m.hidden=true;
+    $("#ho_pull").onclick=()=>{snap=collectLive();draw();toast("Live station data refreshed.")};
+    $("#ho_log").onclick=()=>{
+      const ev=visitors.flatMap(v=>(v.log||[]).map(l=>({...l,name:v.name,ref:v.ref}))).filter(l=>isToday(l.t)).sort((a,b)=>b.t-a.t).slice(0,12);
+      const logLines=ev.length?ev.map(e=>`  [${fmtT(e.t)}] ${e.name} (${e.ref}): ${e.a} — ${e.by}`).join("\n"):"  No activity logged today.";
+      $("#ho_txt").value=($("#ho_txt").value?$("#ho_txt").value+"\n\n":"")+`TODAY'S ACTIVITY LOG (${ev.length} recent events):\n`+logLines;
+      toast("Today's activity log inserted into shift notes.");
+    };
+    $("#ho_file").onchange=async e=>{
+      const f=e.target.files[0]; if(!f) return;
+      const txt=await f.text();
+      try{
+        const j=JSON.parse(txt);
+        if(j.notes) $("#ho_txt").value=j.notes;
+        if(j.toOfficer) $("#ho_to").value=j.toOfficer;
+        toast(`Imported handover data from ${f.name}.`);
+      }catch(_){
+        $("#ho_txt").value=($("#ho_txt").value?$("#ho_txt").value+"\n\n":"")+`--- Imported from ${f.name} ---\n`+txt.trim();
+        toast(`Imported notes from ${f.name}.`);
+      }
+    };
+    $("#ho_save").onclick=async()=>{
+      const rec=buildRecord();
+      if(!rec.toOfficer) return toast("Enter or select the incoming officer taking over the shift.");
+      $("#ho_save").setAttribute("disabled","");
+      try{
+        if(db){const ref=await db.collection("handovers").add(rec); if(!fb||DEMO) handovers.unshift({...rec,id:ref.id});}
+        else handovers.unshift({...rec,id:"ho-"+now()});
+        toast(`Shift handover recorded and transferred to ${rec.toOfficer}.`);
+        draw(rec.notes); render();
+      }catch(e){$("#ho_save").removeAttribute("disabled");toast("Could not save handover: "+e.message)}
+    };
+    $("#ho_print").onclick=()=>printHandoverSheet(buildRecord());
+    $("#ho_copy").onclick=async()=>{
+      const r=buildRecord();
+      const txt=`UN HOUSE ABUJA — SHIFT HANDOVER (${fmtD(r.at)})\nStation: ${r.stationLabel}\nOutgoing: ${r.fromOfficer} -> Incoming: ${r.toOfficer||"—"}\nCarried Over: ${r.onsite.length} on site, ${r.lostTags.length} unreturned tags, ${r.parcels.length} waiting parcels\n\nON SITE (${r.onsite.length}):\n${r.onsite.map(v=>`- ${v.name} (${v.tag||v.ref}) · Host: ${v.host} (${v.agency}) · ${v.building} [${v.note}]`).join("\n")||"- None"}\n\nNOTES:\n${r.notes}`;
+      try{await navigator.clipboard.writeText(txt);toast("Handover summary copied.")}catch(e){}
+    };
+    m.querySelectorAll("[data-ho-ack]").forEach(b=>b.onclick=async()=>{
+      const id=b.dataset.hoAck, h=handovers.find(x=>x.id===id); if(!h) return;
+      const patch={ackBy:op(),ackByUid:myUid(),ackAt:now()};
+      Object.assign(h,patch);
+      if(db){try{await db.collection("handovers").doc(id).update(patch)}catch(e){}}
+      toast(`Handover acknowledged by ${op()}.`); draw($("#ho_txt").value); render();
+    });
+    m.querySelectorAll("[data-ho-view]").forEach(b=>b.onclick=()=>{
+      const h=handovers.find(x=>x.id===b.dataset.hoView); if(h) printHandoverSheet(h);
+    });
+  };
+  draw();
 }
 function wireReports(){const c=$("#rp_csv"); if(c) c.onclick=()=>{const days=30,start=today0()-(days-1)*864e5;
   const rows=[...Array(days)].map((_,i)=>{const d0=start+i*864e5;return new Date(d0).toISOString().slice(0,10)+","+visitors.filter(v=>v.arrivedAt>=d0&&v.arrivedAt<d0+864e5).length});
@@ -1573,7 +1706,7 @@ function enterWall(){document.body.classList.add("wall-mode");view="wall";render
 /* ---------- Scripted demo mode: app.html?demo ---------- */
 let DEMO=false;
 function demoDb(){
-  const COLS={visitors:()=>visitors,deliveries:()=>deliveries,rollcalls:()=>rollcalls,watchlist:()=>watchlist,passes:()=>passes,invites:()=>invites,config:()=>[]};
+  const COLS={visitors:()=>visitors,deliveries:()=>deliveries,rollcalls:()=>rollcalls,watchlist:()=>watchlist,passes:()=>passes,invites:()=>invites,handovers:()=>handovers,config:()=>[]};
   const col=name=>{const arr=()=>COLS[name]?COLS[name]():[];const q={
     add:async d=>{const id="d"+Math.random().toString(36).slice(2,9);arr().unshift({...d,id});setTimeout(render);return {id}},
     doc:id=>({id,set:async d=>{if(name==="visitors")return;const a=arr(),i=a.findIndex(x=>x.id===id);if(i>=0)a[i]={...d,id};else a.unshift({...d,id});setTimeout(render)},
@@ -1624,7 +1757,8 @@ function demoData(){
     watchlist:[{id:"w1",name:"Musa Ibrahim Bello",aliases:"Bello Musa; M. I. Bello",reason:"Barred by UNDSS, 3 Oct 2026. Call security.",active:true,at:t0-30*864e5+10*h,addedBy:"UNDSS"}],
     deliveries:[{id:"dl1",forName:"Dr. K. Ibrahim",email:"k.ibrahim@example.org",phone:"0803 123 4567",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation",at:d1,by:"N. Okafor",status:"waiting"},
       {id:"dl2",forName:"S. Garba",agency:"UNDP",from:"Courier",desc:"Envelope",at:d1+h,by:"N. Okafor",status:"waiting",notifiedAt:d1+1.2*h,notifiedVia:"WhatsApp"},
-      {id:"dl3",forName:"T. Musa",agency:"UNICEF",from:"Jumia",desc:"Small parcel",at:y9+2*h,by:"N. Okafor",status:"collected",collectedAt:y9+5*h,collectedBy:"N. Okafor"}]};
+      {id:"dl3",forName:"T. Musa",agency:"UNICEF",from:"Jumia",desc:"Small parcel",at:y9+2*h,by:"N. Okafor",status:"collected",collectedAt:y9+5*h,collectedBy:"N. Okafor"}],
+    handovers:[{id:"ho1",at:t9-0.5*h,stationKey:"S1",stationLabel:"S1 · Reception / Initial Access",fromOfficer:"Night Duty Officer M. Danjuma",fromUid:"demo",toOfficer:"Security Officer A. Bello",stats:{arrivals:14,checkedOut:13},onsite:[{id:"UNH-EX-0010",ref:"UNH-EX-0010",name:"Chidi Eze",tag:"C-003",host:"Facilities Unit",agency:"Common Services",building:"Annex A",status:"in",note:"Checked in"}],lostTags:[],parcels:[{id:"dl1",forName:"Dr. K. Ibrahim",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation"}],checks:{tags:true,equip:true,keys:true,vip:true},notes:"Morning shift handover: Contractor Chidi Eze (Julius Facilities) already on site in Annex A. 1 DHL box at reception for Dr. K. Ibrahim (WHO). Tag stock V-001 to V-050 verified."}]};
 }
 const TOUR=[
   ["Live overview","Everything happening across the four stations at once: who is expected, who is on site, and what needs attention. Each alert has a button that deals with it.",()=>{view="dashboard"}],
@@ -1654,7 +1788,7 @@ function drawTour(){
 }
 const DEMO_KEY="unhDemoState_v6";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
-  try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
+  try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
 function loadDemo(){ try{ const d=JSON.parse(sessionStorage.getItem(DEMO_KEY)||"null"); return d&&d.visitors&&now()-d.at<12*3600e3?d:null; }catch(e){ return null; } }
 window.addEventListener("storage",e=>{
@@ -1667,7 +1801,7 @@ window.addEventListener("storage",e=>{
 function startDemo(){
   DEMO=true; fb={demo:true}; db=demoDb();
   me={uid:"demo-admin",name:"Demo Administrator",role:"admin",email:"demo@example.org",active:true};
-  const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[];
+  const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[]; handovers=d.handovers||[];
   if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role){me.role=saved.role;me.name=saved.role==="admin"?"Demo Administrator":ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
@@ -1733,8 +1867,9 @@ V.dashboard=()=>{
   const tagsOut=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
   const byB=BUILDINGS.map(b=>[b,inside.filter(v=>v.building===b).length]);
   const max=Math.max(1,...byB.map(x=>x[1]));
-  const al=alerts();
-  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">${head("Live overview",`Everything happening across the four stations right now. Updated ${fmtT(now())}.`)}<button class="btn" id="db_ho">Shift handover</button></div>`+
+  const al=alerts(), unackHo=handovers.find(h=>!h.ackBy);
+  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">${head("Live overview",`Everything happening across the four stations right now. Updated ${fmtT(now())}.`)}<button class="btn ${unackHo?"pri":""}" id="db_ho">Shift handover${unackHo?` · 1 pending sign-off`:""}</button></div>`+
+  (unackHo?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span><b>Incoming shift handover (${esc(unackHo.stationLabel||"All stations")}):</b> ${esc(unackHo.fromOfficer)} handed over to <b>${esc(unackHo.toOfficer||"next shift")}</b> at ${fmtT(unackHo.at)} · ${(unackHo.onsite||[]).length} on site, ${(unackHo.parcels||[]).length} parcels.</span><button class="btn pri" id="db_ho_open">Review &amp; acknowledge</button></div>`:"")+
   (visitors.some(v=>v.example)?`<div class="banner"><span>These are example records for testing.</span><div class="acts"><button class="btn" id="loadEx">Reset sample records</button><button class="btn" id="clearEx">Remove example records</button></div></div>`:!DEMO?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>${visitors.length?"Showing live records only.":"No visitors recorded yet. Register the first one under <b>Register visitors</b>, or load sample records to try the workflow."}</span><div class="acts"><button class="btn pri" id="loadEx">Load sample records</button><a class="btn" href="?demo">Guided demo</a></div></div>`:"")+
   `<div class="kpis">
     <div class="kpi"><div class="n">${exp.length}</div><div class="l">Expected today</div></div>
@@ -1892,6 +2027,7 @@ function wire(){
   const wt=$("#wallTog"); if(wt) wt.onclick=()=>{try{localStorage.setItem("wallDark",wallDark()?"0":"1")}catch(e){}render()};
   wireWatch(); wireEvac(); wireDeliveries(); wireReports(); wireRepeat();
   const dbHo=$("#db_ho"); if(dbHo) dbHo.onclick=openHandover;
+  const dbHo2=$("#db_ho_open"); if(dbHo2) dbHo2.onclick=openHandover;
   const ks=$("#k_start"); if(ks) ks.onclick=startKiosk;
   const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
   const ib=$("#invNew"); if(ib) ib.onclick=createInvite;
@@ -1934,6 +2070,7 @@ async function loadExamples(silent){
   if(db&&me&&me.role!=="host"){
     for(const w of d.watchlist||[]){try{await db.collection("watchlist").doc(w.id).set({...w,example:true})}catch(e){}}
     for(const dl of d.deliveries||[]){try{await db.collection("deliveries").doc(dl.id).set({...dl,example:true})}catch(e){}}
+    for(const ho of d.handovers||[]){try{await db.collection("handovers").doc(ho.id).set({...ho,example:true})}catch(e){}}
   }
   toast(silent?"Sample records loaded for testing.":"Sample records loaded.");
 }
@@ -1946,6 +2083,7 @@ async function clearExamples(){
     for(const v of ex){try{await db.collection("visitors").doc(v.id).delete()}catch(e){}}
     for(const w of watchlist.filter(x=>x.example)){try{await db.collection("watchlist").doc(w.id).delete()}catch(e){}}
     for(const d of deliveries.filter(x=>x.example)){try{await db.collection("deliveries").doc(d.id).delete()}catch(e){}}
+    for(const h of handovers.filter(x=>x.example)){try{await db.collection("handovers").doc(h.id).delete()}catch(e){}}
   }
   toast("Example records removed");render();
 }
