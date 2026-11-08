@@ -2163,7 +2163,7 @@ V.dashboard=()=>{
     </div>
     <div class="panel"><h2>Alerts and reminders</h2>${alertList()}</div>
   </div>
-  <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>(canAct("checkout")?B(v.id,"checkout","Check out","ok"):"")+passBtn(v),"Nobody is checked in.")}</div>`;
+  <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>canAct("checkout")?B(v.id,"checkout","Check out","ok"):"","Nobody is checked in.")}</div>`;
 };
 V.gate=()=>{
   const pend=visitors.filter(v=>v.status==="pending");
@@ -2281,8 +2281,8 @@ V.gate=()=>{
     </div>
     <p class="small">All persons currently on UN House premises. Visitors exit the compound through Gate 1: click <b>Check out</b> when departing, collect their physical lanyard tag (automatically restocked to available inventory), verify any items taken out, and record their exit.</p>
     ${table(insideList, v=>{
-      if(v.type==="vip") return B(v.id,"checkout","VIP Departed","ok")+passBtn(v);
-      return B(v.id,"checkout",v.tag?`Check out (Tag ${esc(v.tag)})`:"Check out","ok")+passBtn(v);
+      if(v.type==="vip") return B(v.id,"checkout","VIP Departed","ok");
+      return B(v.id,"checkout",v.tag?`Check out (Tag ${esc(v.tag)})`:"Check out","ok");
     },"Nobody is currently on the premises.")}
   </div>
 
