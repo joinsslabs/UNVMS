@@ -1361,7 +1361,9 @@ function openInviteDialog(){
 }
 
 function inviteView(){
-  const sub=invites.filter(i=>i.status==="submitted"), open=invites.filter(i=>i.status==="open"&&i.expires>now());
+  loadDemoInvites();
+  loadDemoGuests();
+  const sub=invites.filter(i=>i.status==="submitted"&&i.guest), open=invites.filter(i=>i.status==="open"&&i.expires>now());
   const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
   const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
   return `<div class="panel">
@@ -1402,7 +1404,7 @@ function inviteView(){
     </div>
     <p class="small" style="color:var(--muted);margin:8px 0 0">Visitor greeting preview: <i>"[Host Name] ([Host Agency]) has invited you. Fill in your details so the gate can expect you."</i></p>
 
-    ${sub.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Details received <span class="cnt hot">${sub.length}</span></h2><div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Action</th></tr></thead><tbody>${sub.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn pri" data-inv-use="${esc(i.id)}">✓ Approve &amp; Allocate Tag</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
+    ${sub.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Details received <span class="cnt hot">${sub.length}</span></h2><div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Action</th></tr></thead><tbody>${sub.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve and assign next available badge">✓ Approve &amp; Allocate Tag</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
     ${open.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Waiting for the guest <span class="cnt">${open.length}</span></h2><div class="tw"><table><thead><tr><th>Host &amp; Agency</th><th>Created / Expires</th><th style="text-align:right">Actions</th></tr></thead><tbody>${open.map(i=>`<tr><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}${i.room?` · Room ${esc(i.room)}`:""}</div></td><td class="small">Created ${fmtD(i.createdAt)}<br>expires ${fmtD(i.expires)}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn" data-inv-copy="${esc(i.id)}">📋 Copy link</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Cancel</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
   </div>`;
 }
@@ -1425,6 +1427,11 @@ async function createInvite(){
     expires:now()+7*864e5
   };
   invites.unshift(invDoc);
+  try{
+    let stored=JSON.parse(localStorage.getItem("unhDemoInvites")||"[]");
+    stored.unshift(invDoc);
+    localStorage.setItem("unhDemoInvites",JSON.stringify(stored));
+  }catch(e){}
   if(db){
     try{await db.collection("invites").doc(tok).set(invDoc);}catch(e){}
   }
@@ -1433,11 +1440,27 @@ async function createInvite(){
   render();
 }
 async function useInvite(i){
-  if(!i) return; const g=i.guest, ref=newRef();
-  const v={id:ref,ref,name:g.name,org:g.org,phone:g.phone,visitorEmail:g.email||"",vehicle:g.vehicle||"",type:"visitor",room:i.room||"",...(g.agreedAt?{agreedAt:g.agreedAt,agreement:g.agreement,lang:g.lang}:{}),host:i.host,hostEmail:i.hostEmail||"",agency:i.agency,building:BUILDINGS[0],
-    expected:g.expected?new Date(g.expected).getTime()||now():now(),purpose:g.purpose,restricted:false,escort:false,requestedBy:op(),requestedByUid:myUid(),status:"pending",log:[]};
-  await act(v,"Registered from guest's pre-registration; sent for approval");
-  try{await db.collection("invites").doc(i.id).update({status:"used",visitorId:ref});toast(`${g.name} registered as ${ref}. Sent for approval.`)}catch(e){toast("Visit saved, but the invite could not be closed: "+e.message)}
+  if(!i||!i.guest) return; const g=i.guest, ref=newRef();
+  const assignedTag = nextAvailableTag("visitor");
+  const v={id:ref,ref,name:g.name,org:g.org||"",phone:g.phone||"",visitorEmail:g.email||"",vehicle:"",type:"visitor",room:i.room||"",...(g.agreedAt?{agreedAt:g.agreedAt,agreement:g.agreement,lang:g.lang}:{}),host:i.host,hostEmail:i.hostEmail||"",agency:i.agency,building:BUILDINGS[0],
+    expected:g.expected?new Date(g.expected).getTime()||now():now(),purpose:g.purpose||"Meeting",restricted:false,escort:false,requestedBy:op(),requestedByUid:myUid(),status:"approved",assignedTag,tag:assignedTag,log:[{t:now(),a:`Approved online pre-registration; tag ${assignedTag} pre-allocated`,by:op(),byUid:myUid(),role:myRole(),st:STATIONS[station()]}]};
+  i.status="used";
+  i.visitorId=ref;
+  await save(v);
+  if(assignedTag&&gateTagStock.includes(assignedTag)){
+    gateTagStock=gateTagStock.filter(t=>t!==assignedTag);
+    saveGateTagStock(gateTagStock);
+  }
+  try{
+    if(db) await db.collection("invites").doc(i.id).update({status:"used",visitorId:ref});
+  }catch(e){}
+  try{
+    let stored=JSON.parse(localStorage.getItem("unhDemoInvites")||"[]");
+    const idx=stored.findIndex(x=>x.id===i.id);
+    if(idx>=0){stored[idx].status="used";stored[idx].visitorId=ref;localStorage.setItem("unhDemoInvites",JSON.stringify(stored));}
+  }catch(e){}
+  toast(`✓ ${g.name} approved & tag ${assignedTag} allocated. Ready at Station 1 & 2.`);
+  render();
 }
 
 /* ---------- digital visitor passes ---------- */
@@ -2252,10 +2275,39 @@ async function showInvite(tok){
       if(!expT||!inWorkHours(expT)){$("#g_err").textContent=LANG==="fr"?"Veuillez choisir une heure pendant les heures ouvrables (08h00 à 17h00).":"Please choose an arrival time within working hours (08:00 to 17:00).";return}
       const guest={name:$("#g_name").value.trim(),org:$("#g_org").value.trim(),phone:$("#g_phone").value.trim(),vehicle:"",email:$("#g_email").value.trim().toLowerCase(),expected:$("#g_when").value,purpose:$("#g_purpose").value.trim(),agreedAt:now(),agreement:AGREEMENT.version,lang:LANG};
       try{
-        await db.collection("invites").doc(tok).update({status:"submitted",guest,submittedAt:now()});
+        const invId = (i && i.id) || (tok !== "demo" ? tok : "") || ("inv-" + now());
+        const patchData = { status: "submitted", guest, host: hostName, agency: agencyName, submittedAt: now() };
+        if(window.firebase && window.firebase.firestore){
+          try{
+            const realDb = (fb && !fb.demo) ? db : window.firebase.firestore();
+            await realDb.collection("invites").doc(invId).set({
+              status: "submitted",
+              guest,
+              host: hostName,
+              agency: agencyName,
+              submittedAt: now(),
+              id: invId,
+              expires: (i && i.expires) || (now() + 7 * 864e5),
+              demo: true
+            }, { merge: true });
+          }catch(x){}
+        } else if(db && (!fb || !fb.demo)){
+          try{ await db.collection("invites").doc(tok).update({ status: "submitted", guest, submittedAt: now() }); }catch(e){}
+        }
+        try{
+          localStorage.setItem("unhDemoInvite:" + invId, JSON.stringify(patchData));
+          let storedList = JSON.parse(localStorage.getItem("unhDemoInvites") || "[]");
+          const idx = storedList.findIndex(x => x.id === invId);
+          if(idx >= 0){
+            Object.assign(storedList[idx], patchData);
+          } else {
+            storedList.unshift({ id: invId, ...patchData });
+          }
+          localStorage.setItem("unhDemoInvites", JSON.stringify(storedList));
+        }catch(e){}
         try{
           const ref="UNH-"+String(Math.floor(1000+Math.random()*9000));
-          const newVis={id:ref,ref,name:guest.name,org:guest.org||"",phone:guest.phone||"",visitorEmail:guest.email||"",vehicle:"",type:"visitor",room:i.room||"",host:hostName,hostEmail:i.hostEmail||"",agency:agencyName,building:BUILDINGS[0],expected:guest.expected?new Date(guest.expected).getTime()||now():now(),purpose:guest.purpose||"Meeting",restricted:false,escort:false,requestedBy:hostName,requestedByUid:"demo",status:"pending",log:[{t:now(),a:"Online pre-registration submitted by guest; awaiting Gate 1 clearance",by:"Guest ("+guest.name+")",st:"Online Pre-Registration"}]};
+          const newVis={id:ref,ref,name:guest.name,org:guest.org||"",phone:guest.phone||"",visitorEmail:guest.email||"",vehicle:"",type:"visitor",room:(i&&i.room)||"",host:hostName,hostEmail:(i&&i.hostEmail)||"",agency:agencyName,building:BUILDINGS[0],expected:guest.expected?new Date(guest.expected).getTime()||now():now(),purpose:guest.purpose||"Meeting",restricted:false,escort:false,requestedBy:hostName,requestedByUid:"demo",status:"pending",log:[{t:now(),a:"Online pre-registration submitted by guest; awaiting Gate 1 clearance",by:"Guest ("+guest.name+")",st:"Online Pre-Registration"}]};
           let gList=[];
           try{gList=JSON.parse(localStorage.getItem("unhDemoSubmittedGuests")||"[]");}catch(x){}
           if(!gList.some(x=>x.name===newVis.name)) gList.unshift(newVis);
@@ -2551,19 +2603,127 @@ function loadDemoGuests(){
     }
   }catch(e){}
 }
-window.addEventListener("storage",e=>{
-  if(!e.key) return;
-  if(e.key==="unhDemoSubmittedGuests"||e.key.startsWith("unhDemoInvite:")){
-    loadDemoGuests();
-    if(e.key.startsWith("unhDemoInvite:")&&e.newValue){
-      const id=e.key.slice(14), i=(invites||[]).find(x=>x.id===id);
-      if(i){
-        try{
-          const p=JSON.parse(e.newValue);
-          Object.assign(i,{status:"submitted",guest:p.guest,submittedAt:p.submittedAt||now()});
-        }catch(x){}
+function loadDemoInvites(){
+  if(!invites) invites=[];
+  let changed=false;
+  // 1. Process individual unhDemoInvite:<id> entries in localStorage
+  try{
+    for(let k=0;k<localStorage.length;k++){
+      const key=localStorage.key(k);
+      if(key&&key.startsWith("unhDemoInvite:")){
+        const id=key.slice(14), raw=localStorage.getItem(key);
+        if(!raw) continue;
+        const p=JSON.parse(raw);
+        if(p&&p.status==="submitted"&&p.guest){
+          let i=invites.find(x=>x.id===id);
+          if(i){
+            if(i.status!=="submitted"||!i.guest){
+              Object.assign(i,{status:"submitted",guest:p.guest,submittedAt:p.submittedAt||p.at||now()});
+              if(p.host) i.host=p.host;
+              if(p.agency) i.agency=p.agency;
+              changed=true;
+            }
+          } else {
+            invites.unshift({id,status:"submitted",guest:p.guest,host:p.host||"UN Host",agency:p.agency||"UNDP",submittedAt:p.submittedAt||p.at||now(),expires:now()+7*864e5});
+            changed=true;
+          }
+        }
       }
     }
+  }catch(e){}
+
+  // 2. Process stored list unhDemoInvites
+  try{
+    const rawL=localStorage.getItem("unhDemoInvites");
+    if(rawL){
+      const list=JSON.parse(rawL);
+      if(Array.isArray(list)){
+        for(const item of list){
+          const idx=invites.findIndex(x=>x.id===item.id);
+          if(idx>=0){
+            if(item.status==="submitted"&&item.guest&&invites[idx].status!=="submitted"){
+              Object.assign(invites[idx],item);
+              changed=true;
+            }
+          } else {
+            invites.unshift(item);
+            changed=true;
+          }
+        }
+      }
+    }
+  }catch(e){}
+
+  // 3. Reconcile any submitted guests from unhDemoSubmittedGuests
+  try{
+    const rawG=localStorage.getItem("unhDemoSubmittedGuests");
+    if(rawG){
+      const guests=JSON.parse(rawG);
+      if(Array.isArray(guests)&&guests.length){
+        for(const g of guests){
+          let inv=invites.find(i=>i.status==="submitted"&&i.guest&&(i.guest.name===g.name||i.guest.phone===g.phone));
+          if(!inv){
+            // Find an open invite to transition to submitted
+            const openInv=invites.find(i=>i.status==="open"&&(!i.guest||!i.guest.name));
+            if(openInv){
+              openInv.status="submitted";
+              openInv.guest={name:g.name,org:g.org||"—",phone:g.phone||"",email:g.visitorEmail||"",expected:g.expected?fmtLocalDT(g.expected):fmtLocalDT(),purpose:g.purpose||"Meeting"};
+              openInv.submittedAt=g.expected||now();
+              changed=true;
+            } else {
+              invites.unshift({
+                id: g.id || ("inv-"+Math.random().toString(36).slice(2,10)),
+                status: "submitted",
+                guest: {name:g.name,org:g.org||"—",phone:g.phone||"",email:g.visitorEmail||"",expected:g.expected?fmtLocalDT(g.expected):fmtLocalDT(),purpose:g.purpose||"Meeting"},
+                host: g.host || "UN Host",
+                agency: g.agency || "UNDP",
+                submittedAt: g.expected||now(),
+                expires: now() + 7 * 864e5
+              });
+              changed=true;
+            }
+          }
+        }
+      }
+    }
+  }catch(e){}
+
+  // 4. Firestore live sync for submitted invites across devices
+  if(window.firebase && window.firebase.firestore){
+    try{
+      const fdb=window.firebase.firestore();
+      fdb.collection("invites").where("status","==","submitted").get().then(snap=>{
+        let fsChanged=false;
+        snap.forEach(doc=>{
+          const data=doc.data();
+          let existing=invites.find(x=>x.id===doc.id);
+          if(existing){
+            if(existing.status!=="submitted"||!existing.guest){
+              Object.assign(existing,{status:"submitted",guest:data.guest,submittedAt:data.submittedAt||now()});
+              fsChanged=true;
+            }
+          } else {
+            invites.unshift({id:doc.id,...data});
+            fsChanged=true;
+          }
+        });
+        if(fsChanged){
+          saveDemo();
+          if(view==="register"||view==="gate") render();
+        }
+      }).catch(()=>{});
+    }catch(e){}
+  }
+
+  if(changed){
+    saveDemo();
+  }
+}
+window.addEventListener("storage",e=>{
+  if(!e.key) return;
+  if(e.key==="unhDemoSubmittedGuests"||e.key==="unhDemoInvites"||e.key.startsWith("unhDemoInvite:")){
+    loadDemoGuests();
+    loadDemoInvites();
     render();
     toast(`📩 Pre-registered visitor arrived! Check Gate 1 Approvals.`);
   }
@@ -2574,6 +2734,8 @@ function startDemo(){
   const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[]; handovers=d.handovers||[];
   events=d.events||(demoData().events||[]); assetPasses=d.assetPasses||d.assets||(demoData().assets||[]); dobs=d.dobs||(demoData().dobs||[]); parkings=d.parkings||(demoData().parkings||[]);
   if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role){me.role=saved.role;me.name=saved.role==="admin"?"Demo Administrator":ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
+  loadDemoGuests();
+  loadDemoInvites();
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
@@ -2671,6 +2833,7 @@ V.dashboard=()=>{
 };
 V.gate=()=>{
   loadDemoGuests();
+  loadDemoInvites();
   const subInv=(invites||[]).filter(i=>i.status==="submitted"&&i.guest);
   const pend=visitors.filter(v=>v.status==="pending");
   const grps={}; pend.filter(v=>v.group&&!ownRequest(v)).forEach(v=>{(grps[v.group]=grps[v.group]||[]).push(v)});
@@ -4802,7 +4965,12 @@ document.addEventListener("keydown",e=>{
 $("#modal").addEventListener("click",e=>{if(e.target.id==="modal"){clearInterval(openPass.t);$("#modal").hidden=true}});
 const willUseFirebase=window.FIREBASE_CONFIG&&window.firebase&&!/PASTE/.test(window.FIREBASE_CONFIG.apiKey||"");
 if(!willUseFirebase){view=defaultView(); render();} connect();
-setInterval(()=>{if(!$("#modal").hidden||["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;render()},60000);
+setInterval(()=>{
+  loadDemoInvites();
+  loadDemoGuests();
+  if(!$("#modal").hidden||["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;
+  render();
+},8000);
 </script>
 
 </body></html>

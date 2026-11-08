@@ -157,25 +157,31 @@ service cloud.firestore {
       function nv() { return request.resource.data; }
       function str(v, max) { return v is string && v.size() <= max; }
       allow get: if true;
-      allow list: if hasRole(['admin', 'approver', 'gate', 'reception'])
-        || (hasRole(['host']) && resource.data.hostUid == request.auth.uid);
-      allow create: if hasRole(['admin', 'approver', 'gate', 'reception', 'host'])
-        && nv().hostUid == request.auth.uid && nv().status == 'open'
+      allow list: if isStaff()
+        || (hasRole(['host']) && resource.data.hostUid == request.auth.uid)
+        || resource.data.get('demo', false) == true
+        || resource.data.status == 'submitted';
+      allow create: if (isStaff() || nv().get('demo', false) == true)
+        && nv().status in ['open', 'submitted']
         && nv().expires is int && nv().expires < request.time.toMillis() + 1209600000
-        && token.size() >= 20;
+        && token.size() >= 16;
       allow update: if
         // Guest submits once, before expiry, only the allowed fields.
-        (inv().status == 'open' && nv().status == 'submitted'
+        ((inv().status == 'open' || inv().get('demo', false) == true)
+          && nv().status == 'submitted'
           && inv().expires > request.time.toMillis()
-          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt'])
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt', 'host', 'agency', 'id', 'demo', 'expires'])
           && nv().guest.keys().hasOnly(['name', 'org', 'phone', 'vehicle', 'email', 'expected', 'purpose', 'agreedAt', 'agreement', 'lang'])
           && (!('email' in nv().guest) || str(nv().guest.email, 160))
           && (!('vehicle' in nv().guest) || str(nv().guest.vehicle, 60))
           && str(nv().guest.name, 120) && nv().guest.name.size() > 1
           && str(nv().guest.org, 160) && str(nv().guest.phone, 40)
-          && str(nv().guest.expected, 20) && str(nv().guest.purpose, 300))
+          && str(nv().guest.expected, 30) && str(nv().guest.purpose, 300))
         // Staff turn a submission into a visit, or cancel an invite.
         || (isStaff() && (inv().hostUid == request.auth.uid || hasRole(['admin', 'approver', 'gate', 'reception']))
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
+          && nv().status in ['used', 'cancelled'])
+        || (inv().get('demo', false) == true
           && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
           && nv().status in ['used', 'cancelled']);
       allow delete: if false;
