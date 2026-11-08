@@ -1228,7 +1228,7 @@ async function handleScan(txt){
 function nextStep(v){
   const r=myRole(), any=["admin","sec_admin"].includes(r);
   if(v.type==="vip"&&v.status==="approved") return ["vipadmit","VIP Auto Check-in"];
-  if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit at gate"];
+  if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit"];
   if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
   if((v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived))))&&(r==="reception"||any)) return ["checkin",v.type==="vip"?"Host received VIP":"Check in"];
   if((v.status==="in"||v.status==="tagged")&&(r==="docs"||r==="gate")) return ["checkout",v.type==="vip"?"Record VIP Exit":"Check out & Return ID"];
@@ -2284,7 +2284,7 @@ V.gate=()=>{
     ${searchBox()}
     <div style="margin-top:12px">${table(expList,v=>{
       if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
-      if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Verify & admit","pri");
+      if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Admit","pri");
       if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
       if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">✓ Admitted Station 1 · Sent to Station 2 Documentation Reception</span>`;
       return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
@@ -3920,7 +3920,7 @@ function doAct(a,v){
       return act(v,"VIP Auto Check-in · Diplomatic courtesies applied",{status:"in",arrivedAt:t,inAt:t,vipReceived:true,hostNotified:opNow(v,2)}).then(()=>toast(`✨ ${v.name} (VIP) Auto Checked In! Host ${v.host} notified.`));
     }
     const tag=nextAvailableTag(v.type);
-    return act(v,`Verified at Station 1; auto-assigned tag ${tag}`,{status:"arrived",arrivedAt:t,assignedTag:tag}).then(()=>toast(`✅ ${v.name} admitted. Assigned Tag: ${tag}. Send to Station 2.`));
+    return act(v,`Admitted at Station 1; auto-assigned tag ${tag}`,{status:"arrived",arrivedAt:t,assignedTag:tag}).then(()=>toast(`✅ ${v.name} admitted. Assigned Tag: ${tag}. Send to Station 2.`));
   }
   if(a==="gateapprove"){
     if(ownRequest(v)) return toast("You cannot decide on your own request.");
