@@ -112,9 +112,9 @@ service cloud.firestore {
             || (o().type == 'contractor' && from('out', 'arrived') && o().get('accessTo', 0) > request.time.toMillis()))
             && o().get('watchFlag', false) == false)
         || (hasRole(['docs']) && from('arrived', 'tagged'))
-        || (hasRole(['reception']) && (from('tagged', 'in') || from('tagged', 'tagged') || (o().type == 'vip' && (from('arrived', 'in') || from('arrived', 'arrived')))))
+        || (hasRole(['reception', 'approver']) && (from('tagged', 'in') || from('tagged', 'tagged') || (o().type == 'vip' && (from('arrived', 'in') || from('arrived', 'arrived') || from('in', 'in')))))
         || (hasRole(['vip', 'approver']) && o().type == 'vip' && (from('approved', 'arrived') || from('approved', 'in')) && o().get('watchFlag', false) == false)
-        || (hasRole(['reception', 'vip', 'gate']) && from('in', 'out'))
+        || (hasRole(['reception', 'vip', 'gate']) && (from('in', 'out') || (o().type == 'vip' && from('arrived', 'out'))))
         // Overstay extension with host permission (by reception, approver, gate, vip, or the host).
         || (hasRole(['reception', 'approver', 'gate', 'vip']) && from('in', 'in')
             && d().diff(o()).affectedKeys().hasOnly(['extendedUntil', 'extendedBy', 'extendedAt', 'extendedNote', 'hostPermittedBy', 'log']))
