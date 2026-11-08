@@ -1442,7 +1442,7 @@ const VW_reports=()=>{
   <div class="panel"><h2>Busiest hours</h2>${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}<p class="small">Arrivals by hour of day, 06:00 to 20:00.</p></div></div>
   <div class="grid2"><div class="panel"><h2>By agency</h2><div class="tw"><table><tbody>${Object.entries(byAgency).sort((a,b)=>b[1]-a[1]).map(([a,n])=>`<tr><td>${esc(a)}</td><td class="mono" style="text-align:right">${n}</td></tr>`).join("")||`<tr><td class="small">No arrivals yet.</td></tr>`}</tbody></table></div></div>
   <div class="panel"><h2>Tags not returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags returned.</div>`}</div></div>
-  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">17:00 Daily Closeout summary</button></div></div>`;
+  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">📋 17:00 End-of-Day Closeout Summary</button></div></div>`;
 };
 function printHandoverSheet(h){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
@@ -1999,17 +1999,7 @@ V.dashboard=()=>{
   const byB=BUILDINGS.map(b=>[b,inside.filter(v=>v.building===b).length]);
   const max=Math.max(1,...byB.map(x=>x[1]));
   const al=alerts();
-  const todayCloseout=handovers.find(h=>isToday(h.at||0));
-  const isPast17=new Date().getHours()>=17;
-  const showCloseoutAlert=isPast17 && inside.length>0 && !todayCloseout;
-  return `<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
-    ${head("Live overview",`Everything happening across the four stations right now. Visiting hours: 08:00 – 17:00. Updated ${fmtT(now())}.`)}
-    <button class="btn ${todayCloseout?"":"pri"}" id="db_ho">${todayCloseout?`✓ 17:00 Closeout Certified`:`🔒 End-of-Day Closeout (17:00)`}</button>
-  </div>`+
-  (showCloseoutAlert?`<div class="note" style="border-left:4px solid var(--bad);background:var(--bad-bg);color:var(--bad);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <span><b>⚠️ 17:00 Visiting Hours Closed:</b> ${inside.length} visitor(s) still recorded inside compound. Security SOP requires all visitors to exit and return tags before reception closeout.</span>
-    <div class="acts"><button class="btn pri" id="db_ho_open">Perform 17:00 Closeout</button></div>
-  </div>`:"")+
+  return head("Live overview",`Everything happening across the four stations right now. Visiting hours: 08:00 – 17:00. Updated ${fmtT(now())}.`)+
   (visitors.some(v=>v.example)?`<div class="banner"><span>These are example records for testing.</span><div class="acts"><button class="btn" id="loadEx">Reset sample records</button><button class="btn" id="clearEx">Remove example records</button></div></div>`:!DEMO?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>${visitors.length?"Showing live records only.":"No visitors recorded yet. Register the first one under <b>Register visitors</b>, or load sample records to try the workflow."}</span><div class="acts"><button class="btn pri" id="loadEx">Load sample records</button><a class="btn" href="?demo">Guided demo</a></div></div>`:"")+
   `<div class="kpis">
     <div class="kpi"><div class="n">${exp.length}</div><div class="l">Expected today</div></div>
@@ -2801,8 +2791,6 @@ function wire(){
   wireSettings(); const wf=$("#wallFs"); if(wf) wf.onclick=enterWall;
   const wt=$("#wallTog"); if(wt) wt.onclick=()=>{try{localStorage.setItem("wallDark",wallDark()?"0":"1")}catch(e){}render()};
   wireWatch(); wireEvac(); wireDeliveries(); wireReports(); wireRepeat();
-  const dbHo=$("#db_ho"); if(dbHo) dbHo.onclick=openHandover;
-  const dbHo2=$("#db_ho_open"); if(dbHo2) dbHo2.onclick=openHandover;
   const dbAck=$("#db_ho_ack"); if(dbAck) dbAck.onclick=async()=>{
     const pend=handovers.filter(h=>!h.ackBy), patch={ackBy:op(),ackByUid:myUid(),ackAt:now()};
     for(const h of pend){Object.assign(h,patch); if(db){try{await db.collection("handovers").doc(h.id).update(patch)}catch(e){}}}
