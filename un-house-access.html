@@ -980,13 +980,14 @@ function nextAvailableTag(type="visitor"){
 // Alerts: lvl "act" = needs action now, "soon" = coming up, "info" = for awareness. Sorted in that order.
 function alerts(){
   const a=[], since=t=>dur(now()-t);
+  const isAdmin=["admin","sec_admin"].includes(myRole());
   visitors.forEach(v=>{
     const wm=["pending","approved","arrived","tagged","in"].includes(v.status)?watched(v):null;
     if(wm) a.push({lvl:"act",kind:"UNDSS Watchlist match",v,title:v.name,detail:(v.status==="in"||v.status==="tagged"?"Already inside · ":"")+wm.reason,act:"detail",label:"Details"});
     if(overstay(v)) a.push({lvl:"act",kind:"Overstay",v,title:v.name,detail:`Inside ${since(v.inAt)} · host ${v.host}`,act:"checkout",label:"Check out"});
     if(contractorExpired(v)) a.push({lvl:"act",kind:"Access expired",v,title:v.name,detail:`Contractor access ended ${fmtD(v.accessTo)} · still ${STATUS[v.status].toLowerCase()}`,act:"suspend",label:"Suspend"});
     else if(contractorExpiring(v)) a.push({lvl:"soon",kind:"Expires soon",v,title:v.name,detail:`Contractor access ends ${fmtD(v.accessTo)}`,act:"extend",label:"Extend 7 days"});
-    if(late(v)) a.push({lvl:"soon",kind:"Not arrived",v,title:v.name,detail:`Expected ${fmtT(v.expected)} · host ${v.host}`,act:"detail",label:"Details"});
+    if(isAdmin && notArrived(v)) a.push({lvl:"soon",kind:"Not arrived",v,title:v.name,detail:`Expected ${fmtT(v.expected)} (${since(v.expected)} ago) — host ${v.host}${v.assignedTag?` · Tag ${v.assignedTag}`:""}`,act:"detail",label:"Details"});
     if(v.status==="pending") a.push({lvl:"soon",kind:"Approval",v,title:v.name,detail:`${v.purpose||"Visit"} · requested by ${v.requestedBy||v.host}`,act:ownRequest(v)?"detail":"approve",label:ownRequest(v)?"Details":"Approve"});
     if(v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))) a.push({lvl:"info",kind:v.type==="vip"?"VIP at Station 3":"Waiting",v,title:v.name,detail:`At internal reception for ${v.host}${v.hostNotified?` · host notified ${fmtT(v.hostNotified)}`:""}`,act:v.hostNotified?"checkin":"notify",label:v.hostNotified?(v.type==="vip"?"Host received VIP":"Check in"):"Notify host"});
   });
@@ -1204,7 +1205,7 @@ async function openPass(v){
         <div style="padding-top:4px;font-size:13px"><dt>Host</dt><dd>${esc(v.host)}${v.agency?" · "+esc(v.agency):""}</dd></div>
         ${v.room?`<div style="padding-top:4px;font-size:13px"><dt>Room</dt><dd>${esc(v.room)}</dd></div>`:""}
         ${v.vehicle?`<div style="padding-top:4px;font-size:13px"><dt>Vehicle</dt><dd class="mono">${esc(v.vehicle)}</dd></div>`:""}
-        ${(v.tag||v.assignedTag)?`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="font-weight:700;color:#0284c7">🏷️ ${esc(v.tag||v.assignedTag)}</dd></div>`:`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="color:var(--muted)">Assigned upon Gate 1 Approval</dd></div>`}${notArrived(v)?`<div style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:6px;padding:4px 8px;font-size:11.5px;font-weight:700;margin-top:4px">⚠️ Not Arrived · Expected arrival was ${fmtT(v.expected)}</div>`:""}
+        ${(v.tag||v.assignedTag)?`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="font-weight:700;color:#0284c7">🏷️ ${esc(v.tag||v.assignedTag)}</dd></div>`:`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="color:var(--muted)">Assigned upon Gate 1 Approval</dd></div>`}
         <div style="padding-top:4px;font-size:13px"><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div>
         <div style="padding-top:4px;font-size:13px"><dt>Reference</dt><dd class="mono">${esc(v.ref)}</dd></div>
       </dl>
@@ -2087,9 +2088,9 @@ function startDemo(){
 function ownRequest(v){return v.requestedByUid?v.requestedByUid===myUid():(v.requestedBy||"")===op()}
 function pill(v){
   const tip=v.decidedBy?`${v.status==="rejected"?"Rejected":"Approved"} by ${v.decidedBy}${v.rejectReason?" - "+v.rejectReason:""}`:v.requestedBy?`Requested by ${v.requestedBy}`:"";
-  const notArr = notArrived(v)?` <span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-weight:700">⚠️ Not Arrived</span>`:"";
-  return `<span class="pill p-${v.status}"${tip?` title="${esc(tip)}"`:""}>${STATUS[v.status]}</span>${notArr}${v.verbalApproval?` <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:2px 6px" title="${esc(v.verbalApprovalNote||"Host verbal clearance on phone")}">📞 Phone Clearance</span>`:``}`;
+  return `<span class="pill p-${v.status}"${tip?` title="${esc(tip)}"`:""}>${STATUS[v.status]}</span>${v.verbalApproval?` <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:2px 6px" title="${esc(v.verbalApprovalNote||"Host verbal clearance on phone")}">📞 Phone Clearance</span>`:""}`;
 }
+
 function tpill(v){return (v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor &amp; Service Staff</span>`:"")+((v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?` <span class="pill p-pending" title="Requires staff escort while inside">Escort</span>`:"")}
 // Expected time, plus the actual arrival, check-in and check-out times once they happen.
 function times(v){
