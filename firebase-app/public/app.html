@@ -1363,7 +1363,15 @@ function openInviteDialog(){
 function inviteView(){
   loadDemoInvites();
   loadDemoGuests();
-  const sub=invites.filter(i=>i.status==="submitted"&&i.guest), open=invites.filter(i=>i.status==="open"&&i.expires>now());
+  const sub=invites.filter(i=>{
+    if(i.status!=="submitted"||!i.guest) return false;
+    if(visitors.some(v=>v.name===i.guest.name&&["approved","arrived","tagged","in","out"].includes(v.status))){
+      i.status="used";
+      return false;
+    }
+    return true;
+  });
+  const open=invites.filter(i=>i.status==="open"&&i.expires>now());
   const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
   const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
   return `<div class="panel">
@@ -1439,27 +1447,103 @@ async function createInvite(){
   showCreatedInviteModal(invDoc,url);
   render();
 }
-async function useInvite(i){
-  if(!i||!i.guest) return; const g=i.guest, ref=newRef();
+async function useInvite(arg){
+  let i = typeof arg === "string" ? invites.find(x => x.id === arg) : arg;
+  if(!i && typeof arg === "string"){
+    try {
+      const raw = localStorage.getItem("unhDemoInvite:" + arg);
+      if(raw) i = { id: arg, ...JSON.parse(raw) };
+    } catch(e){}
+  }
+  if(!i || !i.guest) return;
+  const g = i.guest, ref = newRef();
   const assignedTag = nextAvailableTag("visitor");
-  const v={id:ref,ref,name:g.name,org:g.org||"",phone:g.phone||"",visitorEmail:g.email||"",vehicle:"",type:"visitor",room:i.room||"",...(g.agreedAt?{agreedAt:g.agreedAt,agreement:g.agreement,lang:g.lang}:{}),host:i.host,hostEmail:i.hostEmail||"",agency:i.agency,building:BUILDINGS[0],
-    expected:g.expected?new Date(g.expected).getTime()||now():now(),purpose:g.purpose||"Meeting",restricted:false,escort:false,requestedBy:op(),requestedByUid:myUid(),status:"approved",assignedTag,tag:assignedTag,log:[{t:now(),a:`Approved online pre-registration; tag ${assignedTag} pre-allocated`,by:op(),byUid:myUid(),role:myRole(),st:STATIONS[station()]}]};
-  i.status="used";
-  i.visitorId=ref;
-  await save(v);
-  if(assignedTag&&gateTagStock.includes(assignedTag)){
-    gateTagStock=gateTagStock.filter(t=>t!==assignedTag);
+  const v = {
+    id: ref,
+    ref,
+    name: g.name,
+    org: g.org || "",
+    phone: g.phone || "",
+    visitorEmail: g.email || "",
+    vehicle: "",
+    type: "visitor",
+    room: i.room || "",
+    ...(g.agreedAt ? { agreedAt: g.agreedAt, agreement: g.agreement, lang: g.lang } : {}),
+    host: i.host || "UN Host",
+    hostEmail: i.hostEmail || "",
+    agency: i.agency || "UNDP",
+    building: BUILDINGS[0],
+    expected: g.expected ? new Date(g.expected).getTime() || now() : now(),
+    purpose: g.purpose || "Meeting",
+    restricted: false,
+    escort: false,
+    requestedBy: op(),
+    requestedByUid: myUid(),
+    status: "approved",
+    assignedTag,
+    tag: assignedTag,
+    log: [{ t: now(), a: `Approved online pre-registration; tag ${assignedTag} pre-allocated`, by: op(), byUid: myUid(), role: myRole(), st: STATIONS[station()] }]
+  };
+
+  // Mark invite as used in memory
+  i.status = "used";
+  i.visitorId = ref;
+  const invIndex = invites.findIndex(x => x.id === i.id);
+  if(invIndex >= 0) {
+    invites[invIndex].status = "used";
+    invites[invIndex].visitorId = ref;
+  }
+
+  // Update in localStorage so it never resurrects
+  try{
+    localStorage.setItem("unhDemoInvite:" + i.id, JSON.stringify({
+      status: "used",
+      guest: g,
+      host: i.host,
+      agency: i.agency,
+      visitorId: ref,
+      usedAt: now()
+    }));
+  }catch(e){}
+  try{
+    let stored = JSON.parse(localStorage.getItem("unhDemoInvites") || "[]");
+    const idx = stored.findIndex(x => x.id === i.id);
+    if(idx >= 0){
+      stored[idx].status = "used";
+      stored[idx].visitorId = ref;
+    }
+    localStorage.setItem("unhDemoInvites", JSON.stringify(stored));
+  }catch(e){}
+  try{
+    let gList = JSON.parse(localStorage.getItem("unhDemoSubmittedGuests") || "[]");
+    gList = gList.filter(x => x.name !== g.name && x.id !== i.id && x.ref !== ref);
+    localStorage.setItem("unhDemoSubmittedGuests", JSON.stringify(gList));
+  }catch(e){}
+
+  // Deduct allocated tag from Station 1 stock
+  if(assignedTag && gateTagStock.includes(assignedTag)){
+    gateTagStock = gateTagStock.filter(t => t !== assignedTag);
     saveGateTagStock(gateTagStock);
   }
-  try{
-    if(db) await db.collection("invites").doc(i.id).update({status:"used",visitorId:ref});
-  }catch(e){}
-  try{
-    let stored=JSON.parse(localStorage.getItem("unhDemoInvites")||"[]");
-    const idx=stored.findIndex(x=>x.id===i.id);
-    if(idx>=0){stored[idx].status="used";stored[idx].visitorId=ref;localStorage.setItem("unhDemoInvites",JSON.stringify(stored));}
-  }catch(e){}
-  toast(`✓ ${g.name} approved & tag ${assignedTag} allocated. Ready at Station 1 & 2.`);
+
+  // Save approved visitor record
+  await save(v);
+
+  // Sync to Firestore
+  if(window.firebase && window.firebase.firestore){
+    try{
+      await window.firebase.firestore().collection("invites").doc(i.id).set({
+        status: "used",
+        visitorId: ref,
+        usedAt: now()
+      }, { merge: true });
+    }catch(e){}
+  } else if(db && (!fb || !fb.demo)){
+    try{ await db.collection("invites").doc(i.id).update({ status: "used", visitorId: ref }); }catch(e){}
+  }
+
+  saveDemo();
+  toast(`✓ ${g.name} approved & tag ${assignedTag} allocated. Ready for entry at Station 1.`);
   render();
 }
 
@@ -2606,6 +2690,17 @@ function loadDemoGuests(){
 function loadDemoInvites(){
   if(!invites) invites=[];
   let changed=false;
+  // Clean up any used/approved guests from localStorage so they never resurrect
+  try{
+    let gList = JSON.parse(localStorage.getItem("unhDemoSubmittedGuests") || "[]");
+    if(Array.isArray(gList) && gList.length){
+      const filtered = gList.filter(g => !visitors.some(v => v.name === g.name && ["approved","arrived","tagged","in","out"].includes(v.status)) && !invites.some(i => (i.status==="used"||i.status==="cancelled") && i.guest && i.guest.name === g.name));
+      if(filtered.length !== gList.length){
+        localStorage.setItem("unhDemoSubmittedGuests", JSON.stringify(filtered));
+      }
+    }
+  }catch(e){}
+
   // 1. Process individual unhDemoInvite:<id> entries in localStorage
   try{
     for(let k=0;k<localStorage.length;k++){
@@ -2614,9 +2709,24 @@ function loadDemoInvites(){
         const id=key.slice(14), raw=localStorage.getItem(key);
         if(!raw) continue;
         const p=JSON.parse(raw);
+        if(p&&(p.status==="used"||p.status==="cancelled")){
+          let i=invites.find(x=>x.id===id);
+          if(i&&i.status!=="used"&&i.status!=="cancelled"){
+            i.status=p.status;
+            changed=true;
+          }
+          continue;
+        }
         if(p&&p.status==="submitted"&&p.guest){
+          // Check if visitor is already approved
+          if(visitors.some(v => v.name === p.guest.name && ["approved","arrived","tagged","in","out"].includes(v.status))){
+            let i=invites.find(x=>x.id===id);
+            if(i){ i.status="used"; changed=true; }
+            continue;
+          }
           let i=invites.find(x=>x.id===id);
           if(i){
+            if(i.status==="used"||i.status==="cancelled") continue;
             if(i.status!=="submitted"||!i.guest){
               Object.assign(i,{status:"submitted",guest:p.guest,submittedAt:p.submittedAt||p.at||now()});
               if(p.host) i.host=p.host;
@@ -2641,11 +2751,24 @@ function loadDemoInvites(){
         for(const item of list){
           const idx=invites.findIndex(x=>x.id===item.id);
           if(idx>=0){
-            if(item.status==="submitted"&&item.guest&&invites[idx].status!=="submitted"){
-              Object.assign(invites[idx],item);
-              changed=true;
+            if(item.status==="used"||item.status==="cancelled"){
+              if(invites[idx].status!=="used"&&invites[idx].status!=="cancelled"){
+                invites[idx].status=item.status;
+                changed=true;
+              }
+            } else if(item.status==="submitted"&&item.guest&&invites[idx].status!=="submitted"&&invites[idx].status!=="used"&&invites[idx].status!=="cancelled"){
+              if(!visitors.some(v => v.name === item.guest.name && ["approved","arrived","tagged","in","out"].includes(v.status))){
+                Object.assign(invites[idx],item);
+                changed=true;
+              } else {
+                invites[idx].status="used";
+                changed=true;
+              }
             }
-          } else {
+          } else if(item.status==="submitted"||item.status==="open"){
+            if(item.status==="submitted"&&item.guest&&visitors.some(v => v.name === item.guest.name && ["approved","arrived","tagged","in","out"].includes(v.status))){
+              item.status="used";
+            }
             invites.unshift(item);
             changed=true;
           }
@@ -2661,9 +2784,12 @@ function loadDemoInvites(){
       const guests=JSON.parse(rawG);
       if(Array.isArray(guests)&&guests.length){
         for(const g of guests){
+          const alreadyProcessed = visitors.some(v=>v.name===g.name&&["approved","arrived","tagged","in","out"].includes(v.status))
+            || invites.some(i=>(i.status==="used"||i.status==="cancelled")&&i.guest&&i.guest.name===g.name);
+          if(alreadyProcessed) continue;
+
           let inv=invites.find(i=>i.status==="submitted"&&i.guest&&(i.guest.name===g.name||i.guest.phone===g.phone));
           if(!inv){
-            // Find an open invite to transition to submitted
             const openInv=invites.find(i=>i.status==="open"&&(!i.guest||!i.guest.name));
             if(openInv){
               openInv.status="submitted";
@@ -2696,8 +2822,10 @@ function loadDemoInvites(){
         let fsChanged=false;
         snap.forEach(doc=>{
           const data=doc.data();
+          if(data.guest && visitors.some(v => v.name === data.guest.name && ["approved","arrived","tagged","in","out"].includes(v.status))) return;
           let existing=invites.find(x=>x.id===doc.id);
           if(existing){
+            if(existing.status==="used"||existing.status==="cancelled") return;
             if(existing.status!=="submitted"||!existing.guest){
               Object.assign(existing,{status:"submitted",guest:data.guest,submittedAt:data.submittedAt||now()});
               fsChanged=true;
@@ -2834,8 +2962,16 @@ V.dashboard=()=>{
 V.gate=()=>{
   loadDemoGuests();
   loadDemoInvites();
-  const subInv=(invites||[]).filter(i=>i.status==="submitted"&&i.guest);
+  const subInv=(invites||[]).filter(i=>{
+    if(i.status!=="submitted"||!i.guest) return false;
+    if(visitors.some(v=>v.name===i.guest.name&&["approved","arrived","tagged","in","out"].includes(v.status))){
+      i.status="used";
+      return false;
+    }
+    return true;
+  });
   const pend=visitors.filter(v=>v.status==="pending");
+  const totalPending = subInv.length + pend.length;
   const grps={}; pend.filter(v=>v.group&&!ownRequest(v)).forEach(v=>{(grps[v.group]=grps[v.group]||[]).push(v)});
   const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn pri" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
@@ -2849,19 +2985,45 @@ V.gate=()=>{
 
   return head("Station 1 · Reception, Approvals & Compound Access","Station 1. Review incoming visitor requests, verify expected guests, manage physical tag inventory rack, and admit visitors through Station 1 to Station 2.")+
   
-  /* Online Pre-Registrations Received */
-  (subInv.length?`<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-radius:12px;box-shadow:0 3px 12px rgba(2,132,199,.08);padding:18px 20px;margin-bottom:14px">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+  /* Unified Pending Clearance Approvals Panel (Online Pre-Registrations + Staff Requests) */
+  (totalPending > 0 ? `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-radius:12px;box-shadow:0 3px 12px rgba(2,132,199,.1);padding:18px 20px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
       <h2 style="margin:0;font-size:18px;color:#0369a1;display:flex;align-items:center;gap:8px">
-        📩 Online Pre-Registrations Received <span class="cnt hot">${subInv.length}</span>
+        ⏳ Pending Clearance Approvals <span class="cnt hot">${totalPending}</span>
       </h2>
-      <span class="small" style="color:#0369a1;font-weight:600">Pre-registered online via invite links</span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${subInv.length ? `<span class="pill" style="background:#0284c7;color:#fff;font-weight:700">📩 ${subInv.length} Online Pre-Registration${subInv.length>1?'s':''}</span>` : ""}
+        ${pend.length ? `<span class="pill" style="background:#1e3a8a;color:#fff;font-weight:700">🏢 ${pend.length} Staff Request${pend.length>1?'s':''}</span>` : ""}
+        ${batchBar ? batchBar : ""}
+      </div>
     </div>
-    <p class="small" style="margin:0 0 12px;color:var(--muted)">These visitors pre-registered their details online. Station 1 officers can click <b>✓ Approve &amp; Allocate Tag</b> to immediately grant compound clearance.</p>
-    <div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Station 1 Action</th></tr></thead><tbody>
-      ${subInv.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency)}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve this pre-registered visitor and allocate next available tag">✓ Approve &amp; Allocate Tag</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}
-    </tbody></table></div>
-  </div>`:"")+
+    <p class="small" style="margin:0 0 14px;color:var(--muted)">All visitor clearance requests requiring Station 1 authorization before compound admission. Click <b>✓ Approve &amp; Allocate Tag</b> to authorize clearance and allocate the next physical badge from stock.</p>
+
+    ${subInv.length ? `
+    <div style="margin-bottom:${pend.length?'18px':'0'}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:12.5px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.04em">📩 Online Pre-Registrations Received (${subInv.length})</span>
+      </div>
+      <div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Station 1 Clearance Action</th></tr></thead><tbody>
+        ${subInv.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency)}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve this pre-registered visitor and allocate next available tag">✓ Approve &amp; Allocate Tag</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}
+      </tbody></table></div>
+    </div>` : ""}
+
+    ${pend.length ? `
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span style="font-size:12.5px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em">🏢 Host-Requested Visits Awaiting Clearance (${pend.length})</span>
+      </div>
+      ${table(pend,v=>{
+        const ext=getHostExt(v.host, v.agency);
+        const isUnsch = v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
+        return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Station 1 must call and confirm with host on desk phone first">📞 Confirm with Host First (Ext. ${esc(ext)})</button>` : "")
+          + B(v.id,"approve","✓ Approve & Allocate Tag","pri")
+          + B(v.id,"reject","Reject","bad");
+      },"No pending staff requests.")}
+    </div>` : ""}
+
+  </div>` : `<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px;background:#f0fdf4;border-color:#bbf7d0;color:#166534"><span>✓ <b>No pending approvals.</b> All visitor pre-registrations and clearance requests have been decided.</span></div>`)+
   
   /* Station 1 Available Tags Feed & Physical Rack Inventory */
   `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:0 3px 12px rgba(2,132,199,.08);border-radius:12px;padding:18px 20px">
@@ -2967,22 +3129,6 @@ V.gate=()=>{
       </div>
     </div>
   </div>`+
-
-  /* Pending Approvals */
-  (pend.length?`<div class="panel" style="border-left:4px solid var(--accent);background:var(--surface)">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-      <h2 style="margin:0;display:flex;align-items:center;gap:8px">Pending Approvals <span class="cnt hot">${pend.length}</span></h2>
-      ${batchBar?`<div class="acts">${batchBar}</div>`:""}
-    </div>
-    <p class="small">Review incoming visitor requests. Click <b>Approve request</b> to approve the visit and allocate an available tag from Station 1 stock. <b>For unscheduled visitors, Station 1 must contact and confirm with the host first.</b></p>
-    ${table(pend,v=>{
-      const ext=getHostExt(v.host, v.agency);
-      const isUnsch = v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
-      return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Station 1 must call and confirm with host on desk phone first">📞 Confirm with Host First (Ext. ${esc(ext)})</button>` : "")
-        + B(v.id,"approve","Approve request","pri")
-        + B(v.id,"reject","Reject","bad");
-    },"No pending approvals.")}
-  </div>`:`<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><span>✓ <b>No pending approvals.</b> All visitor requests have been decided.</span></div>`)+
 
   /* Expected & Admitted Visitors */
   `<div class="panel">
@@ -3998,8 +4144,41 @@ function wire(){
     for(const v of list) await act(v,`Approved (group: ${grp})`,{status:"approved",decidedBy:op(),decidedByUid:myUid(),decidedAt:now()});
     toast(`Approved ${list.length} visitors in "${grp}".`);
   });
-  document.querySelectorAll("[data-inv-use]").forEach(b=>b.onclick=()=>useInvite(invites.find(i=>i.id===b.dataset.invUse)));
-  document.querySelectorAll("[data-inv-cancel]").forEach(b=>b.onclick=()=>db.collection("invites").doc(b.dataset.invCancel).update({status:"cancelled"}).then(()=>toast("Invite cancelled.")).catch(e=>toast("Could not cancel: "+e.message)));
+  document.querySelectorAll("[data-inv-use]").forEach(b=>{
+    b.onclick=e=>{
+      e.preventDefault();
+      b.setAttribute("disabled","true");
+      b.textContent="Allocating Tag…";
+      useInvite(b.dataset.invUse);
+    };
+  });
+  document.querySelectorAll("[data-inv-cancel]").forEach(b=>{
+    b.onclick=async e=>{
+      e.preventDefault();
+      const id=b.dataset.invCancel;
+      const inv=(invites||[]).find(x=>x.id===id);
+      if(inv){ inv.status="cancelled"; }
+      try{ localStorage.setItem("unhDemoInvite:"+id, JSON.stringify({status:"cancelled",cancelledAt:now()})); }catch(err){}
+      try{
+        let stored=JSON.parse(localStorage.getItem("unhDemoInvites")||"[]");
+        const idx=stored.findIndex(x=>x.id===id);
+        if(idx>=0){ stored[idx].status="cancelled"; localStorage.setItem("unhDemoInvites",JSON.stringify(stored)); }
+      }catch(err){}
+      try{
+        if(inv&&inv.guest){
+          let gList=JSON.parse(localStorage.getItem("unhDemoSubmittedGuests")||"[]");
+          gList=gList.filter(x=>x.name!==inv.guest.name);
+          localStorage.setItem("unhDemoSubmittedGuests",JSON.stringify(gList));
+        }
+      }catch(err){}
+      if(window.firebase&&window.firebase.firestore){
+        try{ await window.firebase.firestore().collection("invites").doc(id).set({status:"cancelled"},{merge:true}); }catch(err){}
+      }
+      saveDemo();
+      toast("Pre-registration declined.");
+      render();
+    };
+  });
   document.querySelectorAll("[data-inv-copy]").forEach(b=>b.onclick=()=>copyText(inviteUrl(b.dataset.invCopy)));
   document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>{ const v=visitors.find(x=>x.id===b.dataset.print); if(v) openPass(v); });
   const q=$("#q"); if(q){ q.onkeydown=e=>{if(e.key==="Enter"){const t=q.value.trim();if(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")||/^UNH-/i.test(t)){render.q="";handleScan(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")?t:t.toUpperCase())}}};q.oninput=()=>{render.q=q.value;const p=q.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)};$("#qclear").onclick=()=>{render.q="";render()}}
