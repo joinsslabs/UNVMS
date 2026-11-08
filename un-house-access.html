@@ -2107,7 +2107,7 @@ V.parking=()=>{
   const parkMap=new Map(); parkings.forEach(p=>parkMap.set(p.plate,p));
   
   // All active visitors who brought a vehicle and are currently on premises
-  const activeVisitorsWithVeh = visitors.filter(v=>v.vehicle&&["in","arrived"].includes(v.status));
+  const activeVisitorsWithVeh = visitors.filter(v=>v.vehicle&&["in","arrived","tagged"].includes(v.status));
   const activePlates=new Set(activeVisitorsWithVeh.map(v=>v.vehicle));
   
   // Standalone vehicles parked on compound
@@ -2156,7 +2156,11 @@ V.parking=()=>{
   const expectedVehicles = visitors.filter(v=>v.vehicle && ["approved","pending"].includes(v.status) && isToday(v.expected));
   const isPast17 = new Date().getHours() >= 17;
 
-  return head("Compound Vehicles & Parking Bays","Real-time tracking of diplomatic motorcades, embassy vehicles, service deliveries, and visitor parking on compound.")+
+  const q=(render.q||"").toLowerCase().trim();
+  const filteredActive = q ? activeVehicles.filter(v=>[v.plate,v.visitorName,v.driver,v.org,v.bay,v.visitor?v.visitor.ref:""].join(" ").toLowerCase().includes(q)) : activeVehicles;
+  const filteredExpected = q ? expectedVehicles.filter(v=>[v.vehicle,v.name,v.org,v.host,v.agency,v.ref,v.room,v.purpose].join(" ").toLowerCase().includes(q)) : expectedVehicles;
+
+  return head("Compound Vehicles & Parking Bays","Real-time tracking of diplomatic motorcades, embassy vehicles, service deliveries, and visitor parking on compound. Cross-referenced with security clearance passes.")+
   (isPast17 && totalInside > 0 ? `<div class="note" style="border-left:4px solid var(--bad);background:var(--bad-bg);color:var(--bad);display:flex;align-items:center;gap:12px;margin-bottom:12px">
     <span><b>⚠️ Anti-VBIED Security Rule:</b> Overnight compound parking is strictly prohibited. All ${totalInside} vehicle(s) must exit before reception closeout unless holding written UNDSS authorization.</span>
   </div>`:"")+
@@ -2167,33 +2171,51 @@ V.parking=()=>{
     <div class="kpi"><div class="n">${serviceOccupied} / 2</div><div class="l">Service &amp; Loading Bays</div></div>
   </div>
   <div class="panel">
+    ${searchBox("Search plate number, principal, pass reference, chauffeur, bay, or diplomatic mission...")}
+  </div>
+  <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <div><h2 style="margin:0">Vehicles Currently Inside Compound (${totalInside})</h2><p class="small" style="margin:2px 0 0">Gate physical screening &amp; bay allocation active.</p></div>
+      <div><h2 style="margin:0">Vehicles Currently Inside Compound (${filteredActive.length})</h2><p class="small" style="margin:2px 0 0">Gate physical screening &amp; bay allocation active. Verified against visitor clearance pass.</p></div>
       <button class="btn pri" id="veh_quick_log">+ Log Vehicle at Gate</button>
     </div>
-    <div class="tw" style="margin-top:14px"><table><thead><tr><th>Plate Number</th><th>Vehicle &amp; Chauffeur Protocol</th><th>Principal / Driver</th><th>Assigned Bay</th><th>Gate Inspection</th><th>Actions</th></tr></thead><tbody>
-    ${activeVehicles.map(v=>`<tr>
+    <div class="tw" style="margin-top:14px"><table><thead><tr>
+      <th>Vehicle &amp; Plate</th>
+      <th>Assigned Bay</th>
+      <th>Principal / Visitor Reference</th>
+      <th>Visitor Clearance Status</th>
+      <th>Inspection &amp; Protocol</th>
+      <th>Security Actions</th>
+    </tr></thead><tbody>
+    ${filteredActive.map(v=>`<tr>
       <td>
         <span class="mono" style="font-size:14px;font-weight:700">🚗 ${esc(v.plate)}</span>
         ${v.isDip?`<span class="pill p-in" style="font-size:10px;padding:2px 6px;margin-left:4px">Diplomatic CD</span>`:""}
-      </td>
-      <td>
-        <div>${esc(v.driver)}</div>
-        <div class="small" style="color:var(--muted)">Entered: ${fmtT(v.timeIn)}</div>
-      </td>
-      <td>
-        <b>${esc(v.visitorName)}</b>
-        <div class="small">${esc(v.org)}</div>
+        ${v.type==="contractor"?`<span class="pill p-pending" style="font-size:10px;padding:2px 6px;margin-left:4px">Contractor Van</span>`:""}
       </td>
       <td>
         <span class="pill ${v.isDip?"p-in":(v.bay||"").includes("VIP")?"p-in":"p-pending"}">${esc(v.bay)}</span>
       </td>
       <td>
-        <span class="small" style="color:var(--ok)">✓ Physical check cleared</span>
-        <div class="small" style="font-size:11px;color:var(--muted)">Mirror &amp; trunk inspected</div>
+        <b>${esc(v.visitorName)}</b>
+        <div class="small">${esc(v.org)} · <span class="mono ref">${esc(v.visitor?v.visitor.ref:"DIRECT-PASS")}</span></div>
+        <div class="small" style="color:var(--muted)">Host: ${esc(v.visitor?v.visitor.host+" ("+v.visitor.agency+")":"UN Common Services")}</div>
+      </td>
+      <td>
+        ${v.visitor?pill(v.visitor):'<span class="pill p-in">Gate Cleared</span>'}
+        ${v.visitor&&v.visitor.tag?`<div class="small mono" style="font-weight:600;color:var(--accent)">Tag: ${esc(v.visitor.tag)}</div>`:""}
+        ${v.visitor&&["in","tagged"].includes(v.visitor.status)?`<div class="small" style="color:var(--ok);font-weight:600">✓ Security Cleared · Inside</div>`:
+          v.visitor&&v.visitor.status==="arrived"?`<div class="small" style="color:var(--accent);font-weight:600">Gate Verified · In Processing</div>`:
+          v.visitor&&v.visitor.status==="out"?`<div class="small" style="color:var(--bad);font-weight:600">⚠️ Flag: Visitor Exited (Vehicle Inside)</div>`:
+          `<div class="small" style="color:var(--muted)">Direct Logistics Entry</div>`}
+      </td>
+      <td>
+        <div>${esc(v.driver)}</div>
+        <div class="small" style="color:var(--ok)">✓ Mirror &amp; trunk physically screened</div>
+        <div class="small mono" style="color:var(--muted)">Entered: ${fmtT(v.timeIn)}</div>
       </td>
       <td>
         <div class="acts" style="flex-wrap:nowrap">
+          ${v.visitor?`<button class="btn ok" data-act="pass" data-id="${esc(v.visitor.id)}" title="Show Digital Visitor Pass">Show Pass</button>`:""}
           <button class="btn" data-veh-bay="${esc(v.plate)}">Reassign Bay</button>
           <button class="btn bad" data-veh-exit="${esc(v.plate)}">Exit Gate</button>
         </div>
@@ -2201,19 +2223,51 @@ V.parking=()=>{
     </tr>`).join("")||`<tr><td colspan="6" class="empty">No vehicles currently inside the secure perimeter.</td></tr>`}
     </tbody></table></div>
   </div>
-  ${expectedVehicles.length?`
+  ${filteredExpected.length?`
   <div class="panel" style="margin-top:16px">
-    <h2>Expected VIP &amp; Visitor Vehicles Today (${expectedVehicles.length})</h2>
-    <p class="small" style="margin:-4px 0 10px;color:var(--muted)">Upcoming motorcades and visitor plates. Reserve VIP canopy bays prior to diplomatic arrival.</p>
-    <div class="tw"><table><thead><tr><th>Expected Plate</th><th>Diplomatic Principal / Guest</th><th>Host &amp; Meeting</th><th>Expected Time</th><th>Reserved Bay</th></tr></thead><tbody>
-    ${expectedVehicles.map(v=>{
+    <h2>Expected VIP &amp; Visitor Vehicles Today (${filteredExpected.length})</h2>
+    <p class="small" style="margin:-4px 0 10px;color:var(--muted)">Upcoming motorcades and visitor plates. Verify security clearance and digital pass before gate admittance.</p>
+    <div class="tw"><table><thead><tr>
+      <th>Expected Plate</th>
+      <th>Principal / Guest Reference</th>
+      <th>Visitor Clearance Status</th>
+      <th>Host &amp; Meeting</th>
+      <th>Expected Time</th>
+      <th>Reserved Bay</th>
+      <th>Gate Admittance &amp; Pass</th>
+    </tr></thead><tbody>
+    ${filteredExpected.map(v=>{
       const isDip=v.type==="vip"||/^C[DCMD]|^CORPS/i.test(v.vehicle);
       return `<tr>
-        <td class="mono"><b>${esc(v.vehicle)}</b> ${isDip?`<span class="pill p-in" style="font-size:10px;padding:1px 5px">Diplomatic</span>`:""}</td>
-        <td><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div></td>
-        <td>${esc(v.host)} (${esc(v.agency)})<div class="small">${esc(v.room||"Main Building")}</div></td>
+        <td>
+          <span class="mono" style="font-weight:700">🚗 ${esc(v.vehicle)}</span>
+          ${isDip?`<span class="pill p-in" style="font-size:10px;padding:1px 5px;margin-left:4px">Diplomatic CD</span>`:""}
+        </td>
+        <td>
+          <b>${esc(v.name)}</b>
+          <div class="small">${esc(v.org)} · <span class="mono ref">${esc(v.ref)}</span></div>
+        </td>
+        <td>
+          ${v.watchFlag?`<span class="pill p-rejected">UNDSS Watchlist Alert</span><div class="small" style="color:var(--bad);font-weight:600">⛔ Barred by Security</div>`:
+            v.status==="approved"?`<span class="pill p-approved">Cleared &amp; Approved</span><div class="small" style="color:var(--ok)">✓ Cleared for Gate Admittance</div>`:
+            v.status==="pending"?`<span class="pill p-pending">Approval Pending</span><div class="small" style="color:var(--bad);font-weight:600">⛔ Hold at Gate: Do NOT Admit</div>`:
+            pill(v)}
+        </td>
+        <td>
+          <b>${esc(v.host)}</b> (${esc(v.agency)})
+          <div class="small">${esc(v.room||v.purpose||"Main Building")}</div>
+        </td>
         <td class="mono">${fmtT(v.expected)}</td>
-        <td><span class="pill ${isDip?"p-in":"p-pending"}">${isDip?"VIP Diplomatic Bay (Reserved)":"Main Visitor Car Park"}</span></td>
+        <td>
+          <span class="pill ${isDip?"p-in":"p-pending"}">${isDip?"VIP Canopy Bay (Reserved)":"Main Visitor Car Park"}</span>
+        </td>
+        <td>
+          <div class="acts" style="flex-wrap:nowrap">
+            <button class="btn ok" data-act="pass" data-id="${esc(v.id)}" title="Show Live Digital Pass">Show Pass</button>
+            ${v.status==="approved"?(v.type==="vip"?B(v.id,"vipadmit","Admit Motorcade","pri"):B(v.id,"arrive","Admit Vehicle","pri")):
+              `<span class="small" style="color:var(--bad);font-weight:600">Hold at Gate</span>`}
+          </div>
+        </td>
       </tr>`;
     }).join("")}
     </tbody></table></div>
