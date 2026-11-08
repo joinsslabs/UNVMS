@@ -435,6 +435,28 @@ td{vertical-align:middle}
 tbody tr td:first-child{box-shadow:inset 3px 0 0 transparent;transition:box-shadow .15s}
 tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 @media (max-width:900px){.row-acts{grid-template-columns:1fr 34px 34px}}
+/* Tight tables for compact operations desks */
+.tw.tight-table{max-height:540px;overflow-y:auto;border-radius:10px;border:1px solid var(--line)}
+.tw.tight-table table{font-size:12px}
+.tw.tight-table th{padding:8px 12px;font-size:11px;letter-spacing:.05em;background:#f8fafc;position:sticky;top:0;z-index:3;border-bottom:1.5px solid var(--line)}
+.tw.tight-table td{padding:6px 12px;font-size:12px;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+.tw.tight-table .vis{gap:9px;min-width:180px}
+.tw.tight-table .av{width:28px;height:28px;font-size:11px;font-weight:700}
+.tw.tight-table .vn{font-size:13px;font-weight:600;gap:4px}
+.tw.tight-table .vs{font-size:11px;margin-top:1px}
+.tw.tight-table .vn2{font-size:12.5px}
+.tw.tight-table .tl{gap:2px}
+.tw.tight-table .tl li{padding:0 10px 0 0;font-size:10.5px}
+.tw.tight-table .tl li b{font-size:11.5px}
+.tw.tight-table .tl-dur{margin-top:2px;padding:1px 6px;font-size:10.5px}
+.tw.tight-table .st{gap:4px}
+.tw.tight-table .pill{padding:2px 7px;font-size:10.5px}
+.tw.tight-table .tagchip{padding:1px 6px;font-size:11px}
+.tw.tight-table .row-acts{display:flex;justify-content:flex-end;align-items:center;gap:4px}
+.tw.tight-table .ra-main{gap:4px}
+.tw.tight-table .ra-slot{display:none}
+.tw.tight-table .btn{height:26px;padding:0 9px;font-size:11px;border-radius:6px}
+.tw.tight-table .btn.icon{width:26px;height:26px}
 .sitepick{background:#ffffff1a;color:#fff;border:1px solid #ffffff40;border-radius:8px;padding:6px 8px;font:inherit;width:auto}
 .sitepick option{color:#111;background:#fff}
 /* command centre */
@@ -2193,14 +2215,20 @@ function authBy(v){
   return (v.extendedUntil?`<div class="vs" style="color:var(--ok)" title="${esc(v.extendedNote||"")}">Extended to ${fmtT(v.extendedUntil)} · host ${esc(v.hostPermittedBy||v.host)}</div>`:"")
     +(v.status==="rejected"&&v.rejectReason?`<div class="vs" style="color:var(--bad)">Reason: ${esc(v.rejectReason)}</div>`:"");
 }
-function row(v,actions){return `<tr><td><div class="vis"><span class="av" style="--h:${hue(v.name)}">${esc(initials(v.name))}</span><div class="vis-t"><div class="vn">${esc(v.name)} ${tpill(v)}${watchPill(v)}</div><div class="vs">${esc(v.org||"")}${v.org?" · ":""}<span class="ref">${esc(v.ref)}</span>${v.type==="vip"&&v.vehicle?` · <span class="mono" title="VIP Diplomatic Motorcade">🚗 ${esc(v.vehicle)}</span>`:""}</div></div></div></td>
+function row(v,actions,isTight=false){
+  const acts=actions(v);
+  const pBtn=passBtn(v);
+  const gBtn=groupBtn(v);
+  const extra=isTight?(pBtn+gBtn):(pBtn||(pBtn||gBtn?'<span class="ra-slot"></span>':''))+(gBtn||(pBtn||gBtn?'<span class="ra-slot"></span>':''));
+  return `<tr><td><div class="vis"><span class="av" style="--h:${hue(v.name)}">${esc(initials(v.name))}</span><div class="vis-t"><div class="vn">${esc(v.name)} ${tpill(v)}${watchPill(v)}</div><div class="vs">${esc(v.org||"")}${v.org?" · ":""}<span class="ref">${esc(v.ref)}</span>${v.type==="vip"&&v.vehicle?` · <span class="mono" title="VIP Diplomatic Motorcade">🚗 ${esc(v.vehicle)}</span>`:""}</div></div></div></td>
   <td><div class="vn2">${esc(v.host)}</div><div class="vs">${esc(v.agency)}${v.room?" · "+esc(v.room):""}${v.backupHost&&v.status==="tagged"?` · <span title="Backup / delegate contact">Alt: ${esc(v.backupHost)}</span>`:""}${v.hostReply?' · <b style="color:var(--ok)">Coming '+fmtT(v.hostReplyAt)+'</b>':""}</div></td>
   <td>${timeline(v)}</td>
   <td><div class="st">${pill(v)}${v.tag?`<span class="tagchip">${esc(v.tag)}</span>`:v.type==="vip"?`<span class="tagchip" style="background:#e0ecff;color:#1e40af;border-color:#bfdbfe">No Badge · VIP</span>`:""}</div>${authBy(v)}</td>
-  <td><div class="row-acts"><div class="ra-main">${actions(v)}</div>${passBtn(v)||'<span class="ra-slot"></span>'}${groupBtn(v)||'<span class="ra-slot"></span>'}</div></td></tr>`}
-function table(list,actions,empty){
+  <td><div class="row-acts"><div class="ra-main">${acts}</div>${extra}</div></td></tr>`}
+function table(list,actions,empty,cls=""){
   if(!list.length) return `<div class="empty">${empty}</div>`;
-  return `<div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Timeline</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${list.map(v=>row(v,actions)).join("")}</tbody></table></div>`;
+  const isTight=cls.includes("tight");
+  return `<div class="tw ${cls}"><table><thead><tr><th>Visitor</th><th>Host</th><th>Timeline</th><th>Status</th><th style="text-align:right">Actions</th></tr></thead><tbody>${list.map(v=>row(v,actions,isTight)).join("")}</tbody></table></div>`;
 }
 const B=(id,act,label,cls="")=>!canAct(act)?"":`<button class="btn ${cls}" data-id="${esc(id)}" data-act="${act}">${label}</button>`;
 function searchBox(ph="Search by name, reference, tag or organisation"){return `<div class="search"><div class="search-in"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="q" placeholder="${ph}" value="${esc(render.q||"")}"><kbd title="Press / to search">/</kbd></div><button class="btn" id="qscan" title="Scan a badge QR code with the camera">Scan badge</button><button class="btn" id="qclear">Clear</button></div>`}
@@ -2734,11 +2762,14 @@ V.reception=()=>{
   const wait=filterQ(visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))));
   const enRoute=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
   const inside=filterQ(visitors.filter(v=>v.status==="in"||(v.type==="vip"&&v.status==="arrived")));
-  return head("Internal reception","Station 3, Main UN House Building. Sequential flow: Station 1 → Station 2 Documentation Reception → Station 3 Internal Reception.")+
-  `<div class="panel">${searchBox()}</div>
-  <div class="panel">
-    <h2>Waiting for host <span class="cnt">${wait.length}</span></h2>
+  return head("Station 3 · Internal Reception","Station 3, Main UN House Building. Receive documented visitors from Station 2, notify host to receive guest, record host check-in, and monitor active compound occupancy.")+
+  `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <h2 style="margin:0;display:flex;align-items:center;gap:8px">Waiting for host <span class="cnt ${wait.length?'hot':''}">${wait.length}</span></h2>
+    </div>
     <p class="small">Documented visitors from Station 2. Notify the host and record check-in when host receives visitor.</p>
+    ${searchBox()}
+    <div style="margin-top:12px">
     ${table(wait, v => {
       const ext = getHostExt(v.host, v.agency);
       const notifBtn = v.hostNotified
@@ -2746,15 +2777,26 @@ V.reception=()=>{
         : B(v.id, "notify", "Notify host");
       return notifBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "pri");
     }, "Nobody is currently waiting for host.")}
+    </div>
   </div>
   ${enRoute.length ? `<div class="panel" style="border-left:4px solid #0284c7;background:var(--surface2)">
     <h2>En Route · In Documentation at Station 2 <span class="cnt">${enRoute.length}</span></h2>
     <p class="small">These visitors have passed Station 1 and are currently at <b>Station 2 Documentation Reception</b> exchanging photo ID for physical tags. They will automatically move to "Waiting for host" above once documentation is completed.</p>
-    ${table(enRoute, v=>`<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">In Station 2 Documentation Desk</span>`,"")}
+    ${table(enRoute, v=>`<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">In Station 2 Documentation Desk</span>`,"", "tight-table")}
   </div>` : ""}
-  <div class="panel">
-    <h2>Checked in with host <span class="cnt">${inside.length}</span></h2>
-    ${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify","Notify host"))+B(v.id,"checkin","Host received","pri"):"")+`<span class="pill p-in">Checked in with host</span>`,"Nobody is currently checked in.")}
+  <div class="panel" style="border-left:4px solid #1e3a8a">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <h2 style="margin:0;display:flex;align-items:center;gap:8px;color:var(--navy)">
+        🏢 Checked in with host <span class="cnt" style="background:#e0f2fe;color:#0369a1;font-weight:700">${inside.length}</span>
+      </h2>
+      <span class="small" style="color:var(--muted)">Currently inside UN House offices with their host</span>
+    </div>
+    ${table(inside, v => {
+      if (v.type === "vip" && !v.vipReceived) {
+        return (v.hostNotified ? `<span class="small" style="color:#0369a1;font-weight:600">Host notified ${fmtT(v.hostNotified)}</span>` : B(v.id, "notify", "Notify host")) + B(v.id, "checkin", "Host received", "pri");
+      }
+      return `<span class="pill p-in" style="font-size:10.5px">With Host</span>`;
+    }, "Nobody is currently checked in.", "tight-table")}
   </div>`;
 };
 V.vip=()=>{
