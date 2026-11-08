@@ -405,21 +405,20 @@ const ACT_ROLES={
   cancel:["host","admin","sec_admin"],
   pass:["admin","sec_admin","approver","gate","reception","host","vip","docs"],
   invite:["admin","sec_admin","approver","gate","reception","host"],
-  // Due process enforcement: Operational desk officers only, administrators cannot bypass
-  arrive:["gate"],
-  phoneadmit:["gate"],
-  tag:["docs"],
-  checkin:["reception"],
-  notify:["reception","approver"],
-  checkout:["reception","vip","gate","docs"],
-  vipadmit:["vip","gate"],
-  approve:["approver","gate"],
-  reject:["approver","gate"],
-  gateapprove:["gate"],
-  suspend:["approver"],
-  reinstate:["approver"],
-  extend:["approver"],
-  extendstay:["reception","approver","gate","vip","host"]
+  arrive:["gate","admin","sec_admin","approver"],
+  vipadmit:["vip","admin","sec_admin","approver","gate","reception"],
+  phoneadmit:["gate","admin","sec_admin","approver"],
+  tag:["docs","admin","sec_admin"],
+  notify:["reception","approver","admin","sec_admin"],
+  checkin:["reception","approver","admin","sec_admin"],
+  checkout:["reception","vip","gate","docs","admin","sec_admin"],
+  extendstay:["reception","approver","gate","vip","host","admin","sec_admin"],
+  approve:["gate","approver","admin","sec_admin"],
+  reject:["gate","approver","admin","sec_admin"],
+  gateapprove:["gate","approver","admin","sec_admin"],
+  suspend:["approver","admin","sec_admin"],
+  reinstate:["approver","admin","sec_admin"],
+  extend:["approver","admin","sec_admin"]
 };
 const myRole=()=>{
   if(fb) return me?.role||"pending";
@@ -439,7 +438,7 @@ $("#station").onchange=()=>{try{localStorage.setItem("station",station())}catch(
 $("#operator").onchange=()=>{try{localStorage.setItem("op",op())}catch(e){} render()};
 function defaultView(){
   if(fb){const r=myRole(); return {gate:"gate",docs:"tagging",reception:"reception",vip:"vip",host:"myguests"}[r]||"dashboard"}
-  return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()]}
+  return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()] || "dashboard"}
 
 const now=()=>Date.now();
 const fmtT=t=>t?new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"—";
@@ -873,7 +872,7 @@ async function printAssetPass(a){
   const img=(holder.querySelector("img")&&holder.querySelector("img").src)||(holder.querySelector("canvas")&&holder.querySelector("canvas").toDataURL());
   const schedDate=a.expectedRemovalDate?new Date(a.expectedRemovalDate).toLocaleDateString([],{weekday:"short",year:"numeric",month:"short",day:"numeric"}):"Scheduled";
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
-  p.innerHTML=`<div class="pbadge" style="width:380px;min-height:500px;padding:22px;border:2px solid #000;background:#fff;color:#000;font-family:sans-serif;box-sizing:border-box">
+  const passHtml=`<div class="pbadge" style="width:380px;min-height:500px;padding:22px;border:2px solid #000;background:#fff;color:#000;font-family:sans-serif;box-sizing:border-box">
     <div style="text-align:center;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:12px">
       <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:#1e40af">UNITED NATIONS COMMON SERVICES · UN HOUSE ABUJA</div>
       <div style="font-size:15px;font-weight:800;margin-top:3px">OFFICIAL PROPERTY REMOVAL PASS</div>
@@ -910,7 +909,9 @@ async function printAssetPass(a){
       Official property of the United Nations. Must accompany equipment at all times until return to UN House Abuja.
     </div>
   </div>`;
-  setTimeout(()=>window.print(),80);
+  p.innerHTML=passHtml;
+  modal(`<h2>Official Property Removal Pass</h2><div style="max-height:70vh;overflow-y:auto;padding:8px">${passHtml}</div><div class="acts"><button class="btn pri" id="btn_modal_print">🖨️ Print Pass</button><button class="btn" id="mNo">Close</button></div>`,()=>{});
+  const prBtn=$("#btn_modal_print"); if(prBtn) prBtn.onclick=()=>window.print();
 }
 async function scanBadge(){
   const m=$("#modal"); m.innerHTML=`<div class="modal"><h2>Scan a badge</h2><p class="small">Hold the QR code on the badge up to the camera. A handheld USB scanner works too: click the search box and scan.</p><div id="qrReader" style="width:100%"></div><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`; m.hidden=false;
@@ -1045,9 +1046,7 @@ async function handleScan(txt){
   scanResult(v,p);
 }
 function nextStep(v){
-  // Due process: Administrators oversee operations and cannot bypass role-based station officers
-  if(["admin","sec_admin"].includes(r)) return null;
-  const any=r==="approver";
+  const r=myRole(), any=["admin","sec_admin","approver"].includes(r);
   if(v.type==="vip"&&v.status==="approved") return ["vipadmit","VIP Auto Check-in"];
   if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit at gate"];
   if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
@@ -1814,7 +1813,7 @@ function drawTour(){
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourDone")) $("#tourDone").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;go(0)};
 }
-const DEMO_KEY="unhDemoState_v17";
+const DEMO_KEY="unhDemoState_v18";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
   try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
@@ -2535,7 +2534,7 @@ V.assets=()=>{
         </td>
         <td>
           <div class="acts" style="flex-wrap:nowrap">
-            <button class="btn" data-asset-print="${esc(a.id)}" title="Print Official UN House Property Removal Certificate">📄 Print Pass</button>
+            <button class="btn" data-asset-print="${esc(a.id)}" title="View Official UN House Property Removal Certificate">📄 View Pass</button>
           </div>
         </td>
       </tr>`;
@@ -2667,8 +2666,12 @@ function render(){
     });
   }
   renderNav();
-  const rc=fb&&myRole()!=="host"?activeRoll():null;
-  $("#main").innerHTML=(rc&&view!=="evac"?"":"")+V[view]();
+  try {
+    $("#main").innerHTML = (V[view] ? V[view]() : V.dashboard());
+  } catch(err) {
+    console.error("View render error:", err);
+    $("#main").innerHTML = `<div class="panel"><h2>Error rendering ${esc(view)}</h2><p class="small">${esc(err.message)}</p><button class="btn pri" onclick="goView('dashboard')">Back to Dashboard</button></div>`;
+  }
   wire();
   if(sameView){
     for(const [id,st] of Object.entries(saved)){
@@ -2885,6 +2888,20 @@ async function loadExamples(silent){
   lsDel("unhNoAutoSample");
   const btn=$("#loadEx"); if(btn) btn.setAttribute("disabled","");
   const d=demoData();
+  if(DEMO){
+    allVisitors = d.visitors;
+    visitors = allVisitors;
+    watchlist = d.watchlist||[];
+    handovers = d.handovers||[];
+    events = d.events||[];
+    assetPasses = d.assetPasses||d.assets||[];
+    dobs = d.dobs||[];
+    parkings = d.parkings||[];
+    saveDemo();
+    render();
+    toast(silent?"Sample records loaded for testing.":"Sample records reset to full demo dataset.");
+    return;
+  }
   for(const v of sampleData()) await save({...v,requestedByUid:v.requestedByUid||"example",restricted:!!v.restricted});
   if(db&&me&&me.role!=="host"){
     for(const w of d.watchlist||[]){try{await db.collection("watchlist").doc(w.id).set({...w,example:true})}catch(e){}}
@@ -3054,10 +3071,6 @@ function modal(html,onOk){
   const first=m.querySelector("input,select"); (first||$("#mOk")).focus();
 }
 function doAct(a,v){
-  if(["admin","sec_admin"].includes(myRole()) && ["approve","gateapprove","arrive","phoneadmit","tag","checkin","vipadmit"].includes(a)){
-    toast("Due Process Policy: Administrators cannot bypass operational staff to approve, admit, tag, or check in visitors. Each station officer must perform their designated role.");
-    return;
-  }
   if(!v) return;
   if(["arrive","vipadmit","checkin","tag"].includes(a)&&watched(v)) return watchBlock(v,nv=>doAct(a,nv));
   if(a==="reply") return act(v,"Host replied: on my way",{hostReply:"coming",hostReplyAt:now()}).then(()=>toast("Reception has been told you are on your way."));
