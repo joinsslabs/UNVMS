@@ -1043,25 +1043,8 @@ function mailPill(v){const m=v.mail;if(!v.hostEmail)return `<span class="small">
 const QRLIB="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js", SCANLIB="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js";
 async function printBadge(v){
   if(!v) return;
-  const tagRef = v.tag || v.assignedTag || v.ref;
-  try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool. Check the internet connection.")}
-  const qrPayload = (v.tag || v.assignedTag) ? ("UNHTAG:" + tagRef) : v.ref;
-  const holder=document.createElement("div"); new QRCode(holder,{text:qrPayload,width:160,height:160,correctLevel:QRCode.CorrectLevel.M});
-  await new Promise(r=>setTimeout(r,60));
-  const img=(holder.querySelector("img")&&holder.querySelector("img").src)||(holder.querySelector("canvas")&&holder.querySelector("canvas").toDataURL());
-  const kind=v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor";
-  const until=v.type==="contractor"&&v.accessTo?new Date(v.accessTo).toLocaleDateString():new Date(today0()+864e5-1).toLocaleDateString()+" 23:59";
-  let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
-  p.innerHTML=`<div class="pbadge"><div class="pb-h"><span>UN House Abuja</span><span>${kind}</span></div>
-    <div class="pb-b"><div><div class="pb-n">${esc(v.name)}</div><div class="pb-o">${esc(v.org||"")}</div>
-    <div class="pb-t">TAG: ${esc(tagRef)}</div><div class="pb-r">Host: ${esc(v.host)}</div><div class="pb-r">${esc(v.building||"")}</div>
-    <div class="pb-r">Valid until ${esc(until)}</div><div class="pb-ref">Ref: ${esc(tagRef)}</div></div>${img?`<img src="${img}" alt="QR code ${esc(tagRef)}">`:""}</div>
-    <div class="pb-f">Ref: ${esc(tagRef)} · Wear this badge at all times. Return it on leaving.</div></div>`;
-  document.body.classList.add("print-badge");
-  setTimeout(()=>{
-    window.print();
-    setTimeout(()=>document.body.classList.remove("print-badge"),500);
-  },80);
+  // Badges are view-only digital cards; no physical printing
+  return openPass(v);
 }
 async function printAssetPass(a){
   if(!a) return;
@@ -2299,7 +2282,7 @@ V.tagging=()=>{
     </div>`;
   },"No visitors are waiting for documentation.")}</div></div>
   ${tagSheetPanel()}
-  <div class="panel"><h2>Tags in circulation <span class="cnt">${out.length}</span></h2>${out.length?`<div class="tw"><table><thead><tr><th>Tag</th><th>Holder</th><th>Issued</th><th>Status</th></tr></thead><tbody>${out.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="mono">${fmtT(v.taggedAt||v.arrivedAt)}</td><td>${pill(v)} <button class="btn" data-print="${esc(v.id)}" title="View digital badge (No printing needed)">View badge</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags are returned.</div>`}</div>`;
+  <div class="panel"><h2>Tags in circulation <span class="cnt">${out.length}</span></h2>${out.length?`<div class="tw"><table><thead><tr><th>Tag</th><th>Holder</th><th>Issued</th><th>Status</th><th style="text-align:right">Digital Badge</th></tr></thead><tbody>${out.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="mono">${fmtT(v.taggedAt||v.arrivedAt)}</td><td>${pill(v)}</td><td style="text-align:right"><button class="btn" data-act="pass" data-id="${esc(v.id)}" title="View digital badge (View only · No printing)">View badge</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags are returned.</div>`}</div>`;
 };
 
 /* ---------- UN House Desk Phone Extension Directory ---------- */
@@ -3156,7 +3139,7 @@ function wire(){
   document.querySelectorAll("[data-inv-use]").forEach(b=>b.onclick=()=>useInvite(invites.find(i=>i.id===b.dataset.invUse)));
   document.querySelectorAll("[data-inv-cancel]").forEach(b=>b.onclick=()=>db.collection("invites").doc(b.dataset.invCancel).update({status:"cancelled"}).then(()=>toast("Invite cancelled.")).catch(e=>toast("Could not cancel: "+e.message)));
   document.querySelectorAll("[data-inv-copy]").forEach(b=>b.onclick=()=>copyText(inviteUrl(b.dataset.invCopy)));
-  document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>printBadge(visitors.find(v=>v.id===b.dataset.print)));
+  document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>{ const v=visitors.find(x=>x.id===b.dataset.print); if(v) openPass(v); });
   const q=$("#q"); if(q){ q.onkeydown=e=>{if(e.key==="Enter"){const t=q.value.trim();if(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")||/^UNH-/i.test(t)){render.q="";handleScan(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")?t:t.toUpperCase())}}};q.oninput=()=>{render.q=q.value;const p=q.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)};$("#qclear").onclick=()=>{render.q="";render()}}
   document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{b.classList.add("sent");return doAct(b.dataset.act,visitors.find(v=>v.id===b.dataset.id))});
   
