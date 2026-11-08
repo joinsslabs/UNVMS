@@ -2275,7 +2275,7 @@ V.gate=()=>{
     ${table(pend,v=>{
       const ext=getHostExt(v.host, v.agency);
       const isUnsch = v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
-      return `<button class="btn" data-confirm-host="${esc(v.id)}" style="${isUnsch?'background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700':''}" title="Call host on desk phone to confirm before approving">📞 ${isUnsch?'Confirm with Host First':'Confirm with Host'} (Ext. ${esc(ext)})</button>`
+      return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Gate 1 must call and confirm with host on desk phone first">📞 Confirm with Host First (Ext. ${esc(ext)})</button>` : "")
         + B(v.id,"approve","Approve request","ok")
         + B(v.id,"reject","Reject","bad");
     },"No pending approvals.")}
