@@ -5,70 +5,89 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>UN House Access Control</title>
 <meta name="description" content="Access and visitor management for United Nations House, Abuja: registration, approvals, tagging, reception and VIP access across four stations.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: navy masthead band with sign-in, then a station strip, capabilities grid, security notes, footer */
 :root{
-  --bg:#f3f5f9; --surface:#ffffff; --fg:#1b2537; --muted:#5b6679; --line:#d8dee9;
-  --navy:#1e2f52; --navy2:#14223d; --accent:#1f6fd1; --accent-fg:#ffffff; --onnavy:#ffffff; --onnavy-muted:#b9c4d8;
+  --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --fg:#0f172a; --muted:#526077; --line:#e2e8f0;
+  --navy:#172542; --navy2:#0f1a30; --accent:#1d6ce0; --accent-fg:#ffffff; --onnavy:#ffffff; --onnavy-muted:#b9c4d8;
+  --ok:#15803d; --ok-bg:#dcfce7;
+  --shadow:0 1px 3px rgba(15,23,42,.05),0 8px 24px -8px rgba(15,23,42,.07);
   --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1521; --surface:#172030; --fg:#e4e9f2; --muted:#9aa6ba; --line:#2c384d;
-  --navy:#0b1220; --navy2:#070c16; --accent:#5ea2ff; --accent-fg:#0b1220; color-scheme:dark}}
+  --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
+  --navy:#090f1c; --navy2:#060a13; --accent:#5ea2ff; --accent-fg:#08101f;
+  --ok:#4ade80; --ok-bg:#133223; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#0f1521; --surface:#172030; --fg:#e4e9f2; --muted:#9aa6ba; --line:#2c384d;
-  --navy:#0b1220; --navy2:#070c16; --accent:#5ea2ff; --accent-fg:#0b1220; color-scheme:dark}
+  --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
+  --navy:#090f1c; --navy2:#060a13; --accent:#5ea2ff; --accent-fg:#08101f;
+  --ok:#4ade80; --ok-bg:#133223; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.55}
-.band{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.in{max-width:1080px;margin:0 auto}
-header.band{background:var(--navy);color:var(--onnavy)}
-.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:16px;flex-wrap:wrap}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.band{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.in{max-width:1100px;margin:0 auto}
+header.band{background:radial-gradient(900px 420px at 85% 20%,rgba(29,108,224,.28),transparent 70%),linear-gradient(180deg,var(--navy),var(--navy2));color:var(--onnavy);position:relative;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px;flex-wrap:wrap;border-bottom:1px solid #ffffff14}
 .mark{display:flex;align-items:center;gap:12px}
-.logo{height:44px;width:auto;display:block}
-.logo-slot{height:44px;min-width:44px;padding:0 10px;border:1px dashed #ffffff66;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--onnavy-muted);text-align:center;line-height:1.2}
-.mark b{display:block;font-size:16px}
+.logo{height:50px;width:auto;display:block;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+.logo-slot{height:50px;width:37px;border:1px solid #ffffff38;background:#0468B1;border-radius:6px;display:grid;place-items:center;color:#fff;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+.logo-slot svg{width:100%;height:100%;display:block}
+.mark b{display:block;font-size:16px;letter-spacing:.01em}
 .mark span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--onnavy-muted)}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:6px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent}
-.btn.pri{background:var(--accent);color:var(--accent-fg)}
-.btn.ghost{border-color:#ffffff55;color:var(--onnavy)}
-.btn:hover{filter:brightness(1.08)}
+.top-acts{display:flex;align-items:center;gap:10px}
+.tbtn{all:unset;cursor:pointer;width:38px;height:38px;border-radius:9px;display:grid;place-items:center;background:#ffffff14;border:1px solid #ffffff28;color:#fff;transition:background .15s,transform .12s}
+.tbtn:hover{background:#ffffff26}
+.tbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid transparent;transition:transform .14s ease,filter .15s,background .15s,box-shadow .2s}
+.btn.pri{background:var(--accent);color:var(--accent-fg);box-shadow:0 6px 18px -6px rgba(29,108,224,.7)}
+.btn.ghost{border-color:#ffffff38;background:#ffffff0d;color:var(--onnavy)}
+.btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
 .btn:focus-visible{outline:2px solid var(--onnavy);outline-offset:3px}
-.hero{padding-block:48px 56px;display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
-.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--onnavy-muted)}
-h1{font-size:clamp(30px,4.6vw,46px);line-height:1.12;margin:10px 0 16px;text-wrap:balance;font-weight:700}
-.lead{font-size:18px;color:var(--onnavy-muted);max-width:56ch;margin:0 0 26px}
+.hero{padding-block:54px 64px;display:grid;grid-template-columns:1.2fr .8fr;gap:44px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--onnavy-muted);background:#ffffff12;border:1px solid #ffffff22;padding:4px 12px;border-radius:999px}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 3px #4ade8033}
+h1{font-size:clamp(30px,4.5vw,46px);line-height:1.12;margin:14px 0 16px;text-wrap:balance;font-weight:700;letter-spacing:-.02em}
+.lead{font-size:18px;color:var(--onnavy-muted);max-width:56ch;margin:0 0 28px}
 .ctas{display:flex;gap:12px;flex-wrap:wrap}
-.pass{background:var(--surface);color:var(--fg);border-radius:12px;padding:0;overflow:hidden;box-shadow:0 18px 40px #0005;max-width:340px;justify-self:end;width:100%}
-.pass .ph{background:var(--navy2);color:var(--onnavy);padding:10px 16px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between}
-.pass .pb{padding:18px 16px;display:grid;gap:10px}
-.pass .nm{font-size:20px;font-weight:700}
-.pass .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+.pass{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 24px 50px -12px rgba(0,0,0,.45);max-width:350px;justify-self:end;width:100%;border-top:5px solid var(--ok)}
+.pass .ph{background:var(--navy2);color:var(--onnavy);padding:11px 18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.pass .ph .st-ok{color:#4ade80;display:inline-flex;align-items:center;gap:5px}
+.pass .ph .st-ok::before{content:"";width:6px;height:6px;border-radius:50%;background:#4ade80}
+.pass .pb{padding:20px 18px;display:grid;gap:11px}
+.pass .top-r{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pass .nm{font-size:21px;font-weight:700;line-height:1.2}
+.pass .ref{font-family:var(--mono);color:var(--accent);font-size:12.5px;margin-top:2px}
+.pass .tag{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:.05em;background:var(--surface2);border:1px dashed var(--line);padding:4px 10px;border-radius:8px}
+.pass .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:9px}
 .pass .row b{color:var(--fg);font-weight:600}
-.pass .ref{font-family:var(--mono);color:var(--accent);font-size:13px}
-.pass .tag{font-family:var(--mono);font-size:30px;font-weight:500;letter-spacing:.06em}
-main .sec{padding-block:48px}
-h2{font-size:24px;margin:0 0 8px;text-wrap:balance}
-.sub{color:var(--muted);margin:0 0 24px;max-width:62ch}
-.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
-.flow li{padding:18px 18px 20px;border-right:1px solid var(--line);position:relative;min-width:0}
-.flow li:last-child{border-right:0}
-.flow .no{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.08em}
-.flow h3{font-size:16px;margin:6px 0 2px}
-.flow .where{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
-.flow p{font-size:14px;color:var(--muted);margin:8px 0 0}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px 32px}
-.grid h3{font-size:16px;margin:0 0 4px}
+main .sec{padding-block:56px}
+h2{font-size:26px;font-weight:700;letter-spacing:-.015em;margin:0 0 8px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 28px;max-width:62ch}
+.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.flow li{padding:22px 20px;border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:16px;background:var(--surface);box-shadow:var(--shadow);position:relative;min-width:0;transition:transform .18s ease,box-shadow .18s ease}
+.flow li:hover{transform:translateY(-3px);box-shadow:0 12px 28px -10px rgba(15,23,42,.12)}
+.flow .no{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.08em;background:var(--surface2);border:1px solid var(--line);display:inline-block;padding:2px 8px;border-radius:999px;margin-bottom:8px}
+.flow h3{font-size:17px;margin:4px 0 2px}
+.flow .where{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.flow p{font-size:14px;color:var(--muted);margin:10px 0 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid>div{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);transition:transform .18s ease}
+.grid>div:hover{transform:translateY(-2px)}
+.grid h3{font-size:16px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.grid h3::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
 .grid p{font-size:14px;color:var(--muted);margin:0}
 .secure{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:32px}
-.two ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px;display:grid;gap:8px}
+.two{display:grid;grid-template-columns:1fr 1.2fr;gap:36px;align-items:start}
+.two ul{margin:0;padding:0;list-style:none;color:var(--muted);font-size:15px;display:grid;gap:12px}
+.two ul li{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
 .two ul b{color:var(--fg)}
-footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padding-block:40px 26px}
+footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padding-block:44px 28px}
 .fcols{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:28px}
 .fcols>div{display:flex;flex-direction:column;gap:8px;min-width:0}
 .fcols p{margin:0;max-width:34ch}
@@ -78,8 +97,8 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
 .fcols a:hover{color:var(--onnavy)}
 .fcols a:focus-visible{outline:2px solid var(--onnavy);outline-offset:3px}
 .fbase{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:32px;padding-top:18px;border-top:1px solid #ffffff22;font-size:13px}
-@media (max-width:860px){.hero{grid-template-columns:1fr}.pass{justify-self:start}.flow{grid-template-columns:1fr 1fr}.flow li:nth-child(2){border-right:0}.flow li:nth-child(-n+2){border-bottom:1px solid var(--line)}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.fcols{grid-template-columns:1fr 1fr}}
-@media (max-width:520px){.flow{grid-template-columns:1fr}.flow li{border-right:0;border-bottom:1px solid var(--line)}.flow li:last-child{border-bottom:0}.grid{grid-template-columns:1fr}.fcols{grid-template-columns:1fr}}
+@media (max-width:860px){.hero{grid-template-columns:1fr}.pass{justify-self:start}.flow{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.fcols{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.flow{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.fcols{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -87,32 +106,37 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
 <header class="band">
   <div class="in top">
     <div class="mark">
-      <!-- Logo slot: add the officially approved logo as public/logo.png to show it here. -->
-      <img class="logo" src="logo.png" alt="Logo" hidden onload="this.hidden=false;document.getElementById('slot').hidden=true">
-      <div class="logo-slot" id="slot" aria-hidden="true">Logo</div>
-      <div><b>UN House Access Control</b><span>UN Common Services · Abuja</span></div>
+      <img class="logo" src="logo.png" alt="UNDP" onerror="this.hidden=true;document.getElementById('slot').hidden=false">
+      <div class="logo-slot" id="slot" role="img" aria-label="UNDP" hidden><svg viewBox="0 0 64 80"><rect width="64" height="80" fill="#0468B1"/><g transform="translate(32,23)" fill="none" stroke="#fff" stroke-linecap="round"><circle r="10.5" stroke-width="1.35"/><circle r="7" stroke-width="1.15"/><circle r="3.5" stroke-width="1.05"/><line x1="-10.5" y1="0" x2="10.5" y2="0" stroke-width="1.1"/><line x1="0" y1="-10.5" x2="0" y2="10.5" stroke-width="1.1"/><line x1="-7.4" y1="-7.4" x2="7.4" y2="7.4" stroke-width="0.95"/><line x1="7.4" y1="-7.4" x2="-7.4" y2="7.4" stroke-width="0.95"/><path d="M-4,12.5 C-13,10.5 -16.5,2 -15,-7.5 C-14,-11 -11.5,-13.5 -9,-15" stroke-width="2.1"/><path d="M4,12.5 C13,10.5 16.5,2 15,-7.5 C14,-11 11.5,-13.5 9,-15" stroke-width="2.1"/><path d="M-5.5,11.5 L3.5,14.5 M5.5,11.5 L-3.5,14.5" stroke-width="1.8"/></g><line x1="8" y1="42" x2="56" y2="42" stroke="#fff" stroke-opacity=".3" stroke-width="1"/><g fill="#fff" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif" font-weight="800" text-anchor="middle"><text x="32" y="57.5" font-size="16.5" letter-spacing="1.5">UN</text><text x="32" y="73.5" font-size="16.5" letter-spacing="1.5">DP</text></g></svg></div>
+      <div><b>UN House Access Control</b><span>UNDP · UN Common Services · Abuja</span></div>
     </div>
-    <a class="btn ghost" href="app.html">Staff sign-in</a>
+    <div class="top-acts">
+      <button class="tbtn" id="themeBtn" type="button" title="Toggle light or dark theme" aria-label="Toggle theme"></button>
+      <a class="btn ghost" href="app.html">Staff sign-in</a>
+    </div>
   </div>
   <div class="in hero">
     <div>
-      <div class="eyebrow">United Nations House, Abuja</div>
+      <div class="eyebrow"><i></i>United Nations House, Abuja</div>
       <h1>Every visitor registered, approved, tagged and accounted for.</h1>
       <p class="lead">One shared visitor record for the gate, documentation, internal reception and the VIP entrance. It replaces logbooks and spreadsheets with live, role-based access control.</p>
       <div class="ctas">
         <a class="btn pri" href="app.html">Open the system</a>
-        <a class="btn ghost" href="app.html?demo">Try the demo</a>
+        <a class="btn ghost" href="app.html?demo">Try the guided demo</a>
         <a class="btn ghost" href="#how">How it works</a>
       </div>
     </div>
     <div class="pass" aria-label="Example visitor pass">
-      <div class="ph"><span>Visitor pass</span><span>Example</span></div>
+      <div class="ph"><span>Visitor pass</span><span class="st-ok">Checked in</span></div>
       <div class="pb">
-        <div><div class="nm">Amaka Nwosu</div><div class="ref">UNH-261107-K4TZ</div></div>
-        <div class="tag">V-014</div>
+        <div class="top-r">
+          <div><div class="nm">Amaka Nwosu</div><div class="ref">UNH-261107-K4TZ</div></div>
+          <div class="tag">V-014</div>
+        </div>
+        <div class="row"><span>Organisation</span><b>Federal Ministry of Health</b></div>
         <div class="row"><span>Host</span><b>Dr. K. Ibrahim · WHO</b></div>
         <div class="row"><span>Building</span><b>Main UN House Building</b></div>
-        <div class="row"><span>Status</span><b>Checked in 09:18</b></div>
+        <div class="row"><span>Time</span><b>Admitted 09:12 · In 09:18</b></div>
       </div>
     </div>
   </div>
@@ -137,12 +161,12 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
       <h2>What it handles</h2>
       <p class="sub">Built to the UN Common Services requirements for visitor, contractor and VIP access.</p>
       <div class="grid">
-        <div><h3>Registration</h3><p>Single visitors, groups and walk-ins, bulk upload by CSV, and advance registration by staff hosts.</p></div>
-        <div><h3>Approvals</h3><p>VIP, contractor and restricted-area requests go to an approver. No one can approve their own request.</p></div>
-        <div><h3>Tags and badges</h3><p>Unique reference numbers, tag assignment, and tracking of every tag issued and returned.</p></div>
-        <div><h3>Contractors</h3><p>Access limited by building and date, expiry warnings, and immediate suspension when needed.</p></div>
+        <div><h3>Registration</h3><p>Single visitors, groups and walk-ins, bulk upload by CSV or scan, and advance registration by staff hosts.</p></div>
+        <div><h3>Approvals</h3><p>Every visitor, VIP and contractor request goes to an approver before becoming expected at the gate. No one can approve their own request.</p></div>
+        <div><h3>Tags and badges</h3><p>Unique reference numbers, tag assignment, digital phone passes, and tracking of every tag issued and returned.</p></div>
+        <div><h3>Contractors</h3><p>Access limited by building and date, expiry warnings, multi-day re-entry, and immediate suspension when needed.</p></div>
         <div><h3>Live dashboard</h3><p>Expected visitors, who is on site, occupancy by building and agency, overstays and exceptions.</p></div>
-        <div><h3>Reports and history</h3><p>Searchable visitor history, daily to monthly counts, and a CSV report for management.</p></div>
+        <div><h3>Reports and history</h3><p>Searchable visitor history, daily to monthly counts, evacuation roll calls, and CSV reports for management.</p></div>
       </div>
     </div>
   </section>
@@ -194,6 +218,16 @@ footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padd
     </div>
   </div>
 </footer>
-<script>document.getElementById("yr").textContent=new Date().getFullYear();</script>
+<script>
+document.getElementById("yr").textContent=new Date().getFullYear();
+(function(){
+  const root=document.documentElement, btn=document.getElementById("themeBtn");
+  const isDark=()=>root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  const sync=()=>{const d=isDark();btn.innerHTML=d?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>':'<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';btn.title=d?"Switch to light mode":"Switch to dark mode"};
+  try{const s=localStorage.getItem("theme");if(s==="dark"||s==="light")root.dataset.theme=s}catch(e){}
+  sync();
+  btn.onclick=()=>{const n=isDark()?"light":"dark";root.dataset.theme=n;try{localStorage.setItem("theme",n)}catch(e){}sync()};
+})();
+</script>
 </body>
 </html>

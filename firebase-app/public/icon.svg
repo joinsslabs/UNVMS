@@ -1,11 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#1e2f52"/>
-  <rect x="136" y="96" width="240" height="320" rx="28" fill="#ffffff"/>
-  <rect x="216" y="72" width="80" height="48" rx="14" fill="#1f6fd1"/>
-  <g fill="#1e2f52">
-    <rect x="176" y="168" width="64" height="64" rx="6"/><rect x="272" y="168" width="64" height="64" rx="6"/>
-    <rect x="176" y="264" width="64" height="64" rx="6"/><rect x="272" y="264" width="28" height="28" rx="4"/>
-    <rect x="308" y="300" width="28" height="28" rx="4"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="UNDP">
+  <rect width="512" height="512" rx="88" fill="#0468B1"/>
+  <!-- UN Emblem (Globe & Olive Wreath) -->
+  <g transform="translate(256,162)" fill="none" stroke="#ffffff" stroke-linecap="round">
+    <circle r="76" stroke-width="10"/>
+    <circle r="50" stroke-width="8.5"/>
+    <circle r="25" stroke-width="8"/>
+    <line x1="-76" y1="0" x2="76" y2="0" stroke-width="8"/>
+    <line x1="0" y1="-76" x2="0" y2="76" stroke-width="8"/>
+    <line x1="-54" y1="-54" x2="54" y2="54" stroke-width="7"/>
+    <line x1="54" y1="-54" x2="-54" y2="54" stroke-width="7"/>
+    <path d="M-28,92 C-96,76 -122,14 -110,-54 C-102,-80 -84,-98 -64,-110" stroke-width="16"/>
+    <path d="M28,92 C96,76 122,14 110,-54 C102,-80 84,-98 64,-110" stroke-width="16"/>
+    <path d="M-40,84 L26,106 M40,84 L-26,106" stroke-width="13"/>
   </g>
-  <rect x="176" y="356" width="160" height="20" rx="10" fill="#1f6fd1"/>
+  <line x1="72" y1="296" x2="440" y2="296" stroke="#ffffff" stroke-opacity="0.3" stroke-width="6"/>
+  <!-- UNDP Stacked Block Letters -->
+  <g fill="#ffffff" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif" font-weight="800" text-anchor="middle">
+    <text x="256" y="388" font-size="96" letter-spacing="10">UN</text>
+    <text x="256" y="474" font-size="96" letter-spacing="10">DP</text>
+  </g>
 </svg>

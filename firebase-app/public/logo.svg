@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 80" role="img" aria-label="UNDP">
+  <rect width="64" height="80" rx="6" fill="#0468B1"/>
+  <!-- UN Emblem (Globe & Olive Wreath) -->
+  <g transform="translate(32,23)" fill="none" stroke="#ffffff" stroke-linecap="round">
+    <circle r="10.5" stroke-width="1.35"/>
+    <circle r="7" stroke-width="1.15"/>
+    <circle r="3.5" stroke-width="1.05"/>
+    <line x1="-10.5" y1="0" x2="10.5" y2="0" stroke-width="1.1"/>
+    <line x1="0" y1="-10.5" x2="0" y2="10.5" stroke-width="1.1"/>
+    <line x1="-7.4" y1="-7.4" x2="7.4" y2="7.4" stroke-width="0.95"/>
+    <line x1="7.4" y1="-7.4" x2="-7.4" y2="7.4" stroke-width="0.95"/>
+    <!-- Left & Right Olive Branches -->
+    <path d="M-4,12.5 C-13,10.5 -16.5,2 -15,-7.5 C-14,-11 -11.5,-13.5 -9,-15" stroke-width="2.1"/>
+    <path d="M4,12.5 C13,10.5 16.5,2 15,-7.5 C14,-11 11.5,-13.5 9,-15" stroke-width="2.1"/>
+    <path d="M-5.5,11.5 L3.5,14.5 M5.5,11.5 L-3.5,14.5" stroke-width="1.8"/>
+  </g>
+  <line x1="8" y1="42" x2="56" y2="42" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1"/>
+  <!-- UNDP Stacked Block Letters -->
+  <g fill="#ffffff" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif" font-weight="800" text-anchor="middle">
+    <text x="32" y="57.5" font-size="16.5" letter-spacing="1.5">UN</text>
+    <text x="32" y="73.5" font-size="16.5" letter-spacing="1.5">DP</text>
+  </g>
+</svg>

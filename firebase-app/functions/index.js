@@ -28,8 +28,10 @@ const RETENTION_DAYS = defineInt("RETENTION_DAYS", { default: 365 });
 const TZ = "Africa/Lagos";
 
 /* ---------------- audit trail ---------------- */
-const TRACKED = ["status", "tag", "tagReturned", "host", "hostEmail", "building", "expected", "accessFrom", "accessTo",
-  "decidedByUid", "hostNotified", "idType", "name", "org", "purpose", "restricted", "type"];
+const TRACKED = ["status", "tag", "tagReturned", "host", "hostEmail", "backupHost", "building", "expected", "accessFrom", "accessTo",
+  "decidedByUid", "hostNotified", "idType", "name", "org", "purpose", "restricted", "escort", "vehicle", "rejectReason", "type",
+  "watchFlag", "watchReason", "watchOverride", "items", "room", "group", "site",
+  "extendedUntil", "extendedBy", "extendedNote", "hostPermittedBy"];
 
 exports.auditVisitors = onDocumentWrittenWithAuthContext(
   { document: "visitors/{visitorId}", region: REGION },
@@ -143,7 +145,7 @@ exports.visitorEmails = onDocumentWrittenWithAuthContext(
     if (decided && v.requestedByUid) {
       const requester = (await db.doc(`staff/${v.requestedByUid}`).get()).get("email");
       if (validEmail(requester)) jobs.push(send(requester, `${v.status === "approved" ? "Approved" : "Not approved"}: ${v.name}`,
-        page(`Your request was ${v.status}`, [...visitLines, ["Decided by", v.decidedBy || "—"]], ["Open the system", APP_URL.value()])).catch(() => {}));
+        page(`Your request was ${v.status}`, [...visitLines, ["Decided by", v.decidedBy || "—"], ...(v.rejectReason ? [["Reason", v.rejectReason]] : [])], ["Open the system", APP_URL.value()])).catch(() => {}));
     }
     // 4. Digital pass: when a visit becomes approved and the visitor gave an email, create a pass and send the link.
     const nowApproved = v.status === "approved" && (!before || before.status !== "approved");
@@ -155,7 +157,7 @@ exports.visitorEmails = onDocumentWrittenWithAuthContext(
           code = require("crypto").randomBytes(20).toString("hex");
           const end = new Date(v.expected || Date.now()); end.setUTCHours(22, 59, 59, 0); // 23:59:59 Lagos
           await db.doc(`passes/${code}`).set({ visitorId: event.params.visitorId, ref: v.ref, name: v.name, org: v.org || "", host: v.host || "",
-            agency: v.agency || "", type: v.type, building: v.building || "", expected: v.expected || Date.now(),
+            agency: v.agency || "", type: v.type, building: v.building || "", room: v.room || "", vehicle: v.vehicle || "", escort: !!v.escort, expected: v.expected || Date.now(),
             validUntil: v.type === "contractor" && v.accessTo ? v.accessTo : Math.max(end.getTime(), Date.now() + 3600e3),
             status: v.status, tag: "", arrivedAt: null, inAt: null, outAt: null, requestedByUid: v.requestedByUid || "",
             createdAt: Date.now(), createdBy: "system", revoked: false });
@@ -163,7 +165,7 @@ exports.visitorEmails = onDocumentWrittenWithAuthContext(
         const link = APP_URL.value() + "?pass=" + code;
         const when = new Date(v.expected || Date.now()).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: TZ });
         await send(v.visitorEmail, "Your visitor pass for UN House Abuja",
-          page(`Your visit on ${when}`, [["Host", v.host], ["Reference", v.ref], ["Bring", "A photo ID"]], ["Open my pass", link]));
+          page(`Your visit on ${when}`, [["Host", v.host], ["Reference", v.ref], ...(v.room ? [["Room", v.room]] : []), ...(v.vehicle ? [["Vehicle", v.vehicle]] : []), ["Bring", "A photo ID"]], ["Open my pass", link]));
       })().catch(() => {}));
     }
     await Promise.all(jobs);
@@ -178,7 +180,7 @@ exports.dailyReport = onSchedule(
     const all = (await db.collection("visitors").where("expected", ">=", since - 7 * 24 * 3600e3).get()).docs.map((d) => d.data()).filter((v) => !v.example);
     const yesterday = all.filter((v) => (v.arrivedAt || 0) >= since);
     const onSite = (await db.collection("visitors").where("status", "==", "in").get()).docs.map((d) => d.data()).filter((v) => !v.example);
-    const pending = (await db.collection("visitors").where("status", "==", "pending").get()).size;
+    const pending = (await db.collection("visitors").where("status", "==", "pending").get()).docs.map((d) => d.data()).filter((v) => !v.example).length;
     const tagsOut = onSite.filter((v) => v.tag).length;
     const byAgency = {};
     yesterday.forEach((v) => { byAgency[v.agency || "Other"] = (byAgency[v.agency || "Other"] || 0) + 1; });
@@ -316,11 +318,13 @@ exports.bookingApi = onRequest(
       const ref = ext ? `UNH-BK-${ext}` : `UNH-${String(d.getFullYear()).slice(2)}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
       const docRef = db.collection("visitors").doc(ref);
       if (ext && (await docRef.get()).exists) { results.push({ externalId: ext, ref, status: "already registered" }); continue; }
-      const v = { id: ref, ref, name, org: String(raw.org || "").slice(0, 160), host, hostEmail: String(raw.hostEmail || "").toLowerCase().slice(0, 160),
+      const v = { id: ref, ref, name, org: String(raw.org || "").slice(0, 160), phone: String(raw.phone || "").slice(0, 40),
+        visitorEmail: String(raw.visitorEmail || "").toLowerCase().slice(0, 160), host, hostEmail: String(raw.hostEmail || "").toLowerCase().slice(0, 160),
         agency: String(raw.agency || "Common Services").slice(0, 60), type, expected, purpose: String(raw.purpose || "").slice(0, 300),
-        building: "Main UN House Building", restricted: false, requestedBy: source, requestedByUid: "system:booking", externalId: ext,
-        status: type === "visitor" ? "approved" : "pending",
-        log: [{ t: Date.now(), a: `Registered by ${source} (API)`, by: source, byUid: "system:booking", role: "system", st: "API" }] };
+        room: String(raw.room || "").slice(0, 80), group: String(raw.group || "").slice(0, 120),
+        building: String(raw.building || "Main UN House Building").slice(0, 80), restricted: false, requestedBy: source, requestedByUid: "system:booking", externalId: ext,
+        status: "pending",
+        log: [{ t: Date.now(), a: `Registered by ${source} (API); sent for approval`, by: source, byUid: "system:booking", role: "system", st: "API" }] };
       if (type === "contractor") { v.accessFrom = expected; v.accessTo = expected + 24 * 3600e3 - 1; }
       await docRef.set(v);
       results.push({ externalId: ext, ref, status: v.status });
@@ -407,5 +411,34 @@ exports.deliveryReminder = onSchedule(
         page("Your delivery is still waiting", [["From", d.from || "—"], ["Item", d.desc || "—"], ["Received", new Date(d.at).toLocaleDateString("en-GB", { timeZone: TZ })]])).catch(() => {});
       await doc.ref.update({ reminders: (d.reminders || 0) + 1, notifiedAt: Date.now(), notifiedVia: "email reminder (automatic)" });
     }
+  }
+);
+
+/* ---------------- evacuation roll call alerts ----------------
+   When an evacuation roll call is started with notifyAll: true, automatically email
+   every on-site visitor (visitorEmail) and their host (hostEmail). */
+exports.rollcallEmails = onDocumentCreated(
+  { document: "rollcalls/{id}", region: REGION, secrets: [SMTP_USER, SMTP_PASS] },
+  async (event) => {
+    const r = event.data.data();
+    if (!r || !r.notifyAll || !Array.isArray(r.people) || !r.people.length) return;
+    const jobs = [];
+    for (const p of r.people) {
+      if (validEmail(p.visitorEmail)) {
+        jobs.push(send(p.visitorEmail, "URGENT: UN House Abuja Evacuation Roll Call",
+          page("Emergency evacuation roll call", [
+            ["Visitor", p.name], ["Tag", p.tag || "—"], ["Building", p.building || "UN House"], ["Host", p.host || "—"],
+            ["Instruction", "Proceed immediately to the nearest emergency assembly point and report to security for roll call."],
+          ])).catch(() => {}));
+      }
+      if (validEmail(p.hostEmail)) {
+        jobs.push(send(p.hostEmail, `URGENT: Evacuation roll call — your guest ${p.name}`,
+          page("Your visitor is on the emergency roll call list", [
+            ["Visitor", p.name], ["Tag", p.tag || "—"], ["Building", p.building || "UN House"],
+            ["Action", "Please ensure your guest reaches the assembly point or inform security of their whereabouts."],
+          ], ["Open roll call", APP_URL.value() + "#evac"])).catch(() => {}));
+      }
+    }
+    await Promise.all(jobs);
   }
 );

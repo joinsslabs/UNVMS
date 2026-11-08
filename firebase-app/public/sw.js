@@ -1,7 +1,7 @@
 // Offline support for the station app: serve the last copy of the app when the network is down.
 // Live data still comes from Firestore, which keeps its own offline copy on each device.
-const CACHE = "unh-shell-v1";
-const SHELL = ["/app.html", "/firebase-config.js", "/manifest.json", "/icon.svg",
+const CACHE = "unh-shell-v6";
+const SHELL = ["/app.html", "/firebase-config.js", "/manifest.json", "/icon.svg", "/logo.png",
   "https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",
   "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js",
   "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"];
