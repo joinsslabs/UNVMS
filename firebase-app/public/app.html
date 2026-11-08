@@ -174,8 +174,8 @@ textarea{min-height:70px;resize:vertical}
 @media (max-width:520px){.al li{grid-template-columns:34px 1fr}.al li .btn{grid-column:2;justify-self:start}}
 .chat{display:flex;flex-direction:column;gap:10px}
 .ans{white-space:pre-wrap;background:var(--surface2);border-radius:10px;padding:12px;font-size:13px;line-height:1.5;border:1px solid var(--line)}
-.modal-bg{position:fixed;inset:0;background:rgba(9,15,28,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
-.modal{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px;max-width:460px;width:100%;display:flex;flex-direction:column;gap:14px;box-shadow:0 24px 60px -15px rgba(0,0,0,.45);animation:modalIn .2s cubic-bezier(.2,1,.3,1)}
+.modal-bg{position:fixed;inset:0;background:rgba(9,15,28,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:30;display:flex;align-items:center;justify-content:center;padding:24px}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;max-width:460px;max-height:calc(100vh - 48px);overflow:auto;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px -15px rgba(0,0,0,.45);animation:modalIn .2s cubic-bezier(.2,1,.3,1)}
 @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.97)}}
 .appfoot{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .appfoot a{color:var(--muted)}
@@ -860,34 +860,34 @@ async function qrDataUrl(text,size){
 }
 async function openPass(v){
   let p; try{p=await ensurePass(v)}catch(e){return toast("Could not create the pass: "+e.message)}
-  const url=passUrl(p.id), img=await qrDataUrl(PASS_PREFIX+p.id,200).catch(()=>null);
+  const url=passUrl(p.id), img=await qrDataUrl(PASS_PREFIX+p.id,180).catch(()=>null);
   const digits=String(v.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
   const msg=`Hello ${v.name}, here is your visitor pass for UN House Abuja on ${new Date(v.expected||now()).toLocaleDateString()}. Show it at the gate with your photo ID: ${url}`;
   const kind=v.type==="vip"?"VIP guest":v.type==="contractor"?"Contractor":"Visitor";
   const stLabel={in:"Checked in",tagged:"Documented",arrived:"Admitted at gate",approved:"Approved"}[v.status]||"Approved";
   clearInterval(openPass.t);
-  const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:440px">
-    <div class="vpass ok" style="margin:0;box-shadow:none;border:1px solid var(--line);border-top:6px solid var(--ok);padding:16px">
+  const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:480px;padding:16px;gap:10px">
+    <div class="vpass ok" style="margin:0;max-width:none;box-shadow:none;border:1px solid var(--line);border-top:5px solid var(--ok);padding:12px 16px;gap:8px">
       <div class="vp-top"><span class="vp-kind">${esc(kind)}</span><span class="vp-st">${esc(stLabel)}</span></div>
-      <div class="vp-name" style="font-size:22px">${esc(v.name)}</div><div class="vp-org">${esc(v.org||"")}</div>
-      ${img?`<div class="vp-qr" style="padding:10px"><img src="${img}" alt="Pass QR code" style="width:170px;height:170px"></div>`:""}
-      <div class="vp-clock"><i></i><span id="m_vpc"></span></div>
-      <dl class="vp-dl">
-        <div><dt>Host</dt><dd>${esc(v.host)}${v.agency?" · "+esc(v.agency):""}</dd></div>
-        ${v.room?`<div><dt>Room</dt><dd>${esc(v.room)}</dd></div>`:""}
-        ${v.vehicle?`<div><dt>Vehicle</dt><dd class="mono">${esc(v.vehicle)}</dd></div>`:""}
-        ${v.tag?`<div><dt>Tag</dt><dd class="mono">${esc(v.tag)}</dd></div>`:""}
-        <div><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div>
-        <div><dt>Reference</dt><dd class="mono">${esc(v.ref)}</dd></div>
+      <div><div class="vp-name" style="font-size:20px">${esc(v.name)}</div><div class="vp-org" style="margin-top:0;font-size:13px">${esc(v.org||"")}</div></div>
+      ${img?`<div class="vp-qr" style="padding:8px"><img src="${img}" alt="Pass QR code" style="width:132px;height:132px"></div>`:""}
+      <div class="vp-clock" style="font-size:19px"><i></i><span id="m_vpc"></span></div>
+      <dl class="vp-dl" style="gap:4px">
+        <div style="padding-top:4px;font-size:13px"><dt>Host</dt><dd>${esc(v.host)}${v.agency?" · "+esc(v.agency):""}</dd></div>
+        ${v.room?`<div style="padding-top:4px;font-size:13px"><dt>Room</dt><dd>${esc(v.room)}</dd></div>`:""}
+        ${v.vehicle?`<div style="padding-top:4px;font-size:13px"><dt>Vehicle</dt><dd class="mono">${esc(v.vehicle)}</dd></div>`:""}
+        ${v.tag?`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono">${esc(v.tag)}</dd></div>`:""}
+        <div style="padding-top:4px;font-size:13px"><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div>
+        <div style="padding-top:4px;font-size:13px"><dt>Reference</dt><dd class="mono">${esc(v.ref)}</dd></div>
       </dl>
     </div>
-    <input id="m_plink" value="${esc(url)}" readonly aria-label="Pass link" style="font-size:12px">
-    <div class="acts"><a class="btn pri" href="${esc(url)}" target="_blank" rel="noopener">Open full pass page ↗</a>
-      <button class="btn" id="m_pcopy">Copy link</button>
-      <a class="btn" href="https://wa.me/${digits.length>=10?digits:""}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>
-      ${v.visitorEmail?`<a class="btn" href="mailto:${esc(v.visitorEmail)}?subject=${encodeURIComponent("Your UN House visitor pass")}&body=${encodeURIComponent(msg)}">Email</a>`:""}
-      <button class="btn" id="m_pcal" type="button">📅 .ics</button>
-      <button class="btn" id="mNo">Close</button></div></div>`;
+    <input id="m_plink" value="${esc(url)}" readonly aria-label="Pass link" style="font-size:12px;padding:6px 10px">
+    <div class="acts" style="flex-wrap:nowrap;gap:6px"><a class="btn pri" style="padding:7px 10px;font-size:12.5px;flex:1;justify-content:center" href="${esc(url)}" target="_blank" rel="noopener">Open pass ↗</a>
+      <button class="btn" style="padding:7px 10px;font-size:12.5px" id="m_pcopy">Copy link</button>
+      <a class="btn" style="padding:7px 10px;font-size:12.5px" href="https://wa.me/${digits.length>=10?digits:""}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>
+      ${v.visitorEmail?`<a class="btn" style="padding:7px 10px;font-size:12.5px" href="mailto:${esc(v.visitorEmail)}?subject=${encodeURIComponent("Your UN House visitor pass")}&body=${encodeURIComponent(msg)}">Email</a>`:""}
+      <button class="btn" style="padding:7px 10px;font-size:12.5px" id="m_pcal" type="button">.ics</button>
+      <button class="btn" style="padding:7px 10px;font-size:12.5px" id="mNo">Close</button></div></div>`;
   m.hidden=false;
   const tick=()=>{const c=$("#m_vpc");if(!c||m.hidden){clearInterval(openPass.t);return}c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})};
   tick(); openPass.t=setInterval(tick,1000);
