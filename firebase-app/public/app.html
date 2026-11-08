@@ -1852,7 +1852,7 @@ function demoData(){
       {id:"as3",ref:"MP-2026-3119",item:"Dell Latitude 7440 & Satellite Phone Kit",serial:"DL9912048",staffName:"Dr. K. Ibrahim",staffEmail:"k.ibrahim@who.int",agency:"WHO",dest:"Borno State Polio Campaign Coordination",status:"approved",requestedAt:t9-4*864e5,expectedRemovalDate:t9-1*864e5,approvedBy:"WHO Operations Officer C. Nnamdi",approvedAt:t9-48*3600e3,validUntil:t0+14*864e5,at:t9-4*864e5,verifiedAt:t9-1.5*h,verifiedBy:"Security Officer A. Bello (Station 1 Gate)"}
     ],
     dobs:[{id:"dob1",at:t9-1.2*h,severity:"routine",category:"Power / Utilities",title:"Main Grid to Generator Switchover",detail:"FCT public power failure; automatic switch to 500kVA generator completed normally with zero disruption.",station:"S1",officer:"A. Bello"}],
-    parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Diplomatic Bay #1",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}]};
+    parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Canopy Bay #1 (Ambassadorial)",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}]};
 }
 const TOUR=[
   ["Live overview","Everything happening across the four stations at once: who is expected, who is on site, and what needs attention. Each alert has a button that deals with it.",()=>{view="dashboard"}],
@@ -1880,7 +1880,7 @@ function drawTour(){
   if($("#tourN")) $("#tourN").onclick=()=>go(tourStep+1);
   if($("#tourDone")) $("#tourDone").onclick=()=>{t.hidden=true;$("#tourOpen").hidden=false;go(0)};
 }
-const DEMO_KEY="unhDemoState_v14";
+const DEMO_KEY="unhDemoState_v15";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
   try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
@@ -2039,7 +2039,7 @@ function regForm(walkin){
    <div class="f"><label for="r_to">Contractor access until</label><input id="r_to" type="date"></div>
    <div class="f"><label for="r_group">Group / delegation (optional)</label><input id="r_group"></div>
    <div class="f"><label for="r_room">Meeting room (optional)</label><input id="r_room" placeholder="e.g. Conference Room B"></div>
-   <div class="f"><label for="r_vehicle">Vehicle / plate number (optional)</label><input id="r_vehicle" placeholder="e.g. ABJ-402-XY"></div>
+   <div class="f"><label for="r_vehicle">Vehicle / plate number (VIP &amp; Diplomatic only · Regular visitors: drop-off only at Gate 1)</label><input id="r_vehicle" placeholder="e.g. CD-29-01 or ABJ-402-XY"></div>
    <div class="f"><label for="r_purpose">Purpose of visit</label><input id="r_purpose"></div>
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_restricted" type="checkbox" style="width:auto"><label for="r_restricted" style="margin:0">Needs access to a restricted area</label></div>
    <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px"><input id="r_escort" type="checkbox" style="width:auto"><label for="r_escort" style="margin:0">Requires staff escort while inside</label></div>
@@ -2177,11 +2177,11 @@ V.parking=()=>{
       const isContractor=v.type==="contractor";
       return {
         plate: v.vehicle,
-        driver: p.driverNote||(isDip?"Diplomatic chauffeur (with vehicle)":isContractor?"Service driver (Annex A)":"Visitor self-drive"),
+        driver: p.driverNote||(isDip?"Diplomatic chauffeur (with vehicle)":isContractor?"Service driver (Annex A)":"Visitor self-drive (drop-off)"),
         visitorName: v.name,
         org: v.org||v.agency||"",
         type: v.type,
-        bay: p.bay||(isDip?"VIP Diplomatic Bay #1":isContractor?"Annex A Service Bay":"Main Visitor Car Park"),
+        bay: p.bay||(isDip?"VIP Canopy Bay #1 (Ambassadorial)":isContractor?"Annex A Loading Bay (Service Only)":"Drop-off Only (No Parking Bay Authorized)"),
         timeIn: v.inAt||v.arrivedAt||p.at||now(),
         isDip,
         visitor: v
@@ -2195,7 +2195,7 @@ V.parking=()=>{
         visitorName: p.principalName||"Direct Gate Pass",
         org: p.agency||(isDip?"Diplomatic Mission":"Compound Logistics"),
         type: isDip?"vip":"official",
-        bay: p.bay||(isDip?"VIP Diplomatic Bay #2":"Main Visitor Car Park"),
+        bay: p.bay||(isDip?"VIP Canopy Bay #2 (Ambassadorial)":"RC / UN Agency Head Reserved Bay"),
         timeIn: p.at||now(),
         isDip,
         visitor: null
@@ -2204,9 +2204,10 @@ V.parking=()=>{
   ];
 
   const totalInside = activeVehicles.length;
-  const vipOccupied = activeVehicles.filter(v=>(v.bay||"").includes("VIP")).length;
+  const vipOccupied = activeVehicles.filter(v=>v.isDip||(v.bay||"").includes("VIP")||(v.bay||"").includes("Motorcade")).length;
+  const vipCanopyOccupied = activeVehicles.filter(v=>(v.bay||"").includes("Canopy")).length;
+  const motorcadeOccupied = activeVehicles.filter(v=>(v.bay||"").includes("Motorcade")).length;
   const serviceOccupied = activeVehicles.filter(v=>(v.bay||"").includes("Annex")||(v.bay||"").includes("Service")||(v.bay||"").includes("Loading")).length;
-  const visitorOccupied = Math.max(0, totalInside - vipOccupied - serviceOccupied);
   
   // Upcoming expected vehicles today
   const expectedVehicles = visitors.filter(v=>v.vehicle && ["approved","pending"].includes(v.status) && isToday(v.expected));
@@ -2216,27 +2217,35 @@ V.parking=()=>{
   const filteredActive = q ? activeVehicles.filter(v=>[v.plate,v.visitorName,v.driver,v.org,v.bay,v.visitor?v.visitor.ref:""].join(" ").toLowerCase().includes(q)) : activeVehicles;
   const filteredExpected = q ? expectedVehicles.filter(v=>[v.vehicle,v.name,v.org,v.host,v.agency,v.ref,v.room,v.purpose].join(" ").toLowerCase().includes(q)) : expectedVehicles;
 
-  return head("Compound Vehicles & Parking Bays","Real-time tracking of diplomatic motorcades, embassy vehicles, service deliveries, and visitor parking on compound. Cross-referenced with security clearance passes.")+
+  return head("Compound VIP Parking & Motorcades","Official compound parking control. Only accredited VIPs, Ambassadorial motorcades, and Diplomatic Mission vehicles are permitted to park on compound. Regular visitor vehicles are drop-off only at Gate 1.")+
+  `<div class="note" style="border-left:4px solid var(--accent);background:var(--surface);margin-bottom:14px;padding:12px 16px">
+    <div style="font-weight:700;font-size:13px;color:var(--accent);display:flex;align-items:center;gap:6px;margin-bottom:6px">
+      <span>🛡️ UN House Perimeter Security Rule: VIP &amp; Diplomatic Parking Only</span>
+    </div>
+    <div style="font-size:12.5px;color:var(--text);line-height:1.5">
+      Compound parking is strictly restricted to <b>accredited VIPs, Ambassadorial motorcades (CD/CC), and UN Agency Heads</b>. Regular visitor vehicles are <b>not permitted to park on compound (drop-off only outside Gate 1)</b>. Facilities service/loading vehicles require authorized facilities clearance.
+    </div>
+  </div>`+
   (isPast17 && totalInside > 0 ? `<div class="note" style="border-left:4px solid var(--bad);background:var(--bad-bg);color:var(--bad);display:flex;align-items:center;gap:12px;margin-bottom:12px">
     <span><b>⚠️ Anti-VBIED Security Rule:</b> Overnight compound parking is strictly prohibited. All ${totalInside} vehicle(s) must exit before reception closeout unless holding written UNDSS authorization.</span>
   </div>`:"")+
   `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
-    <div class="kpi ok"><div class="n">${totalInside}</div><div class="l">Total on compound (Max 32)</div></div>
-    <div class="kpi ${vipOccupied>=4?"alert":""}"><div class="n">${vipOccupied} / 4</div><div class="l">VIP Canopy Bays</div></div>
-    <div class="kpi"><div class="n">${visitorOccupied} / 20</div><div class="l">Visitor Bays Occupied</div></div>
-    <div class="kpi"><div class="n">${serviceOccupied} / 2</div><div class="l">Service &amp; Loading Bays</div></div>
+    <div class="kpi ok"><div class="n">${vipOccupied}</div><div class="l">VIP &amp; Diplomatic on Compound</div></div>
+    <div class="kpi ${vipCanopyOccupied>=4?"alert":""}"><div class="n">${vipCanopyOccupied} / 4</div><div class="l">VIP Canopy Bays (Canopy #1–#4)</div></div>
+    <div class="kpi"><div class="n">${motorcadeOccupied} / 4</div><div class="l">Motorcade Escort Bays</div></div>
+    <div class="kpi"><div class="n" style="font-size:16px;color:var(--bad)">Drop-off Only</div><div class="l">Visitors: No compound parking</div></div>
   </div>
   <div class="panel">
     ${searchBox("Search plate number, principal, pass reference, chauffeur, bay, or diplomatic mission...")}
   </div>
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
-      <div><h2 style="margin:0">Vehicles Currently Inside Compound (${filteredActive.length})</h2><p class="small" style="margin:2px 0 0">Gate physical screening &amp; bay allocation active. Verified against visitor clearance pass.</p></div>
-      <button class="btn pri" id="veh_quick_log">+ Log Vehicle at Gate</button>
+      <div><h2 style="margin:0">Vehicles Currently Inside Compound (${filteredActive.length})</h2><p class="small" style="margin:2px 0 0">Perimeter physical screening active. Only VIP diplomatic motorcades authorized to park.</p></div>
+      <button class="btn pri" id="veh_quick_log">+ Log VIP Vehicle at Gate</button>
     </div>
     <div class="tw" style="margin-top:14px"><table><thead><tr>
       <th>Vehicle &amp; Plate</th>
-      <th>Assigned Bay</th>
+      <th>Assigned Bay (VIP Only)</th>
       <th>Principal / Visitor Reference</th>
       <th>Visitor Clearance Status</th>
       <th>Inspection &amp; Protocol</th>
@@ -2246,10 +2255,14 @@ V.parking=()=>{
       <td>
         <span class="mono" style="font-size:14px;font-weight:700">🚗 ${esc(v.plate)}</span>
         ${v.isDip?`<span class="pill p-in" style="font-size:10px;padding:2px 6px;margin-left:4px">Diplomatic CD</span>`:""}
-        ${v.type==="contractor"?`<span class="pill p-pending" style="font-size:10px;padding:2px 6px;margin-left:4px">Contractor Van</span>`:""}
+        ${v.type==="vip"?`<span class="pill p-in" style="font-size:10px;padding:2px 6px;margin-left:4px">VIP Guest</span>`:
+          v.type==="contractor"?`<span class="pill p-pending" style="font-size:10px;padding:2px 6px;margin-left:4px">Contractor Van</span>`:
+          `<span class="pill p-rejected" style="font-size:10px;padding:2px 6px;margin-left:4px">Non-VIP Visitor</span>`}
       </td>
       <td>
-        <span class="pill ${v.isDip?"p-in":(v.bay||"").includes("VIP")?"p-in":"p-pending"}">${esc(v.bay)}</span>
+        ${v.isDip||v.type==="vip"?`<span class="pill p-in">${esc(v.bay)}</span>`:
+          v.type==="contractor"?`<span class="pill p-pending">${esc(v.bay)}</span>`:
+          `<span class="pill p-rejected" style="font-size:11px">Drop-off Only</span><div class="small" style="color:var(--bad);font-weight:600">Unauthorized Parking Violation</div>`}
       </td>
       <td>
         <b>${esc(v.visitorName)}</b>
@@ -2272,7 +2285,7 @@ V.parking=()=>{
       <td>
         <div class="acts" style="flex-wrap:nowrap">
           ${v.visitor?`<button class="btn ok" data-act="pass" data-id="${esc(v.visitor.id)}" title="Show Digital Visitor Pass">Show Pass</button>`:""}
-          <button class="btn" data-veh-bay="${esc(v.plate)}">Reassign Bay</button>
+          ${v.isDip||v.type==="vip"?`<button class="btn" data-veh-bay="${esc(v.plate)}">Reassign Bay</button>`:""}
           <button class="btn bad" data-veh-exit="${esc(v.plate)}">Exit Gate</button>
         </div>
       </td>
@@ -2282,14 +2295,14 @@ V.parking=()=>{
   ${filteredExpected.length?`
   <div class="panel" style="margin-top:16px">
     <h2>Expected VIP &amp; Visitor Vehicles Today (${filteredExpected.length})</h2>
-    <p class="small" style="margin:-4px 0 10px;color:var(--muted)">Upcoming motorcades and visitor plates. Verify security clearance and digital pass before gate admittance.</p>
+    <p class="small" style="margin:-4px 0 10px;color:var(--muted)">Compound parking is restricted to VIP and diplomatic motorcades. Non-VIP vehicles are drop-off only at Gate 1.</p>
     <div class="tw"><table><thead><tr>
       <th>Expected Plate</th>
       <th>Principal / Guest Reference</th>
       <th>Visitor Clearance Status</th>
       <th>Host &amp; Meeting</th>
       <th>Expected Time</th>
-      <th>Reserved Bay</th>
+      <th>Compound Parking Status</th>
       <th>Gate Admittance &amp; Pass</th>
     </tr></thead><tbody>
     ${filteredExpected.map(v=>{
@@ -2315,12 +2328,13 @@ V.parking=()=>{
         </td>
         <td class="mono">${fmtT(v.expected)}</td>
         <td>
-          <span class="pill ${isDip?"p-in":"p-pending"}">${isDip?"VIP Canopy Bay (Reserved)":"Main Visitor Car Park"}</span>
+          ${isDip?`<span class="pill p-in">VIP Canopy Bay (Reserved)</span>`:
+            `<span class="pill p-rejected" style="font-size:11px">Drop-off Only at Gate 1</span><div class="small" style="color:var(--bad);font-weight:600">No Compound Parking (VIP Only)</div>`}
         </td>
         <td>
           <div class="acts" style="flex-wrap:nowrap">
             <button class="btn ok" data-act="pass" data-id="${esc(v.id)}" title="Show Live Digital Pass">Show Pass</button>
-            ${v.status==="approved"?(v.type==="vip"?B(v.id,"vipadmit","Admit Motorcade","pri"):B(v.id,"arrive","Admit Vehicle","pri")):
+            ${v.status==="approved"?(isDip?B(v.id,"vipadmit","Admit VIP Motorcade","ok"):B(v.id,"arrive","Admit Guest (Drop-off Only)","pri")):
               `<span class="small" style="color:var(--bad);font-weight:600">Hold at Gate</span>`}
           </div>
         </td>
@@ -2357,15 +2371,15 @@ V.assets=()=>{
   const q=(render.q||"").toLowerCase().trim();
   const filtered=q?list.filter(a=>[a.ref,a.item,a.serial,a.staffName,a.staffEmail,a.agency,a.dest,a.approvedBy].join(" ").toLowerCase().includes(q)):list;
 
-  return head("Material & Asset Gate Pass","Official UN property removal control. Equipment must be requested at least 24–48 hours in advance and certified by an authorized agency supervisor before gate security can clear exit.")+
+  return head("Material & Asset Gate Pass","Official UN property removal control. Equipment must be requested at least 24–48 hours in advance before it is taken out of the premises, and someone from that agency must approve before gate security can clear exit.")+
   `<div class="note" style="border-left:4px solid var(--accent);background:var(--surface);margin-bottom:14px;padding:12px 16px">
     <div style="font-weight:700;font-size:13px;color:var(--accent);display:flex;align-items:center;gap:6px;margin-bottom:6px">
       <span>📋 Official UN House Asset Removal Procedure (Security SOP 24–48h Rule)</span>
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;font-size:12.5px;color:var(--text)">
-      <div><b>1. 24–48h Advance Notice:</b> Custodian staff must submit pass requests in advance with device serial number and destination.</div>
-      <div><b>2. Independent Certification:</b> Agency Head / Operations Supervisor must certify; custodians cannot self-approve.</div>
-      <div><b>3. Station 1 Gate Screening:</b> Security physically matches serial numbers against this pass before barrier clearance.</div>
+      <div><b>1. 24–48h Advance Notice:</b> Equipment must be requested at least 24–48 hours in advance before it is taken out of the premises.</div>
+      <div><b>2. Independent Agency Approval:</b> Someone from that agency (Supervisor / Head of Operations) must approve; custodians cannot self-approve.</div>
+      <div><b>3. Station 1 Gate Screening:</b> Security physically matches serial numbers against this pass before equipment is cleared out of the premises.</div>
     </div>
   </div>
   <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
@@ -2455,7 +2469,7 @@ function openAssetNotifyModal(a){
 
 Dear Certifying Officer / Operations Supervisor (${a.agency}),
 
-An official Property Removal Gate Pass has been requested and requires your formal agency authorization before Gate Security (Station 1) can clear equipment for exit:
+An official Property Removal Gate Pass has been requested and requires your formal agency authorization before Gate Security (Station 1) can clear equipment out of the premises:
 
 • Pass Reference: ${a.ref}
 • Item / Equipment: ${a.item}
@@ -2465,7 +2479,9 @@ An official Property Removal Gate Pass has been requested and requires your form
 • Scheduled Removal Date: ${schedDate}
 • Official Destination & Purpose: ${a.dest}
 
-Per UN House Abuja Security SOPs, custodians cannot self-approve equipment passes. Please review and certify this pass on the UN House Access portal:
+Per UN House Abuja Security SOPs, equipment must be requested at least 24–48 hours in advance before it is taken out of the premises, and someone from that agency must approve. Custodians cannot self-approve.
+
+Please review and certify this pass on the UN House Access portal:
 ${portalUrl}
 
 Thank you,
@@ -2635,7 +2651,7 @@ function wire(){
   if(vehQuick) vehQuick.onclick=()=>{
     modal(`<h2>Assign / Change Parking Bay</h2>
       <div class="f"><label for="pk_m_plate">Vehicle Plate Number</label><input id="pk_m_plate" placeholder="e.g. CD-29-01 or ABJ-402-XY"></div>
-      <div class="f"><label for="pk_m_bay">Assigned Parking Bay</label><select id="pk_m_bay"><option>VIP Diplomatic Bay #1</option><option>VIP Diplomatic Bay #2</option><option>Agency Head Bay</option><option>Main Visitor Car Park</option><option>Annex A Loading Bay</option></select></div>
+      <div class="f"><label for="pk_m_bay">Assigned VIP Parking Bay</label><select id="pk_m_bay"><option>VIP Canopy Bay #1 (Ambassadorial)</option><option>VIP Canopy Bay #2 (Ambassadorial)</option><option>VIP Canopy Bay #3 (Diplomatic Corps)</option><option>VIP Canopy Bay #4 (Diplomatic Corps)</option><option>Diplomatic Motorcade Escort Bay</option><option>RC / UN Agency Head Reserved Bay</option><option>Annex A Loading Bay (Service Only)</option></select></div>
       <div class="f"><label for="pk_m_driver">Driver / Chauffeur Instructions</label><input id="pk_m_driver" placeholder="e.g. Chauffeur remains with vehicle"></div>`,
       async ()=>{
         const plate=$("#pk_m_plate").value.trim().toUpperCase(), bay=$("#pk_m_bay").value, driverNote=$("#pk_m_driver").value.trim();
@@ -2650,7 +2666,7 @@ function wire(){
   document.querySelectorAll("[data-veh-bay]").forEach(b=>b.onclick=()=>{
     const plate=b.dataset.vehBay;
     modal(`<h2>Reassign Bay · ${esc(plate)}</h2>
-      <div class="f"><label for="re_bay">Select New Bay</label><select id="re_bay"><option>VIP Diplomatic Bay #1</option><option>VIP Diplomatic Bay #2</option><option>Agency Head Bay</option><option>Main Visitor Car Park</option><option>Loading Bay</option></select></div>`,
+      <div class="f"><label for="re_bay">Select New VIP Bay</label><select id="re_bay"><option>VIP Canopy Bay #1 (Ambassadorial)</option><option>VIP Canopy Bay #2 (Ambassadorial)</option><option>VIP Canopy Bay #3 (Diplomatic Corps)</option><option>VIP Canopy Bay #4 (Diplomatic Corps)</option><option>Diplomatic Motorcade Escort Bay</option><option>RC / UN Agency Head Reserved Bay</option><option>Annex A Loading Bay (Service Only)</option></select></div>`,
       async ()=>{
         const bay=$("#re_bay").value;
         const idx=parkings.findIndex(p=>p.plate===plate);
@@ -2692,7 +2708,7 @@ function wire(){
   if(assetModal) assetModal.onclick=()=>{
     const minD=new Date(now()+864e5).toISOString().slice(0,10);
     modal(`<h2>Request Material &amp; Asset Gate Pass</h2>
-      <p class="small" style="margin-top:-6px;color:var(--muted)">Advance request required (min 24–48 hours). Custodians cannot self-approve. Approval must come from an authorized agency supervisor before gate security clearance.</p>
+      <p class="small" style="margin-top:-6px;color:var(--muted)">Advance request mandatory (min 24–48 hours). This has to be requested days before it is taken out of the premises, and someone from that agency must approve. Custodians cannot self-approve.</p>
       <div class="f"><label for="as_m_item">Item Description &amp; Model *</label><input id="as_m_item" placeholder="e.g. MacBook Pro M3 Max / Dell Latitude 5420"></div>
       <div class="f"><label for="as_m_serial">Serial Number / Asset Tag *</label><input id="as_m_serial" placeholder="e.g. SN64578999 / UNDP-ABJ-049"></div>
       <div class="f"><label for="as_m_name">Custodian Staff Full Name *</label><input id="as_m_name" value="${esc(op())}"></div>
@@ -2711,6 +2727,10 @@ function wire(){
         if(!item||!staffName||!dest){ toast("Please complete all required fields."); return false; }
         if(!dateVal){ toast("Please select scheduled equipment removal date."); return false; }
         const removalDateMs=new Date(dateVal+"T09:00:00").getTime();
+        if(removalDateMs < day0(now()) + 864e5){
+          toast("This has to be requested days before it is taken out of the premises (min 24–48 hours advance notice).");
+          return false;
+        }
         const ref="MP-"+new Date().getFullYear()+"-"+String(Math.floor(Math.random()*9000)+1000);
         // Advance request rule: All requests enter 'pending' awaiting independent agency supervisor approval
         const passRec={
@@ -2769,7 +2789,7 @@ function wire(){
     }
     if(a.expectedRemovalDate && day0(now()) < day0(a.expectedRemovalDate)){
       const schedStr=new Date(a.expectedRemovalDate).toLocaleDateString();
-      if(!confirm(`Early Clearance Notice: Scheduled removal date is ${schedStr}. Confirm physical verification of serial number (${a.serial||"N/A"}) and clear asset today?`)) return;
+      if(!confirm(`Early Clearance Notice: Scheduled removal date is ${schedStr}. Equipment must be requested days before it is taken out of the premises. Confirm physical verification of serial number (${a.serial||"N/A"}) before clearing asset out of the premises today?`)) return;
     }
     a.verifiedAt=now(); a.verifiedBy=op()+" (Station 1 Gate)";
     if(db) await db.collection("assets").doc(id).update({verifiedAt:now(),verifiedBy:a.verifiedBy});
