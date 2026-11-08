@@ -419,26 +419,8 @@ exports.deliveryReminder = onSchedule(
    every on-site visitor (visitorEmail) and their host (hostEmail). */
 exports.rollcallEmails = onDocumentCreated(
   { document: "rollcalls/{id}", region: REGION, secrets: [SMTP_USER, SMTP_PASS] },
-  async (event) => {
-    const r = event.data.data();
-    if (!r || !r.notifyAll || !Array.isArray(r.people) || !r.people.length) return;
-    const jobs = [];
-    for (const p of r.people) {
-      if (validEmail(p.visitorEmail)) {
-        jobs.push(send(p.visitorEmail, "URGENT: UN House Abuja Evacuation Roll Call",
-          page("Emergency evacuation roll call", [
-            ["Visitor", p.name], ["Tag", p.tag || "—"], ["Building", p.building || "UN House"], ["Host", p.host || "—"],
-            ["Instruction", "Proceed immediately to the nearest emergency assembly point and report to security for roll call."],
-          ])).catch(() => {}));
-      }
-      if (validEmail(p.hostEmail)) {
-        jobs.push(send(p.hostEmail, `URGENT: Evacuation roll call — your guest ${p.name}`,
-          page("Your visitor is on the emergency roll call list", [
-            ["Visitor", p.name], ["Tag", p.tag || "—"], ["Building", p.building || "UN House"],
-            ["Action", "Please ensure your guest reaches the assembly point or inform security of their whereabouts."],
-          ], ["Open roll call", APP_URL.value() + "#evac"])).catch(() => {}));
-      }
-    }
-    await Promise.all(jobs);
+  async () => {
+    // Evacuation roll calls do not send messages to host or visitor
+    return;
   }
 );

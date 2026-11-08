@@ -1,4 +1,4 @@
-<title>UN House Access Control</title>
+<title>UN House Visitor Management System</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -334,7 +334,7 @@ main{gap:20px}
 <header class="top">
   <img class="hlogo" src="logo.png" alt="UNDP" onerror="this.hidden=true;document.getElementById('hslot').hidden=false">
   <div class="hslot" id="hslot" role="img" aria-label="UNDP" hidden><svg viewBox="0 0 64 80"><rect width="64" height="80" fill="#0468B1"/><g transform="translate(32,23)" fill="none" stroke="#fff" stroke-linecap="round"><circle r="10.5" stroke-width="1.35"/><circle r="7" stroke-width="1.15"/><circle r="3.5" stroke-width="1.05"/><line x1="-10.5" y1="0" x2="10.5" y2="0" stroke-width="1.1"/><line x1="0" y1="-10.5" x2="0" y2="10.5" stroke-width="1.1"/><line x1="-7.4" y1="-7.4" x2="7.4" y2="7.4" stroke-width="0.95"/><line x1="7.4" y1="-7.4" x2="-7.4" y2="7.4" stroke-width="0.95"/><path d="M-4,12.5 C-13,10.5 -16.5,2 -15,-7.5 C-14,-11 -11.5,-13.5 -9,-15" stroke-width="2.1"/><path d="M4,12.5 C13,10.5 16.5,2 15,-7.5 C14,-11 11.5,-13.5 9,-15" stroke-width="2.1"/><path d="M-5.5,11.5 L3.5,14.5 M5.5,11.5 L-3.5,14.5" stroke-width="1.8"/></g><line x1="8" y1="42" x2="56" y2="42" stroke="#fff" stroke-opacity=".3" stroke-width="1"/><g fill="#fff" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif" font-weight="800" text-anchor="middle"><text x="32" y="57.5" font-size="16.5" letter-spacing="1.5">UN</text><text x="32" y="73.5" font-size="16.5" letter-spacing="1.5">DP</text></g></svg></div>
-  <div class="brand"><b>UN House Access Control</b><span>UNDP · UN Common Services · Abuja</span></div>
+  <div class="brand"><b>UN House Visitor Management System</b><span>UNDP · UN Common Services · Abuja</span></div>
   <div class="sp"></div>
   <div id="who" class="sync" hidden></div>
   <div id="demoSel" style="display:contents">
@@ -360,7 +360,7 @@ main{gap:20px}
   <main id="main"></main>
 </div>
 <footer class="appfoot">
-  <span>UN House Access Control · v1.0 · <a href="index.html">Home</a></span>
+  <span>UN House Visitor Management System · v1.0 · <a href="index.html">Home</a></span>
   <span>© <span id="yr">2026</span> SKILL.SCH for UN Common Services, Abuja</span>
 </footer>
 <div id="toast" class="toast" hidden></div>
@@ -739,7 +739,7 @@ function alerts(){
   const a=[], since=t=>dur(now()-t);
   visitors.forEach(v=>{
     const wm=["pending","approved","arrived","tagged","in"].includes(v.status)?watched(v):null;
-    if(wm) a.push({lvl:"act",kind:"Watchlist match",v,title:v.name,detail:(v.status==="in"||v.status==="tagged"?"Already inside · ":"")+wm.reason,act:"detail",label:"Details"});
+    if(wm) a.push({lvl:"act",kind:"UNDSS Watchlist match",v,title:v.name,detail:(v.status==="in"||v.status==="tagged"?"Already inside · ":"")+wm.reason,act:"detail",label:"Details"});
     if(overstay(v)) a.push({lvl:"act",kind:"Overstay",v,title:v.name,detail:`Inside ${since(v.inAt)} · host ${v.host}`,act:"checkout",label:"Check out"});
     if(contractorExpired(v)) a.push({lvl:"act",kind:"Access expired",v,title:v.name,detail:`Contractor access ended ${fmtD(v.accessTo)} · still ${STATUS[v.status].toLowerCase()}`,act:"suspend",label:"Suspend"});
     else if(contractorExpiring(v)) a.push({lvl:"soon",kind:"Expires soon",v,title:v.name,detail:`Contractor access ends ${fmtD(v.accessTo)}`,act:"extend",label:"Extend 7 days"});
@@ -774,7 +774,7 @@ const VIEWS=[
   ["contractors","Contractors","Access & Guests",'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>'],
   ["deliveries","Deliveries","Access & Guests",'<path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 7l8.7 5 8.7-5M12 12v10"/>'],
   ["evac","Evacuation","Safety & Analytics",'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'],
-  ["watch","Watchlist","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>'],
+  ["watch","UNDSS Watchlist","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>'],
   ["reports","Reports","Safety & Analytics",'<path d="M18 20V10M12 20V4M6 20v-6"/>'],
   ["history","History & audit","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
   ["assistant","Ops assistant","Safety & Analytics",'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>'],
@@ -1009,7 +1009,7 @@ function scanResult(v,p,title,msg){
   if(!v){ m.innerHTML=`<div class="modal"><div class="scan-band no">${esc(title)}</div><p>${esc(msg)}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`; m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return; }
   const expired=p&&p.validUntil<now(), step=nextStep(v);
   let band="ok", head="Valid", note="";
-  if(watched(v)){band="no";head="Watchlist match: do not admit";note="Keep the visitor here and call security and the duty approver."}
+  if(watched(v)){band="no";head="UNDSS Watchlist match: do not admit";note="Keep the visitor here and call security and the duty approver."}
   else if(v.status==="out"&&!(v.type==="contractor"&&(v.accessTo||0)>now())){band="no";head="Already checked out";note=`Left at ${fmtT(v.outAt)}. Do not admit on this pass.`}
   else if(["rejected","suspended","cancelled"].includes(v.status)){band="no";head=STATUS[v.status];note="Do not admit. Contact the approver."}
   else if(v.status==="pending"){band="no";head="Not approved yet";note="Wait for approval before admitting."}
@@ -1124,30 +1124,30 @@ function watched(v){
   if(v.watchFlag) return {reason:v.watchReason||"Matches the watchlist"};
   return null;
 }
-function watchPill(v){const w=watched(v);return w?`<span class="pill p-watch" title="${esc(w.reason)}">Watchlist</span>`:""}
+function watchPill(v){const w=watched(v);return w?`<span class="pill p-watch" title="${esc(w.reason)}">UNDSS Watchlist</span>`:""}
 function watchBlock(v,then){
   const r=myRole();
   if(!["admin","approver"].includes(r)){
-    const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc((watched(v)||{}).reason||"")}. Keep the visitor at the gate and call security and the duty approver.</p><p class="small">${esc(v.watchReason||"")}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
+    const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit</div><p><b>${esc(v.name)}</b> matches the UNDSS Watchlist: ${esc((watched(v)||{}).reason||"")}. Keep the visitor at the gate and call security and the duty approver.</p><p class="small">${esc(v.watchReason||"")}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
     m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return;
   }
-  modal(`<div class="scan-band no">Watchlist match</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc((watched(v)||{}).reason||"no reason recorded")}.</p>
+  modal(`<div class="scan-band no">UNDSS Watchlist match</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc((watched(v)||{}).reason||"no reason recorded")}.</p>
     <div class="f"><label for="m_ovr">To admit anyway, record why (for example "Checked with UNDSS: different person, ID verified")</label><textarea id="m_ovr"></textarea></div><div id="m_err" class="small" style="color:var(--warn)"></div>`,
     ()=>{const why=$("#m_ovr").value.trim(); if(why.length<10){$("#m_err").textContent="Write at least a short reason.";return false}
-      act(v,`Watchlist override: ${why}`,{watchFlag:false,watchOverride:{by:op(),byUid:myUid(),reason:why,at:now()}}).then(()=>{toast("Override recorded.");const cur=visitors.find(x=>x.id===v.id);then&&then(cur||{...v,watchFlag:false,watchOverride:{at:now()}})})});
+      act(v,`UNDSS Watchlist override: ${why}`,{watchFlag:false,watchOverride:{by:op(),byUid:myUid(),reason:why,at:now()}}).then(()=>{toast("Override recorded.");const cur=visitors.find(x=>x.id===v.id);then&&then(cur||{...v,watchFlag:false,watchOverride:{at:now()}})})});
 }
 const VW_watch=()=>{
   const list=[...watchlist].sort((a,b)=>(b.active!==false)-(a.active!==false)||String(a.name).localeCompare(b.name));
   const flagged=visitors.filter(v=>watched(v)&&!["out","rejected","cancelled"].includes(v.status));
-  return head("Watchlist","People who must not be admitted without a security check. Every new registration is checked against this list, and matches are blocked at the gate.")+
+  return head("UNDSS Watchlist","People who must not be admitted without a security check. Every new registration is checked against this list, and matches are blocked at the gate.")+
   (flagged.length?`<div class="panel"><h2>Current matches <span class="cnt">${flagged.length}</span></h2>${table(flagged,v=>B(v.id,"detail","Details"),"")}</div>`:"")+
   `<div class="panel"><h2>Add a person</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
     <div class="f"><label for="w_name">Full name</label><input id="w_name"></div>
     <div class="f"><label for="w_alias">Other names or spellings (separate with ;)</label><input id="w_alias"></div>
     <div class="f"><label for="w_org">Organisation (optional)</label><input id="w_org"></div>
     <div class="f" style="grid-column:1/-1"><label for="w_reason">Reason and instruction (shown to the gate)</label><input id="w_reason" placeholder="e.g. Barred by UNDSS 3 Oct 2026. Call security on arrival."></div></div>
-    <div class="acts" style="margin-top:10px"><button class="btn pri" id="w_add">Add to watchlist</button></div></div>
-  <div class="panel"><h2>On the list <span class="cnt">${list.filter(w=>w.active!==false).length}</span></h2>${list.length?`<div class="tw"><table><thead><tr><th>Name</th><th>Reason</th><th>Added</th><th></th></tr></thead><tbody>${list.map(w=>`<tr style="${w.active===false?"opacity:.55":""}"><td><b>${esc(w.name)}</b><div class="small">${esc(w.aliases||"")}${w.org?" · "+esc(w.org):""}</div></td><td>${esc(w.reason||"")}</td><td class="small">${fmtD(w.at)} · ${esc(w.addedBy||"")}</td><td><button class="btn ${w.active===false?"":"bad"}" data-wtoggle="${esc(w.id)}">${w.active===false?"Reactivate":"Remove"}</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nobody is on the watchlist.</div>`}</div>`;
+    <div class="acts" style="margin-top:10px"><button class="btn pri" id="w_add">Add to UNDSS Watchlist</button></div></div>
+  <div class="panel"><h2>On the list <span class="cnt">${list.filter(w=>w.active!==false).length}</span></h2>${list.length?`<div class="tw"><table><thead><tr><th>Name</th><th>Reason</th><th>Added</th><th></th></tr></thead><tbody>${list.map(w=>`<tr style="${w.active===false?"opacity:.55":""}"><td><b>${esc(w.name)}</b><div class="small">${esc(w.aliases||"")}${w.org?" · "+esc(w.org):""}</div></td><td>${esc(w.reason||"")}</td><td class="small">${fmtD(w.at)} · ${esc(w.addedBy||"")}</td><td><button class="btn ${w.active===false?"":"bad"}" data-wtoggle="${esc(w.id)}">${w.active===false?"Reactivate":"Remove"}</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nobody is on the UNDSS Watchlist.</div>`}</div>`;
 };
 function wireWatch(){
   const a=$("#w_add"); if(a) a.onclick=async()=>{const name=$("#w_name").value.trim(); if(name.length<2) return toast("Enter a name.");
@@ -1156,11 +1156,11 @@ function wireWatch(){
       const tmp={name,aliases:$("#w_alias").value.trim(),active:true}; let n=0;
       for(const v of visitors.filter(x=>!x.watchFlag&&["pending","approved","arrived","tagged","in"].includes(x.status))){
         const hit=[tmp.name].concat(tmp.aliases.split(";")).some(n=>n.trim()&&namesMatch(n,v.name));
-        if(hit){ n++; if(["admin","approver"].includes(myRole())) await act(v,"Flagged by new watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()}); }
+        if(hit){ n++; if(["admin","approver"].includes(myRole())) await act(v,"Flagged by new UNDSS Watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()}); }
       }
-      toast(`${name} added to the watchlist.${n?` ${n} current visit${n>1?"s":""} now flagged.`:" No current visits match."}`)}catch(e){toast("Could not add: "+e.message)}};
+      toast(`${name} added to the UNDSS Watchlist.${n?` ${n} current visit${n>1?"s":""} now flagged.`:" No current visits match."}`)}catch(e){toast("Could not add: "+e.message)}};
   document.querySelectorAll("[data-wtoggle]").forEach(b=>b.onclick=()=>{const w=watchlist.find(x=>x.id===b.dataset.wtoggle);
-    db.collection("watchlist").doc(w.id).update({active:w.active===false,changedAt:now(),changedBy:op()}).then(()=>toast(w.active===false?"Reactivated.":"Removed from the watchlist.")).catch(e=>toast(e.message))});
+    db.collection("watchlist").doc(w.id).update({active:w.active===false,changedAt:now(),changedBy:op()}).then(()=>toast(w.active===false?"Reactivated.":"Removed from the UNDSS Watchlist.")).catch(e=>toast(e.message))});
 }
 
 /* ---------- 2. Evacuation roll call ---------- */
@@ -1171,17 +1171,17 @@ function enrichEvacPerson(p){
 }
 const VW_evac=()=>{
   const r=activeRoll(), onsite=visitors.filter(v=>["arrived","tagged","in"].includes(v.status));
-  if(!r) return head("Evacuation roll call","In an emergency, start a roll call. Everyone signed in at any station sees the same live list, ticks people off at the assembly point, and can message guests and their hosts.")+
+  if(!r) return head("Evacuation roll call","In an emergency, start a roll call. Everyone signed in at any station sees the same live list and ticks people off at the assembly point.")+
     `<div class="panel"><div class="kpis"><div class="kpi"><div class="n">${onsite.length}</div><div class="l">Visitors on site now</div></div>${BUILDINGS.map(b=>`<div class="kpi"><div class="n">${onsite.filter(v=>v.building===b).length}</div><div class="l">${esc(b)}</div></div>`).join("")}</div>
     <div class="acts" style="margin-top:14px"><button class="btn pri" id="ev_start">Start roll call</button></div></div>
     ${rollcalls.length?`<div class="panel"><h2>Past roll calls</h2><div class="tw"><table><tbody>${rollcalls.filter(x=>x.endedAt).slice(0,8).map(x=>`<tr><td>${fmtD(x.startedAt)}</td><td>${Object.values(x.accounted||{}).filter(Boolean).length} of ${x.people.length} accounted</td><td class="small">Started by ${esc(x.startedBy)} · ended ${fmtT(x.endedAt)} by ${esc(x.endedBy||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
   const acc=r.accounted||{}, notif=r.notified||{}, done=r.people.filter(p=>acc[p.visitorId]).length, missing=r.people.filter(p=>!acc[p.visitorId]);
-  return `<div class="evac-head"><div><div class="al-k" style="color:inherit">Roll call in progress · started ${fmtT(r.startedAt)} by ${esc(r.startedBy)}</div><div class="evac-n">${done} of ${r.people.length} accounted for</div></div><div class="acts">${missing.length?`<button class="btn" id="ev_msg_all">Message missing (${missing.length})</button>`:""}<button class="btn" id="ev_end">End roll call</button></div></div>
+  return `<div class="evac-head"><div><div class="al-k" style="color:inherit">Roll call in progress · started ${fmtT(r.startedAt)} by ${esc(r.startedBy)}</div><div class="evac-n">${done} of ${r.people.length} accounted for</div></div><div class="acts"><button class="btn" id="ev_end">End roll call</button></div></div>
   <div class="evac-bar"><span style="width:${r.people.length?done/r.people.length*100:100}%"></span></div>
   ${missing.length?`<div class="panel"><h2>Still missing <span class="cnt">${missing.length}</span></h2>${evacList(missing,acc,notif)}</div>`:`<div class="panel"><div class="al-empty"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Everyone is accounted for.</div></div>`}
   ${BUILDINGS.filter(b=>r.people.some(p=>p.building===b)).map(b=>{const ps=r.people.filter(p=>p.building===b);return `<div class="panel"><h2>${esc(b)} <span class="cnt">${ps.filter(p=>acc[p.visitorId]).length}/${ps.length}</span></h2>${evacList(ps,acc,notif)}</div>`}).join("")}`;
 };
-function evacList(ps,acc,notif={}){return `<ul class="evac">${ps.map(raw=>{const p=enrichEvacPerson(raw), n=notif[p.visitorId];return `<li class="${acc[p.visitorId]?"ok":""}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><label style="flex:1;min-width:220px"><input type="checkbox" data-evac="${esc(p.visitorId)}" ${acc[p.visitorId]?"checked":""}><span><b>${esc(p.name)}</b><span class="small"> ${esc(p.tag||"")} · host ${esc(p.host)}${p.hostEmail?" ("+esc(p.hostEmail)+")":""}${p.phone?" · "+esc(p.phone):""}${p.visitorEmail?" · "+esc(p.visitorEmail):""}</span>${n?` <span class="pill p-in">Messaged · ${esc(n.via)} ${fmtT(n.at)}</span>`:""}</span></label><button class="btn" type="button" data-evac-msg="${esc(p.visitorId)}">Message host &amp; guest</button></li>`}).join("")}</ul>`}
+function evacList(ps,acc,notif={}){return `<ul class="evac">${ps.map(raw=>{const p=enrichEvacPerson(raw), n=notif[p.visitorId];return `<li class="${acc[p.visitorId]?"ok":""}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><label style="flex:1;min-width:220px"><input type="checkbox" data-evac="${esc(p.visitorId)}" ${acc[p.visitorId]?"checked":""}><span><b>${esc(p.name)}</b><span class="small"> ${esc(p.tag||"")} · host ${esc(p.host)}${p.hostEmail?" ("+esc(p.hostEmail)+")":""}${p.phone?" · "+esc(p.phone):""}${p.visitorEmail?" · "+esc(p.visitorEmail):""}</span></span></label></li>`}).join("")}</ul>`}
 function updateRoll(id,patch){
   const r=rollcalls.find(x=>x.id===id);
   if(r){for(const [k,v] of Object.entries(patch)){if(k.includes(".")){const [a,b]=k.split(".");r[a]={...(r[a]||{}),[b]:v}}else r[k]=v}}
@@ -1290,7 +1290,7 @@ async function startKiosk(){
       <img class="hlogo" src="logo.png" alt="UNDP" onerror="this.hidden=true;var s=document.getElementById('k_slot');if(s)s.hidden=false" style="height:50px;width:auto;display:block;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.22)">
       <div class="hslot" id="k_slot" role="img" aria-label="UNDP" hidden style="height:50px;width:37px;border:1px solid #ffffff38;background:#0468B1;border-radius:6px;display:grid;place-items:center;color:#fff;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.22)"><svg viewBox="0 0 64 80"><rect width="64" height="80" fill="#0468B1"/><g transform="translate(32,23)" fill="none" stroke="#fff" stroke-linecap="round"><circle r="10.5" stroke-width="1.35"/><circle r="7" stroke-width="1.15"/><circle r="3.5" stroke-width="1.05"/><line x1="-10.5" y1="0" x2="10.5" y2="0" stroke-width="1.1"/><line x1="0" y1="-10.5" x2="0" y2="10.5" stroke-width="1.1"/><line x1="-7.4" y1="-7.4" x2="7.4" y2="7.4" stroke-width="0.95"/><line x1="7.4" y1="-7.4" x2="-7.4" y2="7.4" stroke-width="0.95"/><path d="M-4,12.5 C-13,10.5 -16.5,2 -15,-7.5 C-14,-11 -11.5,-13.5 -9,-15" stroke-width="2.1"/><path d="M4,12.5 C13,10.5 16.5,2 15,-7.5 C14,-11 11.5,-13.5 9,-15" stroke-width="2.1"/><path d="M-5.5,11.5 L3.5,14.5 M5.5,11.5 L-3.5,14.5" stroke-width="1.8"/></g><line x1="8" y1="42" x2="56" y2="42" stroke="#fff" stroke-opacity=".3" stroke-width="1"/><g fill="#fff" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif" font-weight="800" text-anchor="middle"><text x="32" y="57.5" font-size="16.5" letter-spacing="1.5">UN</text><text x="32" y="73.5" font-size="16.5" letter-spacing="1.5">DP</text></g></svg></div>
       <div class="brand" style="text-align:left;display:flex;flex-direction:column">
-        <b style="font-size:16px;letter-spacing:.01em;font-weight:700;color:#fff">UN House Access Control</b>
+        <b style="font-size:16px;letter-spacing:.01em;font-weight:700;color:#fff">UN House Visitor Management System</b>
         <span style="font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.1em;color:#b9c4d8">UNDP · UN Common Services · Abuja</span>
       </div>
     </div>
@@ -1359,7 +1359,7 @@ function wireRepeat(){
   const n=$("#r_name"), box=$("#r_prev"); if(!n||!box) return;
   const check=()=>{const name=n.value.trim(); if(name.split(/\s+/).length<2){box.innerHTML="";return}
     const prev=previousVisits(name), w=fb||watchlist.length?watchMatch(name):null, lost=prev.filter(x=>x.tagReturned===false);
-    box.innerHTML=(w?`<div class="banner" style="margin-bottom:8px"><b>Watchlist match.</b> This registration will be flagged and blocked at the gate. ${esc(w.reason||"")}</div>`:"")+
+    box.innerHTML=(w?`<div class="banner" style="margin-bottom:8px"><b>UNDSS Watchlist match.</b> This registration will be flagged and blocked at the gate. ${esc(w.reason||"")}</div>`:"")+
       (prev.length?`<div class="note"><b>Returning visitor</b> · ${prev.length} previous visit${prev.length>1?"s":""}, last ${new Date(prev[0].expected).toLocaleDateString()} (host ${esc(prev[0].host)}).
       ${lost.length?`<br><b>Note:</b> did not return tag ${esc(lost.map(x=>x.tag).join(", "))}.`:""} <button type="button" class="btn" id="r_fill" style="margin-left:6px">Use previous details</button></div>`:"");
     const f=$("#r_fill"); if(f) f.onclick=()=>{const p=prev[0];[["r_org",p.org],["r_phone",p.phone],["r_vemail",p.visitorEmail]].forEach(([id,val])=>{const el=$("#"+id);if(el&&!el.value&&val)el.value=val});toast("Previous details filled in.")};
