@@ -389,10 +389,10 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator (House Management)",sec_admin:"Administrator (Security / UNDSS)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
-  sec_admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","watch","reports","history","assistant"],
-  gate:["dashboard","gate","approvals","assets","register","history"],
+  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
+  sec_admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","assets","register","contractors","watch","reports","history","assistant"],
+  gate:["dashboard","gate","assets","register","history"],
   docs:["dashboard","tagging","assets","history"],
   reception:["dashboard","reception","assets","register","kiosk","history"],
   vip:["dashboard","vip","history"],
@@ -820,7 +820,6 @@ const VIEWS=[
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
   ["register","Register visitors","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
   ["myguests","My guests","Access & Guests",'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'],
-  ["approvals","Approvals","Access & Guests",'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'],
   ["contractors","Contractors & Service Staff","Access & Guests",'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>'],
   ["watch","UNDSS Watchlist","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>'],
   ["reports","Reports","Safety & Analytics",'<path d="M18 20V10M12 20V4M6 20v-6"/>'],
@@ -830,7 +829,8 @@ const VIEWS=[
   ["settings","Settings","System",'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.08a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.08a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>']
 ];
 function renderNav(){
-  const c={approvals:visitors.filter(v=>v.status==="pending").length,gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
+  const pendCount=visitors.filter(v=>v.status==="pending").length;
+  const c={gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length+pendCount,
     tagging:visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,reception:visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length};
   c.staff=staffList.filter(s=>s.role==="pending").length;
@@ -838,7 +838,7 @@ function renderNav(){
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
     const hdr=sec!==lastSec?(lastSec=sec,`<div class="nav-sec">${esc(sec)}</div>`):"";
-    const hot=c[k]&&["approvals","staff"].includes(k)?" hot":"";
+    const hot=c[k]&&["staff"].includes(k)?" hot":"";
     return `${hdr}<button class="${view===k?"on":""}" data-v="${k}"><span class="nl"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true">${ic}</svg><span>${l}</span></span>${c[k]?`<span class="cnt${hot}">${c[k]}</span>`:""}</button>`;
   }).join("");
   $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{goView(b.dataset.v)});
@@ -1917,22 +1917,42 @@ V.dashboard=()=>{
   <div class="panel"><h2>On premises now</h2>${table(inside,v=>B(v.id,"checkout","Check out"),"Nobody is checked in.")}</div>`;
 };
 V.gate=()=>{
+  const pend=visitors.filter(v=>v.status==="pending");
+  const grps={}; pend.filter(v=>v.group&&!ownRequest(v)).forEach(v=>{(grps[v.group]=grps[v.group]||[]).push(v)});
+  const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn ok" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
-  const list=filterQ(visitors.filter(v=>["approved","pending","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
-  return head("Gate reception","Station 1. Gate reception approves visitor requests, auto-assigns available tag numbers upon admission, and registers walk-ins. VIP guests auto check-in directly.")+
-  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>{
-    if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
-    if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Verify & admit","pri");
-    if(v.status==="pending"){
+  const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
+  const done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
+
+  return head("Gate reception & approvals","Station 1. Review and approve visitor requests, verify credentials, auto-assign tag numbers upon gate admission, and register walk-ins.")+
+  (pend.length?`<div class="panel" style="border-left:4px solid var(--accent);background:var(--surface)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <h2 style="margin:0;display:flex;align-items:center;gap:8px">Pending Approvals <span class="cnt hot">${pend.length}</span></h2>
+      ${batchBar?`<div class="acts">${batchBar}</div>`:""}
+    </div>
+    <p class="small">Review incoming requests before admission. Use <b>Approve & Admit</b> for visitors already at the gate to approve and auto-issue a tag in one step.</p>
+    ${table(pend,v=>{
+      const own=ownRequest(v);
+      if(own) return `<span class="small">Your request. Another officer must decide.</span>`;
       if(v.type==="vip") return B(v.id,"vipadmit","Approve & VIP Check-in","ok")+B(v.id,"reject","Reject","bad");
       return B(v.id,"gateapprove","Approve & Admit","ok")+B(v.id,"approve","Approve request","pri")+B(v.id,"reject","Reject","bad");
-    }
-    if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
-    if(v.status==="arrived"&&v.type!=="vip") return `<div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"><b class="mono" style="font-size:13px;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(v.assignedTag||"Tag assigned")}</b><span class="small">Sent to Station 2</span></div>`;
-    return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
-  },"No expected visitors match.")}</div></div>
-  <div class="panel"><h2>Walk-in visitor</h2>${regForm(true)}</div>`;
+    },"No pending approvals.")}
+  </div>`:`<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><span>✓ <b>No pending approvals.</b> All visitor requests have been decided.</span></div>`)+
+  `<div class="panel">
+    <h2>Expected & Admitted Visitors</h2>
+    ${searchBox()}
+    <div style="margin-top:12px">${table(expList,v=>{
+      if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
+      if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Verify & admit","pri");
+      if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
+      if(v.status==="arrived"&&v.type!=="vip") return `<div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"><b class="mono" style="font-size:13px;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(v.assignedTag||"Tag assigned")}</b><span class="small">Sent to Station 2</span></div>`;
+      return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
+    },"No expected visitors match.")}</div>
+  </div>
+  <div class="panel"><h2>Walk-in visitor</h2>${regForm(true)}</div>
+  ${done.length?`<div class="panel"><h2>Recent approval decisions</h2><div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>${done.map(v=>`<tr><td class="ref">${esc(v.ref)}</td><td>${esc(v.name)}</td><td>${v.status==="rejected"?`<span class="pill p-rejected">Rejected</span>${v.rejectReason?`<div class="small">${esc(v.rejectReason)}</div>`:""}`:`<span class="pill p-approved">Approved</span>`}</td><td>${esc(v.decidedBy||"—")}</td><td class="mono">${fmtT(v.decidedAt)}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
 };
+V.approvals=V.gate;
 V.tagging=()=>{
   const list=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
   const out=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
@@ -2150,14 +2170,7 @@ V.register=()=>head("Register visitors","Register one visitor, send a guest a li
   `<div class="panel"><h2>Single visitor</h2>${regForm(false)}</div>
    <div class="panel"><h2>Bulk registration</h2><p class="small">Upload a CSV, a PDF, or a photo or scan of a printed list. One visitor per line, in this order: name, organisation, host, agency, type, expected date and time, purpose. You check every row before anything is registered. ${fb&&features.handwriting?"For handwritten lists, tick the box first.":"Handwritten lists need the AI reader, which an administrator can switch on."}</p>
    ${fb&&features.handwriting?`<label class="small" style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="checkbox" id="hwList" style="width:auto"> This list is handwritten (read by the AI service)</label>`:""}<div class="acts"><input type="file" id="csv" accept=".csv,text/csv,.pdf,application/pdf,image/png,image/jpeg,image/webp" style="max-width:340px"></div><div id="csvOut" class="small" style="margin-top:8px" aria-live="polite"></div><div id="bulkReview"></div></div>`;
-V.approvals=()=>{
-  const pend=visitors.filter(v=>v.status==="pending"), done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,12);
-  const grps={}; pend.filter(v=>v.group&&!ownRequest(v)).forEach(v=>{(grps[v.group]=grps[v.group]||[]).push(v)});
-  const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn ok" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
-  return head("Approvals","Every visitor request must be approved before the visitor becomes expected at the gate. You cannot approve a request you made yourself.")+
-  `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="margin:0">Pending <span class="cnt">${pend.length}</span></h2>${batchBar?`<div class="acts">${batchBar}</div>`:""}</div>${table(pend,v=>{const own=ownRequest(v);return own?`<span class="small">Your request. Another officer must decide.</span>`:B(v.id,"approve","Approve","ok")+B(v.id,"reject","Reject","bad")},"Nothing waiting for approval.")}</div>
-  <div class="panel"><h2>Recent decisions</h2>${done.length?`<div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>${done.map(v=>`<tr><td class="ref">${esc(v.ref)}</td><td>${esc(v.name)}</td><td>${v.status==="rejected"?`<span class="pill p-rejected">Rejected</span>${v.rejectReason?`<div class="small" style="color:var(--bad)">${esc(v.rejectReason)}</div>`:""}`:'<span class="pill p-approved">Approved</span>'}</td><td>${esc(v.decidedBy)}</td><td class="mono">${fmtD(v.decidedAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">No decisions yet.</div>`}</div>`;
-};
+// Approvals consolidated into V.gate
 V.contractors=()=>{
   const list=filterQ(visitors.filter(v=>v.type==="contractor"));
   const onSite=list.filter(v=>["in","tagged","arrived"].includes(v.status));
