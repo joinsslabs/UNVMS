@@ -707,7 +707,7 @@ function alerts(){
     else if(contractorExpiring(v)) a.push({lvl:"soon",kind:"Expires soon",v,title:v.name,detail:`Contractor access ends ${fmtD(v.accessTo)}`,act:"extend",label:"Extend 7 days"});
     if(late(v)) a.push({lvl:"soon",kind:"Not arrived",v,title:v.name,detail:`Expected ${fmtT(v.expected)} · host ${v.host}`,act:"detail",label:"Details"});
     if(v.status==="pending") a.push({lvl:"soon",kind:"Approval",v,title:v.name,detail:`${v.purpose||"Visit"} · requested by ${v.requestedBy||v.host}`,act:ownRequest(v)?"detail":"approve",label:ownRequest(v)?"Details":"Approve"});
-    if(v.status==="tagged") a.push({lvl:"info",kind:"Waiting",v,title:v.name,detail:`At internal reception for ${v.host}${v.hostNotified?` · host notified ${fmtT(v.hostNotified)}`:""}`,act:v.hostNotified?"checkin":"notify",label:v.hostNotified?"Check in":"Notify host"});
+    if(v.status==="tagged"||(v.type==="vip"&&v.status==="arrived")) a.push({lvl:"info",kind:"Waiting",v,title:v.name,detail:`At internal reception for ${v.host}${v.hostNotified?` · host notified ${fmtT(v.hostNotified)}`:""}`,act:v.hostNotified?"checkin":"notify",label:v.hostNotified?"Check in":"Notify host"});
   });
   const o={act:0,soon:1,info:2}; return a.sort((x,y)=>o[x.lvl]-o[y.lvl]);
 }
@@ -744,7 +744,7 @@ const VIEWS=[
 ];
 function renderNav(){
   const c={approvals:visitors.filter(v=>v.status==="pending").length,gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
-    tagging:visitors.filter(v=>v.status==="arrived").length,reception:visitors.filter(v=>v.status==="tagged").length,
+    tagging:visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,reception:visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&v.status==="arrived")).length,
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived"].includes(v.status)).length};
   c.staff=staffList.filter(s=>s.role==="pending").length; c.deliveries=deliveries.filter(d=>d.status==="waiting").length;
   let lastSec="";
@@ -909,10 +909,10 @@ async function handleScan(txt){
 }
 function nextStep(v){
   const r=myRole(), any=["admin","approver"].includes(r);
-  if(v.type==="vip"&&v.status==="approved"&&(r==="vip"||any)) return ["vipadmit","Admit VIP"];
+  if(v.type==="vip"&&v.status==="approved"&&(r==="vip"||any)) return ["vipadmit","Verify & send to Station 3"];
   if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit at gate"];
-  if(v.status==="arrived"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
-  if(v.status==="tagged"&&(r==="reception"||r==="admin")) return ["checkin","Check in"];
+  if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
+  if((v.status==="tagged"||(v.type==="vip"&&v.status==="arrived"))&&(r==="reception"||r==="admin")) return ["checkin","Check in"];
   if(v.status==="in"&&["reception","vip","gate","admin"].includes(r)) return ["checkout","Check out"];
   return null;
 }
@@ -1231,7 +1231,7 @@ async function kioskScan(txt){
   const first=v.name.split(" ")[0];
   if(watched(v)) return show("k-no",`Thank you, ${first}.`,"Please wait here. A member of staff will be with you shortly.");
   if(v.status==="in") return show("k-ok",`You are already checked in, ${first}.`,`${v.host} knows you are here.`);
-  if(v.status!=="tagged") return show("k-no",`Hello ${first}.`,v.status==="out"?"This visit has ended.":"Please go to the documentation desk first to collect your tag.");
+  if(v.status!=="tagged"&&!(v.type==="vip"&&v.status==="arrived")) return show("k-no",`Hello ${first}.`,v.status==="out"?"This visit has ended.":"Please go to the documentation desk first to collect your tag.");
   await act(v,"Checked in at the self-service kiosk",{status:"in",inAt:now(),hostNotified:v.hostNotified||now()});
   show("k-ok",`Welcome, ${first}. You are checked in.`,`${v.host} has been told you are here. Please take a seat.`);
 }
@@ -1720,7 +1720,7 @@ function head(t,s){return `<div><h1>${t}</h1><p class="sub">${s}</p></div>`}
 const V={};
 V.dashboard=()=>{
   const inside=visitors.filter(v=>v.status==="in"), exp=visitors.filter(v=>["approved"].includes(v.status)&&isToday(v.expected));
-  const wait=visitors.filter(v=>v.status==="tagged"), pend=visitors.filter(v=>v.status==="pending");
+  const wait=visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&v.status==="arrived")), pend=visitors.filter(v=>v.status==="pending");
   const exc=visitors.filter(v=>overstay(v)||contractorExpired(v));
   const tagsOut=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
   const byB=BUILDINGS.map(b=>[b,inside.filter(v=>v.building===b).length]);
@@ -1750,11 +1750,11 @@ V.gate=()=>{
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
   const list=filterQ(visitors.filter(v=>["approved","pending","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
   return head("Gate reception","Station 1. Confirm the visitor is approved, verify them, and send them to documentation. Walk-ins can be registered here.")+
-  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>v.status==="approved"||activeCon(v)?B(v.id,"arrive","Verify & admit","pri"):v.status==="pending"?`<span class="small">Awaiting approval</span>`:`<span class="small">Sent to documentation</span>`,"No expected visitors match.")}</div></div>
+  `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>v.status==="approved"||activeCon(v)?B(v.id,"arrive","Verify & admit","pri"):v.status==="pending"?`<span class="small">Awaiting approval</span>`:`<span class="small">${v.type==="vip"?"Sent to Station 3":"Sent to documentation"}</span>`,"No expected visitors match.")}</div></div>
   <div class="panel"><h2>Walk-in visitor</h2>${regForm(true)}</div>`;
 };
 V.tagging=()=>{
-  const list=filterQ(visitors.filter(v=>v.status==="arrived"));
+  const list=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
   const out=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
   return head("Documentation & visitor tags","Station 2. Record the identity document, assign a tag, and print the badge details.")+
   `<div class="panel">${searchBox()}<div style="margin-top:12px">${table(list,v=>B(v.id,"tag","Document & tag","pri"),"No visitors are waiting for documentation.")}</div></div>
@@ -1762,18 +1762,18 @@ V.tagging=()=>{
   <div class="panel"><h2>Tags in circulation <span class="cnt">${out.length}</span></h2>${out.length?`<div class="tw"><table><thead><tr><th>Tag</th><th>Holder</th><th>Issued</th><th>Status</th></tr></thead><tbody>${out.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="mono">${fmtT(v.taggedAt||v.arrivedAt)}</td><td>${pill(v)} <button class="btn" data-print="${esc(v.id)}">Print badge</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags are returned.</div>`}</div>`;
 };
 V.reception=()=>{
-  const wait=filterQ(visitors.filter(v=>v.status==="tagged")), inside=filterQ(visitors.filter(v=>v.status==="in"));
-  return head("Internal reception","Station 3, Main UN House Building. Notify hosts, check visitors in, and collect tags on departure.")+
+  const wait=filterQ(visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&v.status==="arrived"))), inside=filterQ(visitors.filter(v=>v.status==="in"));
+  return head("Internal reception","Station 3, Main UN House Building. Receive documented visitors and VIP guests, notify hosts to receive them, check them in, and collect tags on departure.")+
   `<div class="panel">${searchBox()}</div>
   <div class="panel"><h2>Waiting for host <span class="cnt">${wait.length}</span></h2>${table(wait,v=>(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Mark host notified"))+mailPill(v)+B(v.id,"checkin","Check in","ok"),"Nobody is waiting.")}</div>
-  <div class="panel"><h2>Checked in</h2>${table(inside,v=>B(v.id,"checkout","Check out & collect tag"),"Nobody is checked in.")}</div>`;
+  <div class="panel"><h2>Checked in</h2>${table(inside,v=>B(v.id,"checkout",v.tag?"Check out & collect tag":"Check out"),"Nobody is checked in.")}</div>`;
 };
 V.vip=()=>{
   const list=filterQ(visitors.filter(v=>v.type==="vip"&&["approved","arrived","in","pending"].includes(v.status)));
-  return head("VIP gate","Station 4, tablet. Verify the guest against the approved list and record their movement.")+
+  return head("VIP gate","Station 4, tablet. Verify VIP guests against the approved list and send them to Internal Reception (Station 3), where the station records arrival and contacts the host to receive them.")+
   `<div class="panel">${searchBox("Search VIP name, plate or reference")}</div>
   <div style="display:flex;flex-direction:column;gap:10px">${list.length?list.map(v=>`<div class="vcard"><div><div class="nm">${esc(v.name)}</div><div class="small">${esc(v.org)} · Host: ${esc(v.host)} · Expected ${fmtT(v.expected)}${v.vehicle?` · <span class="mono">🚗 ${esc(v.vehicle)}</span>`:""}</div><div style="margin-top:6px">${pill(v)} <span class="ref">${esc(v.ref)}</span></div></div><div class="acts">${
-    v.status==="approved"?B(v.id,"vipadmit","Verify & admit","ok"):v.status==="in"?B(v.id,"checkout","Record exit"):v.status==="pending"?`<span class="pill p-pending">Not yet approved. Do not admit.</span>`:""}${passBtn(v)}</div></div>`).join(""):`<div class="panel empty">No VIP guests expected.</div>`}</div>`;
+    v.status==="approved"?B(v.id,"vipadmit","Verify & send to Station 3","ok"):v.status==="arrived"?`<span class="small">At Station 3 (Internal Reception)${v.hostNotified?` · Host notified ${fmtT(v.hostNotified)}`:" · Awaiting host notification"}</span>`:v.status==="in"?B(v.id,"checkout","Record exit"):v.status==="pending"?`<span class="pill p-pending">Not yet approved. Do not admit.</span>`:""}${passBtn(v)}</div></div>`).join(""):`<div class="panel empty">No VIP guests expected.</div>`}</div>`;
 };
 function regForm(walkin){
   return `<form id="reg"><div class="fields">
@@ -2109,7 +2109,7 @@ function doAct(a,v){
   if(a==="pass") return openPass(v);
   if(a==="grouppass") return openGroupPass(v);
   if(a==="arrive"){const t=opNow(v,3);return act(v,"Verified at gate",{status:"arrived",arrivedAt:t}).then(()=>toast(`${v.name} admitted. Send to documentation.`));}
-  if(a==="vipadmit"){const t=opNow(v,2);return act(v,"VIP verified and admitted at VIP gate",{status:"in",arrivedAt:t,inAt:t,hostNotified:t}).then(()=>toast(`${v.name} admitted. ${v.host} notified.`));}
+  if(a==="vipadmit"){const t=opNow(v,2);return act(v,"VIP verified at VIP gate; sent to Internal Reception (Station 3)",{status:"arrived",arrivedAt:t}).then(()=>toast(`${v.name} verified at VIP gate. Sent to Station 3 (Internal Reception) to contact ${v.host}.`));}
   if(a==="notify") return act(v,`Host ${v.host} notified of arrival`,{hostNotified:opNow(v,2)}).then(()=>toast(`${v.host} notified that ${v.name} is waiting.`));
   if(a==="checkin") return act(v,"Checked in at internal reception",{status:"in",inAt:opNow(v,5)}).then(()=>toast(`${v.name} checked in.`));
   if(a==="suspend") return act(v,"Contractor access suspended",{status:"suspended",prevStatus:v.status}).then(()=>toast(`${v.name}'s access suspended.`));
