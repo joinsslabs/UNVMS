@@ -1,7 +1,6 @@
 # UN House Access Control
 
 Access and visitor management system for UN Common Services, United Nations House, Abuja.
-Pilot built by SKILL.SCH.
 
 - Live: https://unhouse-vms-abj26.web.app (landing) and https://unhouse-vms-abj26.web.app/app.html (staff app)
 - Firebase project: `unhouse-vms-abj26` (Hosting, Firestore in europe-west1, Authentication)
