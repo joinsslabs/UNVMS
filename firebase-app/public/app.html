@@ -501,8 +501,7 @@ main{gap:20px}
     </select></div>
   <div class="f" style="gap:2px"><label for="operator">Operator</label>
     <select id="operator">
-      <option>Security Officer A. Bello</option><option>Receptionist N. Okafor</option>
-      <option>Supervisor F. Adeyemi</option><option>Administrator</option><option>Security Administrator</option>
+      <option>Gate Reception Officer & Approver A. Bello</option><option>Documentation Officer C. Okonkwo</option><option>Receptionist N. Okafor</option><option>Administrator</option><option>Security Administrator</option>
     </select></div>
   </div>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
@@ -540,13 +539,12 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
+const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",gate:"Gate Reception Officer & Approver (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
   admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
   sec_admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","assets","register","contractors","watch","reports","history","assistant"],
-  gate:["dashboard","gate","assets","register","history"],
+  gate:["dashboard","gate","contractors","assets","register","watch","reports","history"],
   docs:["dashboard","tagging","assets","history"],
   reception:["dashboard","reception","assets","register","kiosk","history"],
   vip:["dashboard","vip","history"],
@@ -555,31 +553,34 @@ const ROLE_VIEWS={
 const ACT_ROLES={
   reply:["host","admin","sec_admin"],
   reschedule:["host","admin","sec_admin"],
-  resubmit:["host","approver","gate","reception","admin","sec_admin"],
+  resubmit:["host","gate","reception","admin","sec_admin"],
   cancel:["host","admin","sec_admin"],
-  pass:["admin","sec_admin","approver","gate","reception","host","vip","docs"],
-  invite:["admin","sec_admin","approver","gate","reception","host"],
-  arrive:["gate","admin","sec_admin","approver"],
-  vipadmit:["vip","admin","sec_admin","approver","gate","reception"],
-  phoneadmit:["gate","admin","sec_admin","approver"],
-  tag:["docs","admin","sec_admin"],
-  notify:["reception","approver","admin","sec_admin"],
-  checkin:["reception","approver","admin","sec_admin"],
+  pass:["admin","sec_admin","gate","reception","host","vip","docs"],
+  invite:["admin","sec_admin","gate","reception","host"],
+  arrive:["gate","admin","sec_admin"],
+  vipadmit:["vip","admin","sec_admin","gate","reception"],
+  phoneadmit:["gate","admin","sec_admin"],
+  tag:["docs","admin","sec_admin","gate"],
+  notify:["reception","gate","admin","sec_admin"],
+  checkin:["reception","gate","admin","sec_admin"],
   checkout:["reception","vip","gate","docs","admin","sec_admin"],
-  extendstay:["reception","approver","gate","vip","host","admin","sec_admin"],
-  approve:["gate","approver","admin","sec_admin"],
-  reject:["gate","approver","admin","sec_admin"],
-  gateapprove:["gate","approver","admin","sec_admin"],
-  suspend:["approver","admin","sec_admin"],
-  reinstate:["approver","admin","sec_admin"],
-  extend:["approver","admin","sec_admin"]
+  extendstay:["reception","gate","vip","host","admin","sec_admin"],
+  approve:["gate","admin","sec_admin"],
+  reject:["gate","admin","sec_admin"],
+  gateapprove:["gate","admin","sec_admin"],
+  suspend:["gate","admin","sec_admin"],
+  reinstate:["gate","admin","sec_admin"],
+  extend:["gate","admin","sec_admin"]
 };
 const myRole=()=>{
-  if(fb) return me?.role||"pending";
+  if(fb){
+    const r=me?.role||"pending";
+    return r==="approver"?"gate":r;
+  }
   const opVal=$("#operator")?$("#operator").value:"";
   if(opVal.includes("Administrator") && !opVal.includes("Security")) return "admin";
   if(opVal.includes("Security Administrator")) return "sec_admin";
-  if(opVal.includes("Supervisor")) return "approver";
+  if(opVal.includes("Supervisor") || opVal.includes("Approver") || opVal.includes("Gate")) return "gate";
   const st=$("#station")?$("#station").value:"S1";
   return {S1:"gate",S2:"docs",S3:"reception",S4:"vip"}[st]||"gate";
 };
@@ -897,7 +898,7 @@ const staffView=()=>{
     ${features.updatedAt?`<span class="small">Last changed ${fmtD(features.updatedAt)}</span>`:""}
    </div></div>
   <div class="note">Public visitor rules page: <a href="?rules" target="_blank" rel="noopener">${esc(location.origin+location.pathname)}?rules</a>. Put it on a sign at the gate or in emails.</div>
-  <div class="note">Role separation: Gate reception officers approve requests, verify credentials, admit visitors, and register walk-ins. Documentation officers issue tags and verify IDs. Receptionists check visitors in. VIP gate officers handle VIP protocol. Staff hosts manage their own guests. Approvers decide requests and manage contractors. Administrators manage staff and system governance without bypassing operational controls.</div>`;
+  <div class="note">Role separation: Gate reception & approval officers approve requests, verify credentials, admit visitors, manage tag inventory, and register walk-ins. Documentation officers issue tags and verify IDs. Receptionists check visitors in. VIP gate officers handle VIP protocol. Staff hosts manage their own guests. Approvers decide requests and manage contractors. Administrators manage staff and system governance without bypassing operational controls.</div>`;
 };
 async function setStaff(uid,patch){
   if(patch.role==="admin"){
@@ -1247,7 +1248,7 @@ async function handleScan(txt){
   scanResult(v,p);
 }
 function nextStep(v){
-  const r=myRole(), any=["admin","sec_admin","approver"].includes(r);
+  const r=myRole(), any=["admin","sec_admin"].includes(r);
   if(v.type==="vip"&&v.status==="approved") return ["vipadmit","VIP Auto Check-in"];
   if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit at gate"];
   if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
@@ -1378,7 +1379,7 @@ function watched(v){
 function watchPill(v){const w=watched(v);return w?`<span class="pill p-watch" title="${esc(w.reason)}">UNDSS Watchlist</span>`:""}
 function watchBlock(v,then){
   const r=myRole();
-  if(!["admin","approver"].includes(r)){
+  if(!["admin","sec_admin","gate"].includes(r)){
     const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit</div><p><b>${esc(v.name)}</b> matches the UNDSS Watchlist: ${esc((watched(v)||{}).reason||"")}. Keep the visitor at the gate and call security and the duty approver.</p><p class="small">${esc(v.watchReason||"")}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
     m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return;
   }
@@ -1407,7 +1408,7 @@ function wireWatch(){
       const tmp={name,aliases:$("#w_alias").value.trim(),active:true}; let n=0;
       for(const v of visitors.filter(x=>!x.watchFlag&&["pending","approved","arrived","tagged","in"].includes(x.status))){
         const hit=[tmp.name].concat(tmp.aliases.split(";")).some(n=>n.trim()&&namesMatch(n,v.name));
-        if(hit){ n++; if(["admin","approver"].includes(myRole())) await act(v,"Flagged by new UNDSS Watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()}); }
+        if(hit){ n++; if(["admin","sec_admin","gate"].includes(myRole())) await act(v,"Flagged by new UNDSS Watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()}); }
       }
       toast(`${name} added to the UNDSS Watchlist.${n?` ${n} current visit${n>1?"s":""} now flagged.`:" No current visits match."}`)}catch(e){toast("Could not add: "+e.message)}};
   document.querySelectorAll("[data-wtoggle]").forEach(b=>b.onclick=()=>{const w=watchlist.find(x=>x.id===b.dataset.wtoggle);
@@ -2035,7 +2036,7 @@ function startDemo(){
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
-  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["admin","approver","gate","docs","reception","vip","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
+  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["admin","gate","docs","reception","vip","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
   $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
   const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
   open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
