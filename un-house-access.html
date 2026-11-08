@@ -559,8 +559,8 @@ const ACT_ROLES={
   // Station 3: Internal Reception only
   checkin:["reception","admin","sec_admin"],
   notify:["reception","admin","sec_admin"],
-  checkout:["reception","gate","admin","sec_admin"],
-  extendstay:["reception","gate","admin","sec_admin"],
+  checkout:["gate"],
+  extendstay:["gate"],
   // Station 4: VIP Gate only
   vipadmit:["vip","admin","sec_admin"],
   // Approvals & Contractor Governance
@@ -1248,7 +1248,7 @@ function nextStep(v){
   if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit at gate"];
   if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
   if((v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived))))&&(r==="reception"||any)) return ["checkin",v.type==="vip"?"Host received VIP":"Check in"];
-  if(v.status==="in"&&["reception","vip","gate","admin"].includes(r)) return ["checkout",v.type==="vip"?"Record VIP Exit":"Check out"];
+  if((v.status==="in"||v.status==="tagged")&&r==="gate") return ["checkout",v.type==="vip"?"Record VIP Exit":"Check out"];
   return null;
 }
 function scanResult(v,p,title,msg){
@@ -1538,7 +1538,7 @@ const VW_reports=()=>{
   <div class="panel"><h2>Busiest hours</h2>${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}<p class="small">Arrivals by hour of day, 06:00 to 20:00.</p></div></div>
   <div class="grid2"><div class="panel"><h2>By agency</h2><div class="tw"><table><tbody>${Object.entries(byAgency).sort((a,b)=>b[1]-a[1]).map(([a,n])=>`<tr><td>${esc(a)}</td><td class="mono" style="text-align:right">${n}</td></tr>`).join("")||`<tr><td class="small">No arrivals yet.</td></tr>`}</tbody></table></div></div>
   <div class="panel"><h2>Tags not returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags returned.</div>`}</div></div>
-  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">Copy daily figures as CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">📋 17:00 End-of-Day Closeout Summary</button></div></div>`;
+  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">📊 Copy Daily Breakdown CSV</button><button class="btn" id="rp_log_csv">📋 Export Visitor Register CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">📋 17:00 End-of-Day Closeout Summary</button></div></div>`;
 };
 function printHandoverSheet(h){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
@@ -1675,9 +1675,49 @@ function openHandover(){
   };
   draw();
 }
-function wireReports(){const c=$("#rp_csv"); if(c) c.onclick=()=>{const days=30,start=today0()-(days-1)*864e5;
-  const rows=[...Array(days)].map((_,i)=>{const d0=start+i*864e5;return new Date(d0).toISOString().slice(0,10)+","+visitors.filter(v=>v.arrivedAt>=d0&&v.arrivedAt<d0+864e5).length});
-  copyText("date,arrivals\n"+rows.join("\n"))};
+function wireReports(){
+  const c=$("#rp_csv");
+  if(c) c.onclick=()=>{
+    const days=30, start=today0()-(days-1)*864e5;
+    const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const header="Date,Day,Total_Arrivals,Standard_Visitors,VIP_Dignitaries,Contractors_ServiceStaff,Checked_Out,Compliance_Rate";
+    const rows=[...Array(days)].map((_,i)=>{
+      const d0=start+i*864e5, d1=d0+864e5;
+      const dayArr=visitors.filter(v=>(v.arrivedAt||v.inAt)&&(v.arrivedAt||v.inAt)>=d0&&(v.arrivedAt||v.inAt)<d1);
+      const total=dayArr.length;
+      const vips=dayArr.filter(v=>v.type==="vip").length;
+      const cons=dayArr.filter(v=>v.type==="contractor").length;
+      const std=total-vips-cons;
+      const checkedOut=dayArr.filter(v=>v.status==="out"||v.outAt).length;
+      const rate=total>0?Math.round((checkedOut/total)*100)+"%":"100%";
+      const dt=new Date(d0);
+      const dateStr=dt.toISOString().slice(0,10);
+      const dayName=dayNames[dt.getUTCDay()];
+      return `${dateStr},${dayName},${total},${std},${vips},${cons},${checkedOut},${rate}`;
+    });
+    copyText(header+"\n"+rows.join("\n"));
+  };
+
+  const regCsv=$("#rp_log_csv");
+  if(regCsv) regCsv.onclick=()=>{
+    const header="Reference,Name,Organisation,Category,Host,Agency,Building,Expected,Admitted_Gate,Documented,Checked_In,Checked_Out,Status";
+    const rows=visitors.map(v=>[
+      v.ref||v.id,
+      `"${(v.name||"").replace(/"/g,'""')}"`,
+      `"${(v.org||"").replace(/"/g,'""')}"`,
+      v.type==="vip"?"VIP Dignitary":v.type==="contractor"?"Contractor & Service Staff":"Visitor",
+      `"${(v.host||"").replace(/"/g,'""')}"`,
+      v.agency||"",
+      v.building||"",
+      v.expected?new Date(v.expected).toISOString().slice(0,16).replace("T"," "):"",
+      v.arrivedAt?new Date(v.arrivedAt).toISOString().slice(0,16).replace("T"," "):"",
+      v.taggedAt?new Date(v.taggedAt).toISOString().slice(0,16).replace("T"," "):"",
+      v.inAt?new Date(v.inAt).toISOString().slice(0,16).replace("T"," "):"",
+      v.outAt?new Date(v.outAt).toISOString().slice(0,16).replace("T"," "):"",
+      v.status||""
+    ].join(","));
+    copyText(header+"\n"+rows.join("\n"));
+  };
   const h=$("#rp_ho"); if(h) h.onclick=openHandover;
   const ex=$("#rp_exec"); if(ex) ex.onclick=printExecutiveBrief;}
 function printExecutiveBrief(){
@@ -2110,7 +2150,7 @@ V.dashboard=()=>{
     </div>
     <div class="panel"><h2>Alerts and reminders</h2>${alertList()}</div>
   </div>
-  <div class="panel"><h2>On premises now</h2>${table(inside,v=>B(v.id,"checkout","Check out"),"Nobody is checked in.")}</div>`;
+  <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>(canAct("checkout")?B(v.id,"checkout","Check out","ok"):"")+passBtn(v),"Nobody is checked in.")}</div>`;
 };
 V.gate=()=>{
   const pend=visitors.filter(v=>v.status==="pending");
@@ -2118,13 +2158,14 @@ V.gate=()=>{
   const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn ok" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
   const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
+  const insideList=filterQ(visitors.filter(v=>v.status==="in"||v.status==="tagged"||(v.type==="vip"&&["arrived","in"].includes(v.status))));
   const done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
 
   const availV = getAvailableTags("visitor");
   const availC = getAvailableTags("contractor");
   const usedTags = visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag);
 
-  return head("Gate reception & approvals","Station 1. Manage physical tag stock, review visitor requests, verify credentials, auto-assign tags upon gate admission, and register walk-ins.")+
+  return head("Gate reception, approvals & exit","Station 1. Review visitor requests, admit visitors, manage physical tag stock, and check out departing visitors at Gate 1.")+
   
   /* Gate 1 Available Tags Feed & Inventory Space */
   `<div class="panel" style="border-top:4px solid var(--accent);background:var(--surface)">
@@ -2214,10 +2255,24 @@ V.gate=()=>{
       if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","ok");
       if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Verify & admit","pri");
       if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
-      if(v.status==="arrived"&&v.type!=="vip") return `<div style="display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap"><b class="mono" style="font-size:13px;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(v.assignedTag||v.tag||"Tag assigned")}</b><span class="small">Sent to Station 2</span></div>`;
+      if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">✓ Admitted at Gate 1 · Sent to Station 2 Documentation Reception</span>`;
       return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
     },"No expected visitors match.")}</div>
   </div>
+
+  /* On premises now · Compound Exit & Check Out at Gate 1 */
+  <div class="panel" style="border-left:4px solid var(--ok);background:var(--surface)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <h2 style="margin:0;display:flex;align-items:center;gap:8px">🏢 On premises now <span class="cnt ok">${insideList.length}</span></h2>
+      <span class="small" style="color:var(--muted)">Compound Exit Desk · Gate 1</span>
+    </div>
+    <p class="small">All persons currently on UN House premises. Visitors exit the compound through Gate 1: click <b>Check out</b> when departing, collect their physical lanyard tag (automatically restocked to available inventory), verify any items taken out, and record their exit.</p>
+    ${table(insideList, v=>{
+      if(v.type==="vip") return B(v.id,"checkout","VIP Departed","ok")+passBtn(v);
+      return B(v.id,"checkout",v.tag?`Check out (Tag ${esc(v.tag)})`:"Check out","ok")+passBtn(v);
+    },"Nobody is currently on the premises.")}
+  </div>
+
   <div class="panel"><h2>Walk-in visitor</h2>${regForm(true)}</div>
   ${done.length?`<div class="panel"><h2>Recent approval decisions</h2><div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>${done.map(v=>`<tr><td class="ref">${esc(v.ref)}</td><td>${esc(v.name)}</td><td>${v.status==="rejected"?`<span class="pill p-rejected">Rejected</span>${v.rejectReason?`<div class="small">${esc(v.rejectReason)}</div>`:""}`:`<span class="pill p-approved">Approved</span>`}</td><td>${esc(v.decidedBy||"—")}</td><td class="mono">${fmtT(v.decidedAt)}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
 };
@@ -2394,7 +2449,7 @@ function promptHostCall(v){
 
 V.reception=()=>{
   const wait=filterQ(visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived))))), inside=filterQ(visitors.filter(v=>v.status==="in"||(v.type==="vip"&&v.status==="arrived")));
-  return head("Internal reception","Station 3, Main UN House Building. Receive documented visitors and VIP guests sent from the VIP gate, contact hosts to receive them, check them in, and collect tags on departure.")+
+  return head("Internal reception","Station 3, Main UN House Building. Receive documented visitors and VIP guests sent from the VIP gate, contact hosts to receive them, and check them into the building. (Compound exit and tag returns are processed at Gate 1).")+
   `<div class="panel">${searchBox()}</div>
   <div class="panel"><h2>Waiting for host <span class="cnt">${wait.length}</span></h2>${table(wait,v=>(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Mark host notified"))+mailPill(v)+B(v.id,"checkin",v.type==="vip"?"Host received VIP":"Check in","ok"),"Nobody is waiting.")}</div>
   <div class="panel"><h2>Checked in <span class="cnt">${inside.length}</span></h2>${table(inside,v=>(v.type==="vip"&&!v.vipReceived?(v.hostNotified?`<span class="small">Host notified ${fmtT(v.hostNotified)}</span>`:B(v.id,"notify",v.hostEmail?"Email host":"Notify host"))+B(v.id,"checkin","Host received","ok"):"")+B(v.id,"checkout",v.tag?"Check out & collect tag":"Check out"),"Nobody is checked in.")}</div>`;
@@ -3593,6 +3648,7 @@ function doAct(a,v){
         if(v.inAt&&out<v.inAt){$("#m_err").textContent=`The check-out time can't be before check-in (${fmtT(v.inAt)}).`;return false}
         const late=now()-out>5*60000, ret=$("#m_ret")?$("#m_ret").checked:true;
         const items=(v.items||[]).map((it,i)=>({...it,out:!!(document.querySelector(`[data-item="${i}"]`)||{}).checked})), left=items.filter(x=>!x.out).map(x=>x.d);
+        if(ret&&v.tag&&!gateTagStock.includes(v.tag)){gateTagStock.push(v.tag);gateTagStock.sort();saveGateTagStock(gateTagStock);}
         act(v,`Checked out at ${fmtT(out)}${late?` (recorded at ${fmtT(now())})`:""}${left.length?`; items NOT taken out: ${left.join(", ")}`:""}${v.tag?(ret?`; tag ${v.tag} returned`:`; tag ${v.tag} NOT returned`):""}`,{status:"out",outAt:out,outRecordedAt:now(),tagReturned:ret,...(items.length?{items}:{})}).then(()=>toast(`${v.name} checked out at ${fmtT(out)}.`))});
     const xl=$("#m_ext_link"); if(xl) xl.onclick=e=>{e.preventDefault();doAct("extendstay",v)};
     return;
