@@ -414,8 +414,17 @@ td{vertical-align:middle}
 .tl li.muted b{color:var(--muted)} .tl li.cur span{color:var(--accent);font-weight:600} .tl li.cur b{font-weight:600}
 .tl-dur{display:inline-block;margin-top:6px;font-size:11px;font-weight:600;color:var(--ok);background:var(--ok-bg);padding:2px 8px;border-radius:999px}
 .tl-dur.warn{color:var(--warn);background:var(--warn-bg)} .tl-dur.muted{color:var(--muted);background:var(--surface2)}
-.st{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tagchip{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px dashed color-mix(in srgb,var(--fg) 30%,transparent)}
+.st{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap}
+.tagchip{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px dashed color-mix(in srgb,var(--fg) 30%,transparent);white-space:nowrap}
+.btn-tag-exchange{display:inline-flex;align-items:stretch;padding:0!important;border-radius:8px;overflow:hidden;border:1.5px solid #0284c7;background:#0284c7;box-shadow:0 1px 3px rgba(2,132,199,0.18);white-space:nowrap;cursor:pointer;line-height:1;height:32px;transition:all .18s cubic-bezier(0.4, 0, 0.2, 1);outline:none;text-decoration:none}
+.btn-tag-exchange::before{display:none!important}
+.btn-tag-exchange:hover{border-color:#0369a1;box-shadow:0 3px 8px rgba(2,132,199,0.28);transform:translateY(-1px)}
+.btn-tag-exchange:hover .arr{transform:translateX(2px)}
+.btn-tag-exchange:active{transform:translateY(0)}
+.btn-tag-exchange .tag-lbl{display:inline-flex;align-items:center;gap:5px;padding:0 10px;background:#f0f9ff;color:#0369a1;font-family:var(--mono);font-size:13px;font-weight:700;border-right:1px solid #bae6fd;white-space:nowrap}
+.btn-tag-exchange .tag-act{display:inline-flex;align-items:center;gap:5px;padding:0 12px;background:#0284c7;color:#ffffff;font-size:12px;font-weight:600;white-space:nowrap;letter-spacing:0.2px}
+.btn-tag-exchange:hover .tag-act{background:#0369a1}
+.btn-tag-exchange .arr{font-size:13px;transition:transform .18s ease;display:inline-block}
 /* Fixed columns so actions line up row to row: main action | pass | group pass */
 .row-acts{display:grid;grid-template-columns:1fr 34px 34px;gap:6px;align-items:center;justify-items:end}
 .ra-main{display:flex;gap:8px;align-items:center;justify-content:flex-end;white-space:nowrap;flex-wrap:nowrap}
@@ -2271,15 +2280,15 @@ V.gate=()=>{
         <div class="small" style="color:#854d0e;margin-top:2px">Next up: <b>${availC[0]||'Empty'}</b></div>
       </div>
 
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:12px 14px;border-radius:10px">
+      <div style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;font-weight:600;color:#166534">Tags with Visitors Inside</span>
-          <span style="font-size:10px;font-weight:700;background:#16a34a;color:#fff;padding:1px 6px;border-radius:4px">CIRCULATING</span>
+          <span style="font-size:12px;font-weight:600;color:var(--navy)">Tags with Visitors Inside</span>
+          <span style="font-size:10px;font-weight:700;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">CIRCULATING</span>
         </div>
-        <div style="font-size:24px;font-weight:700;color:#166534;margin-top:4px">
-          ${usedTags.length} <span style="font-size:12px;font-weight:500;color:#15803d">in compound</span>
+        <div style="font-size:24px;font-weight:700;color:var(--navy);margin-top:4px">
+          ${usedTags.length} <span style="font-size:12px;font-weight:500;color:var(--muted)">in compound</span>
         </div>
-        <div class="small" style="color:#166534;margin-top:2px">Collect at compound exit</div>
+        <div class="small" style="color:var(--muted);margin-top:2px">Collect at compound exit</div>
       </div>
 
       <div style="background:var(--surface2);border:1px solid var(--line);padding:12px 14px;border-radius:10px">
@@ -2391,29 +2400,26 @@ V.tagging=()=>{
   return head("Station 2 · Documentation & ID Exchange","Station 2 · Documentation Reception. Verify Government photo ID, log equipment, exchange physical lanyard tags on arrival, and check out departing visitors (return deposited physical photo ID & collect tag) upon exit.")+
   `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="margin:0">Visitors Waiting for Documentation &amp; Physical Tag Exchange <span class="cnt ${list.length?'hot':''}">${list.length}</span></h2></div><p class="small">These visitors have been admitted through Station 1. Verify their Government agency or photo ID, log any equipment brought in, and exchange their ID for a physical lanyard tag.</p>${searchBox()}<div style="margin-top:12px">${table(list,v=>{
     const tag = v.assignedTag || v.tag || nextAvailableTag(v.type);
-    return `<div style="display:inline-flex;align-items:center;gap:8px;white-space:nowrap;flex-wrap:nowrap">
-      <b class="mono" title="Pre-assigned by Station 1" style="font-size:14px;color:#0369a1;background:#e0f2fe;padding:4px 10px;border-radius:6px;border:1.5px solid #bae6fd;white-space:nowrap;display:inline-flex;align-items:center;gap:4px">🏷️ ${esc(tag)}</b>
-      ${B(v.id,"tag",`Exchange ID for Tag ${esc(tag)}`,"pri")}
-    </div>`;
+    return `<button class="btn pri btn-tag-exchange" data-id="${esc(v.id)}" data-act="tag" title="Exchange verified physical photo ID for lanyard tag ${esc(tag)}"><span class="tag-lbl">🏷️ ${esc(tag)}</span><span class="tag-act">Exchange ID <span class="arr">→</span></span></button>`;
   },"No visitors are waiting for documentation.")}</div></div>
   ${tagSheetPanel()}
 
   /* On premises now · Return ID & Check Out at Station 2 */
-  <div class="panel" style="border-left:4px solid var(--ok);background:linear-gradient(180deg,var(--surface),#f8fafc);box-shadow:0 3px 12px rgba(22,163,74,.06);border-radius:12px;padding:18px 20px">
+  <div class="panel" style="border-left:4px solid #1e3a8a;background:linear-gradient(180deg,var(--surface),#f8fafc);box-shadow:0 3px 12px rgba(30,58,138,.06);border-radius:12px;padding:18px 20px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
       <div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <h2 style="margin:0;display:flex;align-items:center;gap:8px;font-size:18px;color:var(--navy)">
             🏢 Return ID &amp; Check-Out Desk
           </h2>
-          <span class="cnt ok" style="font-size:12px;padding:3px 12px;font-weight:700">${out.length} Visitors Inside</span>
+          <span class="cnt" style="background:#e0f2fe;color:#0369a1;font-size:12px;padding:3px 12px;font-weight:700">${out.length} Visitors Inside</span>
         </div>
         <p class="small" style="margin:5px 0 0;color:var(--muted);max-width:720px;line-height:1.45">
           When visitors finish their visit and exit through <b>Station 2</b>: collect their physical lanyard tag (restocked to tray), <b>hand back their deposited physical photo ID / driver's license</b>, verify any equipment taken out, and click <b>Check Out &amp; Return ID</b>.
         </p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #bae6fd">
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:12px;padding:4px 10px;border:1px solid #bae6fd;white-space:nowrap">
           🪪 ${out.length} Photo IDs in Custody
         </span>
       </div>
@@ -2425,7 +2431,7 @@ V.tagging=()=>{
         <label for="docs_exit_input" class="small"><b>⚡ Fast Check-Out &amp; Return ID by Tag Number</b> (Scan barcode or type e.g. V-024)</label>
         <input id="docs_exit_input" placeholder="Scan tag barcode or enter tag number to return ID and check out...">
       </div>
-      <button class="btn ok" id="btn_docs_exit" style="margin-top:16px;height:36px;padding:0 18px" title="Return photo ID and check out visitor">
+      <button class="btn pri" id="btn_docs_exit" style="margin-top:16px;height:36px;padding:0 18px;background:#1e3a8a;border-color:#1e3a8a;color:#fff" title="Return photo ID and check out visitor">
         🚪 Check Out &amp; Return ID
       </button>
     </div>
@@ -2433,15 +2439,15 @@ V.tagging=()=>{
     <!-- Departure Table -->
     <div style="margin-top:12px">
       ${out.length ? `<div class="tw"><table><thead><tr>
-        <th>Tag</th>
+        <th style="white-space:nowrap">Tag</th>
         <th>Visitor</th>
         <th>Host / Agency</th>
-        <th>Issued</th>
-        <th>Status &amp; ID Custody</th>
-        <th style="text-align:right">Actions</th>
+        <th style="white-space:nowrap">Issued</th>
+        <th style="white-space:nowrap">Status &amp; ID Custody</th>
+        <th style="text-align:right;white-space:nowrap">Actions</th>
       </tr></thead><tbody>${out.map(v=>`<tr>
-        <td class="mono">
-          <b style="font-size:13px;background:#e0f2fe;color:#0369a1;padding:3px 8px;border-radius:6px;border:1px solid #bae6fd">🏷️ ${esc(v.tag)}</b>
+        <td class="mono" style="white-space:nowrap">
+          <b style="font-size:13px;background:#e0f2fe;color:#0369a1;padding:3px 8px;border-radius:6px;border:1px solid #bae6fd;white-space:nowrap;display:inline-flex;align-items:center;gap:4px">🏷️ ${esc(v.tag)}</b>
         </td>
         <td>
           <div class="vn">${esc(v.name)} ${tpill(v)}</div>
@@ -2451,14 +2457,16 @@ V.tagging=()=>{
           <div class="vn2">${esc(v.host)}</div>
           <div class="vs">${esc(v.agency)}${v.room?" · "+esc(v.room):""}</div>
         </td>
-        <td class="mono small">${fmtT(v.taggedAt||v.arrivedAt)}</td>
-        <td>
-          ${pill(v)}
-          <span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:11px" title="Physical photo ID held in Access Control safe tray">🪪 ID in Custody</span>
+        <td class="mono small" style="white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--navy);font-weight:600">${fmtT(v.taggedAt||v.arrivedAt)}</td>
+        <td style="white-space:nowrap">
+          <div style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap">
+            ${pill(v)}
+            <span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:11px;white-space:nowrap" title="Physical photo ID held in Access Control safe tray">🪪 ID in Custody</span>
+          </div>
         </td>
-        <td style="text-align:right">
-          <div style="display:inline-flex;gap:6px;align-items:center">
-            ${B(v.id, "checkout", "🚪 Check Out &amp; Return ID", "ok")}
+        <td style="text-align:right;white-space:nowrap">
+          <div style="display:inline-flex;gap:6px;align-items:center;white-space:nowrap">
+            ${B(v.id, "checkout", "🚪 Check Out &amp; Return ID", "pri")}
             <button class="btn icon" data-act="pass" data-id="${esc(v.id)}" title="View live digital pass &amp; QR" aria-label="Digital pass"></button>
           </div>
         </td>
@@ -3164,7 +3172,7 @@ V.assets=()=>{
             `<span class="pill p-rejected">${esc(a.status)}</span>`}
         </td>
         <td>
-          ${a.verifiedAt?`<span class="pill p-in" style="background:#dcfce7;color:#166534">✓ Gate Cleared</span><div class="small mono" style="margin-top:2px">${esc(a.verifiedBy)}</div><div class="small mono" style="color:var(--muted)">${fmtT(a.verifiedAt)}</div>`:
+          ${a.verifiedAt?`<span class="pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">✓ Gate Cleared</span><div class="small mono" style="margin-top:2px">${esc(a.verifiedBy)}</div><div class="small mono" style="color:var(--muted)">${fmtT(a.verifiedAt)}</div>`:
             isReady&&canAct("arrive")?`<button class="btn ok" data-asset-verify="${esc(a.id)}" style="font-size:12px;padding:4px 8px">Verify &amp; Clear at Gate</button>${isEarly?`<div class="small" style="color:var(--warn);margin-top:2px">Early clearance</div>`:`<div class="small" style="color:var(--muted);margin-top:2px">Inspect SN on device</div>`}`:
             a.status==="pending"?`<span class="pill p-rejected" style="font-size:11px">⛔ Exit Barred</span><div class="small" style="color:var(--bad);margin-top:2px">Awaiting supervisor</div>`:
             `<span class="small">Pending Gate Verification</span>`}
@@ -4141,7 +4149,7 @@ function doAct(a,v){
       </div>
       <div class="f"><label for="m_id">Government / Photo ID document presented *</label><select id="m_id"><option>Government agency ID</option><option>National ID (NIN)</option><option>International passport</option><option>Driver's licence</option><option>Diplomatic ID</option><option>Staff / agency ID</option><option>Other valid photo ID</option></select></div>
       <div class="f"><label for="m_tag">Physical tag number to exchange &amp; issue</label><input id="m_tag" value="${esc(assigned)}" class="mono" style="font-weight:700;font-size:15px"></div>
-      <div class="f" style="flex-direction:row;gap:8px;align-items:center;background:#f0fdf4;border:1px solid #bbf7d0;padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:auto"><label for="m_exchange_done" style="margin:0;font-weight:600;color:#166534">Exchange their ID with available tag <span class="mono">${esc(assigned)}</span> and documentation is completed</label></div>
+      <div class="f" style="flex-direction:row;gap:10px;align-items:center;background:#f0f9ff;border:1px solid #bae6fd;padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:18px;height:18px;accent-color:#0284c7"><label for="m_exchange_done" style="margin:0;font-weight:600;color:#0369a1;font-size:13px">Exchange their ID with available tag <span class="mono" style="background:#e0f2fe;padding:2px 6px;border-radius:4px;font-weight:700">${esc(assigned)}</span> and documentation is completed</label></div>
       <div class="f"><label for="m_items">Items brought in (one per line, e.g. "Laptop, Dell, serial 5CD12")</label><textarea id="m_items" style="min-height:56px"></textarea></div>
       <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono">${esc(assigned)}</b></div></div>`,
       ()=>{
@@ -4172,7 +4180,7 @@ function doAct(a,v){
     const pad=n=>String(n).padStart(2,"0"), d=new Date(opNow(v,45)), nowHM=`${pad(d.getHours())}:${pad(d.getMinutes())}`;
     const stayDuration = dur(now() - (v.inAt || v.taggedAt || v.arrivedAt || now()));
     modal(`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <div style="width:44px;height:44px;border-radius:10px;background:#dcfce7;display:grid;place-items:center;font-size:24px">🚪</div>
+        <div style="width:44px;height:44px;border-radius:10px;background:#e0f2fe;border:1px solid #bae6fd;display:grid;place-items:center;font-size:24px">🚪</div>
         <div>
           <h2 style="margin:0;font-size:19px;color:var(--navy)">Visitor Departure &amp; ID Handover</h2>
           <p class="small" style="margin:2px 0 0;color:var(--muted)">Station 2 Check-Out Desk · Compound Exit Protocol</p>
@@ -4190,27 +4198,27 @@ function doAct(a,v){
         </div>
         <div class="small" style="color:var(--muted);display:flex;gap:12px;flex-wrap:wrap">
           <span>Host: <b>${esc(v.host)}</b> (${esc(v.agency)})</span>
-          <span>Inside Compound: <b style="color:var(--ok)">${stayDuration}</b> (since ${fmtT(v.inAt||v.taggedAt||v.arrivedAt)})</span>
+          <span>Inside Compound: <b style="color:var(--navy);white-space:nowrap">${stayDuration}</b> (since <span style="white-space:nowrap">${fmtT(v.inAt||v.taggedAt||v.arrivedAt)}</span>)</span>
         </div>
       </div>
 
       <!-- Station 2 Departure Handover Verification Cards -->
       <div style="display:grid;gap:8px;margin:12px 0">
         <!-- 1. Physical Photo ID Return Card -->
-        <label style="display:flex;align-items:center;gap:12px;background:#f0fdf4;border:1.5px solid #86efac;padding:12px 14px;border-radius:10px;cursor:pointer">
-          <input type="checkbox" id="m_id_ret" checked style="width:20px;height:20px;accent-color:#16a34a;cursor:pointer">
+        <label style="display:flex;align-items:center;gap:12px;background:#f8fafc;border:1.5px solid #cbd5e1;padding:12px 14px;border-radius:10px;cursor:pointer">
+          <input type="checkbox" id="m_id_ret" checked style="width:20px;height:20px;accent-color:#0284c7;cursor:pointer">
           <div>
-            <div style="font-weight:700;font-size:13.5px;color:#166534">🪪 Hand back deposited physical photo ID to ${esc(v.name)}</div>
-            <div class="small" style="color:#15803d;margin-top:2px">Officer confirms original Government agency ID / Driver's licence is returned to visitor.</div>
+            <div style="font-weight:700;font-size:13.5px;color:var(--navy)">🪪 Hand back deposited physical photo ID to ${esc(v.name)}</div>
+            <div class="small" style="color:var(--muted);margin-top:2px">Officer confirms original Government agency ID / Driver's licence is returned to visitor.</div>
           </div>
         </label>
 
         <!-- 2. Physical Tag Return & Restock Card -->
-        ${v.tag ? `<label style="display:flex;align-items:center;gap:12px;background:#eff6ff;border:1.5px solid #93c5fd;padding:12px 14px;border-radius:10px;cursor:pointer">
-          <input type="checkbox" id="m_ret" checked style="width:20px;height:20px;accent-color:#2563eb;cursor:pointer">
+        ${v.tag ? `<label style="display:flex;align-items:center;gap:12px;background:#f0f9ff;border:1.5px solid #bae6fd;padding:12px 14px;border-radius:10px;cursor:pointer">
+          <input type="checkbox" id="m_ret" checked style="width:20px;height:20px;accent-color:#0284c7;cursor:pointer">
           <div>
-            <div style="font-weight:700;font-size:13.5px;color:#1e40af">🏷️ Collect physical lanyard tag <span class="mono">${esc(v.tag)}</span> &amp; restock into tray</div>
-            <div class="small" style="color:#1d4ed8;margin-top:2px">Tag is returned to Station 1/2 available pool ready for the next visitor.</div>
+            <div style="font-weight:700;font-size:13.5px;color:#0369a1">🏷️ Collect physical lanyard tag <span class="mono" style="background:#e0f2fe;padding:2px 6px;border-radius:4px;font-weight:700">${esc(v.tag)}</span> &amp; restock into tray</div>
+            <div class="small" style="color:#0284c7;margin-top:2px">Tag is returned to Station 1/2 available pool ready for the next visitor.</div>
           </div>
         </label>` : ""}
 
@@ -4224,12 +4232,12 @@ function doAct(a,v){
       </div>
 
       <!-- Departure Time & Extension Note -->
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)">
-        <div style="display:flex;align-items:center;gap:10px">
-          <label for="m_out" class="small" style="font-weight:700;margin:0">Departure time:</label>
-          <input type="time" id="m_out" value="${nowHM}" style="font-weight:700;font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--line)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line);white-space:nowrap">
+        <div style="display:flex;align-items:center;gap:10px;white-space:nowrap">
+          <label for="m_out" class="small" style="font-weight:700;margin:0;white-space:nowrap">Departure time:</label>
+          <input type="time" id="m_out" value="${nowHM}" style="font-weight:700;font-size:14px;padding:4px 8px;border-radius:6px;border:1px solid var(--line);white-space:nowrap">
         </div>
-        ${canAct("extendstay") ? `<span class="small">Not leaving? <a href="#" id="m_ext_link" style="color:var(--accent);font-weight:600">Extend stay (host permission)</a></span>` : ""}
+        ${canAct("extendstay") ? `<span class="small" style="white-space:nowrap">Not leaving? <a href="#" id="m_ext_link" style="color:var(--accent);font-weight:600">Extend stay (host permission)</a></span>` : ""}
       </div>
       <div id="m_err" class="small" style="color:var(--bad);margin-top:4px"></div>`,
       ()=>{
@@ -4251,6 +4259,7 @@ function doAct(a,v){
           ...(items.length?{items}:{})
         }).then(()=>toast(`✓ ${v.name} checked out. Photo ID returned & tag restocked.`));
       });
+    const okBtn=$("#mOk"); if(okBtn){ okBtn.textContent="🚪 Confirm Check-Out & Return ID"; okBtn.className="btn pri"; okBtn.style="background:#1e3a8a;border-color:#1e3a8a;color:#fff"; }
     const xl=$("#m_ext_link"); if(xl) xl.onclick=e=>{e.preventDefault();doAct("extendstay",v)};
     return;
   }
