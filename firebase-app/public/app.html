@@ -175,7 +175,13 @@ textarea{min-height:70px;resize:vertical}
 .chat{display:flex;flex-direction:column;gap:10px}
 .ans{white-space:pre-wrap;background:var(--surface2);border-radius:10px;padding:12px;font-size:13px;line-height:1.5;border:1px solid var(--line)}
 .modal-bg{position:fixed;inset:0;background:rgba(9,15,28,.55);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:30;display:flex;align-items:center;justify-content:center;padding:24px}
-.modal{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;max-width:460px;max-height:calc(100vh - 48px);overflow:auto;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px -15px rgba(0,0,0,.45);animation:modalIn .2s cubic-bezier(.2,1,.3,1)}
+.modal{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px;max-width:460px;max-height:calc(100vh - 48px);overflow:auto;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px -15px rgba(0,0,0,.45);animation:modalIn .2s cubic-bezier(.2,1,.3,1)}
+.modal,.modal *{scrollbar-width:thin;scrollbar-color:#ffffff #f8fafc}
+.modal::-webkit-scrollbar,.modal *::-webkit-scrollbar{width:8px;height:8px}
+.modal::-webkit-scrollbar-track,.modal *::-webkit-scrollbar-track{background:#f8fafc;border-radius:8px}
+.modal::-webkit-scrollbar-thumb,.modal *::-webkit-scrollbar-thumb{background:#ffffff;border:1px solid #cbd5e1;border-radius:8px}
+.modal-x{all:unset;cursor:pointer;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:20px;line-height:1;color:var(--muted);background:var(--surface2);border:1px solid var(--line);flex:none;transition:background .15s,color .15s}
+.modal-x:hover{background:var(--bad-bg);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}
 @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.97)}}
 .appfoot{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .appfoot a{color:var(--muted)}
@@ -869,7 +875,7 @@ async function openPass(v){
   clearInterval(openPass.t);
   const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:480px;padding:16px;gap:10px">
     <div class="vpass ok" style="margin:0;max-width:none;box-shadow:none;border:1px solid var(--line);border-top:5px solid var(--ok);padding:12px 16px;gap:8px">
-      <div class="vp-top"><span class="vp-kind">${esc(kind)}</span><span class="vp-st">${esc(stLabel)}</span></div>
+      <div class="vp-top"><span class="vp-kind">${esc(kind)}</span><span style="display:inline-flex;align-items:center;gap:8px"><span class="vp-st">${esc(stLabel)}</span><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="width:24px;height:24px;font-size:16px">×</button></span></div>
       <div><div class="vp-name" style="font-size:20px">${esc(v.name)}</div><div class="vp-org" style="margin-top:0;font-size:13px">${esc(v.org||"")}</div></div>
       ${img?`<div class="vp-qr" style="padding:8px"><img src="${img}" alt="Pass QR code" style="width:132px;height:132px"></div>`:""}
       <div class="vp-clock" style="font-size:19px"><i></i><span id="m_vpc"></span></div>
@@ -892,7 +898,7 @@ async function openPass(v){
   m.hidden=false;
   const tick=()=>{const c=$("#m_vpc");if(!c||m.hidden){clearInterval(openPass.t);return}c.textContent=new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"})};
   tick(); openPass.t=setInterval(tick,1000);
-  $("#mNo").onclick=()=>{clearInterval(openPass.t);m.hidden=true};
+  $("#mNo").onclick=$("#mX").onclick=()=>{clearInterval(openPass.t);m.hidden=true};
   $("#m_pcal").onclick=()=>downloadIcs(p);
   $("#m_pcopy").onclick=async()=>{try{await navigator.clipboard.writeText(url);toast("Pass link copied.")}catch(e){$("#m_plink").select()}};
   render();
@@ -1396,10 +1402,11 @@ function openHandover(){
     m.innerHTML=`<div class="modal" style="max-width:680px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
         <div><h2 style="margin:0">Shift handover &amp; station transfer</h2><p class="small" style="margin:2px 0 0">Live visitors on site, unreturned tags, and uncollected deliveries are automatically transferred into this handover.</p></div>
-        <div class="acts">
+        <div class="acts" style="flex-wrap:nowrap">
           <button class="btn" type="button" id="ho_pull" title="Re-pull live station counts and tables">↻ Pull live data</button>
           <button class="btn" type="button" id="ho_log" title="Append today's station activity log into shift notes">+ Insert today's log</button>
           <label class="btn" style="cursor:pointer;margin:0" title="Import notes or records from a .json, .csv, or .txt file">📂 Import file<input type="file" id="ho_file" accept=".json,.csv,.txt" hidden></label>
+          <button class="modal-x" type="button" id="ho_x" title="Close (Esc)" aria-label="Close">×</button>
         </div>
       </div>
       <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
@@ -1455,6 +1462,7 @@ function openHandover(){
         stats,onsite:selOn,lostTags:selTags,parcels:selDel,checks:{tags:$("#hc_tags").checked,equip:$("#hc_equip").checked,keys:$("#hc_keys").checked,vip:$("#hc_vip").checked},notes:$("#ho_txt").value.trim()};
     };
     $("#mNo").onclick=()=>m.hidden=true;
+    $("#ho_x").onclick=()=>m.hidden=true;
     $("#ho_pull").onclick=()=>{snap=collectLive();draw();toast("Live station data refreshed.")};
     $("#ho_log").onclick=()=>{
       const ev=visitors.flatMap(v=>(v.log||[]).map(l=>({...l,name:v.name,ref:v.ref}))).filter(l=>isToday(l.t)).sort((a,b)=>b.t-a.t).slice(0,12);
@@ -2227,8 +2235,8 @@ function renderBulk(){
   };
 }
 function modal(html,onOk){
-  const m=$("#modal"); m.innerHTML=`<div class="modal">${html}<div class="acts"><button class="btn pri" id="mOk">Confirm</button><button class="btn" id="mNo">Cancel</button></div></div>`; m.hidden=false;
-  $("#mNo").onclick=()=>m.hidden=true; $("#mOk").onclick=()=>{const r=onOk(); if(r!==false) m.hidden=true};
+  const m=$("#modal"); m.innerHTML=`<div class="modal"><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">×</button>${html}<div class="acts"><button class="btn pri" id="mOk">Confirm</button><button class="btn" id="mNo">Cancel</button></div></div>`; m.hidden=false;
+  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true; $("#mOk").onclick=()=>{const r=onOk(); if(r!==false) m.hidden=true};
   const first=m.querySelector("input,select"); (first||$("#mOk")).focus();
 }
 function doAct(a,v){
@@ -2324,8 +2332,8 @@ function doAct(a,v){
     return;
   }
   if(a==="detail"){
-    const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:560px"><h2>${esc(v.name)} ${tpill(v)}</h2><div class="small">${esc(v.org)} · <span class="ref">${esc(v.ref)}</span> · ${pill(v)}${v.vehicle?` · <span class="mono">🚗 ${esc(v.vehicle)}</span>`:""}</div><div class="small">Host ${esc(v.host)} (${esc(v.agency)})${v.backupHost?` · Backup: ${esc(v.backupHost)}`:""} · ${esc(v.building)}${v.room?" · "+esc(v.room):""} · ${esc(v.purpose)}${v.escort||v.restricted?" · <b>Escort required</b>":""}</div><div class="small">Requested by ${esc(v.requestedBy||v.host)}${v.decidedBy?` · ${v.status==="rejected"?"Rejected":"Approved"} by <b>${esc(v.decidedBy)}</b>${v.decidedAt?" ("+fmtD(v.decidedAt)+")":""}`:" · awaiting approval"}</div>${v.rejectReason?`<div class="small" style="color:var(--bad)">Rejection reason: <b>${esc(v.rejectReason)}</b></div>`:""}<div class="tw" style="max-height:300px;overflow:auto"><table><tbody>${(v.log||[]).slice().reverse().map(l=>`<tr><td class="mono">${fmtD(l.t)}</td><td>${esc(l.a)}<div class="small">${esc(l.by)} · ${esc(l.st)}</div></td></tr>`).join("")}</tbody></table></div><div class="acts">${passLive(v.status)&&canAct("pass")?`<button class="btn pri" id="mPass">Live digital pass</button>`:""}${v.status==="rejected"&&canAct("resubmit")?`<button class="btn pri" id="mResub">Edit & resubmit</button>`:""}${v.status==="in"&&canAct("extendstay")?`<button class="btn" id="mExt">Extend stay (host permission)</button>`:""}<button class="btn" id="mNo">Close</button></div></div>`;
-    m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; if($("#mPass")) $("#mPass").onclick=()=>openPass(v); if($("#mExt")) $("#mExt").onclick=()=>doAct("extendstay",v); if($("#mResub")) $("#mResub").onclick=()=>doAct("resubmit",v); $("#mNo").focus();
+    const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:560px"><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">×</button><h2>${esc(v.name)} ${tpill(v)}</h2><div class="small">${esc(v.org)} · <span class="ref">${esc(v.ref)}</span> · ${pill(v)}${v.vehicle?` · <span class="mono">🚗 ${esc(v.vehicle)}</span>`:""}</div><div class="small">Host ${esc(v.host)} (${esc(v.agency)})${v.backupHost?` · Backup: ${esc(v.backupHost)}`:""} · ${esc(v.building)}${v.room?" · "+esc(v.room):""} · ${esc(v.purpose)}${v.escort||v.restricted?" · <b>Escort required</b>":""}</div><div class="small">Requested by ${esc(v.requestedBy||v.host)}${v.decidedBy?` · ${v.status==="rejected"?"Rejected":"Approved"} by <b>${esc(v.decidedBy)}</b>${v.decidedAt?" ("+fmtD(v.decidedAt)+")":""}`:" · awaiting approval"}</div>${v.rejectReason?`<div class="small" style="color:var(--bad)">Rejection reason: <b>${esc(v.rejectReason)}</b></div>`:""}<div class="tw" style="max-height:300px;overflow:auto"><table><tbody>${(v.log||[]).slice().reverse().map(l=>`<tr><td class="mono">${fmtD(l.t)}</td><td>${esc(l.a)}<div class="small">${esc(l.by)} · ${esc(l.st)}</div></td></tr>`).join("")}</tbody></table></div><div class="acts">${passLive(v.status)&&canAct("pass")?`<button class="btn pri" id="mPass">Live digital pass</button>`:""}${v.status==="rejected"&&canAct("resubmit")?`<button class="btn pri" id="mResub">Edit & resubmit</button>`:""}${v.status==="in"&&canAct("extendstay")?`<button class="btn" id="mExt">Extend stay (host permission)</button>`:""}<button class="btn" id="mNo">Close</button></div></div>`;
+    m.hidden=false; $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true; if($("#mPass")) $("#mPass").onclick=()=>openPass(v); if($("#mExt")) $("#mExt").onclick=()=>doAct("extendstay",v); if($("#mResub")) $("#mResub").onclick=()=>doAct("resubmit",v); $("#mNo").focus();
   }
 }
 async function copyCsv(){
@@ -2357,7 +2365,11 @@ $("#yr").textContent=new Date().getFullYear();
   if(btn) btn.onclick=()=>{const next=isDark()?"light":"dark";root.dataset.theme=next;try{localStorage.setItem("theme",next)}catch(e){}syncBtn()};
   if(sBtn) sBtn.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("soundAlerts",soundOn?"1":"0")}catch(e){}syncSound();if(soundOn){playChime();try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){}toast("Station sound & desktop alerts enabled.")}else toast("Station sound alerts muted.")};
 })();
-document.addEventListener("keydown",e=>{if(e.key==="/"&&!["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)){const q=$("#q");if(q){e.preventDefault();q.focus();q.select()}}});
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&!$("#modal").hidden){clearInterval(openPass.t);$("#modal").hidden=true;return}
+  if(e.key==="/"&&!["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)){const q=$("#q");if(q){e.preventDefault();q.focus();q.select()}}
+});
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal"){clearInterval(openPass.t);$("#modal").hidden=true}});
 const willUseFirebase=window.FIREBASE_CONFIG&&window.firebase&&!/PASTE/.test(window.FIREBASE_CONFIG.apiKey||"");
 if(!willUseFirebase){view=defaultView(); render();} connect();
 setInterval(()=>{if(!$("#modal").hidden||["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName))return;render()},60000);
