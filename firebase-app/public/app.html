@@ -397,12 +397,12 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
-  gate:["dashboard","gate","approvals","assets","register","deliveries","evac","history"],
-  docs:["dashboard","tagging","assets","evac","history"],
-  reception:["dashboard","reception","assets","register","deliveries","kiosk","evac","history"],
-  vip:["dashboard","vip","evac","history"],
+  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","watch","reports","history","assistant"],
+  gate:["dashboard","gate","approvals","assets","register","history"],
+  docs:["dashboard","tagging","assets","history"],
+  reception:["dashboard","reception","assets","register","kiosk","history"],
+  vip:["dashboard","vip","history"],
   host:["myguests","assets","register","history"]
 };
 const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver","gate","reception"],phoneadmit:["gate","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
@@ -779,9 +779,7 @@ const VIEWS=[
   ["register","Register visitors","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
   ["myguests","My guests","Access & Guests",'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>'],
   ["approvals","Approvals","Access & Guests",'<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>'],
-  ["contractors","Contractors","Access & Guests",'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>'],
-  ["deliveries","Deliveries","Access & Guests",'<path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 7l8.7 5 8.7-5M12 12v10"/>'],
-  ["evac","Evacuation","Safety & Analytics",'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'],
+  ["contractors","Contractors & Service Staff","Access & Guests",'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>'],
   ["watch","UNDSS Watchlist","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>'],
   ["reports","Reports","Safety & Analytics",'<path d="M18 20V10M12 20V4M6 20v-6"/>'],
   ["history","History & audit","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
@@ -793,7 +791,7 @@ function renderNav(){
   const c={approvals:visitors.filter(v=>v.status==="pending").length,gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
     tagging:visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,reception:visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length};
-  c.staff=staffList.filter(s=>s.role==="pending").length; c.deliveries=deliveries.filter(d=>d.status==="waiting").length;
+  c.staff=staffList.filter(s=>s.role==="pending").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
@@ -814,7 +812,7 @@ async function printBadge(v){
   const holder=document.createElement("div"); new QRCode(holder,{text:v.ref,width:160,height:160,correctLevel:QRCode.CorrectLevel.M});
   await new Promise(r=>setTimeout(r,60));
   const img=(holder.querySelector("img")&&holder.querySelector("img").src)||(holder.querySelector("canvas")&&holder.querySelector("canvas").toDataURL());
-  const kind=v.type==="vip"?"VIP":v.type==="contractor"?"Contractor":"Visitor";
+  const kind=v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor";
   const until=v.type==="contractor"&&v.accessTo?new Date(v.accessTo).toLocaleDateString():new Date(today0()+864e5-1).toLocaleDateString()+" 23:59";
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   p.innerHTML=`<div class="pbadge"><div class="pb-h"><span>UN House Abuja</span><span>${kind}</span></div>
@@ -950,7 +948,7 @@ async function openPass(v){
   const url=passUrl(p.id), img=await qrDataUrl(PASS_PREFIX+p.id,180).catch(()=>null);
   const digits=String(v.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
   const msg=`Hello ${v.name}, here is your visitor pass for UN House Abuja on ${new Date(v.expected||now()).toLocaleDateString()}. Show it at the gate with your photo ID: ${url}`;
-  const kind=v.type==="vip"?"VIP guest":v.type==="contractor"?"Contractor":"Visitor";
+  const kind=v.type==="vip"?"VIP guest":v.type==="contractor"?"Contractor & Service Staff":"Visitor";
   const stLabel={in:"Checked in",tagged:"Documented",arrived:"Admitted at gate",approved:"Approved"}[v.status]||"Approved";
   clearInterval(openPass.t);
   const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:480px;padding:16px;gap:10px">
@@ -1171,115 +1169,7 @@ function wireWatch(){
     db.collection("watchlist").doc(w.id).update({active:w.active===false,changedAt:now(),changedBy:op()}).then(()=>toast(w.active===false?"Reactivated.":"Removed from the UNDSS Watchlist.")).catch(e=>toast(e.message))});
 }
 
-/* ---------- 2. Evacuation roll call ---------- */
-const activeRoll=()=>rollcalls.find(r=>!r.endedAt);
-function enrichEvacPerson(p){
-  const v=visitors.find(x=>x.id===p.visitorId)||{};
-  return {...p,phone:p.phone||v.phone||"",visitorEmail:p.visitorEmail||v.visitorEmail||"",hostEmail:p.hostEmail||v.hostEmail||"",host:p.host||v.host||""};
-}
-const VW_evac=()=>{
-  const r=activeRoll(), onsite=visitors.filter(v=>["arrived","tagged","in"].includes(v.status));
-  if(!r) return head("Evacuation roll call","In an emergency, start a roll call. Everyone signed in at any station sees the same live list and ticks people off at the assembly point.")+
-    `<div class="panel"><div class="kpis"><div class="kpi"><div class="n">${onsite.length}</div><div class="l">Visitors on site now</div></div>${BUILDINGS.map(b=>`<div class="kpi"><div class="n">${onsite.filter(v=>v.building===b).length}</div><div class="l">${esc(b)}</div></div>`).join("")}</div>
-    <div class="acts" style="margin-top:14px"><button class="btn pri" id="ev_start">Start roll call</button></div></div>
-    ${rollcalls.length?`<div class="panel"><h2>Past roll calls</h2><div class="tw"><table><tbody>${rollcalls.filter(x=>x.endedAt).slice(0,8).map(x=>`<tr><td>${fmtD(x.startedAt)}</td><td>${Object.values(x.accounted||{}).filter(Boolean).length} of ${x.people.length} accounted</td><td class="small">Started by ${esc(x.startedBy)} · ended ${fmtT(x.endedAt)} by ${esc(x.endedBy||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
-  const acc=r.accounted||{}, notif=r.notified||{}, done=r.people.filter(p=>acc[p.visitorId]).length, missing=r.people.filter(p=>!acc[p.visitorId]);
-  return `<div class="evac-head"><div><div class="al-k" style="color:inherit">Roll call in progress · started ${fmtT(r.startedAt)} by ${esc(r.startedBy)}</div><div class="evac-n">${done} of ${r.people.length} accounted for</div></div><div class="acts"><button class="btn" id="ev_end">End roll call</button></div></div>
-  <div class="evac-bar"><span style="width:${r.people.length?done/r.people.length*100:100}%"></span></div>
-  ${missing.length?`<div class="panel"><h2>Still missing <span class="cnt">${missing.length}</span></h2>${evacList(missing,acc,notif)}</div>`:`<div class="panel"><div class="al-empty"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Everyone is accounted for.</div></div>`}
-  ${BUILDINGS.filter(b=>r.people.some(p=>p.building===b)).map(b=>{const ps=r.people.filter(p=>p.building===b);return `<div class="panel"><h2>${esc(b)} <span class="cnt">${ps.filter(p=>acc[p.visitorId]).length}/${ps.length}</span></h2>${evacList(ps,acc,notif)}</div>`}).join("")}`;
-};
-function evacList(ps,acc,notif={}){return `<ul class="evac">${ps.map(raw=>{const p=enrichEvacPerson(raw), n=notif[p.visitorId];return `<li class="${acc[p.visitorId]?"ok":""}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><label style="flex:1;min-width:220px"><input type="checkbox" data-evac="${esc(p.visitorId)}" ${acc[p.visitorId]?"checked":""}><span><b>${esc(p.name)}</b><span class="small"> ${esc(p.tag||"")} · host ${esc(p.host)}${p.hostEmail?" ("+esc(p.hostEmail)+")":""}${p.phone?" · "+esc(p.phone):""}${p.visitorEmail?" · "+esc(p.visitorEmail):""}</span></span></label></li>`}).join("")}</ul>`}
-function updateRoll(id,patch){
-  const r=rollcalls.find(x=>x.id===id);
-  if(r){for(const [k,v] of Object.entries(patch)){if(k.includes(".")){const [a,b]=k.split(".");r[a]={...(r[a]||{}),[b]:v}}else r[k]=v}}
-  if(db) return db.collection("rollcalls").doc(id).update(patch).catch(e=>toast(e.message));
-  render(); return Promise.resolve();
-}
-function evacNotify(raw){
-  const r=activeRoll(); if(!r||!raw) return;
-  const p=enrichEvacPerson(raw);
-  const digits=String(p.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
-  const defMsg=`URGENT — UN House Abuja Evacuation: ${p.name}${p.tag?" ("+p.tag+")":""}, please proceed immediately to the emergency assembly point and report to security for roll call. Host: ${p.host}.`;
-  const subj="URGENT: UN House Abuja Evacuation Roll Call — "+p.name;
-  const bothEmails=[p.visitorEmail,p.hostEmail].filter(Boolean).join(",");
-  const m=$("#modal");
-  m.innerHTML=`<div class="modal" style="max-width:540px"><h2>Message host &amp; guest · ${esc(p.name)}</h2>
-    <div class="small" style="display:grid;gap:4px">
-      <div><b>Guest on file:</b> ${p.phone?esc(p.phone):"No phone"} · ${p.visitorEmail?esc(p.visitorEmail):"No email"}</div>
-      <div><b>Host (${esc(p.host)}):</b> ${p.hostEmail?esc(p.hostEmail):"No host email on file"}</div>
-    </div>
-    <div class="f"><label for="ev_m_txt">Emergency message</label><textarea id="ev_m_txt" style="min-height:76px">${esc(defMsg)}</textarea></div>
-    <div class="small"><b>Send to guest (${esc(p.name)}):</b></div>
-    <div class="acts">
-      ${digits.length>=10?`<a class="btn pri" id="ev_wa" href="#" target="_blank" rel="noopener">WhatsApp guest</a>`:""}
-      ${p.phone?`<a class="btn pri" id="ev_sms" href="#">SMS guest (${esc(p.phone)})</a><a class="btn" id="ev_tel" href="tel:${esc(p.phone)}">Call guest</a>`:""}
-      ${p.visitorEmail?`<a class="btn pri" id="ev_gmail" href="#">Email guest</a>`:""}
-      ${!p.phone&&!p.visitorEmail?`<span class="small">No phone or email on file for this guest.</span>`:""}
-    </div>
-    <div class="small"><b>Send to host (${esc(p.host)}):</b></div>
-    <div class="acts">
-      ${p.hostEmail?`<a class="btn pri" id="ev_hmail" href="#">Email host (${esc(p.hostEmail)})</a>`:`<span class="small">No email on file for host.</span>`}
-      ${p.visitorEmail&&p.hostEmail?`<a class="btn ok" id="ev_bmail" href="#">Email both guest &amp; host</a>`:""}
-    </div>
-    <div class="acts" style="justify-content:flex-end"><button class="btn" id="mNo">Close</button></div></div>`;
-  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
-  const msg=()=>$("#ev_m_txt").value.trim()||defMsg;
-  const mark=via=>()=>{updateRoll(r.id,{["notified."+p.visitorId]:{at:now(),by:op(),via}});toast(`Recorded: ${p.name} / host messaged via ${via}.`);render()};
-  const wireLink=(id,via,hrefFn)=>{const el=$(id);if(!el)return;el.onclick=()=>{el.href=hrefFn(msg());mark(via)()}};
-  wireLink("#ev_wa","WhatsApp",t=>`https://wa.me/${digits}?text=${encodeURIComponent(t)}`);
-  wireLink("#ev_sms","SMS",t=>`sms:${p.phone}?body=${encodeURIComponent(t)}`);
-  wireLink("#ev_gmail","guest email",t=>`mailto:${p.visitorEmail}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(t)}`);
-  wireLink("#ev_hmail","host email",t=>`mailto:${p.hostEmail}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(t)}`);
-  wireLink("#ev_bmail","guest & host email",t=>`mailto:${bothEmails}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(t)}`);
-  if($("#ev_tel")) $("#ev_tel").onclick=mark("phone call");
-}
-function evacNotifyAll(){
-  const r=activeRoll(); if(!r) return;
-  const acc=r.accounted||{}, missing=r.people.filter(p=>!acc[p.visitorId]).map(enrichEvacPerson);
-  const gEmails=[...new Set(missing.map(p=>p.visitorEmail).filter(Boolean))];
-  const hEmails=[...new Set(missing.map(p=>p.hostEmail).filter(Boolean))];
-  const allEmails=[...new Set([...gEmails,...hEmails])];
-  const phones=[...new Set(missing.map(p=>p.phone).filter(Boolean))];
-  const defMsg=`URGENT — UN House Abuja Evacuation Roll Call: Please proceed immediately to the nearest emergency assembly point and report to security so all visitors on site can be accounted for.`;
-  const subj="URGENT: UN House Abuja Evacuation Roll Call";
-  const m=$("#modal");
-  m.innerHTML=`<div class="modal" style="max-width:540px"><h2>Message all missing (${missing.length})</h2>
-    <p class="small">On file for the ${missing.length} unaccounted visitor${missing.length>1?"s":""}: <b>${gEmails.length}</b> guest email${gEmails.length===1?"":"s"}, <b>${phones.length}</b> guest phone number${phones.length===1?"":"s"}, and <b>${hEmails.length}</b> host email${hEmails.length===1?"":"s"}.</p>
-    <div class="f"><label for="ev_all_txt">Emergency broadcast message</label><textarea id="ev_all_txt" style="min-height:76px">${esc(defMsg)}</textarea></div>
-    <div class="acts">
-      ${allEmails.length?`<a class="btn pri" id="ev_all_both" href="#">Email all guests &amp; hosts (${allEmails.length})</a>`:""}
-      ${hEmails.length?`<a class="btn" id="ev_all_hosts" href="#">Email hosts only (${hEmails.length})</a>`:""}
-      ${gEmails.length?`<a class="btn" id="ev_all_guests" href="#">Email guests only (${gEmails.length})</a>`:""}
-      ${phones.length?`<button class="btn" id="ev_all_phones" type="button">Copy guest phones (${phones.length})</button>`:""}
-      <button class="btn" id="mNo" type="button">Close</button>
-    </div></div>`;
-  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
-  const msg=()=>$("#ev_all_txt").value.trim()||defMsg;
-  const markAll=via=>{const patch={};missing.forEach(p=>{patch["notified."+p.visitorId]={at:now(),by:op(),via}});updateRoll(r.id,patch);toast(`Broadcast via ${via} recorded for ${missing.length} missing visitors.`);render()};
-  const wireBulk=(id,list,via)=>{const el=$(id);if(!el)return;el.onclick=()=>{el.href=`mailto:?bcc=${encodeURIComponent(list.join(","))}&subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(msg())}`;markAll(via)}};
-  wireBulk("#ev_all_both",allEmails,"bulk email");
-  wireBulk("#ev_all_hosts",hEmails,"host email");
-  wireBulk("#ev_all_guests",gEmails,"guest email");
-  if($("#ev_all_phones")) $("#ev_all_phones").onclick=async()=>{try{await navigator.clipboard.writeText(phones.join(", "));markAll("SMS list");toast(`${phones.length} phone numbers copied.`)}catch(e){}};
-}
-function wireEvac(){
-  const s=$("#ev_start"); if(s) s.onclick=()=>modal(`<h2>Start an evacuation roll call?</h2><p>Everyone currently on site goes onto a shared list that all stations can tick off.</p>
-    <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ev_auto_mail" checked style="width:auto"> Automatically email evacuation notice to all on-site guests and their hosts</label>`,()=>{
-    const people=visitors.filter(v=>["arrived","tagged","in"].includes(v.status)).map(v=>({visitorId:v.id,name:v.name,tag:v.tag||"",host:v.host||"",hostEmail:v.hostEmail||"",phone:v.phone||"",visitorEmail:v.visitorEmail||"",building:v.building||BUILDINGS[0]}));
-    const notifyAll=!!($("#ev_auto_mail")&&$("#ev_auto_mail").checked);
-    const doc={startedAt:now(),startedBy:op(),startedByUid:myUid(),notifyAll,people,accounted:{},notified:{}};
-    if(db) db.collection("rollcalls").add(doc).then(()=>toast("Roll call started.")).catch(e=>toast(e.message));
-    else { rollcalls.unshift({...doc,id:"rc-"+now()}); render(); toast("Roll call started."); }
-  });
-  const e=$("#ev_end"); if(e) e.onclick=()=>{const r=activeRoll(); modal(`<h2>End the roll call?</h2><p>${r.people.filter(p=>!(r.accounted||{})[p.visitorId]).length} people are still not ticked.</p>`,()=>{updateRoll(r.id,{endedAt:now(),endedBy:op()}).then(()=>toast("Roll call ended."))})};
-  const ma=$("#ev_msg_all"); if(ma) ma.onclick=evacNotifyAll;
-  document.querySelectorAll("[data-evac]").forEach(c=>c.onchange=()=>{const r=activeRoll(); if(!r) return;
-    updateRoll(r.id,{["accounted."+c.dataset.evac]:c.checked?{at:now(),by:op()}:false})});
-  document.querySelectorAll("[data-evac-msg]").forEach(b=>b.onclick=()=>{const r=activeRoll(); if(!r) return;
-    evacNotify(r.people.find(p=>p.visitorId===b.dataset.evacMsg))});
-}
-
+/* Evacuation roll call removed - redundant with Reports overview */
 /* ---------- 3. Offline + installable ---------- */
 function watchConnection(){
   const upd=()=>{ if(!navigator.onLine) setSync(false,"Offline · changes are saved on this device and sync when back online"); else if(me) setSync(true,"Live · all stations synced"); };
@@ -1389,50 +1279,7 @@ const VW_myguests=()=>{
   <div class="panel"><h2>Recent</h2>${table(past,pastBtns,"No past visits yet.")}</div>`;
 };
 
-/* ---------- 8. Deliveries log ---------- */
-const VW_deliveries=()=>{
-  const wait=deliveries.filter(d=>d.status==="waiting"), done=deliveries.filter(d=>d.status!=="waiting").slice(0,30);
-  return head("Deliveries","Log parcels and deliveries for staff, and record when they are collected.")+
-  `<div class="panel"><h2>Log a delivery</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-    <div class="f"><label for="d_for">For (staff member)</label><input id="d_for"></div>
-    <div class="f"><label for="d_email">Their email</label><input id="d_email" type="email" placeholder="name@undp.org"></div>
-    <div class="f"><label for="d_phone">Their phone (for WhatsApp)</label><input id="d_phone" inputmode="tel" placeholder="0803 000 0000"></div>
-    <div class="f"><label for="d_agency">Agency</label><select id="d_agency">${AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("")}</select></div>
-    <div class="f"><label for="d_from">From / courier</label><input id="d_from" placeholder="e.g. DHL"></div>
-    <div class="f"><label for="d_desc">Description</label><input id="d_desc" placeholder="e.g. 1 box, documents"></div></div>
-    <label class="small" style="display:flex;gap:8px;align-items:center;margin-top:10px"><input type="checkbox" id="d_notify" checked style="width:auto"> Notify them now</label>
-    <div class="acts" style="margin-top:10px"><button class="btn pri" id="d_add">Log delivery</button></div></div>
-  <div class="panel"><h2>Waiting for collection <span class="cnt">${wait.length}</span></h2>${wait.length?`<div class="tw"><table><thead><tr><th>For</th><th>Item</th><th>Received</th><th style="text-align:right">Actions</th></tr></thead><tbody>${wait.map(d=>`<tr><td><b>${esc(d.forName)}</b><div class="small">${esc(d.agency)}${d.email?" · "+esc(d.email):""}${d.phone?" · "+esc(d.phone):""}</div></td><td>${esc(d.desc)}<div class="small">${esc(d.from)}</div></td><td class="small">${fmtD(d.at)} · ${esc(d.by)}<div>${d.notifiedAt?`<span class="pill p-in">Notified ${fmtT(d.notifiedAt)} · ${esc(d.notifiedVia||"")}</span>`:`<span class="pill p-pending">Not notified yet</span>`}${d.reminders?` <span class="small">${d.reminders} reminder${d.reminders>1?"s":""}</span>`:""}</div></td>
-    <td><div class="acts" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn" data-dnotify="${esc(d.id)}">${d.notifiedAt?"Remind":"Notify"}</button><button class="btn ok" data-dcol="${esc(d.id)}">Collected</button></div></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nothing waiting.</div>`}</div>
-  ${done.length?`<div class="panel"><h2>Collected</h2><div class="tw"><table><tbody>${done.map(d=>`<tr><td>${esc(d.forName)}</td><td>${esc(d.desc)}</td><td class="small">Collected ${fmtD(d.collectedAt)} · ${esc(d.collectedBy||"")}</td></tr>`).join("")}</tbody></table></div></div>`:""}`;
-};
-function deliveryMsg(d){return `Hello ${d.forName}, a delivery has arrived for you at UN House reception${d.from?" from "+d.from:""}${d.desc?": "+d.desc:""}. Please collect it at the reception desk. Logged ${fmtD(d.at)} by ${d.by}.`}
-function notifyDelivery(d){
-  if(!d) return;
-  const msg=deliveryMsg(d), digits=String(d.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
-  const mark=via=>db.collection("deliveries").doc(d.id).update({notifiedAt:now(),notifiedBy:op(),notifiedVia:via,...(d.notifiedAt?{reminders:(d.reminders||0)+1}:{})}).then(()=>toast(`Recorded: ${d.forName} notified by ${via}.`)).catch(e=>toast(e.message));
-  const m=$("#modal"); m.innerHTML=`<div class="modal"><h2>${d.notifiedAt?"Remind":"Notify"} ${esc(d.forName)}</h2>
-    <p class="small">${esc(msg)}</p>
-    ${features.autoMail?`<div class="note">An email is also sent automatically when a delivery is logged.</div>`:""}
-    <div class="acts">
-      ${d.email?`<a class="btn pri" id="dn_mail" href="mailto:${esc(d.email)}?subject=${encodeURIComponent("Delivery for you at UN House reception")}&body=${encodeURIComponent(msg)}">Email</a>`:""}
-      ${digits.length>=10?`<a class="btn pri" id="dn_wa" href="https://wa.me/${digits}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>`:""}
-      <button class="btn" id="dn_person">Told in person</button><button class="btn" id="dn_phone">Phoned</button><button class="btn" id="mNo">Close</button></div>
-    ${!d.email&&digits.length<10?`<p class="small">Add their email or phone when logging the delivery to send a message from here.</p>`:""}</div>`;
-  m.hidden=false; $("#mNo").onclick=()=>m.hidden=true;
-  const done=via=>()=>{mark(via);m.hidden=true};
-  if($("#dn_mail")) $("#dn_mail").addEventListener("click",done("email"));
-  if($("#dn_wa")) $("#dn_wa").addEventListener("click",done("WhatsApp"));
-  $("#dn_person").onclick=done("in person"); $("#dn_phone").onclick=done("phone");
-}
-function wireDeliveries(){
-  const a=$("#d_add"); if(a) a.onclick=async()=>{const f=$("#d_for").value.trim(); if(!f) return toast("Enter who the delivery is for.");
-    const d={forName:f,email:$("#d_email").value.trim().toLowerCase(),phone:$("#d_phone").value.trim(),agency:$("#d_agency").value,from:$("#d_from").value.trim(),desc:$("#d_desc").value.trim(),at:now(),by:op(),status:"waiting"};
-    try{const ref=await db.collection("deliveries").add(d); toast("Delivery logged."); if($("#d_notify").checked) notifyDelivery({...d,id:ref.id});}catch(e){toast(e.message)}};
-  document.querySelectorAll("[data-dnotify]").forEach(b=>b.onclick=()=>notifyDelivery(deliveries.find(x=>x.id===b.dataset.dnotify)));
-  document.querySelectorAll("[data-dcol]").forEach(b=>b.onclick=()=>db.collection("deliveries").doc(b.dataset.dcol).update({status:"collected",collectedAt:now(),collectedBy:op()}).then(()=>toast("Marked collected.")).catch(e=>toast(e.message)));
-}
-
+/* Deliveries log removed */
 /* ---------- 9. Reports ---------- */
 const VW_reports=()=>{
   const real=visitors.filter(v=>!v.example||!fb), days=30, start=today0()-(days-1)*864e5;
@@ -1462,7 +1309,7 @@ function printHandoverSheet(h){
     </div>
     <table style="width:100%;border-collapse:collapse;margin-bottom:12px;font-size:9.5pt">
       <tr><td style="border:1px solid #ccc;padding:6px"><b>Duty Officer:</b> ${esc(h.dutyOfficer||h.fromOfficer)}</td><td style="border:1px solid #ccc;padding:6px"><b>Visiting Hours:</b> 08:00 – 17:00 (Closed)</td><td style="border:1px solid #ccc;padding:6px"><b>Closeout Status:</b> <span style="color:#059669;font-weight:700">✓ 17:00 Certified</span></td></tr>
-      <tr><td style="border:1px solid #ccc;padding:6px"><b>Arrivals Today:</b> ${h.stats?.arrivals??0} (${h.stats?.checkedOut??0} checked out)</td><td style="border:1px solid #ccc;padding:6px"><b>Visitors Remaining on Compound:</b> ${(h.onsite||[]).length}</td><td style="border:1px solid #ccc;padding:6px"><b>Unreturned Tags:</b> ${(h.lostTags||[]).length} · <b>Custody Deliveries:</b> ${(h.parcels||[]).length}</td></tr>
+      <tr><td style="border:1px solid #ccc;padding:6px"><b>Arrivals Today:</b> ${h.stats?.arrivals??0} (${h.stats?.checkedOut??0} checked out)</td><td style="border:1px solid #ccc;padding:6px"><b>Visitors Remaining on Compound:</b> ${(h.onsite||[]).length}</td><td style="border:1px solid #ccc;padding:6px"><b>Unreturned Tags:</b> ${(h.lostTags||[]).length} </td></tr>
     </table>
     <div style="font-weight:700;margin:8px 0 4px">1. Compound Clearance Verification (${(h.onsite||[]).length} on site at 17:00)</div>
     ${(h.onsite||[]).length?`<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:9pt"><thead><tr style="background:#fee2e2"><th style="border:1px solid #ccc;padding:4px;text-align:left">Ref</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Name</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Tag</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Host / Agency</th><th style="border:1px solid #ccc;padding:4px;text-align:left">Building &amp; Alert</th></tr></thead><tbody>${h.onsite.map(v=>`<tr><td style="border:1px solid #ccc;padding:4px">${esc(v.ref)}</td><td style="border:1px solid #ccc;padding:4px"><b>${esc(v.name)}</b></td><td style="border:1px solid #ccc;padding:4px">${esc(v.tag||"—")}</td><td style="border:1px solid #ccc;padding:4px">${esc(v.host)} (${esc(v.agency)})</td><td style="border:1px solid #ccc;padding:4px;color:#dc2626"><b>${esc(v.building)} (${esc(v.note||"OVERSTAY")})</b></td></tr>`).join("")}</tbody></table>`:`<div style="margin-bottom:10px;color:#059669;font-weight:600">✓ Compound fully cleared. Zero external visitors inside UN House Abuja after 17:00.</div>`}
@@ -1500,7 +1347,7 @@ function openHandover(){
   const m=$("#modal");
   const draw=(customNotes)=>{
     const {onsite,lostTags,parcels,pend,stats}=snap;
-    const defNotes=customNotes??`• Visiting hours ended at 17:00. Today's traffic: ${stats.arrivals} arrivals, ${stats.checkedOut} checked out.\n• ${onsite.length?`SECURITY ALERT: ${onsite.length} visitor(s) still inside compound after 17:00. Immediate check required.`:`Compound clearance verified: 0 external visitors on site.`}\n• ${lostTags.length?`${lostTags.length} unreturned tag(s) logged for recovery.`:`All visitor tags accounted for in Station 2 stock.`}\n• ${parcels.length?`${parcels.length} parcel(s) secured in reception safe.`:`Zero outstanding parcels.`}\n• Reception secured for Compound Night Perimeter Security.`;
+    const defNotes=customNotes??`• Visiting hours ended at 17:00. Today's traffic: ${stats.arrivals} arrivals, ${stats.checkedOut} checked out.\n• ${onsite.length?`SECURITY ALERT: ${onsite.length} visitor(s) still inside compound after 17:00. Immediate check required.`:`Compound clearance verified: 0 external visitors on site.`}\n• ${lostTags.length?`${lostTags.length} unreturned tag(s) logged for recovery.`:`All visitor tags accounted for in Station 2 stock.`}\n• • Reception secured for Compound Night Perimeter Security.`;
     m.innerHTML=`<div class="modal" style="max-width:680px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
         <div><h2 style="margin:0">🔒 17:00 End-of-Day Reception Closeout</h2><p class="small" style="margin:2px 0 0">UN House Abuja visiting hours end at 17:00. Verify compound clearance, tag reconciliation, and sign off the daily security log.</p></div>
@@ -1525,8 +1372,8 @@ function openHandover(){
         <div style="max-height:135px;overflow:auto;display:grid;gap:4px;font-size:12.5px">
           ${onsite.map((v,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-on="${i}" checked style="width:auto"> <span><b style="color:var(--bad)">[Visitor Still on Compound]</b> ${esc(v.name)} (<span class="mono">${esc(v.tag||v.ref)}</span>) · Host: ${esc(v.host)} (${esc(v.agency)}) · ${esc(v.building)} <span class="pill p-rejected" style="font-size:10px;padding:1px 6px">17:00 Overstay</span></span></label>`).join("")}
           ${lostTags.map((t,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-tag="${i}" checked style="width:auto"> <span><b style="color:var(--warn)">[Unreturned tag ${esc(t.tag)}]</b> ${esc(t.name)} · Host: ${esc(t.host)} (out ${fmtT(t.outAt)})</span></label>`).join("")}
-          ${parcels.map((d,i)=>`<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ho-del="${i}" checked style="width:auto"> <span><b>[Custody Parcel]</b> For ${esc(d.forName)} (${esc(d.agency)}): ${esc(d.desc)} (${esc(d.from||"courier")})</span></label>`).join("")}
-          ${!onsite.length&&!lostTags.length&&!parcels.length?`<div class="small" style="color:var(--ok);font-weight:600">✓ Compound cleared: All visitors checked out, all tags returned, zero outstanding items.</div>`:""}
+          
+          ${!onsite.length&&!lostTags.length?`<div class="small" style="color:var(--ok);font-weight:600">✓ Compound cleared: All visitors checked out, all tags returned, zero outstanding items.</div>`:""}
         </div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12.5px">
@@ -1906,8 +1753,6 @@ const TOUR=[
   ["Documentation and tags","The officer records the ID checked and any equipment brought in, then issues a numbered tag. Paper badges are optional when the visitor has a digital pass.",()=>{view="tagging"}],
   ["Self check-in kiosk","A reception tablet becomes a kiosk: visitors scan their own pass, the host is notified, and staff only handle exceptions.",()=>{view="kiosk"}],
   ["The host's view","Hosts see their own guests, move or cancel visits, and tell reception \"I'm coming down\" with one tap.",()=>{view="myguests"}],
-  ["Deliveries","Parcels for staff are logged and the recipient is notified by email or WhatsApp, with reminders until collected.",()=>{view="deliveries"}],
-  ["Emergency roll call","In an evacuation, one button lists everyone on site by building. Every station ticks people off live at the assembly point.",()=>{view="evac"}],
   ["Reports","Thirty days of arrivals, busiest hours, waiting times, overstays and unreturned tags: ready for management.",()=>{view="reports"}]
 ];
 let tourStep=0;
@@ -1960,7 +1805,7 @@ function startDemo(){
 
 function ownRequest(v){return v.requestedByUid?v.requestedByUid===myUid():(v.requestedBy||"")===op()}
 function pill(v){const tip=v.decidedBy?`${v.status==="rejected"?"Rejected":"Approved"} by ${v.decidedBy}${v.rejectReason?" — "+v.rejectReason:""}`:v.requestedBy?`Requested by ${v.requestedBy}`:"";return `<span class="pill p-${v.status}"${tip?` title="${esc(tip)}"`:""}>${STATUS[v.status]}</span>${v.verbalApproval?` <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:2px 6px" title="${esc(v.verbalApprovalNote||"Host verbal clearance on phone")}">📞 Phone Clearance</span>`:""}`}
-function tpill(v){return (v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor</span>`:"")+((v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?` <span class="pill p-pending" title="Requires staff escort while inside">Escort</span>`:"")}
+function tpill(v){return (v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor &amp; Service Staff</span>`:"")+((v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?` <span class="pill p-pending" title="Requires staff escort while inside">Escort</span>`:"")}
 // Expected time, plus the actual arrival, check-in and check-out times once they happen.
 function times(v){
   const r=[`<span title="Expected">${fmtT(v.expected)}</span>`];
@@ -2238,7 +2083,7 @@ function regForm(walkin){
    <div class="f"><label for="r_org">Organisation</label><input id="r_org"></div>
    <div class="f"><label for="r_vemail">Visitor email (for their digital pass)</label><input id="r_vemail" type="email"></div>
    <div class="f"><label for="r_phone">Phone</label><input id="r_phone" inputmode="tel"></div>
-   <div class="f"><label for="r_type">Visitor type</label><select id="r_type"><option value="visitor">Visitor</option><option value="vip">VIP</option><option value="contractor">Contractor</option></select></div>
+   <div class="f"><label for="r_type">Visitor type</label><select id="r_type"><option value="visitor">Visitor</option><option value="vip">VIP</option><option value="contractor">Contractor &amp; Service Staff</option></select></div>
    <div class="f"><label for="r_host">Host (staff member)</label><input id="r_host" required></div>
    <div class="f"><label for="r_hostEmail">Host email (for arrival alerts)</label><input id="r_hostEmail" type="email" value="${esc(fb&&me&&me.role==="host"?me.email:"")}"></div>
    <div class="f"><label for="r_backup">Backup contact / delegate (optional)</label><input id="r_backup" placeholder="e.g. A. Lawal (Ext. 204)"></div>
@@ -2275,9 +2120,9 @@ V.contractors=()=>{
   const expiring=list.filter(v=>contractorExpiring(v));
   const expired=list.filter(v=>contractorExpired(v)||v.status==="suspended");
 
-  return head("Contractor Access & Permit Management","Multi-day facility, maintenance, and technical contractors. Track building permits, staff escorts, logged tools, and enforce time-limited access windows.")+
+  return head("Contractors & Service Staff Management","Multi-day facility, maintenance, and technical contractors, plus service staff (cleaning, catering, and technicians). Track building permits, staff escorts, logged tools, and enforce time-limited access windows.")+
   `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
-    <div class="kpi"><div class="n">${list.length}</div><div class="l">Registered contractors</div></div>
+    <div class="kpi"><div class="n">${list.length}</div><div class="l">Contractors &amp; Service Staff</div></div>
     <div class="kpi ok"><div class="n">${onSite.length}</div><div class="l">Currently on site</div></div>
     <div class="kpi ${expiring.length?"alert":""}"><div class="n">${expiring.length}</div><div class="l">Expiring within 48h</div></div>
     <div class="kpi ${expired.length?"alert":""}"><div class="n">${expired.length}</div><div class="l">Expired / Suspended</div></div>
@@ -2285,13 +2130,13 @@ V.contractors=()=>{
   <div class="panel">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
       <div style="flex:1;min-width:240px">${searchBox("Search contractors, company, tools or reference...")}</div>
-      <button class="btn pri" id="con_reg_btn">+ Register New Contractor</button>
+      <button class="btn pri" id="con_reg_btn">+ Register Contractor / Service Staff</button>
     </div>
   </div>
   <div class="panel">
-    <h2>Contractor Permits &amp; Tool Logs (${list.length})</h2>
+    <h2>Contractors &amp; Service Staff Permits &amp; Tool Logs (${list.length})</h2>
     <div class="tw" style="margin-top:12px"><table><thead><tr>
-      <th>Contractor / Company</th>
+      <th>Contractor / Service Staff &amp; Company</th>
       <th>Permitted Area &amp; Escort</th>
       <th>Host &amp; Agency</th>
       <th>Access Window</th>
@@ -2344,7 +2189,7 @@ V.contractors=()=>{
           </div>
         </td>
       </tr>`;
-    }).join("")||`<tr><td colspan="7" class="empty">No contractors registered. Click "+ Register New Contractor" to log a facility contractor permit.</td></tr>`}
+    }).join("")||`<tr><td colspan="7" class="empty">No contractors or service staff registered. Click "+ Register Contractor / Service Staff" to log a permit.</td></tr>`}
     </tbody></table></div>
   </div>`;
 };
@@ -2756,14 +2601,14 @@ function goView(v,opts={}){
 }
 window.addEventListener("popstate",e=>{
   const v=(e.state&&e.state.view)||location.hash.slice(1);
-  if(!v||!V[v]&&!["wall","settings","evac","watch","kiosk","myguests","deliveries","reports"].includes(v)) return;
+  if(!v||!V[v]&&!["wall","settings","watch","kiosk","myguests","reports"].includes(v)) return;
   if(DEMO&&e.state&&e.state.tour!=null){tourStep=e.state.tour; if($("#tour")&&!$("#tour").hidden) drawTour();}
   $("#modal").hidden=true; goView(v,{fromHistory:true});
 });
 function render(){
   if(DEMO) saveDemo();
   if(fb&&(!me||me.role==="pending"||me.active===false)) return;
-  V.staff=staffView; Object.assign(V,{watch:VW_watch,evac:VW_evac,kiosk:VW_kiosk,myguests:VW_myguests,deliveries:VW_deliveries,reports:VW_reports,wall:VW_wall,settings:VW_settings});
+  V.staff=staffView; Object.assign(V,{watch:VW_watch,kiosk:VW_kiosk,myguests:VW_myguests,reports:VW_reports,wall:VW_wall,settings:VW_settings});
   if(!V[view]) view=defaultView();
   if(!canView(view)) view=defaultView();
   const sameView=render.lastView===view; render.lastView=view;
@@ -2778,8 +2623,7 @@ function render(){
   }
   renderNav();
   const rc=fb&&myRole()!=="host"?activeRoll():null;
-  $("#main").innerHTML=(rc&&view!=="evac"?`<button class="evac-alert" id="ev_go">Evacuation roll call in progress · ${rc.people.filter(p=>!(rc.accounted||{})[p.visitorId]).length} people not yet accounted for · Open the list</button>`:"")+V[view]();
-  const eg=$("#ev_go"); if(eg) eg.onclick=()=>{view="evac";render()};
+  $("#main").innerHTML=(rc&&view!=="evac"?"":"")+V[view]();
   wire();
   if(sameView){
     for(const [id,st] of Object.entries(saved)){
@@ -2798,7 +2642,7 @@ function wire(){
   });
   wireSettings(); const wf=$("#wallFs"); if(wf) wf.onclick=enterWall;
   const wt=$("#wallTog"); if(wt) wt.onclick=()=>{try{localStorage.setItem("wallDark",wallDark()?"0":"1")}catch(e){}render()};
-  wireWatch(); wireEvac(); wireDeliveries(); wireReports(); wireRepeat();
+  wireWatch(); wireReports(); wireRepeat();
   const dbAck=$("#db_ho_ack"); if(dbAck) dbAck.onclick=async()=>{
     const pend=handovers.filter(h=>!h.ackBy), patch={ackBy:op(),ackByUid:myUid(),ackAt:now()};
     for(const h of pend){Object.assign(h,patch); if(db){try{await db.collection("handovers").doc(h.id).update(patch)}catch(e){}}}
@@ -3300,7 +3144,7 @@ function doAct(a,v){
       <div class="f"><label for="m_tag">Physical tag number to exchange &amp; issue</label><input id="m_tag" value="${esc(assigned)}" class="mono" style="font-weight:700;font-size:15px"></div>
       <div class="f" style="flex-direction:row;gap:8px;align-items:center;background:#f0fdf4;border:1px solid #bbf7d0;padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:auto"><label for="m_exchange_done" style="margin:0;font-weight:600;color:#166534">Exchange their ID with available tag <span class="mono">${esc(assigned)}</span> and documentation is completed</label></div>
       <div class="f"><label for="m_items">Items brought in (one per line, e.g. "Laptop, Dell, serial 5CD12")</label><textarea id="m_items" style="min-height:56px"></textarea></div>
-      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono">${esc(assigned)}</b></div></div>`,
+      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono">${esc(assigned)}</b></div></div>`,
       ()=>{
         const tag=$("#m_tag").value.trim(), t=opNow(v,4);
         if(!tag) return false;
