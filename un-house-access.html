@@ -348,7 +348,7 @@ main{gap:20px}
   <div class="f" style="gap:2px"><label for="operator">Operator</label>
     <select id="operator">
       <option>Security Officer A. Bello</option><option>Receptionist N. Okafor</option>
-      <option>Supervisor F. Adeyemi</option><option>Administrator</option>
+      <option>Supervisor F. Adeyemi</option><option>House Management Administrator</option><option>Security Administrator</option>
     </select></div>
   </div>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
@@ -386,10 +386,11 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
+const ROLES={admin:"Administrator (House Management)",sec_admin:"Administrator (Security / UNDSS)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
   admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
+  sec_admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","kiosk","watch","reports","history","assistant","staff"],
   approver:["dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","watch","reports","history","assistant"],
   gate:["dashboard","gate","approvals","assets","register","history"],
   docs:["dashboard","tagging","assets","history"],
@@ -397,9 +398,38 @@ const ROLE_VIEWS={
   vip:["dashboard","vip","history"],
   host:["myguests","assets","register","history"]
 };
-const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver","gate","reception"],phoneadmit:["gate","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
-  checkout:["reception","vip","gate","admin"],extendstay:["reception","approver","gate","vip","host","admin"],approve:["gate","approver","admin"],reject:["gate","approver","admin"],gateapprove:["gate","approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
-const myRole=()=>fb?(me?.role||"pending"):"admin";
+const ACT_ROLES={
+  reply:["host","admin","sec_admin"],
+  reschedule:["host","admin","sec_admin"],
+  resubmit:["host","approver","gate","reception","admin","sec_admin"],
+  cancel:["host","admin","sec_admin"],
+  pass:["admin","sec_admin","approver","gate","reception","host","vip","docs"],
+  invite:["admin","sec_admin","approver","gate","reception","host"],
+  // Due process enforcement: Operational desk officers only, administrators cannot bypass
+  arrive:["gate"],
+  phoneadmit:["gate"],
+  tag:["docs"],
+  checkin:["reception"],
+  notify:["reception","approver"],
+  checkout:["reception","vip","gate","docs"],
+  vipadmit:["vip","gate"],
+  approve:["approver","gate"],
+  reject:["approver","gate"],
+  gateapprove:["gate"],
+  suspend:["approver"],
+  reinstate:["approver"],
+  extend:["approver"],
+  extendstay:["reception","approver","gate","vip","host"]
+};
+const myRole=()=>{
+  if(fb) return me?.role||"pending";
+  const opVal=$("#operator")?$("#operator").value:"";
+  if(opVal.includes("House Management Administrator")) return "admin";
+  if(opVal.includes("Security Administrator")) return "sec_admin";
+  if(opVal.includes("Supervisor")) return "approver";
+  const st=$("#station")?$("#station").value:"S1";
+  return {S1:"gate",S2:"docs",S3:"reception",S4:"vip"}[st]||"gate";
+};
 const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole());
 const canView=v=>(ROLE_VIEWS[myRole()]||[]).includes(v);
 const station=()=>fb&&me?(ROLE_STATION[me.role]||"S1"):$("#station").value;
@@ -613,7 +643,7 @@ function startData(){
   if(["admin","approver"].includes(me.role)) unsubs.push(db.collection("audit").orderBy("at","desc").limit(200).onSnapshot(s=>{
     serverAudit=s.docs.map(d=>({...d.data(),id:d.id})); if(view==="history") render();
   },()=>{}));
-  if(me.role==="admin") unsubs.push(db.collection("staff").onSnapshot(s=>{staffList=s.docs.map(d=>({...d.data(),uid:d.id}));if(view==="staff")render()}));
+  if(["admin","sec_admin"].includes(me.role)) unsubs.push(db.collection("staff").onSnapshot(s=>{staffList=s.docs.map(d=>({...d.data(),uid:d.id}));if(view==="staff")render()}));
   renderSitePicker();
   { const h=location.hash.slice(1); view=h&&canView(h)?h:defaultView(); } render();
   if(new URLSearchParams(location.search).has("wall")) enterWall();
@@ -677,17 +707,31 @@ function authMsg(e){return ({"auth/invalid-credential":"Email or password is wro
 const staffView=()=>{
   const list=[...staffList].sort((a,b)=>(a.role==="pending"?0:1)-(b.role==="pending"?0:1)||String(a.name).localeCompare(b.name));
   const pend=list.filter(s=>s.role==="pending").length;
-  const adminCount=list.filter(s=>s.role==="admin"&&s.active!==false).length;
-  return head("Staff and roles","Staff create their own account from the sign-in page. Assign each person a role here. Up to 3 Administrators are permitted. Roles are enforced by the database, not just hidden in the page.")+
-  `<div class="note" style="margin-bottom:12px;background:var(--surface2);border-color:var(--line)">
-    <b>Administrator Quota:</b> Maximum of <b>3 Administrators</b> permitted under UN House security governance. Currently assigned: <b>${adminCount} / 3</b>.
+  const houseAdminCount=list.filter(s=>s.role==="admin"&&s.active!==false).length;
+  const secAdminCount=list.filter(s=>s.role==="sec_admin"&&s.active!==false).length;
+  return head("Staff and roles","Assign staff roles across stations and administration. Maximum of 3 Administrators for House Management and 3 for Security. Administrators oversee operations and cannot bypass operational station staff.")+
+  `<div class="note" style="margin-bottom:12px;background:var(--surface2);border-color:var(--line);display:grid;gap:6px">
+    <div><b>Role Governance &amp; Administrator Quotas:</b></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:2px">
+      <div style="background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--line)">
+        🏢 <b>House Management Administrators:</b> <b>${houseAdminCount} / 3</b> assigned
+      </div>
+      <div style="background:var(--surface);padding:8px 12px;border-radius:6px;border:1px solid var(--line)">
+        🛡️ <b>Security Administrators (UNDSS):</b> <b>${secAdminCount} / 3</b> assigned
+      </div>
+    </div>
+    <div class="small" style="color:var(--text);margin-top:4px;line-height:1.45">
+      <b>Due Process Policy:</b> Administrators cannot bypass role-based control staff to approve requests, issue physical tags, admit at Gate 1, or check in visitors. All visitor processing must follow due process through the designated station officers.
+    </div>
   </div>`+
   (pend?`<div class="banner">${pend} new account${pend>1?"s are":" is"} waiting for a role.</div>`:"")+
   `<div class="panel"><div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>${list.map(s=>{const self=s.uid===me.uid;return `<tr>
     <td><b>${esc(s.name)}</b>${self?' <span class="small">(you)</span>':""}</td><td class="small">${esc(s.email)}</td>
     <td><select data-role="${esc(s.uid)}" ${self?"disabled":""} aria-label="Role for ${esc(s.name)}">${Object.entries(ROLES).map(([k,l])=>{
-      const disAdmin = k==="admin" && s.role!=="admin" && adminCount>=3;
-      return `<option value="${k}" ${s.role===k?"selected":""} ${disAdmin?"disabled":""}>${l}${disAdmin?" (Max 3 reached)":""}</option>`;
+      const disAdmin = k==="admin" && s.role!=="admin" && houseAdminCount>=3;
+      const disSecAdmin = k==="sec_admin" && s.role!=="sec_admin" && secAdminCount>=3;
+      const dis = disAdmin || disSecAdmin;
+      return `<option value="${k}" ${s.role===k?"selected":""} ${dis?"disabled":""}>${l}${disAdmin?" (Max 3 reached)":disSecAdmin?" (Max 3 reached)":""}</option>`;
     }).join("")}</select></td>
     <td>${s.active===false?'<span class="pill p-rejected">Deactivated</span>':s.role==="pending"?'<span class="pill p-pending">Awaiting role</span>':'<span class="pill p-in">Active</span>'}</td>
     <td>${self?"":`<button class="btn ${s.active===false?"":"bad"}" data-toggle="${esc(s.uid)}">${s.active===false?"Reactivate":"Deactivate"}</button>`}</td></tr>`}).join("")}</tbody></table></div></div>
@@ -700,20 +744,27 @@ const staffView=()=>{
     ${features.updatedAt?`<span class="small">Last changed ${fmtD(features.updatedAt)}</span>`:""}
    </div></div>
   <div class="note">Public visitor rules page: <a href="?rules" target="_blank" rel="noopener">${esc(location.origin+location.pathname)}?rules</a>. Put it on a sign at the gate or in emails.</div>
-  <div class="note">Role permissions: Gate officers approve incoming requests, verify credentials, admit visitors, and register walk-ins. Documentation officers issue tags. Receptionists check visitors in and out. VIP gate officers handle VIPs only. Staff hosts see and register only their own guests. Approvers decide approvals and manage contractors. Administrators do everything and manage staff (maximum of 3 administrators).</div>`;
+  <div class="note">Role separation: Gate reception officers approve requests, verify credentials, admit visitors, and register walk-ins. Documentation officers issue tags and verify IDs. Receptionists check visitors in. VIP gate officers handle VIP protocol. Staff hosts manage their own guests. Approvers decide requests and manage contractors. Administrators manage staff and system governance without bypassing operational controls.</div>`;
 };
 async function setStaff(uid,patch){
   if(patch.role==="admin"){
-    const activeAdmins=staffList.filter(s=>s.role==="admin" && s.uid!==uid && s.active!==false).length;
-    if(activeAdmins>=3){
-      toast("Maximum of 3 administrators allowed by UN House policy.");
+    const activeHouseAdmins=staffList.filter(s=>s.role==="admin" && s.uid!==uid && s.active!==false).length;
+    if(activeHouseAdmins>=3){
+      toast("Maximum of 3 House Management Administrators allowed by UN House policy.");
+      render();
+      return;
+    }
+  }
+  if(patch.role==="sec_admin"){
+    const activeSecAdmins=staffList.filter(s=>s.role==="sec_admin" && s.uid!==uid && s.active!==false).length;
+    if(activeSecAdmins>=3){
+      toast("Maximum of 3 Security Administrators allowed by UN House policy.");
       render();
       return;
     }
   }
   try{await db.collection("staff").doc(uid).update(patch);toast("Staff record updated.")}catch(e){toast(e.code==="permission-denied"?"Only an administrator can change roles.":"Could not update: "+e.message)}
 }
-
 function setSync(on,txt){$("#dot").className="dot"+(on?" on":"");$("#syncTxt").textContent=txt;live=on}
 
 function sampleData(){
@@ -994,7 +1045,9 @@ async function handleScan(txt){
   scanResult(v,p);
 }
 function nextStep(v){
-  const r=myRole(), any=["admin","approver"].includes(r);
+  // Due process: Administrators oversee operations and cannot bypass role-based station officers
+  if(["admin","sec_admin"].includes(r)) return null;
+  const any=r==="approver";
   if(v.type==="vip"&&v.status==="approved") return ["vipadmit","VIP Auto Check-in"];
   if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit at gate"];
   if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
@@ -3001,6 +3054,10 @@ function modal(html,onOk){
   const first=m.querySelector("input,select"); (first||$("#mOk")).focus();
 }
 function doAct(a,v){
+  if(["admin","sec_admin"].includes(myRole()) && ["approve","gateapprove","arrive","phoneadmit","tag","checkin","vipadmit"].includes(a)){
+    toast("Due Process Policy: Administrators cannot bypass operational staff to approve, admit, tag, or check in visitors. Each station officer must perform their designated role.");
+    return;
+  }
   if(!v) return;
   if(["arrive","vipadmit","checkin","tag"].includes(a)&&watched(v)) return watchBlock(v,nv=>doAct(a,nv));
   if(a==="reply") return act(v,"Host replied: on my way",{hostReply:"coming",hostReplyAt:now()}).then(()=>toast("Reception has been told you are on your way."));
