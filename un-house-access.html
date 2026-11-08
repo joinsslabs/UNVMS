@@ -2504,7 +2504,12 @@ const UN_EXTENSIONS=[
   {agency:"IOM",unit:"Chief of Mission Office",name:"Programme Manager",ext:"6901",room:"Annex B, Room 22"}
 ];
 
-function getHostExt(hostName, agency="Common Services"){
+function getHostExt(hostName, agency="Common Services", visitor=null){
+  if(visitor && visitor.hostExt) return visitor.hostExt;
+  try{
+    const custom = JSON.parse(localStorage.getItem("unh_custom_exts")||"{}");
+    if(hostName && custom[hostName.toLowerCase()]) return custom[hostName.toLowerCase()];
+  }catch(e){}
   if(!hostName) return "1000";
   const norm=hostName.toLowerCase();
   const direct=UN_EXTENSIONS.find(e=>norm.includes(e.name.toLowerCase()) || norm.includes(e.unit.toLowerCase()));
@@ -2749,6 +2754,7 @@ function regForm(walkin){
    <div class="f"><label for="r_phone">Phone</label><input id="r_phone" inputmode="tel"></div>
    <div class="f"><label for="r_type">Visitor type</label><select id="r_type"><option value="visitor">Visitor</option><option value="vip">VIP</option><option value="contractor">Contractor &amp; Service Staff</option></select></div>
    <div class="f"><label for="r_host">Host (staff member)</label><input id="r_host" required></div>
+   <div class="f"><label for="r_host_ext">Host desk extension (optional)</label><input id="r_host_ext" placeholder="e.g. 5100 or 2104"></div>
    <div class="f"><label for="r_hostEmail">Host email (for arrival alerts)</label><input id="r_hostEmail" type="email" value="${esc(fb&&me&&me.role==="host"?me.email:"")}"></div>
    <div class="f"><label for="r_backup">Backup contact / delegate (optional)</label><input id="r_backup" placeholder="e.g. A. Lawal (Ext. 204)"></div>
    <div class="f"><label for="r_agency">Host agency</label><select id="r_agency">${AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("")}</select></div>
@@ -3714,6 +3720,7 @@ async function register(){
     unscheduled:isWalkin,
     category:isWalkin?"unscheduled":"scheduled",
     host:g("r_host"),
+    hostExt:g("r_host_ext")||"",
     hostEmail:g("r_hostEmail").toLowerCase(),
     backupHost:$("#r_backup")?g("r_backup"):"",
     agency:g("r_agency"),
@@ -3973,21 +3980,30 @@ function doAct(a,v){
     );
   }
   if(a==="notify"){
-    const ext = getHostExt(v.host, v.agency);
-    return modal(`<h2>📞 Notify Host · Station 3 Reception</h2>
+    const ext = v.hostExt || getHostExt(v.host, v.agency);
+    modal(`<h2>📞 Notify Host · Station 3 Reception</h2>
       <p class="small"><b>${esc(v.name)}</b> (${esc(v.org||"Visitor")}) has completed documentation and is waiting at Station 3 Internal Reception.</p>
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin:12px 0">
-        <div style="font-weight:700;color:#1e40af;font-size:14px">Host: ${esc(v.host)} (${esc(v.agency)})</div>
-        <div style="font-size:13px;color:#1e3a8a;margin-top:6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <span>Desk Intercom / Phone:</span>
-          <b class="mono" style="font-size:16px;background:#fff;color:#0369a1;padding:3px 10px;border-radius:6px;border:1.5px solid #93c5fd">Ext. ${esc(ext)}</b>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div style="font-weight:700;color:#1e40af;font-size:14px">Host: ${esc(v.host)} (${esc(v.agency)})</div>
+          <button type="button" class="btn" id="m_open_dir" style="padding:2px 8px;font-size:11px" title="Browse full UN House Phone Directory">📖 Extension Directory</button>
+        </div>
+        <div style="font-size:13px;color:#1e3a8a;margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label for="m_ext_input" style="margin:0;font-weight:600">Desk Intercom / Extension:</label>
+          <div style="display:inline-flex;align-items:center;gap:4px">
+            <span class="mono" style="font-weight:700;color:#0369a1">Ext.</span>
+            <input id="m_ext_input" value="${esc(ext)}" style="font-weight:700;font-size:15px;color:#0369a1;width:120px;padding:3px 8px;border-radius:6px;border:1.5px solid #93c5fd;background:#fff" placeholder="e.g. 5100" title="Edit extension directly to call the right desk">
+          </div>
           ${v.hostEmail?`<span class="small" style="color:#64748b">Email: ${esc(v.hostEmail)}</span>`:""}
+        </div>
+        <div class="small" style="color:#0369a1;margin-top:6px">
+          ✏️ <i>You can edit this extension directly so reception calls the right desk.</i>
         </div>
       </div>
       <div class="f">
         <label for="m_notif_mode">Contact Action Performed</label>
         <select id="m_notif_mode">
-          <option value="call">📞 Phoned host on desk intercom (Ext. ${esc(ext)})</option>
+          <option value="call" id="opt_call">📞 Phoned host on desk intercom (Ext. ${esc(ext)})</option>
           <option value="direct">🔔 Direct verbal / reception alert</option>
           ${v.hostEmail?`<option value="email">✉️ Sent official arrival email</option>`:""}
         </select>
@@ -3997,16 +4013,36 @@ function doAct(a,v){
         <input id="m_notif_note" placeholder="e.g. Spoke with host; host is coming down to reception lobby">
       </div>`,
       ()=>{
+        const curExt = $("#m_ext_input")?.value?.trim() || ext;
         const mode = $("#m_notif_mode")?.value || "call";
         const note = $("#m_notif_note")?.value?.trim() || "";
-        const modeLabel = mode === "call" ? `phoned on Ext. ${ext}` : (mode === "email" ? "emailed" : "alerted");
+        const modeLabel = mode === "call" ? `phoned on Ext. ${curExt}` : (mode === "email" ? "emailed" : "alerted");
+        
+        try {
+          const custom = JSON.parse(localStorage.getItem("unh_custom_exts") || "{}");
+          custom[v.host.toLowerCase()] = curExt;
+          localStorage.setItem("unh_custom_exts", JSON.stringify(custom));
+        } catch(e) {}
+
         return act(v, `Host ${v.host} ${modeLabel} by Station 3 reception${note ? ` (${note})` : ""}`, {
+          hostExt: curExt,
           hostNotified: opNow(v, 2),
           hostNotifiedVia: mode,
           hostNotifiedNote: note || undefined
-        }).then(() => toast(`✓ ${v.host} contacted. ${v.name} recorded as waiting at Station 3.`));
+        }).then(() => toast(`✓ Host ${v.host} contacted at Ext. ${curExt}. ${v.name} recorded as waiting at Station 3.`));
       }
     );
+    const extIn = $("#m_ext_input"), optCall = $("#opt_call"), dirBtn = $("#m_open_dir");
+    if(extIn && optCall){
+      extIn.oninput = () => {
+        const val = extIn.value.trim() || ext;
+        optCall.textContent = `📞 Phoned host on desk intercom (Ext. ${val})`;
+      };
+    }
+    if(dirBtn){
+      dirBtn.onclick = () => openExtensionDirectory(v.agency || v.host);
+    }
+    return;
   }
   if(a==="checkin"){
     if(v.type!=="vip" && v.status!=="tagged"){
