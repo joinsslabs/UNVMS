@@ -395,13 +395,13 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","events","parking","assets","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","events","parking","assets","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
+  admin:["settings","dashboard","gate","tagging","reception","vip","parking","assets","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","parking","assets","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
   gate:["dashboard","gate","parking","assets","register","deliveries","evac","history"],
   docs:["dashboard","tagging","assets","evac","history"],
-  reception:["dashboard","reception","events","parking","assets","register","deliveries","kiosk","evac","history"],
+  reception:["dashboard","reception","parking","assets","register","deliveries","kiosk","evac","history"],
   vip:["dashboard","vip","parking","evac","history"],
-  host:["myguests","events","assets","register","history"]
+  host:["myguests","assets","register","history"]
 };
 const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
   checkout:["reception","vip","gate","admin"],extendstay:["reception","approver","gate","vip","host","admin"],approve:["approver","admin"],reject:["approver","admin"],suspend:["approver","admin"],reinstate:["approver","admin"],extend:["approver","admin"]};
@@ -607,9 +607,7 @@ function startData(){
     unsubs.push(db.collection("rollcalls").orderBy("startedAt","desc").limit(20).onSnapshot(s=>{rollcalls=s.docs.map(d=>({...d.data(),id:d.id}));render()},()=>{}));
     unsubs.push(db.collection("deliveries").orderBy("at","desc").limit(150).onSnapshot(s=>{deliveries=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="deliveries")render()},()=>{}));
     unsubs.push(db.collection("handovers").orderBy("at","desc").limit(30).onSnapshot(s=>{handovers=s.docs.map(d=>({...d.data(),id:d.id}));if(["dashboard","reports"].includes(view))render()},()=>{}));
-    unsubs.push(db.collection("events").orderBy("date","desc").limit(20).onSnapshot(s=>{events=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="events")render()},()=>{}));
     unsubs.push(db.collection("assets").orderBy("at","desc").limit(50).onSnapshot(s=>{assetPasses=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="assets")render()},()=>{}));
-    unsubs.push(db.collection("dob").orderBy("at","desc").limit(100).onSnapshot(s=>{dobs=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="dob")render()},()=>{}));
     unsubs.push(db.collection("parking").limit(100).onSnapshot(s=>{parkings=s.docs.map(d=>({...d.data(),id:d.id}));if(view==="parking")render()},()=>{}));
   }
   { const pq=me.role==="host"?db.collection("passes").where("requestedByUid","==",me.uid):db.collection("passes");
@@ -753,7 +751,6 @@ const VIEWS=[
   ["tagging","Documentation & tags","Stations",'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
   ["reception","Internal reception","Stations",'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'],
   ["vip","VIP gate","Stations",'<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>'],
-  ["events","Conferences & Events","Stations",'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>'],
   ["parking","Vehicles & Parking","Stations",'<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 6l2-3h10l2 3M9 11h6"/>'],
   ["assets","Material Gate Pass","Stations",'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'],
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
@@ -775,7 +772,6 @@ function renderNav(){
     tagging:visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,reception:visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length};
   c.staff=staffList.filter(s=>s.role==="pending").length; c.deliveries=deliveries.filter(d=>d.status==="waiting").length;
-  c.events=events.filter(e=>e.status!=="ended").length;
   c.parking=visitors.filter(v=>v.vehicle&&v.status==="in").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
   let lastSec="";
@@ -2043,35 +2039,7 @@ V.assistant=()=>head("Operations assistant","Ask about recent and current visito
    ${chat.map(c=>`<div><div class="small"><b>${esc(c.q)}</b></div><div class="ans">${esc(c.a)}</div></div>`).join("")}
   </div><div class="panel"><h2>Automatic reminders</h2>${alertList()}</div>`;
 
-/* 1. Conferences & Events Mode */
-V.events=()=>{
-  const list=events.slice().sort((a,b)=>(b.at||0)-(a.at||0));
-  return head("Conferences & Events Accreditation","Host inter-agency workshops, summits, and delegations. Create registration links and manage fast-track arrivals.")+
-  `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-    <h2>Registered Conferences &amp; Events (${list.length})</h2><button class="btn pri" id="ev_new_modal">+ Create new event</button>
-  </div>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-top:14px">
-    ${list.map(e=>`<div class="vcard" style="display:flex;flex-direction:column;align-items:stretch;gap:8px">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div><span class="pill ${e.status==="active"?"p-in":"p-pending"}">${esc(e.status==="active"?"Active · Accreditation open":"Draft")}</span><h3 style="margin:6px 0 2px">${esc(e.title)}</h3><div class="small">${esc(e.agency)} · ${esc(e.building)} (${esc(e.room)})</div></div>
-        <span class="mono ref">${esc(e.code)}</span>
-      </div>
-      <div class="small" style="color:var(--muted)">${esc(e.desc||"")}</div>
-      <div class="kpis" style="grid-template-columns:1fr 1fr 1fr;margin:4px 0">
-        <div class="kpi" style="padding:6px"><div class="n" style="font-size:18px">${e.expectedCount||0}</div><div class="l">Expected</div></div>
-        <div class="kpi ok" style="padding:6px"><div class="n" style="font-size:18px">${e.approvedCount||0}</div><div class="l">Approved</div></div>
-        <div class="kpi" style="padding:6px"><div class="n" style="font-size:18px">${e.checkedInCount||0}</div><div class="l">Checked in</div></div>
-      </div>
-      <div class="acts" style="margin-top:auto">
-        <button class="btn pri" data-ev-roster="${esc(e.id)}">View Attendee Roster</button>
-        <button class="btn" data-ev-copy="${esc(e.code)}">Copy Registration Link</button>
-        <button class="btn ok" data-ev-badges="${esc(e.id)}">Print Batch Badges</button>
-      </div>
-    </div>`).join("")||`<div class="empty">No events scheduled. Click "+ Create new event" to start.</div>`}
-  </div></div>`;
-};
-
-/* 2. Vehicles & Parking Management */
+/* 1. Vehicles & Parking Management */
 V.parking=()=>{
   const insideVehicles=visitors.filter(v=>v.vehicle&&["in","arrived"].includes(v.status));
   const parkMap=new Map(); parkings.forEach(p=>parkMap.set(p.plate,p));
@@ -2334,38 +2302,7 @@ function wire(){
   const ai=$("#ask"); if(ai) ai.onkeydown=e=>{if(e.key==="Enter")ask(ai.value)};
   document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>ask(b.dataset.q));
 
-  /* Wire new features: Events, Parking, Assets, DOB, Sweep, Exec */
-  const evNew=$("#ev_new_modal");
-  if(evNew) evNew.onclick=()=>{
-    modal(`<h2>Create New Event / Delegation</h2>
-      <div class="f"><label for="ev_m_title">Event Title</label><input id="ev_m_title" placeholder="e.g. Regional Climate &amp; Health Summit"></div>
-      <div class="f"><label for="ev_m_desc">Description / Agenda</label><input id="ev_m_desc" placeholder="e.g. High-level ministerial consultation"></div>
-      <div class="f"><label for="ev_m_agency">Lead Agency</label><select id="ev_m_agency">${AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("")}</select></div>
-      <div class="f"><label for="ev_m_room">Meeting Room</label><input id="ev_m_room" value="Conference Room A"></div>
-      <div class="f"><label for="ev_m_building">Building</label><select id="ev_m_building">${BUILDINGS.map(b=>`<option>${esc(b)}</option>`).join("")}</select></div>
-      <div class="f"><label for="ev_m_exp">Expected Attendees</label><input id="ev_m_exp" type="number" value="40"></div>`,
-      async ()=>{
-        const title=$("#ev_m_title").value.trim(); if(!title) return false;
-        const code="EV-"+Math.random().toString(36).slice(2,6).toUpperCase();
-        const ev={title,desc:$("#ev_m_desc").value.trim(),agency:$("#ev_m_agency").value,room:$("#ev_m_room").value.trim(),building:$("#ev_m_building").value,expectedCount:+$("#ev_m_exp").value||20,approvedCount:0,checkedInCount:0,status:"active",code,at:now()};
-        if(db) await db.collection("events").add(ev); else events.unshift({...ev,id:"ev-"+now()});
-        toast(`Event created: ${title}. Code: ${code}`); render();
-      });
-  };
-  document.querySelectorAll("[data-ev-copy]").forEach(b=>b.onclick=()=>copyText(location.origin+location.pathname+"?event="+encodeURIComponent(b.dataset.evCopy)));
-  document.querySelectorAll("[data-ev-badges]").forEach(b=>b.onclick=()=>{
-    const ev=events.find(e=>e.id===b.dataset.evBadges);
-    if(ev) printTagSheet();
-  });
-  document.querySelectorAll("[data-ev-roster]").forEach(b=>b.onclick=()=>{
-    const ev=events.find(e=>e.id===b.dataset.evRoster);
-    if(!ev) return;
-    const attendees=visitors.filter(v=>v.group===ev.title||v.room===ev.room);
-    modal(`<h2>Attendee Roster · ${esc(ev.title)}</h2><p class="small">${esc(ev.agency)} · ${esc(ev.room)} · Code: <b>${esc(ev.code)}</b></p>
-      <div class="tw" style="max-height:280px;overflow:auto"><table><thead><tr><th>Name</th><th>Organisation</th><th>Status</th><th>Actions</th></tr></thead><tbody>
-      ${attendees.map(a=>`<tr><td><b>${esc(a.name)}</b></td><td>${esc(a.org)}</td><td>${pill(a)}</td><td>${a.status==="approved"?B(a.id,"arrive","Admit"):a.status==="arrived"?B(a.id,"checkin","Check in"):""}</td></tr>`).join("")||`<tr><td colspan="4" class="empty">No individual attendees registered yet under this event. Use registration link to distribute.</td></tr>`}
-      </tbody></table></div>`, ()=>{});
-  });
+  /* Wire features: Parking, Assets */
 
   const vehQuick=$("#veh_quick_log");
   if(vehQuick) vehQuick.onclick=()=>{
