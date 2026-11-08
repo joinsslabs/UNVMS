@@ -2251,12 +2251,11 @@ V.gate=()=>{
       <h2 style="margin:0;display:flex;align-items:center;gap:8px">Pending Approvals <span class="cnt hot">${pend.length}</span></h2>
       ${batchBar?`<div class="acts">${batchBar}</div>`:""}
     </div>
-    <p class="small">Review incoming requests before admission. Use <b>Approve & Admit</b> for visitors already at the gate to approve and auto-issue an available tag in one step.</p>
+    <p class="small">Review incoming visitor requests. Click <b>Approve request</b> to approve the visit and allocate an available tag from Gate 1 stock.</p>
     ${table(pend,v=>{
       const own=ownRequest(v);
       if(own) return `<span class="small">Your request. Another officer must decide.</span>`;
-      if(v.type==="vip") return B(v.id,"vipadmit","Approve & VIP Check-in","ok")+B(v.id,"reject","Reject","bad");
-      return B(v.id,"gateapprove","Approve & Admit","ok")+B(v.id,"approve","Approve request","pri")+B(v.id,"reject","Reject","bad");
+      return B(v.id,"approve","Approve request","ok")+B(v.id,"reject","Reject","bad");
     },"No pending approvals.")}
   </div>`:`<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px"><span>✓ <b>No pending approvals.</b> All visitor requests have been decided.</span></div>`)+
 
