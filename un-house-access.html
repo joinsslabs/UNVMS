@@ -387,12 +387,12 @@ async function callFn(name,body){
 const ROLES={admin:"Administrator (House Manager)",approver:"Approver / Supervisor",gate:"Gate officer (Station 1)",docs:"Documentation officer (Station 2)",reception:"Receptionist (Station 3)",vip:"VIP gate officer (Station 4)",host:"Staff host",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
 const ROLE_VIEWS={
-  admin:["settings","dashboard","gate","tagging","reception","vip","parking","assets","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
-  approver:["dashboard","gate","tagging","reception","vip","parking","assets","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
-  gate:["dashboard","gate","parking","assets","register","deliveries","evac","history"],
+  admin:["settings","dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","myguests","deliveries","kiosk","evac","watch","reports","history","assistant","staff"],
+  approver:["dashboard","gate","tagging","reception","vip","assets","register","approvals","contractors","deliveries","evac","watch","reports","history","assistant"],
+  gate:["dashboard","gate","assets","register","deliveries","evac","history"],
   docs:["dashboard","tagging","assets","evac","history"],
-  reception:["dashboard","reception","parking","assets","register","deliveries","kiosk","evac","history"],
-  vip:["dashboard","vip","parking","evac","history"],
+  reception:["dashboard","reception","assets","register","deliveries","kiosk","evac","history"],
+  vip:["dashboard","vip","evac","history"],
   host:["myguests","assets","register","history"]
 };
 const ACT_ROLES={reply:["host","admin"],reschedule:["host","admin"],resubmit:["host","approver","gate","reception","admin"],cancel:["host","admin"],pass:["admin","approver","gate","reception","host","vip","docs"],invite:["admin","approver","gate","reception","host"],arrive:["gate","admin","approver"],vipadmit:["vip","admin","approver"],tag:["docs","admin"],notify:["reception","approver","admin"],checkin:["reception","approver","admin"],
@@ -743,7 +743,6 @@ const VIEWS=[
   ["tagging","Documentation & tags","Stations",'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
   ["reception","Internal reception","Stations",'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'],
   ["vip","VIP gate","Stations",'<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>'],
-  ["parking","Vehicles & Parking","Stations",'<rect x="3" y="6" width="18" height="12" rx="3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M5 6l2-3h10l2 3M9 11h6"/>'],
   ["assets","Material Gate Pass","Stations",'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'],
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
   ["register","Register visitors","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
@@ -764,7 +763,6 @@ function renderNav(){
     tagging:visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,reception:visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
     vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length};
   c.staff=staffList.filter(s=>s.role==="pending").length; c.deliveries=deliveries.filter(d=>d.status==="waiting").length;
-  c.parking=visitors.filter(v=>v.vehicle&&v.status==="in").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
