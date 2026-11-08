@@ -363,6 +363,7 @@ body.print-badge {
 /* Visitor-facing pages (pass, invite): one centred column, no staff menu. */
 body.guest-mode .wrap{display:block;min-height:calc(100vh - 140px)}
 body.guest-mode nav{display:none!important}
+body.guest-mode #top_inv_btn{display:none!important}
 body.guest-mode main{align-items:center;padding-block:28px 40px}
 body.guest-mode main>*{width:100%;max-width:440px;margin-inline:auto}
 body.pass-mode{background:var(--bg) linear-gradient(180deg,var(--navy) 0 180px,transparent 180px) no-repeat}
@@ -529,6 +530,7 @@ main{gap:20px}
       <option>Gate Reception Officer & Approver A. Bello</option><option>Documentation Officer C. Okonkwo</option><option>Receptionist N. Okafor</option><option>Administrator</option><option>Security Administrator</option>
     </select></div>
   </div>
+  <button class="btn pri" id="top_inv_btn" type="button" style="font-weight:600;font-size:12.5px;padding:6px 12px;gap:6px;display:inline-flex;align-items:center;background:#0284c7;border-color:#0284c7;white-space:nowrap" title="Generate an invitation link for a visitor to pre-register">✉️ Invite Visitor</button>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
   <button class="tbtn" id="soundBtn" type="button" title="Toggle sound &amp; notification alerts" aria-label="Toggle sound alerts"></button>
   <button class="tbtn" id="themeBtn" type="button" title="Toggle light or dark theme" aria-label="Toggle theme"></button>
@@ -573,23 +575,24 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",gate:"Station 1 Reception Officer & Approver",docs:"Station 2 Documentation Officer",reception:"Station 3 Receptionist",vip:"Station 4 VIP Gate Officer",pending:"Awaiting role"};
-const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4"};
+const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",gate:"Station 1 Reception Officer & Approver",docs:"Station 2 Documentation Officer",reception:"Station 3 Receptionist",vip:"Station 4 VIP Gate Officer",host:"UN Staff Host / Agency Officer",pending:"Awaiting role"};
+const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4",host:"S3"};
 const ROLE_VIEWS={
-  admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","watch","reports","history","assistant","settings","staff"],
-  sec_admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","watch","reports","history","assistant","settings","staff"],
+  admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
   gate:["gate","contractors","register","watch","history"],
-  docs:["tagging","contractors","history"],
-  reception:["reception","kiosk","history"],
-  vip:["vip","history"]
+  docs:["tagging","contractors","register","history"],
+  reception:["reception","kiosk","register","history"],
+  vip:["vip","register","history"],
+  host:["register","dashboard","history"]
 };
 const ACT_ROLES={
   reply:["admin","sec_admin"],
   reschedule:["admin","sec_admin"],
   resubmit:["gate","admin","sec_admin"],
   cancel:["admin","sec_admin"],
-  pass:["admin","sec_admin","gate","docs","reception","vip"],
-  invite:["admin","sec_admin","gate"],
+  pass:["admin","sec_admin","gate","docs","reception","vip","host"],
+  invite:["admin","sec_admin","gate","docs","reception","vip","host"],
   // Station 1: Gate Reception & Approvals only
   arrive:["gate","admin","sec_admin"],
   phoneadmit:["gate","admin","sec_admin"],
@@ -622,7 +625,7 @@ const myRole=()=>{
   const st=$("#station")?$("#station").value:"S1";
   return {S1:"gate",S2:"docs",S3:"reception",S4:"vip"}[st]||"gate";
 };
-const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole());
+const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole())||a==="invite";
 const canView=v=>(ROLE_VIEWS[myRole()]||[]).includes(v);
 const station=()=>fb&&me?(ROLE_STATION[me.role]||"S1"):$("#station").value;
 const op=()=>fb&&me?me.name:$("#operator").value;
@@ -1075,7 +1078,7 @@ const VIEWS=[
   ["vip","Station 4 · VIP Gate","Stations",'<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>'],
   ["assets","Material Gate Pass","Stations",'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'],
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
-  ["register","Register visitors","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
+  ["register","Register & Invite","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
   ["contractors","Contractors & Service Staff","Access & Guests",'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>'],
   ["watch","UNDSS Watchlist","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>'],
   ["reports","Reports","Safety & Analytics",'<path d="M18 20V10M12 20V4M6 20v-6"/>'],
@@ -1168,30 +1171,263 @@ async function scanBadge(){
 }
 /* ---------- visitor pre-registration invites ---------- */
 const b64=o=>btoa(unescape(encodeURIComponent(JSON.stringify(o)))), unb64=t=>JSON.parse(decodeURIComponent(escape(atob(t))));
-const inviteUrl=t=>{const base=location.origin+location.pathname;
-  if(!DEMO) return base+"?invite="+t;
-  const i=invites.find(x=>x.id===t)||{id:t}; return base+"?invite=demo&d="+encodeURIComponent(b64({id:i.id,host:i.host,agency:i.agency,room:i.room||"",status:"open",expires:i.expires||now()+7*864e5}));};
+const inviteUrl=t=>{
+  const base=location.origin+location.pathname;
+  if(!DEMO&&fb&&!fb.demo) return base+"?invite="+t;
+  const i=invites.find(x=>x.id===t)||{id:t};
+  return base+"?invite=demo&d="+encodeURIComponent(b64({
+    id: i.id,
+    host: i.host || "UN Staff Host",
+    agency: i.agency || "UNDP",
+    room: i.room || "",
+    status: "open",
+    expires: i.expires || (now() + 7 * 864e5)
+  }));
+};
 function newToken(){const a=new Uint8Array(18);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,"0")).join("")}
-async function copyText(t){try{await navigator.clipboard.writeText(t);toast(DEMO&&/[?&](invite|pass)=demo/.test(t)?"Demo link copied. Open it in another tab on this computer to try it.":"Link copied. Send it to your visitor.")}catch(e){modal(`<h2>Copy this link</h2><input id="m_link" value="${esc(t)}" readonly>`,()=>{});setTimeout(()=>$("#m_link").select(),0)}}
+async function copyText(t){try{await navigator.clipboard.writeText(t);toast("Link copied. Send it to your visitor.")}catch(e){modal(`<h2>Copy this link</h2><input id="m_link" value="${esc(t)}" readonly>`,()=>{});setTimeout(()=>$("#m_link").select(),0)}}
+
+function showCreatedInviteModal(invDoc, url){
+  const m=$("#modal");
+  m.innerHTML=`<div class="modal" style="max-width:540px;padding:22px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:12px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:26px">✉️</span>
+        <div>
+          <h2 style="margin:0;font-size:18px;color:var(--navy)">Visitor Invitation Link Ready</h2>
+          <div class="small" style="color:var(--muted)">Share this secure link with your guest to pre-register before arrival</div>
+        </div>
+      </div>
+      <button class="modal-x" id="mX" type="button" title="Close (Esc)" style="width:28px;height:28px;font-size:18px">×</button>
+    </div>
+
+    <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#0369a1;letter-spacing:.05em">Visitor Welcome Preview:</div>
+      <div style="font-size:14.5px;font-weight:700;color:var(--navy);margin-top:3px">
+        "${esc(invDoc.host)} (${esc(invDoc.agency)}) has invited you to UN House Abuja."
+      </div>
+      ${invDoc.room?`<div class="small" style="color:#0369a1;margin-top:2px">Meeting Destination: <b>Room ${esc(invDoc.room)}</b></div>`:""}
+      <div class="small" style="color:#64748b;margin-top:5px">Valid for 7 days · One-time pre-registration · Instant compound clearance at Gate 1</div>
+    </div>
+
+    <div class="f">
+      <label for="inv_res_link" style="font-weight:700">Official Pre-Registration Link:</label>
+      <div style="display:flex;gap:8px">
+        <input id="inv_res_link" value="${esc(url)}" readonly style="font-size:12px;font-family:var(--mono);padding:8px 10px;flex:1">
+        <button class="btn pri" id="inv_copy_b" type="button" style="white-space:nowrap">📋 Copy</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px solid var(--line)">
+      <a class="btn" style="flex:1;justify-content:center;gap:6px" href="https://wa.me/?text=${encodeURIComponent('Hello, please use this official UN House Abuja invitation link to pre-register your visit with ' + invDoc.host + ' (' + invDoc.agency + '): ' + url)}" target="_blank" rel="noopener">
+        💬 WhatsApp
+      </a>
+      <a class="btn" style="flex:1;justify-content:center;gap:6px" href="mailto:?subject=${encodeURIComponent('Invitation to UN House Abuja - ' + invDoc.host + ' (' + invDoc.agency + ')')}&body=${encodeURIComponent('Hello,\n\nPlease fill in your details using this official pre-registration link before arriving at UN House Abuja:\n' + url + '\n\nHost: ' + invDoc.host + ' (' + invDoc.agency + ')\nDestination: UN House, 61-62 Diplomatic Drive, Central Business District, Abuja.\n\nPlease arrive 15 minutes early and bring a government-issued photo ID.\n\nBest regards,\n' + invDoc.host)}" target="_blank" rel="noopener">
+        ✉️ Email
+      </a>
+      <a class="btn" style="padding:7px 12px" href="${esc(url)}" target="_blank" rel="noopener">
+        ↗️ Preview Form
+      </a>
+      <button class="btn" id="mNo" type="button">Done</button>
+    </div>
+  </div>`;
+  m.hidden=false;
+  $("#mNo").onclick=$("#mX").onclick=()=>{m.hidden=true};
+  $("#inv_copy_b").onclick=async()=>{
+    try{
+      await navigator.clipboard.writeText(url);
+      toast("✓ Invitation link copied to clipboard!");
+    }catch(e){
+      $("#inv_res_link").select();
+    }
+  };
+}
+
+function openInviteDialog(){
+  const m=$("#modal");
+  const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
+  const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
+  m.innerHTML=`<div class="modal" style="max-width:520px;padding:22px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">✉️</span>
+        <div>
+          <h2 style="margin:0;font-size:18px;color:var(--navy)">Create Visitor Invitation Link</h2>
+          <p class="small" style="margin:2px 0 0;color:var(--muted)">Any UN staff member can generate a pre-registration link for their guest</p>
+        </div>
+      </div>
+      <button class="modal-x" id="mX" type="button" title="Close (Esc)" style="width:28px;height:28px;font-size:18px">×</button>
+    </div>
+
+    <form id="dlg_inv_f" style="display:flex;flex-direction:column;gap:12px;margin-top:2px">
+      <div class="f">
+        <label for="dlg_host" style="font-weight:700">Host (UN Staff Member Name) *</label>
+        <input id="dlg_host" required list="hostStaffList" value="${esc(hostVal)}" placeholder="e.g. Dr. K. Ibrahim, S. Garba, or enter your name" style="font-size:13.5px">
+        <datalist id="hostStaffList">
+          <option value="Dr. K. Ibrahim">WHO · Medical Services</option>
+          <option value="S. Garba">UNDP · Operations</option>
+          <option value="P. Obi">UNHCR · Protection</option>
+          <option value="A. Lawal">WFP · Supply Chain</option>
+          <option value="T. Musa">UNICEF · Programme Unit</option>
+          <option value="R. Bassey">UNFPA · Health</option>
+          <option value="Comms Office">UN Women · Communications</option>
+          <option value="Facilities Unit">Common Services · Facilities</option>
+          <option value="Resident Coordinator">Common Services · RC Office</option>
+        </datalist>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="f">
+          <label for="dlg_agency" style="font-weight:700">Host Agency *</label>
+          <select id="dlg_agency" style="font-size:13.5px">
+            ${AGENCIES.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="f">
+          <label for="dlg_room" style="font-weight:700">Meeting Room / Office</label>
+          <input id="dlg_room" placeholder="e.g. Room 302 / 3rd Floor" style="font-size:13.5px">
+        </div>
+      </div>
+
+      <div class="f">
+        <label for="dlg_email" style="font-weight:700">Host Work Email (optional)</label>
+        <input id="dlg_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org" style="font-size:13.5px">
+      </div>
+
+      <div class="small" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;color:#475569">
+        💡 <b>Visitor Experience:</b> The visitor will be greeted with: <i>"[Host Name] ([Agency]) has invited you to UN House Abuja"</i>. They fill in their details and arrive with photo ID. Gate 1 receives their arrival automatically.
+      </div>
+
+      <div class="acts" style="margin-top:6px;justify-content:flex-end">
+        <button class="btn" type="button" id="mNo">Cancel</button>
+        <button class="btn pri" type="submit" style="font-weight:700">🔗 Generate &amp; Share Link</button>
+      </div>
+    </form>
+  </div>`;
+  m.hidden=false;
+  $("#mNo").onclick=$("#mX").onclick=()=>{m.hidden=true};
+  const hInput=$("#dlg_host"), agSelect=$("#dlg_agency");
+  const hostAgencyMap={
+    "Dr. K. Ibrahim":"WHO",
+    "S. Garba":"UNDP",
+    "P. Obi":"UNHCR",
+    "A. Lawal":"WFP",
+    "T. Musa":"UNICEF",
+    "R. Bassey":"UNFPA",
+    "Comms Office":"UN Women",
+    "Facilities Unit":"Common Services",
+    "Resident Coordinator":"Common Services"
+  };
+  if(hInput&&agSelect){
+    hInput.oninput=()=>{
+      const trimmed=hInput.value.trim();
+      if(hostAgencyMap[trimmed]) agSelect.value=hostAgencyMap[trimmed];
+    };
+  }
+  $("#dlg_inv_f").onsubmit=async e=>{
+    e.preventDefault();
+    const host=$("#dlg_host").value.trim();
+    if(!host) return toast("Please enter the UN staff member host's name.");
+    const agency=$("#dlg_agency").value;
+    const hostEmail=$("#dlg_email").value.trim().toLowerCase();
+    const room=$("#dlg_room").value.trim();
+    const tok=newToken();
+    const invDoc={
+      id:tok,
+      hostUid:(me&&me.uid)||myUid()||"staff",
+      host,
+      hostEmail,
+      agency,
+      room,
+      status:"open",
+      createdAt:now(),
+      expires:now()+7*864e5
+    };
+    invites.unshift(invDoc);
+    if(db){
+      try{await db.collection("invites").doc(tok).set(invDoc);}catch(err){}
+    }
+    const url=inviteUrl(tok);
+    showCreatedInviteModal(invDoc,url);
+  };
+}
+
 function inviteView(){
-  if(!fb||!canAct("invite")) return "";
   const sub=invites.filter(i=>i.status==="submitted"), open=invites.filter(i=>i.status==="open"&&i.expires>now());
-  return `<div class="panel"><h2>Invite a visitor</h2><p class="small">Create a link for your guest. They fill in their own name, organisation and arrival time, with no account needed. The link works once and expires in 7 days.</p>
-  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:10px 0">
-   <div class="f"><label for="inv_host">Host (staff member)</label><input id="inv_host" value="${esc(me?me.name:"")}"></div>
-   <div class="f"><label for="inv_email">Host email</label><input id="inv_email" type="email" value="${esc(me?me.email:"")}"></div>
-   <div class="f"><label for="inv_room">Meeting room (optional)</label><input id="inv_room"></div>
-   <div class="f"><label for="inv_agency">Host agency</label><select id="inv_agency">${AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("")}</select></div></div>
-  <div class="acts"><button class="btn pri" id="invNew">Create invite link</button></div>
-  ${sub.length?`<h2 style="margin-top:18px">Details received <span class="cnt">${sub.length}</span></h2><div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th></th></tr></thead><tbody>${sub.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org)} · ${esc(i.guest.phone)}</div></td><td>${esc(i.host)}</td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose)}</td><td><div class="acts"><button class="btn pri" data-inv-use="${esc(i.id)}">Register visit</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
-  ${open.length?`<h2 style="margin-top:18px">Waiting for the guest <span class="cnt">${open.length}</span></h2><div class="tw"><table><tbody>${open.map(i=>`<tr><td>For ${esc(i.host)}</td><td class="small">Created ${fmtD(i.createdAt)} · expires ${fmtD(i.expires)}</td><td><div class="acts"><button class="btn" data-inv-copy="${esc(i.id)}">Copy link</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Cancel</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
+  const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
+  const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
+  return `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;display:flex;align-items:center;gap:8px">✉️ Invite a Visitor <span class="cnt hot">For Any UN Staff Host</span></h2>
+        <p class="small" style="margin:4px 0 0;color:var(--muted)">Generate a personalized pre-registration link for your visitor. Visitors fill in their own name, phone, organisation and arrival time without needing an account. Gate 1 automatically receives their registration for immediate compound clearance.</p>
+      </div>
+      <button class="btn pri" id="invQuickBtn" type="button" style="gap:6px">🔗 Quick Invite Link Generator</button>
+    </div>
+    
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0 10px">
+      <div class="f">
+        <label for="inv_host" style="font-weight:700">Host (UN Staff Member Name) *</label>
+        <input id="inv_host" list="hostStaffList" value="${esc(hostVal)}" placeholder="e.g. Dr. K. Ibrahim, S. Garba, or enter your name">
+        <datalist id="hostStaffList">
+          <option value="Dr. K. Ibrahim">WHO · Medical Services</option>
+          <option value="S. Garba">UNDP · Operations</option>
+          <option value="P. Obi">UNHCR · Protection</option>
+          <option value="A. Lawal">WFP · Supply Chain</option>
+          <option value="T. Musa">UNICEF · Programme Unit</option>
+          <option value="R. Bassey">UNFPA · Health</option>
+          <option value="Comms Office">UN Women · Communications</option>
+          <option value="Facilities Unit">Common Services · Facilities</option>
+          <option value="Resident Coordinator">Common Services · RC Office</option>
+        </datalist>
+      </div>
+      <div class="f">
+        <label for="inv_agency" style="font-weight:700">Host Agency *</label>
+        <select id="inv_agency">${AGENCIES.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}</select>
+      </div>
+      <div class="f">
+        <label for="inv_email" style="font-weight:700">Host Work Email (optional)</label>
+        <input id="inv_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org">
+      </div>
+      <div class="f">
+        <label for="inv_room" style="font-weight:700">Meeting Room / Office</label>
+        <input id="inv_room" placeholder="e.g. Room 302, 3rd Floor">
+      </div>
+    </div>
+    <div class="acts">
+      <button class="btn pri" id="invNew" type="button" style="font-weight:700">🔗 Create &amp; Share Visitor Link</button>
+    </div>
+    <p class="small" style="color:var(--muted);margin:8px 0 0">Visitor greeting preview: <i>"[Host Name] ([Host Agency]) has invited you. Fill in your details so the gate can expect you."</i></p>
+
+    ${sub.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Details received <span class="cnt hot">${sub.length}</span></h2><div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Action</th></tr></thead><tbody>${sub.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn pri" data-inv-use="${esc(i.id)}">✓ Approve &amp; Allocate Tag</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
+    ${open.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Waiting for the guest <span class="cnt">${open.length}</span></h2><div class="tw"><table><thead><tr><th>Host &amp; Agency</th><th>Created / Expires</th><th style="text-align:right">Actions</th></tr></thead><tbody>${open.map(i=>`<tr><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}${i.room?` · Room ${esc(i.room)}`:""}</div></td><td class="small">Created ${fmtD(i.createdAt)}<br>expires ${fmtD(i.expires)}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn" data-inv-copy="${esc(i.id)}">📋 Copy link</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Cancel</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
   </div>`;
 }
 async function createInvite(){
-  const host=$("#inv_host").value.trim(); if(!host) return toast("Enter the host's name.");
+  const hostInput=$("#inv_host")?$("#inv_host").value.trim():"";
+  const host=hostInput||(me&&me.name&&!/Station \d|Reception Officer/i.test(me.name)?me.name:"UN Host");
+  const agency=($("#inv_agency")&&$("#inv_agency").value)||"UNDP";
+  const hostEmail=($("#inv_email")?$("#inv_email").value.trim().toLowerCase():"")||(me?me.email:"");
+  const room=$("#inv_room")?$("#inv_room").value.trim():"";
   const tok=newToken();
-  try{await db.collection("invites").doc(tok).set({hostUid:me.uid,host,hostEmail:$("#inv_email").value.trim().toLowerCase(),agency:$("#inv_agency").value,room:$("#inv_room").value.trim(),status:"open",createdAt:now(),expires:now()+7*864e5});
-    copyText(inviteUrl(tok));}catch(e){toast("Could not create the invite: "+e.message)}
+  const invDoc={
+    id:tok,
+    hostUid:(me&&me.uid)||myUid()||"staff",
+    host,
+    hostEmail,
+    agency,
+    room,
+    status:"open",
+    createdAt:now(),
+    expires:now()+7*864e5
+  };
+  invites.unshift(invDoc);
+  if(db){
+    try{await db.collection("invites").doc(tok).set(invDoc);}catch(e){}
+  }
+  const url=inviteUrl(tok);
+  showCreatedInviteModal(invDoc,url);
+  render();
 }
 async function useInvite(i){
   if(!i) return; const g=i.guest, ref=newRef();
@@ -1973,7 +2209,28 @@ async function showInvite(tok){
     const i=d.data();
     if(i.status==="submitted"||i.status==="used") return box(`<h1>${T.received}</h1><p class="sub">${T.receivedSub}</p>`);
     if(i.status!=="open"||i.expires<now()) return box(`<h1>${T.linkExp}</h1><p class="sub">${T.linkExpSub(esc(i.host))}</p>`);
-    box(`<h1>${T.invTitle}</h1><p class="sub">${T.invIntro(esc(i.host),esc(i.agency))}</p>
+
+    // Clean up host display if generated with generic Station operator placeholder
+    let hostName = (i.host||"UN Staff Host").trim();
+    if(/Station \d|Reception Officer|Approver/i.test(hostName)){
+      hostName = i.agency ? `${i.agency} Host / Reception` : "UN Host";
+    }
+    const agencyName = i.agency || "UN Common Services";
+
+    box(`<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)">
+      <div style="width:42px;height:42px;border-radius:10px;background:#e0f2fe;display:grid;place-items:center;font-size:24px">🏛️</div>
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#0284c7;letter-spacing:.06em">Official Visitor Pre-Registration</div>
+        <div style="font-weight:700;color:var(--navy);font-size:15px">UN House Abuja · ${esc(agencyName)}</div>
+      </div>
+    </div>
+    <h1 style="font-size:22px;margin-bottom:6px">${T.invTitle}</h1>
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 14px;margin:12px 0">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#0369a1;letter-spacing:.05em">Host &amp; Meeting Destination</div>
+      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:2px">${esc(hostName)} · <span style="color:#0369a1">${esc(agencyName)}</span></div>
+      ${i.room?`<div class="small" style="color:var(--muted);margin-top:2px">Meeting Location: <b>Room ${esc(i.room)}</b></div>`:""}
+      <p class="small" style="color:var(--muted);margin:6px 0 0">Fill in your details below so Gate 1 security can clear your compound access before arrival.</p>
+    </div>
     <form id="gf" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
      <div class="f"><label for="g_name">${T.name}</label><input id="g_name" required minlength="2" maxlength="120" autocomplete="name"></div>
      <div class="f"><label for="g_org">${T.org}</label><input id="g_org" maxlength="160" autocomplete="organization"></div>
@@ -1995,13 +2252,13 @@ async function showInvite(tok){
         await db.collection("invites").doc(tok).update({status:"submitted",guest,submittedAt:now()});
         try{
           const ref="UNH-"+String(Math.floor(1000+Math.random()*9000));
-          const newVis={id:ref,ref,name:guest.name,org:guest.org||"",phone:guest.phone||"",visitorEmail:guest.email||"",vehicle:"",type:"visitor",room:i.room||"",host:i.host,hostEmail:i.hostEmail||"",agency:i.agency||"UNDP",building:BUILDINGS[0],expected:guest.expected?new Date(guest.expected).getTime()||now():now(),purpose:guest.purpose||"Meeting",restricted:false,escort:false,requestedBy:i.host,requestedByUid:"demo",status:"pending",log:[{t:now(),a:"Online pre-registration submitted by guest; awaiting Gate 1 clearance",by:"Guest ("+guest.name+")",st:"Online Pre-Registration"}]};
+          const newVis={id:ref,ref,name:guest.name,org:guest.org||"",phone:guest.phone||"",visitorEmail:guest.email||"",vehicle:"",type:"visitor",room:i.room||"",host:hostName,hostEmail:i.hostEmail||"",agency:agencyName,building:BUILDINGS[0],expected:guest.expected?new Date(guest.expected).getTime()||now():now(),purpose:guest.purpose||"Meeting",restricted:false,escort:false,requestedBy:hostName,requestedByUid:"demo",status:"pending",log:[{t:now(),a:"Online pre-registration submitted by guest; awaiting Gate 1 clearance",by:"Guest ("+guest.name+")",st:"Online Pre-Registration"}]};
           let gList=[];
           try{gList=JSON.parse(localStorage.getItem("unhDemoSubmittedGuests")||"[]");}catch(x){}
           if(!gList.some(x=>x.name===newVis.name)) gList.unshift(newVis);
           localStorage.setItem("unhDemoSubmittedGuests",JSON.stringify(gList));
         }catch(e){}
-        box(`<h1>${T.thanks(esc(guest.name))}</h1><p class="sub">${T.thanksSub(esc(i.host),esc(new Date(guest.expected).toLocaleString(dateLoc(), {weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})))}</p>
+        box(`<h1>${T.thanks(esc(guest.name))}</h1><p class="sub">${T.thanksSub(esc(hostName),esc(new Date(guest.expected).toLocaleString(dateLoc(), {weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})))}</p>
         <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap">
           <a class="btn pri" href="app.html#gate" style="text-decoration:none">🚪 Open Station 1 Gate Clearance</a>
           <a class="btn" href="index.html" style="text-decoration:none">🏠 Public Home Page</a>
@@ -3558,6 +3815,13 @@ function wire(){
   const ks=$("#k_start"); if(ks) ks.onclick=startKiosk;
   const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
   const ib=$("#invNew"); if(ib) ib.onclick=createInvite;
+  const iqb=$("#invQuickBtn"); if(iqb) iqb.onclick=openInviteDialog;
+  const tib=$("#top_inv_btn"); if(tib) tib.onclick=openInviteDialog;
+  const invH=$("#inv_host"), invAg=$("#inv_agency");
+  if(invH&&invAg){
+    const hostAgencyMap={"Dr. K. Ibrahim":"WHO","S. Garba":"UNDP","P. Obi":"UNHCR","A. Lawal":"WFP","T. Musa":"UNICEF","R. Bassey":"UNFPA","Comms Office":"UN Women","Facilities Unit":"Common Services","Resident Coordinator":"Common Services"};
+    invH.oninput=()=>{ const val=invH.value.trim(); if(hostAgencyMap[val]) invAg.value=hostAgencyMap[val]; };
+  }
   const tsg=$("#ts_go"); if(tsg) tsg.onclick=printTagSheet;
   const rRest=$("#r_restricted"), rType=$("#r_type"), rEsc=$("#r_escort");
   if(rRest&&rEsc) rRest.onchange=()=>{if(rRest.checked) rEsc.checked=true};
@@ -4354,18 +4618,25 @@ function doAct(a,v){
     const assigned = v.assignedTag || v.tag || nextAvailableTag(v.type);
     const used = new Set(visitors.filter(x=>x.id!==v.id && x.tag && ["tagged","in"].includes(x.status)).map(x=>x.tag));
     modal(`<h2>Documentation Desk · Exchange ID for Tag ${esc(assigned)}</h2>
-      <div class="note" style="background:#eff6ff;border-color:#bfdbfe;color:#1e40af;margin:6px 0 12px;padding:12px 14px">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;font-weight:700">Pre-assigned by Station 1</div>
-        <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
-          <span style="font-size:24px;font-weight:800;font-family:var(--mono);color:#0284c7">🏷️ ${esc(assigned)}</span>
-          <span style="font-size:13px;line-height:1.4">Pick physical lanyard badge <b class="mono" style="color:#0369a1">${esc(assigned)}</b> from your tray/rack and exchange it for <b>${esc(v.name)}</b>'s ID.</span>
+      <div class="note" style="background:linear-gradient(180deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;color:#0369a1;margin:6px 0 14px;padding:12px 16px;border-radius:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;color:#0284c7">Pre-assigned by Station 1</span>
+          <span style="font-size:11px;font-weight:700;background:#bae6fd;color:#0369a1;padding:1px 8px;border-radius:999px">Physical Tag</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:nowrap">
+          <div style="white-space:nowrap;flex:none;background:#ffffff;border:1.5px solid #0284c7;color:#0284c7;padding:6px 14px;border-radius:8px;font-size:22px;font-weight:800;font-family:var(--mono);display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(2,132,199,0.12)">
+            <span style="font-size:18px">🏷️</span><span style="white-space:nowrap">${esc(assigned)}</span>
+          </div>
+          <div style="font-size:13px;line-height:1.4;color:#0f172a">
+            Pick physical lanyard badge <b class="mono" style="color:#0284c7;white-space:nowrap">${esc(assigned)}</b> from your tray/rack and exchange it for <b>${esc(v.name)}</b>'s physical ID.
+          </div>
         </div>
       </div>
       <div class="f"><label for="m_id">Government / Photo ID document presented *</label><select id="m_id"><option>Government agency ID</option><option>National ID (NIN)</option><option>International passport</option><option>Driver's licence</option><option>Diplomatic ID</option><option>Staff / agency ID</option><option>Other valid photo ID</option></select></div>
-      <div class="f"><label for="m_tag">Physical tag number to exchange &amp; issue</label><input id="m_tag" value="${esc(assigned)}" class="mono" style="font-weight:700;font-size:15px"></div>
-      <div class="f" style="flex-direction:row;gap:10px;align-items:center;background:#f0f9ff;border:1px solid #bae6fd;padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:18px;height:18px;accent-color:#0284c7"><label for="m_exchange_done" style="margin:0;font-weight:600;color:#0369a1;font-size:13px">Exchange their ID with available tag <span class="mono" style="background:#e0f2fe;padding:2px 6px;border-radius:4px;font-weight:700">${esc(assigned)}</span> and documentation is completed</label></div>
+      <div class="f"><label for="m_tag">Physical tag number to exchange &amp; issue</label><input id="m_tag" value="${esc(assigned)}" class="mono" style="font-weight:700;font-size:15px;white-space:nowrap"></div>
+      <div class="f" style="flex-direction:row;gap:10px;align-items:center;background:#f0f9ff;border:1px solid #bae6fd;padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:18px;height:18px;accent-color:#0284c7"><label for="m_exchange_done" style="margin:0;font-weight:600;color:#0369a1;font-size:13px">Exchange their ID with available tag <span class="mono" style="background:#e0f2fe;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap">${esc(assigned)}</span> and documentation is completed</label></div>
       <div class="f"><label for="m_items">Items brought in (one per line, e.g. "Laptop, Dell, serial 5CD12")</label><textarea id="m_items" style="min-height:56px"></textarea></div>
-      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono">${esc(assigned)}</b></div></div>`,
+      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono" style="white-space:nowrap">${esc(assigned)}</b></div></div>`,
       ()=>{
         const tag=$("#m_tag").value.trim(), t=opNow(v,4);
         if(!tag) return false;
