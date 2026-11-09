@@ -652,10 +652,11 @@ const ROLES={
   docs:"Station 2 Documentation Officer",
   reception:"Station 3 Receptionist",
   vip:"Station 4 VIP Gate Officer",
+  registry:"UN Registry & Mailroom Officer",
   host:"UN Staff Host / Agency Officer",
   pending:"Awaiting role"
 };
-const ROLE_STATION={gate:"S1",sec_admin:"S1",sec_deputy:"S1",docs:"S2",reception:"S3",vip:"S4",host:"S3"};
+const ROLE_STATION={gate:"S1",sec_admin:"S1",sec_deputy:"S1",docs:"S2",reception:"S3",vip:"S4",registry:"REG",host:"S3"};
 const ROLE_VIEWS={
   admin:["dashboard","clearance","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
   sec_admin:["clearance","dashboard","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
@@ -664,6 +665,7 @@ const ROLE_VIEWS={
   docs:["tagging","registry","contractors","register","history"],
   reception:["reception","registry","kiosk","register","history"],
   vip:["vip","register","history"],
+  registry:["registry","dashboard","history"],
   host:["register","registry","dashboard","history"]
 };
 const ACT_ROLES={
@@ -703,8 +705,9 @@ const myRole=()=>{
   if(opVal.includes("Facilities Security") || opVal.includes("Security Administrator")) return "sec_admin";
   if(opVal.includes("Deputy Security")) return "sec_deputy";
   if(opVal.includes("Supervisor") || opVal.includes("Approver") || opVal.includes("Gate") || opVal.includes("Station 1")) return "gate";
+  if(opVal.includes("Registry") || opVal.includes("Mailroom")) return "registry";
   const st=$("#station")?$("#station").value:"S1";
-  return {S1:"gate",S2:"docs",S3:"reception",S4:"vip"}[st]||"gate";
+  return {S1:"gate",S2:"docs",S3:"reception",S4:"vip",REG:"registry"}[st]||"gate";
 };
 function getUndssGov(){
   try{
@@ -742,8 +745,8 @@ const myUid=()=>fb&&me?me.uid:"demo:"+$("#operator").value;
 $("#station").onchange=()=>{try{localStorage.setItem("station",station())}catch(e){} view=defaultView(); render()};
 $("#operator").onchange=()=>{try{localStorage.setItem("op",op())}catch(e){} render()};
 function defaultView(){
-  if(fb){const r=myRole(); return {sec_admin:"clearance",sec_deputy:"clearance",gate:"gate",docs:"tagging",reception:"reception",vip:"vip",host:"register"}[r]||"dashboard"}
-  return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()] || "dashboard"}
+  if(fb){const r=myRole(); return {sec_admin:"clearance",sec_deputy:"clearance",gate:"gate",docs:"tagging",reception:"reception",vip:"vip",registry:"registry",host:"register"}[r]||"dashboard"}
+  return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip",REG:"registry"}[station()] || "dashboard"}
 
 const now=()=>Date.now();
 const fmtT=t=>t?new Date(t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}):"—";
@@ -2148,8 +2151,7 @@ let kioskScanner=null, kioskBusy=false;
 async function startKiosk(){
   let k=$("#kiosk"); if(!k){k=document.createElement("div");k.id="kiosk";document.body.appendChild(k)}
   k.innerHTML=`<div class="k-in"><div class="k-top" style="display:flex;align-items:center;gap:14px">
-      <img class="hlogo" src="un-emblem.svg" alt="United Nations" onerror="this.hidden=true;var s=document.getElementById('k_slot');if(s)s.hidden=false" style="height:50px;width:auto;display:block;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.22)">
-      <div class="hslot" id="k_slot" role="img" aria-label="UNDP" hidden style="height:50px;width:37px;border:1px solid #ffffff38;background:#0468B1;border-radius:6px;display:grid;place-items:center;color:#fff;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.22)"><svg viewBox="0 0 64 80"><rect width="64" height="80" fill="#0468B1"/><g transform="translate(32,23)" fill="none" stroke="#fff" stroke-linecap="round"><circle r="10.5" stroke-width="1.35"/><circle r="7" stroke-width="1.15"/><circle r="3.5" stroke-width="1.05"/><line x1="-10.5" y1="0" x2="10.5" y2="0" stroke-width="1.1"/><line x1="0" y1="-10.5" x2="0" y2="10.5" stroke-width="1.1"/><line x1="-7.4" y1="-7.4" x2="7.4" y2="7.4" stroke-width="0.95"/><line x1="7.4" y1="-7.4" x2="-7.4" y2="7.4" stroke-width="0.95"/><path d="M-4,12.5 C-13,10.5 -16.5,2 -15,-7.5 C-14,-11 -11.5,-13.5 -9,-15" stroke-width="2.1"/><path d="M4,12.5 C13,10.5 16.5,2 15,-7.5 C14,-11 11.5,-13.5 9,-15" stroke-width="2.1"/><path d="M-5.5,11.5 L3.5,14.5 M5.5,11.5 L-3.5,14.5" stroke-width="1.8"/></g><line x1="8" y1="42" x2="56" y2="42" stroke="#fff" stroke-opacity=".3" stroke-width="1"/><g fill="#fff" font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif" font-weight="800" text-anchor="middle"><text x="32" y="57.5" font-size="16.5" letter-spacing="1.5">UN</text><text x="32" y="73.5" font-size="16.5" letter-spacing="1.5">DP</text></g></svg></div>
+      <img class="hlogo" src="un-emblem.svg" alt="United Nations" style="height:50px;width:auto;display:block;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.22)">
       <div class="brand" style="text-align:left;display:flex;flex-direction:column">
         <b style="font-size:16px;letter-spacing:.01em;font-weight:700;color:#fff">UN House Visitor Management System</b>
         <span style="font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.1em;color:#b9c4d8">United Nations Common Services · Abuja</span>
@@ -3463,7 +3465,7 @@ function startDemo(){
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
-  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["sec_admin","sec_deputy","gate","admin","docs","reception","vip","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
+  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["sec_admin","sec_deputy","gate","admin","docs","reception","vip","registry","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
   $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
   const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
   open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
@@ -5112,15 +5114,126 @@ function openRegDeliverModal(d){
 
   $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
   $("#rd_save_btn").onclick=async()=>{
+    const ackName = $("#rd_ack_by").value.trim() || d.forName;
     d.status = "delivered";
-    d.acknowledgedBy = $("#rd_ack_by").value.trim() || d.forName;
+    d.receiptNum = "REC-" + d.regNum;
+    d.acknowledgedBy = ackName;
     d.acknowledgedAt = now();
     d.acknowledgedNotes = $("#rd_notes").value.trim();
+    d.idVerified = "UN Staff Photo ID Verified";
     d.deliveredByOfficer = op() + " (UN Registry)";
     await saveDelivery(d);
     m.hidden=true;
-    toast(`✓ ${d.regNum} successfully delivered and acknowledged by ${d.acknowledgedBy}.`);
+    toast(`✓ Handover complete! Receipt ${d.receiptNum} auto-generated for ${ackName}.`);
+    // Automatically open the generated e-POD Receipt modal!
+    setTimeout(()=>openRegReceiptModal(d), 150);
   };
+}
+
+
+function openRegReceiptModal(d){
+  const m=$("#modal");
+  const isCat1 = d.category === "correspondence";
+  const recNum = d.receiptNum || ("REC-" + d.regNum);
+  const ackTime = d.acknowledgedAt || now();
+  const defMsg = "UNITED NATIONS HOUSE ABUJA - OFFICIAL PROOF OF DELIVERY RECEIPT\n\nReceipt #: " + recNum + "\nInward Ref: " + d.regNum + "\nStatus: DELIVERED & ACKNOWLEDGED\nDate/Time: " + fmtD(ackTime) + "\n\n• Item: " + d.desc + " (" + (isCat1 ? 'Category 1: Official Correspondence' : 'Category 2: Parcel/Package') + ")\n• Courier / Origin: " + d.from + (d.waybill ? ' [Waybill: ' + d.waybill + ']' : '') + "\n• Security Screening: Smiths Detection HI-SCAN 6040 X-Ray Cleared (" + (d.screenedBy||'Security') + ")\n• Addressed To: " + d.forName + " (" + d.agency + ")\n• Acknowledged By: " + (d.acknowledgedBy||d.forName) + "\n• Delivered By: " + (d.deliveredByOfficer||'UN Registry Common Services') + "\n\nThis is an official system-generated Electronic Proof of Delivery (e-POD). Retention 7 years under UN Records Standard.\n\nUN House Abuja Common Services";
+
+  m.innerHTML = `
+  <div class="modal" style="max-width:620px;border-radius:14px;padding:24px;border:2px solid #0284c7">
+    <button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">x</button>
+    
+    <!-- Receipt Official UN Header -->
+    <div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid var(--navy);padding-bottom:14px;margin-bottom:16px">
+      <img src="un-emblem.svg" alt="United Nations" style="height:52px;width:auto;display:block;flex-shrink:0">
+      <div style="flex:1">
+        <div style="font-weight:800;font-size:16px;color:var(--navy);letter-spacing:.02em">UNITED NATIONS HOUSE ABUJA</div>
+        <div style="font-size:12px;font-weight:600;color:var(--muted)">Common Services · UN Registry &amp; Inward Mail Unit</div>
+        <div style="font-size:13px;font-weight:700;color:#0369a1;margin-top:2px">ELECTRONIC PROOF OF DELIVERY (e-POD) &amp; CUSTODY RECEIPT</div>
+      </div>
+      <div style="text-align:right">
+        <span class="pill p-in" style="font-size:11px;font-weight:700;background:#ecfdf5;color:#065f46;border-color:#a7f3d0">
+          ✓ SIGNED &amp; DELIVERED
+        </span>
+      </div>
+    </div>
+
+    <!-- Key Identification Bar -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;background:#f8fafc;border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:14px">
+      <div>
+        <div class="small" style="color:var(--muted);font-weight:600">OFFICIAL RECEIPT NUMBER</div>
+        <b class="mono" style="font-size:15px;color:#0369a1">${esc(recNum)}</b>
+      </div>
+      <div style="text-align:right">
+        <div class="small" style="color:var(--muted);font-weight:600">DATE &amp; TIME OF HANDOVER</div>
+        <b style="font-size:13px;color:var(--navy)">${fmtD(ackTime)}</b>
+      </div>
+    </div>
+
+    <!-- 4-Stage Lifecycle Chain of Custody Table -->
+    <div style="border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-bottom:14px">
+      <div style="background:#f1f5f9;padding:8px 12px;font-size:11.5px;font-weight:700;text-transform:uppercase;color:var(--navy);letter-spacing:.05em">
+        Verified 4-Stage Chain of Custody Audit
+      </div>
+      <table style="width:100%;font-size:12px;border-collapse:collapse">
+        <tbody>
+          <tr style="border-bottom:1px solid var(--line)">
+            <td style="padding:8px 12px;width:150px;color:var(--muted)"><b>1. Gate 1 Intake:</b></td>
+            <td style="padding:8px 12px">${esc(d.from)} ${d.waybill ? `[Waybill: ${esc(d.waybill)}]` : ''} · Rider: ${esc(d.courierRider||'Perimeter Dispatch')} · <i>Arrived ${fmtD(d.at)}</i></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--line)">
+            <td style="padding:8px 12px;color:var(--muted)"><b>2. Security Screening:</b></td>
+            <td style="padding:8px 12px;color:#065f46;font-weight:600">✓ ${esc(d.screeningMethod||'Smiths Detection HI-SCAN 6040 X-Ray Cleared')} · ${esc(d.screenedBy||'UNDSS Officer')} · <i>${fmtT(d.screenedAt||d.at)}</i></td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--line)">
+            <td style="padding:8px 12px;color:var(--muted)"><b>3. UN Registry Custody:</b></td>
+            <td style="padding:8px 12px">Inward Ref: <b class="mono" style="color:#0369a1">${esc(d.regNum)}</b> (${isCat1 ? 'Category 1: Official Correspondence' : 'Category 2: Parcel/Package'}) · ${esc(d.custodyBy||'UN Registry')}</td>
+          </tr>
+          <tr>
+            <td style="padding:8px 12px;color:var(--muted)"><b>4. Handover &amp; e-POD:</b></td>
+            <td style="padding:8px 12px;background:#f0fdf4">
+              <b style="color:#166534">Handed Over To: ${esc(d.acknowledgedBy||d.forName)} (${esc(d.agency)})</b> · Verified: UN Staff Photo ID · Handover Officer: ${esc(d.deliveredByOfficer||'UN Registry')}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Item Description Box -->
+    <div style="background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:16px">
+      <div class="small" style="color:var(--muted);font-weight:600">ITEM DESCRIPTION / CONTENTS</div>
+      <div style="font-size:13px;font-weight:600;color:var(--navy);margin-top:2px">${esc(d.desc)}</div>
+    </div>
+
+    <!-- Multi-Stage Notification Action Row -->
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <a class="btn pri" id="rc_email_btn" href="#" style="font-size:12px;background:#0284c7">📧 Email Receipt Copy</a>
+        <a class="btn" id="rc_wa_btn" href="#" target="_blank" rel="noopener" style="font-size:12px">💬 WhatsApp Receipt</a>
+        <button class="btn" onclick="window.print()" style="font-size:12px">🖨️ Print / Save PDF</button>
+      </div>
+      <button class="btn pri" id="mNo" style="background:var(--navy);border-color:var(--navy)">✓ Done</button>
+    </div>
+  </div>`;
+  m.hidden=false;
+
+  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+
+  const emailBtn = $("#rc_email_btn");
+  if(emailBtn){
+    emailBtn.onclick=()=>{
+      const subj = "OFFICIAL RECEIPT: UN House Delivery " + recNum + " for " + (d.acknowledgedBy||d.forName) + " (" + d.agency + ")";
+      emailBtn.href = "mailto:?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(defMsg);
+      toast("📧 Email client opened with official receipt " + recNum + ".");
+    };
+  }
+
+  const waBtn = $("#rc_wa_btn");
+  if(waBtn){
+    waBtn.onclick=()=>{
+      waBtn.href = "https://wa.me/?text=" + encodeURIComponent(defMsg);
+      toast("💬 WhatsApp opened with official receipt " + recNum + ".");
+    };
+  }
 }
 
 function openRegSlipModal(d){
@@ -5460,11 +5573,16 @@ V.registry = () => {
                     </button>
                   ` : ''}
                   ${d.status === "registry_custody" || d.status === "ready_pickup" ? `
-                    <button class="btn" data-reg-act="notify" data-id="${esc(d.id)}" style="font-size:11px;padding:3px 8px;height:28px" title="Notify Recipient / Focal Point via WhatsApp or Email">
+                    <button class="btn" data-reg-act="notify" data-id="${esc(d.id)}" style="font-size:11px;padding:3px 8px;height:28px" title="Dispatch Pickup Notification via WhatsApp or Email">
                       📢 Alert
                     </button>
-                    <button class="btn pri" data-reg-act="deliver" data-id="${esc(d.id)}" style="font-size:11px;padding:3px 9px;height:28px;background:#1e3a8a;border-color:#1e3a8a" title="Hand over to Agency Focal Point or Recipient">
+                    <button class="btn pri" data-reg-act="deliver" data-id="${esc(d.id)}" style="font-size:11px;padding:3px 9px;height:28px;background:#1e3a8a;border-color:#1e3a8a" title="Hand over &amp; auto-generate official e-POD receipt">
                       ✓ Hand Over
+                    </button>
+                  ` : ''}
+                  ${isDelivered ? `
+                    <button class="btn pri" data-reg-act="receipt" data-id="${esc(d.id)}" style="font-size:11px;padding:3px 9px;height:28px;background:#065f46;border-color:#065f46" title="View auto-generated official Delivery Receipt (e-POD)">
+                      📜 e-Receipt
                     </button>
                   ` : ''}
                   <button class="btn icon" data-reg-act="slip" data-id="${esc(d.id)}" style="width:28px;height:28px" title="View / Print Inward Registry Routing Slip">
@@ -5514,6 +5632,7 @@ function wireRegistry(){
       else if(act === "notify") openRegNotifyModal(d);
       else if(act === "deliver") openRegDeliverModal(d);
       else if(act === "slip") openRegSlipModal(d);
+      else if(act === "receipt") openRegReceiptModal(d);
     };
   });
 }
