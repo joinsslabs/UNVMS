@@ -1005,65 +1005,151 @@ function showGate(title,msg,waiting){
 }
 function showLogin(_m,msg){
   $("#nav").innerHTML="";
-  $("#main").innerHTML=`<div class="panel" style="max-width:440px;width:100%;margin:20px auto;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.12)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)">
-      <a href="index.html" class="btn" style="text-decoration:none;font-weight:600;font-size:12.5px;gap:6px">
-        🏠 Return to Home / Landing Page
-      </a>
-      <span class="small" style="color:var(--muted)">UN House Abuja</span>
+  $("#main").innerHTML=`<div style="max-width:460px;width:100%;margin:30px auto;border-radius:16px;box-shadow:0 16px 40px -10px rgba(15,23,42,0.16);overflow:hidden;border:1px solid #cbd5e1;background:var(--surface)">
+    
+    <!-- Diplomatic UN Masthead Banner -->
+    <div style="background:linear-gradient(135deg,#0f1a30 0%,#172542 100%);padding:24px 20px 20px;text-align:center;border-bottom:3px solid #0284c7;color:#fff">
+      <img src="un-emblem.svg" alt="United Nations" style="height:50px;width:auto;margin:0 auto 10px;display:block">
+      <div style="font-size:15px;font-weight:800;letter-spacing:.04em;color:#ffffff">UNITED NATIONS HOUSE ABUJA</div>
+      <div style="font-size:12px;font-weight:600;color:#94a3b8;margin-top:2px">Common Services · Operations Console Access</div>
+      <div style="margin-top:10px">
+        <span class="pill" style="font-size:10.5px;font-weight:700;background:rgba(255,255,255,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.3)">
+          🛡️ UNDSS Security Level 2 · Authorized Staff Only
+        </span>
+      </div>
     </div>
-    <h1>Staff sign-in</h1>
-    <p class="sub">No password needed. Enter your work email and we'll send you a link that signs you in.</p>
-    <form id="ml" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
-      <div class="f"><label for="ml_email">Email</label><input id="ml_email" type="email" required autocomplete="username" value="${esc(sessionStorageGet("linkEmail")||"")}"></div>
-      <div class="f"><label for="ml_name">Full name <span style="font-weight:400">(first time only)</span></label><input id="ml_name" autocomplete="name"></div>
-      <div id="l_err" class="small" style="color:var(--bad)">${esc(msg||"")}</div>
-      <div class="acts"><button class="btn pri" type="submit" id="ml_go">Email me a sign-in link</button></div>
-    </form>
-    ${window.MS_SIGNIN&&window.MS_SIGNIN.enabled?`<div style="display:flex;align-items:center;gap:10px;margin:16px 0 4px" class="small"><span style="flex:1;height:1px;background:var(--line)"></span>or<span style="flex:1;height:1px;background:var(--line)"></span></div><button class="btn" id="ms_go" style="width:100%;justify-content:center;padding:10px">Sign in with Microsoft (UN account)</button>`:""}
-    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px" class="small">
-      <a href="#" id="ml_pw" style="font-weight:600">🔑 Use a password instead</a>
-      <a href="index.html" style="color:var(--muted)">Public landing page →</a>
-    </div></div>`;
+
+    <div style="padding:22px 24px">
+      <!-- Auth Mode Switcher Tabs -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#f1f5f9;padding:4px;border-radius:10px;margin-bottom:18px">
+        <button type="button" class="btn pri" style="height:32px;font-size:12px;border-radius:7px;background:#0284c7">✉️ Magic Link</button>
+        <button type="button" class="btn" id="tab_to_pw" style="height:32px;font-size:12px;border-radius:7px;background:transparent;border:none;color:#475569">🔑 Password</button>
+      </div>
+
+      <h1 style="font-size:18px;color:var(--navy);margin:0 0 4px">Passwordless Sign-In</h1>
+      <p class="sub" style="margin:0 0 16px;font-size:13px;color:#475569">Enter your official UN email address to receive an instant authentication link.</p>
+
+      <form id="ml" style="display:flex;flex-direction:column;gap:14px">
+        <div class="f">
+          <label for="ml_email" style="font-size:12px;font-weight:700;color:var(--navy)">Work Email Address *</label>
+          <input id="ml_email" type="email" placeholder="name@un.org / name@undp.org" required autocomplete="username" value="${esc(sessionStorageGet("linkEmail")||"")}" style="height:40px;font-size:13.5px;border:1.5px solid #cbd5e1;border-radius:8px" autofocus>
+        </div>
+        <div class="f">
+          <label for="ml_name" style="font-size:12px;font-weight:700;color:var(--navy)">Full Name <span style="font-weight:400;color:var(--muted)">(first-time registration only)</span></label>
+          <input id="ml_name" autocomplete="name" placeholder="e.g. Dr. Amina Bello" style="height:40px;font-size:13.5px;border:1.5px solid #cbd5e1;border-radius:8px">
+        </div>
+        <div id="l_err" class="small" style="color:var(--bad);font-weight:600">${esc(msg||"")}</div>
+        <button class="btn pri" type="submit" id="ml_go" style="height:42px;font-size:13.5px;font-weight:700;background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);border-radius:8px;box-shadow:0 4px 14px rgba(2,132,199,0.35);margin-top:4px">
+          ✉️ Send Secure Sign-In Link
+        </button>
+      </form>
+
+      ${window.MS_SIGNIN&&window.MS_SIGNIN.enabled?`<div style="display:flex;align-items:center;gap:10px;margin:18px 0 12px" class="small"><span style="flex:1;height:1px;background:var(--line)"></span><span style="color:var(--muted);font-weight:600">OR</span><span style="flex:1;height:1px;background:var(--line)"></span></div><button class="btn" id="ms_go" style="width:100%;height:40px;justify-content:center;border:1.5px solid #cbd5e1;border-radius:8px;font-weight:600;font-size:13px;background:#f8fafc">Sign in with Microsoft (UN Account)</button>`:""}
+
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px" class="small">
+        <a href="index.html" style="color:#0284c7;font-weight:600;text-decoration:none">← Return to UN House Portal</a>
+        <span style="color:var(--muted);font-size:11.5px">ST/SGB/2004/15 Compliant</span>
+      </div>
+    </div>
+  </div>`;
+
+  $("#tab_to_pw").onclick = e => { e.preventDefault(); showPasswordLogin("in"); };
+
   const ms=$("#ms_go"); if(ms) ms.onclick=async()=>{const p=new firebase.auth.OAuthProvider("microsoft.com");
     if(window.MS_SIGNIN.tenant) p.setCustomParameters({tenant:window.MS_SIGNIN.tenant,prompt:"select_account"});
     try{await firebase.auth().signInWithPopup(p)}catch(x){if(x.code==="auth/popup-blocked"||x.code==="auth/operation-not-supported-in-this-environment")firebase.auth().signInWithRedirect(p);else $("#l_err").textContent=x.code==="auth/operation-not-allowed"?"Microsoft sign-in isn't set up in Firebase yet.":authMsg(x)}};
-  $("#ml_pw").onclick=e=>{e.preventDefault();showPasswordLogin("in")};
+
   $("#ml").onsubmit=async e=>{e.preventDefault();const em=$("#ml_email").value.trim(),nm=$("#ml_name").value.trim();
     $("#ml_go").setAttribute("disabled","");$("#l_err").textContent="";
     try{await firebase.auth().sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true});
       lsSet("linkEmail",em); if(nm) lsSet("pendingName",nm);
-      $("#main").innerHTML=`<div class="panel" style="max-width:440px;width:100%;margin:20px auto">
-        <div style="margin-bottom:12px"><a href="index.html" class="btn small">🏠 Home Page</a></div>
-        <h1>Check your email</h1><p class="sub">We sent a sign-in link to <b>${esc(em)}</b>. Click it on this device to open your station. The link works once and expires after a short time.</p><p class="small">Nothing there? Check spam, or <a href="#" id="ml_again">send another link</a>.</p></div>`;
+      $("#main").innerHTML=`<div style="max-width:460px;width:100%;margin:30px auto;border-radius:16px;box-shadow:0 16px 40px -10px rgba(15,23,42,0.16);overflow:hidden;border:1px solid #cbd5e1;background:var(--surface)">
+        <div style="background:linear-gradient(135deg,#0f1a30 0%,#172542 100%);padding:22px 20px;text-align:center;border-bottom:3px solid #0284c7;color:#fff">
+          <img src="un-emblem.svg" alt="United Nations" style="height:46px;width:auto;margin:0 auto 8px;display:block">
+          <div style="font-size:15px;font-weight:800;color:#fff">CHECK YOUR INBOX</div>
+        </div>
+        <div style="padding:24px">
+          <div style="width:48px;height:48px;border-radius:12px;background:#e0f2fe;display:grid;place-items:center;font-size:24px;margin-bottom:14px">📧</div>
+          <h2 style="font-size:18px;color:var(--navy);margin:0 0 6px">Authentication link dispatched</h2>
+          <p class="sub" style="margin:0 0 16px;font-size:13.5px;line-height:1.5;color:#334155">
+            We sent a one-time sign-in link to <b style="color:var(--navy)">${esc(em)}</b>. Click the link on this device to access your assigned station.
+          </p>
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:8px;font-size:12px;color:var(--muted);line-height:1.4;margin-bottom:18px">
+            • Valid for 15 minutes · Single-use token.<br>
+            • Nothing arrived? Check your spam/junk folder.
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <a href="#" id="ml_again" class="btn" style="font-size:12px">← Send another link</a>
+            <a href="index.html" class="btn pri" style="font-size:12px">Home Page</a>
+          </div>
+        </div>
+      </div>`;
       $("#ml_again").onclick=x=>{x.preventDefault();showLogin()};
     }catch(x){$("#ml_go").removeAttribute("disabled");$("#l_err").textContent=x.code==="auth/operation-not-allowed"?"Email-link sign-in isn't switched on yet. Ask the administrator.":authMsg(x)}};
 }
+
 function showPasswordLogin(mode="in"){
   $("#nav").innerHTML="";
-  $("#main").innerHTML=`<div class="panel" style="max-width:440px;width:100%;margin:20px auto;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,0.12)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)">
-      <a href="index.html" class="btn" style="text-decoration:none;font-weight:600;font-size:12.5px;gap:6px">
-        🏠 Return to Home / Landing Page
-      </a>
-      <span class="small" style="color:var(--muted)">UN House Abuja</span>
+  $("#main").innerHTML=`<div style="max-width:460px;width:100%;margin:30px auto;border-radius:16px;box-shadow:0 16px 40px -10px rgba(15,23,42,0.16);overflow:hidden;border:1px solid #cbd5e1;background:var(--surface)">
+    
+    <!-- Diplomatic UN Masthead Banner -->
+    <div style="background:linear-gradient(135deg,#0f1a30 0%,#172542 100%);padding:24px 20px 20px;text-align:center;border-bottom:3px solid #0284c7;color:#fff">
+      <img src="un-emblem.svg" alt="United Nations" style="height:50px;width:auto;margin:0 auto 10px;display:block">
+      <div style="font-size:15px;font-weight:800;letter-spacing:.04em;color:#ffffff">UNITED NATIONS HOUSE ABUJA</div>
+      <div style="font-size:12px;font-weight:600;color:#94a3b8;margin-top:2px">Common Services · Operations Console Access</div>
+      <div style="margin-top:10px">
+        <span class="pill" style="font-size:10.5px;font-weight:700;background:rgba(255,255,255,0.12);color:#38bdf8;border:1px solid rgba(56,189,248,0.3)">
+          🛡️ UNDSS Security Level 2 · Authorized Staff Only
+        </span>
+      </div>
     </div>
-    <h1>${mode==="up"?"Create a staff account":"Staff sign-in"}</h1>
-    <p class="sub">${mode==="up"?"After you create an account, an Administrator assigns your role before you can see visitor records.":"Sign in with your staff account to open your station."}</p>
-    <form id="login" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
-      ${mode==="up"?`<div class="f"><label for="l_name">Full name</label><input id="l_name" required autocomplete="name"></div>`:""}
-      <div class="f"><label for="l_email">Email</label><input id="l_email" type="email" required autocomplete="username"></div>
-      <div class="f"><label for="l_pw">Password</label><input id="l_pw" type="password" required minlength="8" autocomplete="${mode==="up"?"new-password":"current-password"}"></div>
-      <div id="l_err" class="small" style="color:var(--bad)"></div>
-      <div class="acts"><button class="btn pri" type="submit">${mode==="up"?"Create account":"Sign in"}</button>
-      ${mode==="up"?`<button class="btn" type="button" id="l_sw">I have an account</button>`:`<button class="btn" type="button" id="l_sw">Create an account</button><button class="btn" type="button" id="l_reset">Forgot password</button>`}</div>
-    </form>
-    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px" class="small">
-      <a href="#" id="pw_ml" style="font-weight:600">← Email me a sign-in link instead</a>
-      <a href="index.html" style="color:var(--muted)">Public landing page →</a>
-    </div></div>`;
+
+    <div style="padding:22px 24px">
+      <!-- Auth Mode Switcher Tabs -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#f1f5f9;padding:4px;border-radius:10px;margin-bottom:18px">
+        <button type="button" class="btn" id="tab_to_ml" style="height:32px;font-size:12px;border-radius:7px;background:transparent;border:none;color:#475569">✉️ Magic Link</button>
+        <button type="button" class="btn pri" style="height:32px;font-size:12px;border-radius:7px;background:#0284c7">🔑 Password</button>
+      </div>
+
+      <h1 style="font-size:18px;color:var(--navy);margin:0 0 4px">${mode==="up"?"Create Staff Account":"Staff Password Sign-In"}</h1>
+      <p class="sub" style="margin:0 0 16px;font-size:13px;color:#475569">
+        ${mode==="up"?"Register your UN credentials. An Administrator must confirm your station role.":"Enter your registered staff credentials to access your station."}
+      </p>
+
+      <form id="login" style="display:flex;flex-direction:column;gap:14px">
+        ${mode==="up"?`<div class="f"><label for="l_name" style="font-size:12px;font-weight:700;color:var(--navy)">Official Full Name *</label><input id="l_name" required autocomplete="name" placeholder="e.g. Tunde Balogun" style="height:40px;font-size:13.5px;border:1.5px solid #cbd5e1;border-radius:8px"></div>`:""}
+        <div class="f">
+          <label for="l_email" style="font-size:12px;font-weight:700;color:var(--navy)">Work Email Address *</label>
+          <input id="l_email" type="email" required autocomplete="username" placeholder="name@un.org" style="height:40px;font-size:13.5px;border:1.5px solid #cbd5e1;border-radius:8px" autofocus>
+        </div>
+        <div class="f">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <label for="l_pw" style="font-size:12px;font-weight:700;color:var(--navy)">Password *</label>
+            ${mode==="in"?`<a href="#" id="l_reset" style="font-size:11.5px;color:#0284c7;text-decoration:none;font-weight:600">Forgot password?</a>`:""}
+          </div>
+          <input id="l_pw" type="password" required minlength="8" autocomplete="${mode==="up"?"new-password":"current-password"}" placeholder="Minimum 8 characters" style="height:40px;font-size:13.5px;border:1.5px solid #cbd5e1;border-radius:8px">
+        </div>
+        <div id="l_err" class="small" style="color:var(--bad);font-weight:600"></div>
+        
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn pri" type="submit" style="flex:1;height:42px;font-size:13.5px;font-weight:700;background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);border-radius:8px;box-shadow:0 4px 14px rgba(2,132,199,0.35)">
+            ${mode==="up"?"Create Account":"Sign In to Station"}
+          </button>
+          <button class="btn" type="button" id="l_sw" style="height:42px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:12.5px">
+            ${mode==="up"?"Have Account":"Register"}
+          </button>
+        </div>
+      </form>
+
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px" class="small">
+        <a href="index.html" style="color:#0284c7;font-weight:600;text-decoration:none">← Return to UN House Portal</a>
+        <span style="color:var(--muted);font-size:11.5px">ST/SGB/2004/15 Compliant</span>
+      </div>
+    </div>
+  </div>`;
+
+  $("#tab_to_ml").onclick = e => { e.preventDefault(); showLogin(); };
   $("#l_sw").onclick=()=>showPasswordLogin(mode==="up"?"in":"up");
-  const pwMl=$("#pw_ml"); if(pwMl) pwMl.onclick=e=>{e.preventDefault();showLogin()};
   const r=$("#l_reset"); if(r) r.onclick=async()=>{const em=$("#l_email").value.trim(); if(!em){$("#l_err").textContent="Enter your email first.";return}
     try{await firebase.auth().sendPasswordResetEmail(em);$("#l_err").style.color="var(--ok)";$("#l_err").textContent="Password reset email sent to "+em+"."}catch(e){$("#l_err").textContent=authMsg(e)}};
   $("#login").onsubmit=async e=>{e.preventDefault(); $("#l_err").textContent="";
