@@ -574,11 +574,22 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator",sec_admin:"Facilities Security Manager (UNDSS Primary Approver)",gate:"Station 1 Reception Officer & Approver",docs:"Station 2 Documentation Officer",reception:"Station 3 Receptionist",vip:"Station 4 VIP Gate Officer",host:"UN Staff Host / Agency Officer",pending:"Awaiting role"};
-const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4",host:"S3"};
+const ROLES={
+  admin:"Administrator",
+  sec_admin:"Facilities Security Manager (UNDSS Primary Approver)",
+  sec_deputy:"Deputy Security Officer (UNDSS Alternate Approver)",
+  gate:"Station 1 Security Lead (UNDSS Alternate Approver)",
+  docs:"Station 2 Documentation Officer",
+  reception:"Station 3 Receptionist",
+  vip:"Station 4 VIP Gate Officer",
+  host:"UN Staff Host / Agency Officer",
+  pending:"Awaiting role"
+};
+const ROLE_STATION={gate:"S1",sec_admin:"S1",sec_deputy:"S1",docs:"S2",reception:"S3",vip:"S4",host:"S3"};
 const ROLE_VIEWS={
   admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
   sec_admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_deputy:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
   gate:["gate","contractors","register","watch","history"],
   docs:["tagging","contractors","register","history"],
   reception:["reception","kiosk","register","history"],
@@ -586,31 +597,31 @@ const ROLE_VIEWS={
   host:["register","dashboard","history"]
 };
 const ACT_ROLES={
-  reply:["admin","sec_admin"],
-  reschedule:["admin","sec_admin"],
-  resubmit:["gate","admin","sec_admin"],
-  cancel:["admin","sec_admin"],
-  pass:["admin","sec_admin","gate","docs","reception","vip","host"],
-  invite:["admin","sec_admin","gate","docs","reception","vip","host"],
+  reply:["admin","sec_admin","sec_deputy"],
+  reschedule:["admin","sec_admin","sec_deputy"],
+  resubmit:["gate","admin","sec_admin","sec_deputy"],
+  cancel:["admin","sec_admin","sec_deputy"],
+  pass:["admin","sec_admin","sec_deputy","gate","docs","reception","vip","host"],
+  invite:["admin","sec_admin","sec_deputy","gate","docs","reception","vip","host"],
   // Station 1: Gate Reception & Approvals only
-  arrive:["gate","admin","sec_admin"],
-  phoneadmit:["gate","admin","sec_admin"],
-  approve:["gate","admin","sec_admin"],
-  reject:["gate","admin","sec_admin"],
-  gateapprove:["gate","admin","sec_admin"],
+  arrive:["gate","admin","sec_admin","sec_deputy"],
+  phoneadmit:["gate","admin","sec_admin","sec_deputy"],
+  approve:["gate","admin","sec_admin","sec_deputy"],
+  reject:["gate","admin","sec_admin","sec_deputy"],
+  gateapprove:["gate","admin","sec_admin","sec_deputy"],
   // Station 2: Documentation Reception only
-  tag:["docs","admin","sec_admin"],
+  tag:["docs","admin","sec_admin","sec_deputy"],
   // Station 3: Internal Reception only
-  checkin:["reception","admin","sec_admin"],
-  notify:["reception","admin","sec_admin"],
-  checkout:["docs","gate","admin","sec_admin"],
-  extendstay:["docs","gate","admin","sec_admin"],
+  checkin:["reception","admin","sec_admin","sec_deputy"],
+  notify:["reception","admin","sec_admin","sec_deputy"],
+  checkout:["docs","gate","admin","sec_admin","sec_deputy"],
+  extendstay:["docs","gate","admin","sec_admin","sec_deputy"],
   // Station 4: VIP Gate only
-  vipadmit:["vip","admin","sec_admin"],
+  vipadmit:["vip","admin","sec_admin","sec_deputy"],
   // Approvals & Contractor Governance
-  suspend:["gate","admin","sec_admin"],
-  reinstate:["gate","admin","sec_admin"],
-  extend:["gate","admin","sec_admin"]
+  suspend:["gate","admin","sec_admin","sec_deputy"],
+  reinstate:["gate","admin","sec_admin","sec_deputy"],
+  extend:["gate","admin","sec_admin","sec_deputy"]
 };
 const myRole=()=>{
   if(fb){
@@ -619,11 +630,40 @@ const myRole=()=>{
   }
   const opVal=$("#operator")?$("#operator").value:"";
   if(opVal.includes("Administrator") && !opVal.includes("Security")) return "admin";
-  if(opVal.includes("Security Administrator")) return "sec_admin";
-  if(opVal.includes("Supervisor") || opVal.includes("Approver") || opVal.includes("Gate")) return "gate";
+  if(opVal.includes("Facilities Security") || opVal.includes("Security Administrator")) return "sec_admin";
+  if(opVal.includes("Deputy Security")) return "sec_deputy";
+  if(opVal.includes("Supervisor") || opVal.includes("Approver") || opVal.includes("Gate") || opVal.includes("Station 1")) return "gate";
   const st=$("#station")?$("#station").value:"S1";
   return {S1:"gate",S2:"docs",S3:"reception",S4:"vip"}[st]||"gate";
 };
+function getUndssGov(){
+  try{
+    const r=localStorage.getItem("unh_undss_gov");
+    if(r) return JSON.parse(r);
+  }catch(e){}
+  return {fsmIndisposed:false, reason:"", at:0, by:""};
+}
+function setUndssGov(data){
+  try{ localStorage.setItem("unh_undss_gov", JSON.stringify(data)); }catch(e){}
+}
+function clearanceStamp(actionType="Approved"){
+  const gov=getUndssGov();
+  const r=myRole();
+  const name=op();
+  if(r==="sec_admin"){
+    return `${name} (Facilities Security Manager · Primary UNDSS Clearance)`;
+  }
+  if(r==="sec_deputy"){
+    return `${name} (Deputy Security Officer · Alternate Clearance${gov.fsmIndisposed ? ' [FSM Indisposed]' : ''})`;
+  }
+  if(r==="gate"){
+    return `${name} (Station 1 Security Lead · Alternate Clearance${gov.fsmIndisposed ? ' [FSM Indisposed]' : ''})`;
+  }
+  if(r==="admin"){
+    return `${name} (Security Administrator · Primary Clearance)`;
+  }
+  return `${name} (${ROLES[r]||"UNDSS Security"})`;
+}
 const canAct=a=>!ACT_ROLES[a]||ACT_ROLES[a].includes(myRole())||a==="invite";
 const canView=v=>(ROLE_VIEWS[myRole()]||[]).includes(v);
 const station=()=>fb&&me?(ROLE_STATION[me.role]||"S1"):$("#station").value;
@@ -632,7 +672,7 @@ const myUid=()=>fb&&me?me.uid:"demo:"+$("#operator").value;
 $("#station").onchange=()=>{try{localStorage.setItem("station",station())}catch(e){} view=defaultView(); render()};
 $("#operator").onchange=()=>{try{localStorage.setItem("op",op())}catch(e){} render()};
 function defaultView(){
-  if(fb){const r=myRole(); return {gate:"gate",docs:"tagging",reception:"reception",vip:"vip"}[r]||"dashboard"}
+  if(fb){const r=myRole(); return {sec_admin:"gate",sec_deputy:"gate",gate:"gate",docs:"tagging",reception:"reception",vip:"vip"}[r]||"dashboard"}
   return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()] || "dashboard"}
 
 const now=()=>Date.now();
@@ -1447,6 +1487,13 @@ async function useInvite(arg){
     } catch(e){}
   }
   if(!i || !i.guest) return;
+  const gov = getUndssGov();
+  if(!gov.fsmIndisposed && ["sec_deputy", "gate"].includes(myRole())){
+    if(!confirm(`⚠️ UNDSS Security Governance Protocol:\n\nFacilities Security Manager (FSM) is registered as on duty (Tier 1 Primary Approver).\n\nAre you granting Alternate Clearance for online pre-registration "${i.guest.name}" because the Facilities Security Manager is indisposed or unavailable?\n\nClick OK to confirm Alternate Clearance, or Cancel.`)){
+      render();
+      return;
+    }
+  }
   const g = i.guest;
   const wm = watchMatch(g.name);
   if(wm) {
@@ -1492,11 +1539,11 @@ async function useInvite(arg){
     requestedByUid: myUid(),
     status: "approved",
     decidedAt: now(),
-    decidedBy: op(),
+    decidedBy: clearanceStamp("Approved"),
     decidedByUid: myUid(),
     assignedTag,
     tag: assignedTag,
-    log: [{ t: now(), a: `Approved online pre-registration; tag ${assignedTag} pre-allocated by ${op()}`, by: op(), byUid: myUid(), role: myRole(), st: STATIONS[station()] }]
+    log: [{ t: now(), a: `Approved online pre-registration; tag ${assignedTag} pre-allocated by ${clearanceStamp("Approved")}`, by: op(), byUid: myUid(), role: myRole(), st: STATIONS[station()] }]
   };
 
   // Mark invite as used in memory
@@ -3325,7 +3372,7 @@ function startDemo(){
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
-  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["admin","gate","docs","reception","vip"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
+  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["sec_admin","sec_deputy","gate","admin","docs","reception","vip","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
   $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
   const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
   open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
@@ -3449,16 +3496,51 @@ V.gate=()=>{
   const availC = getAvailableTags("contractor");
   const usedTags = visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag);
 
+  const gov = getUndssGov();
+  const isGovManager = ["sec_admin", "sec_deputy", "gate", "admin"].includes(myRole());
+  const govBar = `
+    <div class="undss-gov-bar" style="background:${gov.fsmIndisposed ? '#fffbeb' : '#f0f9ff'};border:1.5px solid ${gov.fsmIndisposed ? '#fde68a' : '#bfdbfe'};border-radius:10px;padding:12px 16px;margin:0 0 16px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+      <div style="display:flex;align-items:flex-start;gap:12px;max-width:760px">
+        <div style="width:38px;height:38px;border-radius:8px;background:${gov.fsmIndisposed ? '#fef3c7' : '#dbeafe'};display:grid;place-items:center;font-size:20px;flex-shrink:0">
+          ${gov.fsmIndisposed ? '🟠' : '🛡️'}
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <span style="font-weight:700;font-size:13.5px;color:${gov.fsmIndisposed ? '#92400e' : '#1e40af'}">
+              UNDSS Security Governance Protocol:
+            </span>
+            ${gov.fsmIndisposed
+              ? `<span class="pill" style="background:#d97706;color:#fff;font-weight:700;font-size:11px;padding:2px 8px">TIER 2 ACTIVE · FSM INDISPOSED (DELEGATED)</span>`
+              : `<span class="pill" style="background:#0284c7;color:#fff;font-weight:700;font-size:11px;padding:2px 8px">TIER 1 ACTIVE · PRIMARY APPROVER ON DUTY</span>`
+            }
+          </div>
+          <div style="font-size:12.5px;color:${gov.fsmIndisposed ? '#78350f' : '#1e3a8a'};margin-top:3px;line-height:1.4">
+            ${gov.fsmIndisposed
+              ? `Primary clearance approver (Facilities Security Manager) is currently marked <b>indisposed</b>. Clearance authorization is active for the <b>2 designated alternate security officers</b>: <i>Deputy Security Officer</i> and <i>Station 1 Security Lead</i>.${gov.reason ? ` <span style="opacity:.9">· Reason: "<b>${esc(gov.reason)}</b>"${gov.by ? ` (${esc(gov.by)} · ${fmtT(gov.at)})` : ''}</span>` : ''}`
+              : `Clearance authorization flows first to the <b>Facilities Security Manager (UNDSS Primary Approver)</b>. If indisposed, clearance can be granted by any of the <b>2 designated alternate security officers</b> (Deputy Security Officer or Station 1 Security Lead).`
+            }
+          </div>
+        </div>
+      </div>
+      ${isGovManager ? `
+        <div style="display:flex;gap:8px;align-items:center">
+          ${gov.fsmIndisposed
+            ? `<button class="btn pri" id="btn_undss_resume" style="background:#0284c7;border-color:#0284c7;font-size:12px;padding:6px 12px;font-weight:600" title="Facilities Security Manager is back on duty; restore Tier 1 Primary clearance">
+                 🟢 Resume FSM Primary Duty
+               </button>`
+            : `<button class="btn" id="btn_undss_indispose" style="background:#fff;border-color:#d97706;color:#b45309;font-size:12px;padding:6px 12px;font-weight:600" title="Delegate clearance flow to Deputy Security Officer & Station 1 Lead">
+                 🟠 Mark FSM Indisposed (Delegate)
+               </button>`
+          }
+        </div>
+      ` : ''}
+    </div>`;
+
   return head("Station 1 · Reception, Approvals & Compound Access","Station 1. Review incoming visitor requests, verify expected guests, manage physical tag inventory rack, and admit visitors through Station 1 to Station 2.")+
+  govBar+
   
   /* Unified Pending Clearance Approvals Panel (Online Pre-Registrations + Staff Requests) */
   (totalPending > 0 ? `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-radius:12px;box-shadow:0 3px 12px rgba(2,132,199,.1);padding:18px 20px;margin-bottom:14px">
-    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 13px;margin:0 0 14px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:#1e40af">
-      <span style="font-size:18px">🛡️</span>
-      <div>
-        <b>UNDSS Security Governance Protocol:</b> Clearance authorization flows first to the <b>Facilities Security Manager (UNDSS Primary Approver)</b>. If indisposed, clearance can be granted by any of the <b>2 designated alternate security officers</b> (Deputy Security Officer or Station 1 Security Lead).
-      </div>
-    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
       <h2 style="margin:0;font-size:18px;color:#0369a1;display:flex;align-items:center;gap:8px">
         ⏳ Pending Clearance Approvals <span class="cnt hot">${totalPending}</span>
@@ -3495,7 +3577,7 @@ V.gate=()=>{
                   <button class="btn bad" data-watchlist-reject-inv="${esc(i.id)}" style="background:#991b1b;color:#fff;font-weight:700" title="Reject request immediately due to Security Sanctions / Watchlist hit">🚫 Reject Request (Watchlist Hit)</button>
                   <button class="btn pri" data-inv-use="${esc(i.id)}" title="Review clearance dossier">Review &amp; Clear</button>
                 `:`
-                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve this pre-registered visitor and allocate next available tag">✓ Approve &amp; Allocate Tag</button>
+                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve this pre-registered visitor and allocate next available tag">${gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "✓ Alternate Clearance &amp; Allocate Tag" : "✓ Approve &amp; Allocate Tag"}</button>
                   <button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button>
                 `}
               </div>
@@ -3520,7 +3602,7 @@ V.gate=()=>{
             + B(v.id,"detail","Details");
         }
         return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Station 1 must call and confirm with host on desk phone first">📞 Confirm with Host First (Ext. ${esc(ext)})</button>` : "")
-          + B(v.id,"approve","✓ Approve & Allocate Tag","pri")
+          + B(v.id,"approve", gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "✓ Alternate Clearance & Allocate Tag" : "✓ Approve & Allocate Tag", "pri")
           + B(v.id,"reject","Reject","bad");
       },"No pending staff requests.")}
     </div>` : ""}
@@ -4653,7 +4735,7 @@ function wire(){
     const grp=b.dataset.approveGrp, list=visitors.filter(v=>v.status==="pending"&&v.group===grp&&!ownRequest(v));
     if(!list.length) return;
     b.setAttribute("disabled","");
-    for(const v of list) await act(v,`Approved (group: ${grp})`,{status:"approved",decidedBy:op(),decidedByUid:myUid(),decidedAt:now()});
+    for(const v of list) await act(v,`Approved (group: ${grp})`,{status:"approved",decidedBy:clearanceStamp("Approved"),decidedByUid:myUid(),decidedAt:now()});
     toast(`Approved ${list.length} visitors in "${grp}".`);
   });
   document.querySelectorAll("[data-inv-use]").forEach(b=>{
@@ -4725,7 +4807,7 @@ function wire(){
       await act(v, `Rejected: ${src} Match`, {
         status: "rejected",
         rejectReason: `Security Sanctions Match (${src}): ${wm?wm.reason:""}`,
-        decidedBy: op(),
+        decidedBy: clearanceStamp("Rejected"),
         decidedByUid: myUid(),
         decidedAt: now()
       });
@@ -4737,6 +4819,46 @@ function wire(){
   document.querySelectorAll("[data-print]").forEach(b=>b.onclick=()=>{ const v=visitors.find(x=>x.id===b.dataset.print); if(v) openPass(v); });
   const q=$("#q"); if(q){ q.onkeydown=e=>{if(e.key==="Enter"){const t=q.value.trim();if(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")||/^UNH-/i.test(t)){render.q="";handleScan(t.startsWith(PASS_PREFIX)||t.startsWith("UNHTAG:")?t:t.toUpperCase())}}};q.oninput=()=>{render.q=q.value;const p=q.selectionStart;render();const n=$("#q");n.focus();n.setSelectionRange(p,p)};$("#qclear").onclick=()=>{render.q="";render()}}
   document.querySelectorAll("[data-act]").forEach(b=>b.onclick=()=>{b.classList.add("sent");return doAct(b.dataset.act,visitors.find(v=>v.id===b.dataset.id))});
+  
+  // Wire UNDSS Governance Protocol Delegation Buttons
+  const btnUndssIndispose = $("#btn_undss_indispose");
+  if(btnUndssIndispose) btnUndssIndispose.onclick = () => {
+    modal(`<h2>🛡️ Delegate Clearance Authority · FSM Indisposed</h2>
+      <p class="small">Under UN House Security Protocol, when the Facilities Security Manager is off-site, in briefings, or indisposed, clearance authority is delegated to the <b>2 designated alternate security officers</b>: <b>Deputy Security Officer</b> and <b>Station 1 Security Lead</b>.</p>
+      <div class="f">
+        <label for="m_gov_reason">Reason for Indisposition / Delegation</label>
+        <input id="m_gov_reason" placeholder="e.g. Off-site security inspection / Perimeter patrol / Urgent briefing" value="Off-site security mission">
+      </div>
+      <div class="f">
+        <label for="m_gov_officer">Authorized by / Delegating Officer</label>
+        <input id="m_gov_officer" value="${esc(op())}">
+      </div>`,
+      ()=>{
+        const reason = ($("#m_gov_reason")?.value || "").trim() || "Operational delegation";
+        const officer = ($("#m_gov_officer")?.value || "").trim() || op();
+        setUndssGov({
+          fsmIndisposed: true,
+          reason,
+          by: officer,
+          at: now()
+        });
+        toast("🟠 Governance Updated: FSM marked indisposed. Clearance delegated to Deputy Security Officer & Station 1 Lead.");
+        render();
+      }
+    );
+  };
+
+  const btnUndssResume = $("#btn_undss_resume");
+  if(btnUndssResume) btnUndssResume.onclick = () => {
+    setUndssGov({
+      fsmIndisposed: false,
+      reason: "",
+      by: op(),
+      at: now()
+    });
+    toast("🟢 Governance Updated: Facilities Security Manager resumed primary duty. Tier 1 clearance restored.");
+    render();
+  };
   
   // Wire Station 1 Tag Feed Controls
   const btnFeedRange = $("#btn_feed_range");
@@ -5312,6 +5434,12 @@ function doAct(a,v){
   }
   if(a==="gateapprove"){
     if(ownRequest(v)) return toast("You cannot decide on your own request.");
+    const gov=getUndssGov();
+    if(!gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole())){
+      if(!confirm(`⚠️ UNDSS Security Governance Protocol:\n\nFacilities Security Manager (FSM) is registered as on duty (Tier 1 Primary Approver).\n\nAre you granting Alternate Clearance for ${v.name} because the Facilities Security Manager is indisposed or unavailable?\n\nClick OK to confirm Alternate Clearance, or Cancel.`)){
+        return;
+      }
+    }
     const t=opNow(v,3);
     if(v.type==="vip"){
       return act(v,"Approved & VIP Auto Checked In at Gate Reception",{
@@ -5319,7 +5447,7 @@ function doAct(a,v){
         arrivedAt:t,
         inAt:t,
         vipReceived:true,
-        decidedBy:op(),
+        decidedBy:clearanceStamp("Approved"),
         decidedByUid:myUid(),
         decidedAt:now(),
         hostNotified:opNow(v,2)
@@ -5330,7 +5458,7 @@ function doAct(a,v){
       status:"arrived",
       arrivedAt:t,
       assignedTag:tag,
-      decidedBy:op(),
+      decidedBy:clearanceStamp("Approved"),
       decidedByUid:myUid(),
       decidedAt:now(),
       hostNotified:opNow(v,2)
@@ -5461,6 +5589,12 @@ function doAct(a,v){
     return;
   }
   if(a==="approve"){
+    const gov=getUndssGov();
+    if(!gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole())){
+      if(!confirm(`⚠️ UNDSS Security Governance Protocol:\n\nFacilities Security Manager (FSM) is registered as on duty (Tier 1 Primary Approver).\n\nAre you granting Alternate Clearance for ${v.name} because the Facilities Security Manager is indisposed or unavailable?\n\nClick OK to confirm Alternate Clearance, or Cancel.`)){
+        return;
+      }
+    }
     if(v.unscheduled && !v.hostConfirmed && !v.verbalApproval){
       const ext = getHostExt(v.host, v.agency);
       return modal(`<h2>⚠️ Unscheduled Visitor · Host Confirmation Required</h2>
@@ -5487,7 +5621,7 @@ function doAct(a,v){
             hostConfirmedNote: note,
             verbalApproval: true,
             assignedTag: tag,
-            decidedBy: by,
+            decidedBy: clearanceStamp("Approved"),
             decidedByUid: myUid(),
             decidedAt: now(),
             rejectReason: ""
@@ -5499,7 +5633,7 @@ function doAct(a,v){
     return act(v,`Approved at Station 1${tag?`; assigned tag ${tag}`:""}`,{
       status:"approved",
       assignedTag:tag,
-      decidedBy:op(),
+      decidedBy:clearanceStamp("Approved"),
       decidedByUid:myUid(),
       decidedAt:now(),
       rejectReason:""
@@ -5511,7 +5645,7 @@ function doAct(a,v){
       <div class="f"><label for="m_rej">Reason for rejection</label><input id="m_rej" placeholder="e.g. Please attach agency clearance or specify meeting room"></div>
       <div id="m_err" class="small" style="color:var(--bad)"></div>`,
       ()=>{const r=$("#m_rej").value.trim(); if(!r){$("#m_err").textContent="Enter a short reason so the host knows what to fix.";return false}
-        act(v,`Rejected: ${r}`,{status:"rejected",rejectReason:r,decidedBy:op(),decidedByUid:myUid(),decidedAt:now()}).then(()=>toast(`${v.name} rejected.`))}); }
+        act(v,`Rejected: ${r}`,{status:"rejected",rejectReason:r,decidedBy:clearanceStamp("Rejected"),decidedByUid:myUid(),decidedAt:now()}).then(()=>toast(`${v.name} rejected.`))}); }
   if(a==="tag"){
     if(v.status!=="arrived"){
       return toast("Sequential access violation: Visitor must be admitted through Station 1 first before documentation.");
