@@ -2120,22 +2120,92 @@ const VW_myguests=()=>{
 /* Deliveries log removed */
 /* ---------- 9. Reports ---------- */
 const VW_reports=()=>{
-  const real=visitors.filter(v=>!v.example||!fb), days=30, start=today0()-(days-1)*864e5;
-  const arr=real.filter(v=>v.arrivedAt&&v.arrivedAt>=start);
-  const perDay=[...Array(days)].map((_,i)=>{const d0=start+i*864e5;return {d:d0,n:arr.filter(v=>v.arrivedAt>=d0&&v.arrivedAt<d0+864e5).length}});
-  const perHour=[...Array(24)].map((_,h)=>arr.filter(v=>new Date(v.arrivedAt).getHours()===h).length);
-  const waits=arr.filter(v=>v.inAt&&v.inAt>v.arrivedAt).map(v=>v.inAt-v.arrivedAt), stays=real.filter(v=>v.inAt&&v.outAt&&v.outAt>=start).map(v=>v.outAt-v.inAt);
+  const period = render.reportPeriod || "daily";
+  const days = period === "daily" ? 1 : (period === "weekly" ? 7 : 30);
+  const start = period === "daily" ? today0() : today0() - (days - 1) * 864e5;
+  const end = period === "daily" ? today0() + 864e5 : now() + 3600e3;
+  const real = visitors.filter(v=>!v.example||!fb);
+  const arr = real.filter(v=>{
+    const t = v.arrivedAt || v.inAt || v.expected;
+    return t && t >= start && (period === "daily" ? t < end : true);
+  });
+
+  const perDay = period === "daily"
+    ? [...Array(10)].map((_,i)=>{
+        const h = i + 8; // 08:00 to 17:00
+        const d0 = today0() + h * 3600e3;
+        return { d: d0, label: String(h).padStart(2,"0")+":00", n: arr.filter(v=>{ const t=v.arrivedAt||v.inAt||v.expected; return t && new Date(t).getHours()===h; }).length };
+      })
+    : [...Array(days)].map((_,i)=>{
+        const d0 = start + i * 864e5;
+        const d1 = d0 + 864e5;
+        const dt = new Date(d0);
+        return {
+          d: d0,
+          label: period === "weekly" ? dt.toLocaleDateString([], {weekday:"short", day:"numeric"}) : dt.toLocaleDateString([], {day:"numeric", month:"short"}),
+          n: arr.filter(v=>{ const t=v.arrivedAt||v.inAt||v.expected; return t && t >= d0 && t < d1; }).length
+        };
+      });
+
+  const perHour=[...Array(24)].map((_,h)=>arr.filter(v=>new Date(v.arrivedAt||v.inAt||v.expected||0).getHours()===h).length);
+  const waits=arr.filter(v=>v.inAt&&v.arrivedAt&&v.inAt>v.arrivedAt).map(v=>v.inAt-v.arrivedAt), stays=real.filter(v=>v.inAt&&v.outAt&&v.outAt>=start).map(v=>v.outAt-v.inAt);
   const avg=a=>a.length?dur(a.reduce((x,y)=>x+y,0)/a.length):"—";
   const byAgency={}; arr.forEach(v=>byAgency[v.agency||"Other"]=(byAgency[v.agency||"Other"]||0)+1);
-  const lost=real.filter(v=>v.type!=="vip"&&v.tagReturned===false), over=real.filter(v=>v.type!=="vip"&&v.inAt&&((v.outAt||now())>stayLimit(v))&&v.inAt>=start);
-  const bars=(vals,labels,w,h)=>{const mx=Math.max(1,...vals),bw=w/vals.length;return `<svg viewBox="-18 -6 ${w+30} ${h+30}" class="chart" role="img">${[0.5,1].map(f=>`<line x1="0" x2="${w}" y1="${h-h*f}" y2="${h-h*f}" class="grid"/><text x="0" y="${h-h*f-3}" class="axis">${Math.round(mx*f)}</text>`).join("")}${vals.map((v,i)=>`<rect x="${i*bw+1}" y="${h-v/mx*h}" width="${Math.max(1,bw-2)}" height="${v/mx*h}" rx="2" class="bar"><title>${labels[i]}: ${v}</title></rect>${labels[i]&&(i%Math.ceil(vals.length/8)===0)?`<text x="${i*bw+bw/2}" y="${h+15}" class="axis" text-anchor="middle">${labels[i]}</text>`:""}`).join("")}</svg>`};
-  return head("Reports","The last 30 days. Use these for management reports and to plan staffing at each station.")+
-  `<div class="kpis"><div class="kpi"><div class="n">${arr.length}</div><div class="l">Arrivals, 30 days</div></div><div class="kpi"><div class="n">${avg(waits)}</div><div class="l">Avg gate → check-in</div></div><div class="kpi"><div class="n">${avg(stays)}</div><div class="l">Avg visit length</div></div><div class="kpi ${over.length?"alert":""}"><div class="n">${over.length}</div><div class="l">Overstays (&gt;${OVERSTAY_H} h)</div></div><div class="kpi ${lost.length?"alert":""}"><div class="n">${lost.length}</div><div class="l">Tags not returned</div></div></div>
-  <div class="grid2"><div class="panel"><h2>Arrivals per day</h2>${bars(perDay.map(x=>x.n),perDay.map(x=>new Date(x.d).toLocaleDateString([], {day:"numeric",month:"short"})),600,140)}</div>
-  <div class="panel"><h2>Busiest hours</h2>${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}<p class="small">Arrivals by hour of day, 06:00 to 20:00.</p></div></div>
-  <div class="grid2"><div class="panel"><h2>By agency</h2><div class="tw"><table><tbody>${Object.entries(byAgency).sort((a,b)=>b[1]-a[1]).map(([a,n])=>`<tr><td>${esc(a)}</td><td class="mono" style="text-align:right">${n}</td></tr>`).join("")||`<tr><td class="small">No arrivals yet.</td></tr>`}</tbody></table></div></div>
-  <div class="panel"><h2>Tags not returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All tags returned.</div>`}</div></div>
-  <div class="panel"><div class="acts"><button class="btn" id="rp_csv">📊 Copy Daily Breakdown CSV</button><button class="btn" id="rp_log_csv">📋 Export Visitor Register CSV</button><button class="btn" id="rp_exec">Executive Brief PDF</button><button class="btn pri" id="rp_ho">📋 17:00 End-of-Day Closeout Summary</button></div></div>`;
+  const lost=real.filter(v=>v.type!=="vip"&&v.tagReturned===false && (v.outAt||0)>=start);
+  const over=arr.filter(v=>v.type!=="vip"&&v.inAt&&((v.outAt||now())>stayLimit(v)));
+  const bars=(vals,labels,w,h)=>{const mx=Math.max(1,...vals),bw=w/vals.length;return `<svg viewBox="-18 -6 ${w+30} ${h+30}" class="chart" role="img">${[0.5,1].map(f=>`<line x1="0" x2="${w}" y1="${h-h*f}" y2="${h-h*f}" class="grid"/><text x="0" y="${h-h*f-3}" class="axis">${Math.round(mx*f)}</text>`).join("")}${vals.map((v,i)=>`<rect x="${i*bw+1}" y="${h-v/mx*h}" width="${Math.max(1,bw-2)}" height="${v/mx*h}" rx="2" class="bar"><title>${labels[i]}: ${v}</title></rect>${labels[i]&&(i%Math.max(1,Math.ceil(vals.length/8))===0)?`<text x="${i*bw+bw/2}" y="${h+15}" class="axis" text-anchor="middle">${labels[i]}</text>`:""}`).join("")}</svg>`};
+
+  const periodTitle = period === "daily" ? "Daily (Today)" : (period === "weekly" ? "Weekly (7 Days)" : "Monthly (30 Days)");
+  const arrivalsTitle = period === "daily" ? "Today's Traffic by Hour (08:00 – 17:00)" : (period === "weekly" ? "Arrivals per Day (Past 7 Days)" : "Arrivals per Day (Past 30 Days)");
+
+  return head("Reports & Analytics", "Official security audits and visitor intelligence. Review daily, weekly, or monthly reports on screen before printing or exporting.")+
+  
+  /* Timeframe Selector Panel */
+  `<div class="panel" style="border-top:4px solid #1e3a8a;background:linear-gradient(180deg,#ffffff,#f8fafc);border-radius:12px;padding:16px 20px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h3 style="margin:0;font-size:16px;color:#1e3a8a;display:flex;align-items:center;gap:8px">
+          📊 Reporting Timeframe
+        </h3>
+        <p class="small" style="margin:3px 0 0;color:var(--muted)">Select time horizon for analytics, KPIs, and previewable executive reports.</p>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <button class="btn ${period==='daily'?'pri':''}" data-rp-period="daily">📅 Daily (Today)</button>
+        <button class="btn ${period==='weekly'?'pri':''}" data-rp-period="weekly">📅 Weekly (7 Days)</button>
+        <button class="btn ${period==='monthly'?'pri':''}" data-rp-period="monthly">📅 Monthly (30 Days)</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n">${arr.length}</div><div class="l">Traffic (${periodTitle})</div></div>
+    <div class="kpi"><div class="n">${avg(waits)}</div><div class="l">Avg gate → documentation</div></div>
+    <div class="kpi"><div class="n">${avg(stays)}</div><div class="l">Avg visit length</div></div>
+    <div class="kpi ${over.length?"alert":""}"><div class="n">${over.length}</div><div class="l">Overstays (&gt;${OVERSTAY_H} h)</div></div>
+    <div class="kpi ${lost.length?"alert":""}"><div class="n">${lost.length}</div><div class="l">Tags unreturned</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel"><h2>${arrivalsTitle}</h2>${bars(perDay.map(x=>x.n),perDay.map(x=>x.label),600,140)}</div>
+    <div class="panel"><h2>Busiest hours (06:00 to 20:00)</h2>${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}<p class="small">Aggregated traffic distribution across compound gates.</p></div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel"><h2>Agency Distribution (${Object.keys(byAgency).length} Agencies)</h2><div class="tw"><table><tbody>${Object.entries(byAgency).sort((a,b)=>b[1]-a[1]).map(([a,n])=>`<tr><td>${esc(a)}</td><td class="mono" style="text-align:right"><b>${n}</b></td><td class="small" style="text-align:right;color:#64748b">${arr.length?Math.round((n/arr.length)*100):0}%</td></tr>`).join("")||`<tr><td class="small" colspan="3">No arrivals yet for this timeframe.</td></tr>`}</tbody></table></div></div>
+    <div class="panel"><h2>Tags Not Returned</h2>${lost.length?`<div class="tw"><table><tbody>${lost.map(v=>`<tr><td class="mono"><b>${esc(v.tag)}</b></td><td>${esc(v.name)}</td><td class="small">${fmtD(v.outAt||v.arrivedAt)}</td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">All physical tags accounted for.</div>`}</div>
+  </div>
+
+  <div class="panel">
+    <div class="acts" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn pri" id="rp_preview_btn" style="background:#0284c7;border-color:#0284c7;font-weight:700;font-size:13.5px;padding:8px 18px;border-radius:999px;color:#fff;box-shadow:0 4px 12px rgba(2,132,199,.25)">👁️ View Full Printable Report</button>
+        <button class="btn" id="rp_exec" title="Preview and print executive report">🖨️ Print Report</button>
+        <button class="btn" id="rp_csv">📊 Export ${periodTitle} CSV</button>
+        <button class="btn" id="rp_log_csv">📋 Export Register CSV</button>
+      </div>
+      <button class="btn pri" id="rp_ho" style="background:#1e3a8a;border-color:#1e3a8a;font-weight:700">🔒 17:00 Daily Closeout Sheet</button>
+    </div>
+  </div>`;
 };
 function printHandoverSheet(h){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
@@ -2272,79 +2342,311 @@ function openHandover(){
   };
   draw();
 }
-function wireReports(){
-  const c=$("#rp_csv");
-  if(c) c.onclick=()=>{
-    const days=30, start=today0()-(days-1)*864e5;
-    const dayNames=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const header="Date,Day,Total_Arrivals,Standard_Visitors,VIP_Dignitaries,Contractors_ServiceStaff,Checked_Out,Compliance_Rate";
-    const rows=[...Array(days)].map((_,i)=>{
-      const d0=start+i*864e5, d1=d0+864e5;
-      const dayArr=visitors.filter(v=>(v.arrivedAt||v.inAt)&&(v.arrivedAt||v.inAt)>=d0&&(v.arrivedAt||v.inAt)<d1);
-      const total=dayArr.length;
-      const vips=dayArr.filter(v=>v.type==="vip").length;
-      const cons=dayArr.filter(v=>v.type==="contractor").length;
-      const std=total-vips-cons;
-      const checkedOut=dayArr.filter(v=>v.status==="out"||v.outAt).length;
-      const rate=total>0?Math.round((checkedOut/total)*100)+"%":"100%";
-      const dt=new Date(d0);
-      const dateStr=dt.toISOString().slice(0,10);
-      const dayName=dayNames[dt.getUTCDay()];
-      return `${dateStr},${dayName},${total},${std},${vips},${cons},${checkedOut},${rate}`;
+function buildReportHtml(period="daily"){
+  const days = period === "daily" ? 1 : (period === "weekly" ? 7 : 30);
+  const start = period === "daily" ? today0() : today0() - (days - 1) * 864e5;
+  const end = period === "daily" ? today0() + 864e5 : now() + 3600e3;
+  const real = visitors.filter(v => !v.example || !fb);
+  const arr = real.filter(v => {
+    const t = v.arrivedAt || v.inAt || v.expected;
+    return t && t >= start && (period === "daily" ? t < end : true);
+  });
+  const periodLabel = period === "daily"
+    ? `Today (${new Date().toLocaleDateString(undefined, {weekday:'long', year:'numeric', month:'short', day:'numeric'})})`
+    : (period === "weekly" ? `Past 7 Days (${fmtD(start)} — ${fmtD(now())})` : `Past 30 Days (${fmtD(start)} — ${fmtD(now())})`);
+  const periodTitle = period === "daily" ? "Daily" : (period === "weekly" ? "Weekly" : "Monthly");
+  
+  const std = arr.filter(v=>v.type!=="vip"&&v.type!=="contractor"&&v.type!=="delivery");
+  const vips = arr.filter(v=>v.type==="vip");
+  const cons = arr.filter(v=>v.type==="contractor");
+  const dels = arr.filter(v=>v.type==="delivery");
+  const checkedOut = arr.filter(v=>v.status==="out"||v.outAt);
+  const compRate = arr.length > 0 ? Math.round((checkedOut.length / arr.length) * 100) : 100;
+  
+  const waits = arr.filter(v=>v.inAt&&v.arrivedAt&&v.inAt>v.arrivedAt).map(v=>v.inAt-v.arrivedAt);
+  const stays = arr.filter(v=>v.inAt&&v.outAt).map(v=>v.outAt-v.inAt);
+  const avg = a => a.length ? dur(a.reduce((x,y)=>x+y,0)/a.length) : "—";
+  
+  const byAgency = {};
+  arr.forEach(v => { const a = v.agency || "Other"; byAgency[a] = (byAgency[a] || 0) + 1; });
+  const agencySorted = Object.entries(byAgency).sort((a,b)=>b[1]-a[1]);
+  
+  const lost = real.filter(v=>v.type!=="vip"&&v.tagReturned===false && (v.outAt||0)>=start);
+  const over = arr.filter(v=>v.type!=="vip"&&v.inAt&&((v.outAt||now())>stayLimit(v)));
+
+  return `<div class="print-doc" style="font-family:'IBM Plex Sans',Arial,Helvetica,sans-serif;color:#0f172a;background:#ffffff;padding:24px 28px;border-radius:10px;box-sizing:border-box;max-width:820px;margin:0 auto;box-shadow:0 3px 15px rgba(0,0,0,.08);line-height:1.45">
+    
+    <!-- UN Official Header -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1e3a8a;padding-bottom:12px;margin-bottom:14px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <div style="font-size:32px">🇺🇳</div>
+        <div>
+          <div style="font-size:15pt;font-weight:800;color:#1e3a8a;letter-spacing:-0.02em">UNITED NATIONS SYSTEM IN NIGERIA</div>
+          <div style="font-size:9.5pt;color:#475569;font-weight:600">UN House Abuja · UN Common Services &amp; UNDSS Compound Security</div>
+          <div style="font-size:12pt;font-weight:700;color:#0f172a;margin-top:4px;text-transform:uppercase">${periodTitle} Visitor Access &amp; Security Operations Report</div>
+        </div>
+      </div>
+      <div style="text-align:right;font-size:8.5pt;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;padding:6px 12px;border-radius:8px">
+        <div><b>Timeframe:</b> <span style="color:#0284c7;font-weight:700">${esc(periodTitle)}</span></div>
+        <div><b>Date:</b> ${esc(periodLabel)}</div>
+        <div><b>Certified by:</b> ${esc(op())}</div>
+        <div><b>Classification:</b> UN Official Confidential</div>
+      </div>
+    </div>
+
+    <!-- Executive Metrics 6-Card Strip -->
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px">
+      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;padding:8px 6px;border-radius:8px;text-align:center">
+        <div style="font-size:17pt;font-weight:800;color:#0369a1">${arr.length}</div>
+        <div style="font-size:7.5pt;font-weight:700;color:#0284c7;text-transform:uppercase">Total Traffic</div>
+      </div>
+      <div style="background:#f8fafc;border:1.5px solid #cbd5e1;padding:8px 6px;border-radius:8px;text-align:center">
+        <div style="font-size:17pt;font-weight:800;color:#1e3a8a">${std.length}</div>
+        <div style="font-size:7.5pt;font-weight:700;color:#475569;text-transform:uppercase">Official Guests</div>
+      </div>
+      <div style="background:#fefce8;border:1.5px solid #fef08a;padding:8px 6px;border-radius:8px;text-align:center">
+        <div style="font-size:17pt;font-weight:800;color:#854d0e">${vips.length}</div>
+        <div style="font-size:7.5pt;font-weight:700;color:#a16207;text-transform:uppercase">VIP Dignitaries</div>
+      </div>
+      <div style="background:#eff6ff;border:1.5px solid #bfdbfe;padding:8px 6px;border-radius:8px;text-align:center">
+        <div style="font-size:17pt;font-weight:800;color:#1e40af">${dels.length}</div>
+        <div style="font-size:7.5pt;font-weight:700;color:#2563eb;text-transform:uppercase">Mail / Courier</div>
+      </div>
+      <div style="background:#fff7ed;border:1.5px solid #fed7aa;padding:8px 6px;border-radius:8px;text-align:center">
+        <div style="font-size:17pt;font-weight:800;color:#c2410c">${cons.length}</div>
+        <div style="font-size:7.5pt;font-weight:700;color:#ea580c;text-transform:uppercase">Contractors</div>
+      </div>
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;padding:8px 6px;border-radius:8px;text-align:center">
+        <div style="font-size:17pt;font-weight:800;color:#15803d">${checkedOut.length}</div>
+        <div style="font-size:7.5pt;font-weight:700;color:#16a34a;text-transform:uppercase">Out (${compRate}%)</div>
+      </div>
+    </div>
+
+    <!-- Operating Timings & Averages -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;font-size:8.5pt">
+      <div><b>Avg Processing (Gate → Documentation):</b> <span style="color:#0369a1;font-weight:700">${avg(waits)}</span></div>
+      <div><b>Avg Visit Length (Compound Dwell):</b> <span style="color:#0369a1;font-weight:700">${avg(stays)}</span></div>
+      <div><b>Compound Overstays (>8h):</b> <span style="color:${over.length?'#b91c1c':'#15803d'};font-weight:700">${over.length} recorded</span></div>
+    </div>
+
+    <!-- Agency Breakdown & Category Breakdown Grid -->
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:14px">
+      <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:9.5pt;color:#1e3a8a;margin-bottom:6px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">
+          🏢 Agency Visitor Traffic (${agencySorted.length} Agencies Active)
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:8.5pt">
+          <thead><tr style="background:#f1f5f9;color:#475569"><th style="padding:4px 6px;text-align:left">Agency</th><th style="padding:4px 6px;text-align:right">Arrivals</th><th style="padding:4px 6px;text-align:right">% Share</th></tr></thead>
+          <tbody>
+            ${agencySorted.slice(0,8).map(([ag,n])=>`<tr><td style="padding:3px 6px;border-bottom:1px solid #f1f5f9"><b>${esc(ag)}</b></td><td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:right;font-family:monospace">${n}</td><td style="padding:3px 6px;border-bottom:1px solid #f1f5f9;text-align:right;color:#64748b">${arr.length?Math.round((n/arr.length)*100):0}%</td></tr>`).join("")}
+            ${!agencySorted.length?`<tr><td colspan="3" style="padding:8px;text-align:center;color:#64748b">No agency visits recorded</td></tr>`:""}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px">
+        <div style="font-weight:700;font-size:9.5pt;color:#1e3a8a;margin-bottom:6px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">
+          🛡️ Security &amp; Compliance Audit
+        </div>
+        <div style="font-size:8.5pt;line-height:1.6">
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0">
+            <span>Watchlist Real-Time Screenings:</span><b style="color:#15803d">100% Enforced</b>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0">
+            <span>UNSC &amp; National Watchlist Matches:</span><b>${arr.filter(v=>watched(v)).length} Flagged</b>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0">
+            <span>Physical Lanyard Tags Accounted:</span><b style="color:${lost.length?'#b91c1c':'#15803d'}">${lost.length?`${lost.length} Unreturned`:'100% Returned'}</b>
+          </div>
+          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:3px 0">
+            <span>Compound Visiting Hours Curfew:</span><b>08:00 – 17:00</b>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:3px 0">
+            <span>Staff Escort Protocol for Restricted:</span><b style="color:#15803d">Compliant</b>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visitor Summary Sample Table -->
+    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:9.5pt;color:#1e3a8a;margin-bottom:6px">
+        📋 ${periodTitle} Visitor Log Sample (Top ${Math.min(10, arr.length)} of ${arr.length} records)
+      </div>
+      <table style="width:100%;border-collapse:collapse;font-size:8pt">
+        <thead><tr style="background:#f1f5f9;color:#334155"><th style="padding:4px;text-align:left">Ref</th><th style="padding:4px;text-align:left">Visitor</th><th style="padding:4px;text-align:left">Organisation</th><th style="padding:4px;text-align:left">Host &amp; Agency</th><th style="padding:4px;text-align:left">Category</th><th style="padding:4px;text-align:left">Time In</th><th style="padding:4px;text-align:left">Status</th></tr></thead>
+        <tbody>
+          ${arr.slice(0,10).map(v=>`<tr>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;font-family:monospace">${esc(v.ref)}</td>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9"><b>${esc(v.name)}</b></td>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.org||"—")}</td>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.host)} (${esc(v.agency)})</td>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${v.type==="vip"?"VIP Dignitary":v.type==="delivery"?"Courier / Mail (Unscheduled)":v.type==="contractor"?"Contractor":"Visitor"}</td>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;font-family:monospace">${fmtT(v.inAt||v.arrivedAt||v.expected)}</td>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.status)}</td>
+          </tr>`).join("")}
+          ${!arr.length?`<tr><td colspan="7" style="padding:8px;text-align:center;color:#64748b">No visitors recorded during this ${periodTitle.toLowerCase()} timeframe.</td></tr>`:""}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Official Signatures Block -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1.5px solid #0f172a;padding-top:10px;margin-top:14px;font-size:9pt">
+      <div>
+        <b>Duty Reception Certifier:</b> ${esc(op())}<br>
+        <span style="font-size:8pt;color:#64748b">Signature: _____________________________________</span>
+      </div>
+      <div>
+        <b>Facilities Security Manager (UNDSS Primary Approver):</b><br>
+        <span style="font-size:8pt;color:#64748b">Security Sign-Off: _____________________________________</span>
+      </div>
+    </div>
+
+  </div>`;
+}
+
+function printReportDoc(period="daily"){
+  let p = $("#printArea");
+  if(!p){ p = document.createElement("div"); p.id = "printArea"; document.body.appendChild(p); }
+  p.innerHTML = buildReportHtml(period);
+  document.body.classList.add("print-sheet");
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>document.body.classList.remove("print-sheet"), 500);
+  }, 100);
+}
+
+function openReportViewer(initPeriod){
+  let curPeriod = initPeriod || render.reportPeriod || "daily";
+  const m = $("#modal");
+  const draw = () => {
+    m.innerHTML = `<div class="modal" style="max-width:880px;width:95vw;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.3)">
+      <!-- Viewer Header Bar -->
+      <div style="padding:14px 20px;background:#1e3a8a;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:800;font-size:15px;display:flex;align-items:center;gap:8px">
+            <span>📄</span> UN House Access &amp; Security Executive Report Viewer
+          </div>
+          <div style="font-size:11.5px;opacity:.85">Review and verify on-screen before choosing to print</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <div style="display:inline-flex;background:rgba(255,255,255,.18);padding:3px;border-radius:8px">
+            <button class="btn ${curPeriod==='daily'?'pri':''}" data-vp="daily" style="font-size:11.5px;padding:3px 10px;height:28px;border:none">Daily (Today)</button>
+            <button class="btn ${curPeriod==='weekly'?'pri':''}" data-vp="weekly" style="font-size:11.5px;padding:3px 10px;height:28px;border:none">Weekly (7D)</button>
+            <button class="btn ${curPeriod==='monthly'?'pri':''}" data-vp="monthly" style="font-size:11.5px;padding:3px 10px;height:28px;border:none">Monthly (30D)</button>
+          </div>
+          <button class="btn pri" id="rv_print_top" style="background:#0284c7;border:none;font-weight:700;font-size:12.5px;padding:5px 14px">🖨️ Print / Save PDF</button>
+          <button class="modal-x" id="rv_x" style="color:#fff;font-size:22px;background:none;border:none;cursor:pointer;padding:0 6px">×</button>
+        </div>
+      </div>
+
+      <!-- Report Document Viewport (Interactive Preview) -->
+      <div id="rv_body" style="overflow-y:auto;padding:24px;background:#f1f5f9;flex:1">
+        ${buildReportHtml(curPeriod)}
+      </div>
+
+      <!-- Viewer Footer -->
+      <div style="padding:12px 20px;background:#ffffff;border-top:1px solid #cbd5e1;display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div class="small" style="color:var(--muted)">
+          ℹ️ <b>Live Document Preview:</b> Switch between Daily, Weekly, and Monthly to review, then click <b>Print / Save PDF</b>.
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="rv_copy">📋 Copy Summary</button>
+          <button class="btn pri" id="rv_print_bottom" style="background:#0284c7;border-color:#0284c7;font-weight:700">🖨️ Print / Save as PDF</button>
+          <button class="btn" id="rv_close">Close</button>
+        </div>
+      </div>
+    </div>`;
+    m.hidden = false;
+
+    m.querySelectorAll("[data-vp]").forEach(b => {
+      b.onclick = () => { curPeriod = b.dataset.vp; render.reportPeriod = curPeriod; draw(); };
     });
-    copyText(header+"\n"+rows.join("\n"));
+    const doPrint = () => printReportDoc(curPeriod);
+    const prTop = $("#rv_print_top"), prBot = $("#rv_print_bottom");
+    if(prTop) prTop.onclick = doPrint;
+    if(prBot) prBot.onclick = doPrint;
+    const x = $("#rv_x"), cl = $("#rv_close");
+    if(x) x.onclick = () => m.hidden = true;
+    if(cl) cl.onclick = () => m.hidden = true;
+    const cp = $("#rv_copy");
+    if(cp) cp.onclick = () => {
+      const days = curPeriod === "daily" ? 1 : (curPeriod === "weekly" ? 7 : 30);
+      const start = curPeriod === "daily" ? today0() : today0() - (days - 1) * 864e5;
+      const arr = visitors.filter(v => (v.arrivedAt || v.inAt || v.expected) >= start);
+      const text = `UN HOUSE ABUJA - ${curPeriod.toUpperCase()} REPORT\nTimeframe: ${curPeriod}\nTotal Arrivals: ${arr.length}\nDate: ${new Date().toLocaleDateString()}\nCertified by: ${op()}`;
+      copyText(text);
+      toast("Report summary copied to clipboard.");
+    };
+  };
+  draw();
+}
+
+function printExecutiveBrief(){
+  openReportViewer(render.reportPeriod || "daily");
+}
+
+function wireReports(){
+  document.querySelectorAll("[data-rp-period]").forEach(b=>{
+    b.onclick=()=>{ render.reportPeriod = b.dataset.rpPeriod; render(); };
+  });
+
+  const prevBtn = $("#rp_preview_btn");
+  if(prevBtn) prevBtn.onclick = () => openReportViewer(render.reportPeriod || "daily");
+
+  const ex = $("#rp_exec");
+  if(ex) ex.onclick = () => openReportViewer(render.reportPeriod || "daily");
+
+  const h = $("#rp_ho");
+  if(h) h.onclick = openHandover;
+
+  const c = $("#rp_csv");
+  if(c) c.onclick = () => {
+    const period = render.reportPeriod || "daily";
+    const days = period === "daily" ? 1 : (period === "weekly" ? 7 : 30);
+    const start = period === "daily" ? today0() : today0() - (days - 1) * 864e5;
+    const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const header = "Date,Day,Total_Arrivals,Standard_Visitors,VIP_Dignitaries,Couriers_Mail,Contractors_ServiceStaff,Checked_Out,Compliance_Rate";
+    const rows = [...Array(days)].map((_,i)=>{
+      const d0 = start + i * 864e5, d1 = d0 + 864e5;
+      const dayArr = visitors.filter(v => (v.arrivedAt||v.inAt||v.expected) && (v.arrivedAt||v.inAt||v.expected) >= d0 && (v.arrivedAt||v.inAt||v.expected) < d1);
+      const total = dayArr.length;
+      const vips = dayArr.filter(v => v.type === "vip").length;
+      const dels = dayArr.filter(v => v.type === "delivery").length;
+      const cons = dayArr.filter(v => v.type === "contractor").length;
+      const std = total - vips - dels - cons;
+      const checkedOut = dayArr.filter(v => v.status === "out" || v.outAt).length;
+      const rate = total > 0 ? Math.round((checkedOut / total) * 100) + "%" : "100%";
+      const dt = new Date(d0);
+      const dateStr = dt.toISOString().slice(0, 10);
+      const dayName = dayNames[dt.getUTCDay()];
+      return `${dateStr},${dayName},${total},${std},${vips},${dels},${cons},${checkedOut},${rate}`;
+    });
+    copyText(header + "\n" + rows.join("\n"));
+    toast(`Copied ${period.toUpperCase()} CSV report to clipboard.`);
   };
 
-  const regCsv=$("#rp_log_csv");
-  if(regCsv) regCsv.onclick=()=>{
-    const header="Reference,Name,Organisation,Category,Host,Agency,Building,Expected,Admitted_Gate,Documented,Checked_In,Checked_Out,Status";
-    const rows=visitors.map(v=>[
-      v.ref||v.id,
-      `"${(v.name||"").replace(/"/g,'""')}"`,
-      `"${(v.org||"").replace(/"/g,'""')}"`,
-      v.type==="vip"?"VIP Dignitary":v.type==="contractor"?"Contractor & Service Staff":"Visitor",
-      `"${(v.host||"").replace(/"/g,'""')}"`,
-      v.agency||"",
-      v.building||"",
-      v.expected?new Date(v.expected).toISOString().slice(0,16).replace("T"," "):"",
-      v.arrivedAt?new Date(v.arrivedAt).toISOString().slice(0,16).replace("T"," "):"",
-      v.taggedAt?new Date(v.taggedAt).toISOString().slice(0,16).replace("T"," "):"",
-      v.inAt?new Date(v.inAt).toISOString().slice(0,16).replace("T"," "):"",
-      v.outAt?new Date(v.outAt).toISOString().slice(0,16).replace("T"," "):"",
-      v.status||""
+  const regCsv = $("#rp_log_csv");
+  if(regCsv) regCsv.onclick = () => {
+    const header = "Reference,Name,Organisation,Category,Host,Agency,Building,Expected,Admitted_Gate,Documented,Checked_In,Checked_Out,Status";
+    const rows = visitors.map(v => [
+      v.ref || v.id,
+      `"${(v.name || "").replace(/"/g, '""')}"`,
+      `"${(v.org || "").replace(/"/g, '""')}"`,
+      v.type === "vip" ? "VIP Dignitary" : v.type === "delivery" ? "Courier / Mail" : v.type === "contractor" ? "Contractor & Service Staff" : "Visitor",
+      `"${(v.host || "").replace(/"/g, '""')}"`,
+      v.agency || "",
+      v.building || "",
+      v.expected ? new Date(v.expected).toISOString().slice(0, 16).replace("T", " ") : "",
+      v.arrivedAt ? new Date(v.arrivedAt).toISOString().slice(0, 16).replace("T", " ") : "",
+      v.taggedAt ? new Date(v.taggedAt).toISOString().slice(0, 16).replace("T", " ") : "",
+      v.inAt ? new Date(v.inAt).toISOString().slice(0, 16).replace("T", " ") : "",
+      v.outAt ? new Date(v.outAt).toISOString().slice(0, 16).replace("T", " ") : "",
+      v.status || ""
     ].join(","));
-    copyText(header+"\n"+rows.join("\n"));
+    copyText(header + "\n" + rows.join("\n"));
+    toast("Copied Visitor Register CSV to clipboard.");
   };
-  const h=$("#rp_ho"); if(h) h.onclick=openHandover;
-  const ex=$("#rp_exec"); if(ex) ex.onclick=printExecutiveBrief;}
-function printExecutiveBrief(){
-  let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
-  const arrToday=visitors.filter(v=>isToday(v.arrivedAt||v.inAt||v.expected));
-  const vipCount=arrToday.filter(v=>v.type==="vip").length;
-  const conCount=arrToday.filter(v=>v.type==="contractor").length;
-  p.innerHTML=`<div class="print-doc" style="font-family:'IBM Plex Sans',Arial,sans-serif;color:#111;font-size:9.5pt;line-height:1.45;width:100%;box-sizing:border-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172542;padding-bottom:10px;margin-bottom:14px">
-      <div><h2 style="margin:0;color:#172542">UNITED NATIONS SYSTEM IN NIGERIA</h2><div style="font-size:10pt;color:#555">UN House Abuja · Daily Access &amp; Operations Executive Brief</div></div>
-      <div style="text-align:right;font-size:9pt"><b>Date:</b> ${new Date().toLocaleDateString()}<br><b>Time:</b> ${fmtT(now())}</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;font-size:10pt">
-      <div style="border:1px solid #ccc;padding:8px"><b>Total Visitors Processed:</b> ${arrToday.length}</div>
-      <div style="border:1px solid #ccc;padding:8px"><b>High-Level VIP Dignitaries:</b> ${vipCount}</div>
-      <div style="border:1px solid #ccc;padding:8px"><b>Contractors &amp; Maintenance:</b> ${conCount}</div>
-    </div>
-    <div style="font-weight:700;margin:8px 0 4px">Agency Visitor Traffic Today:</div>
-    <table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:9pt"><thead><tr style="background:#f1f5f9"><th style="border:1px solid #ccc;padding:4px;text-align:left">Agency</th><th style="border:1px solid #ccc;padding:4px;text-align:right">Visitors</th></tr></thead><tbody>
-      ${AGENCIES.map(a=>[a,visitors.filter(v=>v.agency===a&&isToday(v.expected||v.inAt)).length]).filter(x=>x[1]).map(([a,n])=>`<tr><td style="border:1px solid #ccc;padding:4px">${esc(a)}</td><td style="border:1px solid #ccc;padding:4px;text-align:right"><b>${n}</b></td></tr>`).join("")||`<tr><td colspan="2" style="border:1px solid #ccc;padding:4px">No visits recorded today</td></tr>`}
-    </tbody></table>
-    <div style="font-weight:700;margin:8px 0 4px">Security &amp; Facilities Compliance:</div>
-    <div style="border:1px solid #ccc;padding:8px;font-size:9pt;line-height:1.6">
-      • UNDSS Watchlist Screenings: 100% automated check on all registrations<br>
-      • Digital Photo Passes: Active live clocks with anti-screenshot security<br>
-      • Staff Escort Compliance: Escort handshakes enforced for restricted zones<br>
-      • Compound Security Status: Normal operations
-    </div>
-  </div>`;
-  document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},100);
 }
 
 /* ---------- 10. Visitor pages in English and French ---------- */
@@ -4796,57 +5098,60 @@ async function register(){
   if(!inWorkHours(when)) return toast("Expected arrival cannot be outside working hours (08:00 to 17:00).");
   const ref=newRef();
   const isWalkin = Boolean($("#r_phone_cleared"));
-  const phoneCleared=$("#r_phone_cleared")&&$("#r_phone_cleared").checked, isVip=type==="vip";
+  const isDelivery = type === "delivery";
+  const isUnscheduled = isWalkin || isDelivery;
+  const phoneCleared = ($("#r_phone_cleared") && $("#r_phone_cleared").checked) || isDelivery;
+  const isVip = type === "vip";
   const hostNote = $("#r_host_note") ? $("#r_host_note").value.trim() : "";
-  const st=phoneCleared?(isVip?"in":"arrived"):"pending";
-  const assignedTag=phoneCleared&&!isVip?nextAvailableTag(type):null;
-  const v={
-    id:ref,
+  const st = phoneCleared ? (isVip ? "in" : "arrived") : "pending";
+  const assignedTag = phoneCleared && !isVip ? (isDelivery ? "PARCEL-DROP" : nextAvailableTag(type)) : null;
+  const v = {
+    id: ref,
     ref,
-    name:g("r_name"),
-    org:g("r_org")||(isWalkin?"Walk-in":""),
-    phone:g("r_phone"),
-    visitorEmail:g("r_vemail").toLowerCase(),
+    name: g("r_name"),
+    org: g("r_org") || (isDelivery ? "Courier / Mail Dispatch" : (isWalkin ? "Walk-in" : "")),
+    phone: g("r_phone"),
+    visitorEmail: g("r_vemail").toLowerCase(),
     type,
-    unscheduled:isWalkin,
-    category:isWalkin?"unscheduled":"scheduled",
-    host:g("r_host"),
-    hostExt:g("r_host_ext")||"",
-    hostEmail:g("r_hostEmail").toLowerCase(),
-    backupHost:$("#r_backup")?g("r_backup"):"",
-    agency:g("r_agency"),
-    building:g("r_building"),
-    expected:when,
-    group:g("r_group"),
-    room:g("r_room"),
-    vehicle:(type==="vip"&&$("#r_vehicle"))?g("r_vehicle").toUpperCase():"",
-    purpose:g("r_purpose"),
-    ...($("#r_agree").checked?{agreedAt:now(),agreement:AGREEMENT.version}:{}),
+    unscheduled: isUnscheduled,
+    category: isUnscheduled ? "unscheduled" : "scheduled",
+    host: g("r_host") || (isDelivery ? "Agency Registry / Mailroom" : "UN Host"),
+    hostExt: g("r_host_ext") || "",
+    hostEmail: g("r_hostEmail").toLowerCase(),
+    backupHost: $("#r_backup") ? g("r_backup") : "",
+    agency: g("r_agency"),
+    building: g("r_building"),
+    expected: when,
+    group: g("r_group"),
+    room: g("r_room"),
+    vehicle: (type === "vip" && $("#r_vehicle")) ? g("r_vehicle").toUpperCase() : "",
+    purpose: g("r_purpose") || (isDelivery ? "Official Mail / Package Delivery" : ""),
+    ...($("#r_agree").checked ? { agreedAt: now(), agreement: AGREEMENT.version } : {}),
     restricted,
     escort,
-    requestedBy:op(),
-    requestedByUid:myUid(),
-    status:st,
-    arrivedAt:phoneCleared?now():null,
-    inAt:phoneCleared&&isVip?now():null,
-    vipReceived:phoneCleared&&isVip?true:false,
+    requestedBy: op(),
+    requestedByUid: myUid(),
+    status: st,
+    arrivedAt: phoneCleared ? now() : null,
+    inAt: phoneCleared && isVip ? now() : null,
+    vipReceived: phoneCleared && isVip ? true : false,
     assignedTag,
-    hostConfirmed:phoneCleared,
-    hostConfirmedAt:phoneCleared?now():null,
-    hostConfirmedBy:phoneCleared?op():null,
-    hostConfirmedNote:hostNote||(phoneCleared?"Host confirmed via phone / intercom at gate":""),
-    decidedBy:phoneCleared?`${op()} (Host phone clearance)`:"",
-    decidedByUid:phoneCleared?myUid():"",
-    decidedAt:phoneCleared?now():0,
-    verbalApproval:phoneCleared,
-    verbalApprovalNote:hostNote||(phoneCleared?"Host confirmed via phone / intercom at gate":""),
-    hostNotified:phoneCleared?now():null,
-    log:[]
+    hostConfirmed: phoneCleared,
+    hostConfirmedAt: phoneCleared ? now() : null,
+    hostConfirmedBy: phoneCleared ? op() : null,
+    hostConfirmedNote: hostNote || (isDelivery ? "Courier / Dispatch Daily Mail Drop-off — Station 1 Mail Intake" : (phoneCleared ? "Host confirmed via phone / intercom at gate" : "")),
+    decidedBy: isDelivery ? `${op()} (Mail Intake Clearance)` : (phoneCleared ? `${op()} (Host phone clearance)` : ""),
+    decidedByUid: phoneCleared ? myUid() : "",
+    decidedAt: phoneCleared ? now() : 0,
+    verbalApproval: phoneCleared,
+    verbalApprovalNote: hostNote || (isDelivery ? "Courier / Dispatch Daily Mail Drop-off" : (phoneCleared ? "Host confirmed via phone / intercom at gate" : "")),
+    hostNotified: phoneCleared ? now() : null,
+    log: []
   };
   if(type==="contractor"){const f0=day0(when),toStr=g("r_to");v.accessFrom=f0;v.accessTo=toStr?new Date(toStr+"T23:59:59.999").getTime():f0+864e5-1}
-  await act(v,phoneCleared?`Registered & admitted with verbal phone clearance from host ${v.host}${assignedTag?`; assigned tag ${assignedTag}`:""}`:(isWalkin ? "Unscheduled visitor registered at Station 1; sent for host phone clearance" : "Registered; sent for approval"));
+  await act(v, isDelivery ? `Courier / Dispatch Mail Intake at Station 1 (${v.org||"Courier"})` : (phoneCleared ? `Registered & admitted with verbal phone clearance from host ${v.host}${assignedTag?`; assigned tag ${assignedTag}`:""}` : (isWalkin ? "Unscheduled visitor registered at Station 1; sent for host phone clearance" : "Registered; sent for approval")));
   $("#reg")?.reset();
-  toast(phoneCleared?(isVip?`✨ ${v.name} (VIP) confirmed with host & auto checked in!`:`📞 Host confirmed! ${v.name} admitted. Assigned Tag: ${assignedTag}. Send to Station 2.`):(isWalkin ? `⚠️ Unscheduled visitor ${v.name} registered. Host confirmation required before approval.` : `${v.name} registered as ${ref}. Sent for approval.`));
+  toast(isDelivery ? `📦 Courier ${v.name} (${v.org}) logged at Station 1 Mail Intake!` : (phoneCleared ? (isVip ? `✨ ${v.name} (VIP) confirmed with host & auto checked in!` : `📞 Host confirmed! ${v.name} admitted. Assigned Tag: ${assignedTag}. Send to Station 2.`) : (isWalkin ? `⚠️ Unscheduled visitor ${v.name} registered. Host confirmation required before approval.` : `${v.name} registered as ${ref}. Sent for approval.`)));
 }
 /* ---------- bulk upload: CSV, typed PDF, scanned PDF or photo → review → register ---------- */
 let bulkRows=[], bulkFile="", bulkGroup="";
