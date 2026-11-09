@@ -3608,16 +3608,11 @@ V.clearance=()=>{
           </div>
         </div>
       </div>
-      ${isGovManager ? `
+      ${gov.fsmIndisposed && isGovManager ? `
         <div style="display:flex;gap:8px;align-items:center">
-          ${gov.fsmIndisposed
-            ? `<button class="btn pri" id="btn_undss_resume" style="background:#0284c7;border-color:#0284c7;font-size:12px;padding:6px 12px;font-weight:600" title="Facilities Security Manager is back on duty; restore Tier 1 Primary clearance">
-                 🟢 Resume FSM Primary Duty
-               </button>`
-            : `<button class="btn" id="btn_undss_indispose" style="background:#fff;border-color:#d97706;color:#b45309;font-size:12px;padding:6px 12px;font-weight:600" title="Delegate clearance flow to Deputy Security Officer & Station 1 Lead">
-                 🟠 Mark FSM Indisposed (Delegate)
-               </button>`
-          }
+          <button class="btn pri" id="btn_undss_resume" style="background:#0284c7;border-color:#0284c7;font-size:12px;padding:6px 12px;font-weight:600" title="Facilities Security Manager is back on duty; restore Tier 1 Primary clearance">
+            🟢 Resume FSM Primary Duty
+          </button>
         </div>
       ` : ''}
     </div>`;
