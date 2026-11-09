@@ -643,7 +643,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const STATIONS={S1:"Station 1 · Gate Reception",S2:"Station 2 · Documentation",S3:"Station 3 · Reception",S4:"Station 4 · VIP Gate"};
 const BUILDINGS=["Main UN House Building","Access Control Building","Annex A","Conference Centre"];
 const AGENCIES=["UNDP","UNICEF","WHO","UNFPA","UNHCR","WFP","UN Women","OCHA","UNDSS","Common Services"];
-const STATUS={cancelled:"Cancelled by host",pending:"Pending clearance",approved:"Cleared · expected",arrived:"At gate · verified",tagged:"Tagged",in:"Checked in",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
+const STATUS={cancelled:"Cancelled by host",pending:"Pending clearance",approved:"Cleared · expected",arrived:"Admitted at Station 1",tagged:"Tagged",in:"Checked in",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
 let OVERSTAY_H=9;
 let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
 try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
@@ -1775,7 +1775,7 @@ async function openPass(v){
   const digits=String(v.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
   const msg=`Hello ${v.name}, here is your visitor pass for UN House Abuja on ${new Date(v.expected||now()).toLocaleDateString()}. Show it at the gate with your photo ID: ${url}`;
   const kind=v.type==="vip"?"VIP guest":v.type==="contractor"?"Contractor & Service Staff":"Visitor";
-  const stLabel={pending:"Registered · Pending Clearance",in:"Checked in",tagged:"Documented",arrived:"Admitted at gate",approved:"Cleared · Expected",out:"Checked out"}[v.status]||(isOut?"Checked out":"Cleared");
+  const stLabel={pending:"Registered · Pending Clearance",in:"Checked in",tagged:"Documented",arrived:"Admitted at Station 1",approved:"Cleared · Expected",out:"Checked out"}[v.status]||(isOut?"Checked out":"Cleared");
   clearInterval(openPass.t);
   const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:480px;padding:16px;gap:10px">
     <div class="vpass ${isOut?"checked-out":"ok"}" style="margin:0;max-width:none;box-shadow:none;border:1px solid var(--line);border-top:5px solid ${isOut?"#64748b":"var(--ok)"};padding:12px 16px;gap:8px">
@@ -2791,7 +2791,7 @@ function wireReports(){
 
 /* ---------- 10. Visitor pages in English and French ---------- */
 const TX={en:{passFor:"Visitor",group:"Delegation",vip:"VIP guest",contractor:"Contractor",loading:"Opening your pass…",notFound:"Pass not found",notFoundSub:"Check you opened the whole link, or ask your host to send it again.",cantOpen:"This pass can't be opened",cantOpenSub:"Check your internet connection and reload the page.",
-  st:{out:"Checked out",expired:"Pass expired",pending:"Pending clearance",bad:"Not valid",in:"Checked in",tagged:"Documented",arrived:"Admitted at gate",approved:"Cleared"},
+  st:{out:"Checked out",expired:"Pass expired",pending:"Pending clearance",bad:"Not valid",in:"Checked in",tagged:"Documented",arrived:"Admitted at Station 1",approved:"Cleared"},
   doneMsg:"Thank you for visiting UN House.",expMsg:"This pass is no longer valid. Ask your host for a new one.",badMsg:"This pass can't be used yet. Your host will let you know.",
   host:"Host",date:"Date",tag:"Tag",until:"Valid until",ref:"Reference",room:"Meeting room",vehicle:"Vehicle",people:"people",groupPass:"Group pass",
   addCal:"Add to calendar",directions:"Directions",arriveNote:"Bring a government-issued photo ID. Arrive 15 minutes early for gate screening (61–62 Diplomatic Drive, Central Business District, Abuja).",
