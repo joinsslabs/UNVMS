@@ -1,4 +1,6 @@
 <title>UN House Visitor Management System</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: operations console — station bar on top, sidebar nav, work area with dense tables */
@@ -3845,6 +3847,27 @@ V.gate=()=>{
     },"No expected visitors match.")}</div>
   </div>
 
+  <!-- UN House Unscheduled Visitor Management (Station 1 SOP) -->
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#ffffff,#f0f9ff);border:1.5px solid #bae6fd;border-radius:12px;box-shadow:0 2px 8px rgba(2,132,199,.08);flex-wrap:wrap">
+    <div style="max-width:700px">
+      <div style="font-size:14px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px">
+        <span style="font-size:18px">🚶</span> UN House Unscheduled Visitor Management (Station 1 SOP)
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:10.5px">Standard Protocol</span>
+      </div>
+      <div class="small" style="color:var(--muted);margin-top:4px;line-height:1.45">
+        Every unscheduled arrival must establish their identity and purpose at Gate 1 reception. Visitors remain in the designated holding area until host confirmation is verified. <b>No confirmation = No access.</b>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn pri" type="button" onclick="openUnscheduledIntakeModal()" style="font-size:12.5px;padding:7px 15px;background:#0284c7">
+        + Process Unscheduled Visitor
+      </button>
+      <button class="btn" type="button" onclick="openUnscheduledSopModal()" style="font-size:12.5px;padding:7px 14px">
+        📋 View SOP Workflow
+      </button>
+    </div>
+  </div>
+
   <!-- Inward Courier & Mail Intake Prompt at Gate 1 -->
   <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;padding:12px 16px;background:linear-gradient(90deg,#eff6ff,#f8fafc);border:1px solid #bae6fd;border-radius:10px;flex-wrap:wrap">
     <div>
@@ -4208,6 +4231,338 @@ function promptHostCall(v){
     }).then(()=>{
       toast(`📞 Host ${v.host} called on desk phone Ext ${ext}. Waiting for host to receive visitor.`);
     });
+  };
+}
+
+
+/* ---------- UN House Unscheduled Visitor SOP & Intake Flow ---------- */
+function openUnscheduledSopModal(){
+  const m=$("#modal");
+  m.innerHTML=`<div class="modal" style="max-width:740px;padding:24px">
+    <button class="modal-x" id="mX" type="button" title="Close" aria-label="Close" style="position:absolute;top:16px;right:16px">×</button>
+    
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="width:42px;height:42px;border-radius:10px;background:#e0f2fe;color:#0369a1;display:grid;place-items:center;font-size:22px;flex-shrink:0">📋</div>
+      <div>
+        <h2 style="margin:0;font-size:18px;color:var(--navy)">UN House — Unscheduled Visitor Management SOP</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Station 1 Perimeter Reception &amp; Security Triage Standard Operating Procedure</p>
+      </div>
+    </div>
+
+    <!-- Core Principle Banner -->
+    <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#1e40af;line-height:1.45">
+      <b>Core Mandate:</b> Every unscheduled visitor must establish their identity and purpose at Gate 1. <b>Visitors remain strictly in the designated perimeter reception holding area</b> until host or departmental authorization is verified. <i>No confirmation = No access.</i>
+    </div>
+
+    <!-- 4 Triage Categories -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px">
+      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
+        <div style="font-size:18px">💼</div>
+        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">1. Meeting / Business</div>
+        <div class="small" style="color:var(--muted);line-height:1.35">Contact host on desk phone. Host confirms? ➔ Security clearance &amp; Tag.</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
+        <div style="font-size:18px">📦</div>
+        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">2. Mail / Courier</div>
+        <div class="small" style="color:var(--muted);line-height:1.35">Courier stays at Gate 1 holding desk. UNDSS X-Ray ➔ UN Registry custody.</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
+        <div style="font-size:18px">🛠️</div>
+        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">3. Contractor / Vendor</div>
+        <div class="small" style="color:var(--muted);line-height:1.35">Contact Facilities / ICT. Verified? ➔ Escort &amp; Equipment pass procedures.</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
+        <div style="font-size:18px">👤</div>
+        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">4. Personal / Inquiries</div>
+        <div class="small" style="color:var(--muted);line-height:1.35">Refer to agency focal point. Personal visits without staff escort prohibited.</div>
+      </div>
+    </div>
+
+    <!-- Key Decision Points -->
+    <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:8px">Key Decision Points &amp; Security Thresholds:</div>
+      <ul style="margin:0;padding-left:18px;font-size:12.5px;color:var(--fg);display:grid;gap:6px;line-height:1.4">
+        <li><b>No Host Confirmation:</b> Visitor is strictly barred from passing Station 1. Hold at reception, escalate to Duty Security Supervisor, or reschedule &amp; depart.</li>
+        <li><b>Host Confirms:</b> Security still executes mandatory watchlist screening (UNDSS/UNSC/National) and allocates available rack tag before compound entry.</li>
+        <li><b>Suspicious Behavior / Watchlist Hit:</b> Immediately stop normal administrative processing, detain or monitor visitor, and alert UNDSS armed response.</li>
+        <li><b>Couriers &amp; Dispatch:</b> Follow the separate Gate 1 Courier Intake ➔ UN Registry tripartite custody flow. Couriers never enter the main building.</li>
+      </ul>
+    </div>
+
+    <div class="acts" style="justify-content:flex-end;gap:8px">
+      <button class="btn" id="mNo" type="button">Close</button>
+      <button class="btn pri" id="mStartIntake" type="button" style="background:#0284c7">
+        + Process Unscheduled Visitor ➔
+      </button>
+    </div>
+  </div>`;
+
+  m.hidden=false;
+  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+  $("#mStartIntake").onclick=()=>{
+    m.hidden=true;
+    openUnscheduledIntakeModal();
+  };
+}
+
+function openUnscheduledIntakeModal(){
+  const m=$("#modal");
+  const availV = getAvailableTags("visitor");
+  const availC = getAvailableTags("contractor");
+  const nextTag = availV[0] || "V-001";
+
+  m.innerHTML=`<div class="modal" style="max-width:620px;padding:22px">
+    <button class="modal-x" id="mX" type="button" title="Close" aria-label="Close" style="position:absolute;top:16px;right:16px">×</button>
+    
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#e0f2fe;color:#0369a1;display:grid;place-items:center;font-size:22px;flex-shrink:0">🚶</div>
+      <div>
+        <h2 style="margin:0;font-size:17.5px;color:var(--navy)">Station 1 · Unscheduled Visitor Intake</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Register walk-in arrival, verify category, and authorize entry via host desk phone</p>
+      </div>
+    </div>
+
+    <!-- Category Selector -->
+    <div style="margin-bottom:12px">
+      <label class="small" style="font-weight:700;color:var(--navy);display:block;margin-bottom:6px">1. Select Visitor Category (SOP Triage):</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="sop_cats">
+        <button type="button" class="btn on" data-cat="visitor" style="height:36px;font-size:12px;padding:0 8px;border-color:#0284c7;background:#f0f9ff;color:#0369a1;font-weight:700">💼 Meeting</button>
+        <button type="button" class="btn" data-cat="delivery" style="height:36px;font-size:12px;padding:0 8px">📦 Courier</button>
+        <button type="button" class="btn" data-cat="contractor" style="height:36px;font-size:12px;padding:0 8px">🛠️ Vendor</button>
+        <button type="button" class="btn" data-cat="personal" style="height:36px;font-size:12px;padding:0 8px">👤 Personal</button>
+      </div>
+    </div>
+
+    <!-- Courier Hand-off Banner if Delivery Selected -->
+    <div id="courier_alert" style="display:none;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;font-weight:700;color:#0369a1;font-size:13px">
+        <span>📦</span> Separate UN Registry Process
+      </div>
+      <p class="small" style="margin:3px 0 10px;color:#1e40af">
+        Under UN House SOP, couriers remain at the Gate 1 holding desk. Inward correspondence and packages are screened via HI-SCAN 6040 and transferred to UN Registry.
+      </p>
+      <button class="btn pri" type="button" onclick="$('#modal').hidden=true;openRegIntakeModal()" style="font-size:12px;padding:6px 14px;background:#0284c7">
+        Open Gate 1 Inward Mail Intake ➔
+      </button>
+    </div>
+
+    <!-- Form Fields -->
+    <form id="f_unsch" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+      <div class="f"><label for="u_name">Visitor Full Name *</label><input id="u_name" required placeholder="e.g. Fatima Mohammed"></div>
+      <div class="f"><label for="u_org">Organization / Institution *</label><input id="u_org" required placeholder="e.g. Federal Ministry of Health"></div>
+      <div class="f"><label for="u_phone">Phone Number *</label><input id="u_phone" type="tel" required placeholder="e.g. 0803 123 4567"></div>
+      <div class="f"><label for="u_agency">Host Agency *</label>
+        <select id="u_agency">${AGENCIES.map(a=>`<option>${esc(a)}</option>`).join("")}</select>
+      </div>
+      <div class="f"><label for="u_host">Host Staff Name *</label><input id="u_host" required placeholder="e.g. Dr. K. Ibrahim"></div>
+      <div class="f"><label for="u_purpose">Purpose of Visit</label><input id="u_purpose" placeholder="e.g. Health Readiness Briefing" value="Official Consultation"></div>
+      
+      <!-- Desk Phone Intercom Panel -->
+      <div style="grid-column:1/-1;background:var(--surface2);border:1.5px solid #bae6fd;border-radius:10px;padding:12px 14px;margin-top:4px">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:700;font-size:13px;color:var(--navy);display:flex;align-items:center;gap:6px">
+              <span>📞</span> Host Desk Extension Verification (Station 1 Intercom):
+            </div>
+            <div class="small" style="color:var(--muted);margin-top:2px">
+              Call host desk phone to confirm acceptance before admitting visitor past gate.
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="small" style="font-weight:600">Dial:</span>
+            <span id="u_ext_disp" class="mono" style="font-size:16px;font-weight:700;background:#e0f2fe;color:#0369a1;padding:2px 10px;border-radius:6px;border:1px solid #bae6fd">Ext. 3105</span>
+          </div>
+        </div>
+        <div class="f" style="margin-top:8px">
+          <input id="u_host_ext" placeholder="Host extension (e.g. 3105 or 2100)" value="3105" style="background:#fff">
+        </div>
+      </div>
+
+      <!-- Tag Allocation Indicator -->
+      <div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:8px 12px">
+        <span style="font-size:12.5px;color:#0369a1;font-weight:600">Auto-Allocated Physical Tag from Rack:</span>
+        <b class="mono" style="font-size:13px;background:#0284c7;color:#fff;padding:2px 8px;border-radius:5px">🏷️ ${esc(nextTag)}</b>
+      </div>
+
+      <!-- Action Outcomes matching SOP -->
+      <div style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        <button class="btn pri" id="btn_u_admit" type="button" style="background:#0284c7;height:36px;font-size:12.5px">
+          ✓ Host Confirmed (Admit &amp; Tag)
+        </button>
+        <button class="btn" id="btn_u_hold" type="button" style="background:#f1f5f9;border-color:#cbd5e1;color:#334155;height:36px;font-size:12.5px">
+          ⏳ Host Unavailable (Hold at Gate)
+        </button>
+        <button class="btn" id="btn_u_escalate" type="button" style="background:#fff;border-color:#e2e8f0;color:#0369a1;height:36px;font-size:12.5px">
+          🚨 Escalate to Security Supervisor
+        </button>
+        <button class="btn bad" id="btn_u_depart" type="button" style="height:36px;font-size:12.5px">
+          🚫 Reschedule or Depart
+        </button>
+      </div>
+
+      <div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;border-top:1px dashed var(--line)">
+        <button class="btn" id="mNo" type="button" style="font-size:12px">Cancel</button>
+        <button class="btn bad" id="btn_u_alert" type="button" style="font-size:11.5px;padding:0 10px;background:#fef2f2;border-color:#fecaca;color:#b91c1c" title="Immediately freeze intake and alert armed perimeter security">
+          ⚠️ Security Concern / Suspicious Behavior
+        </button>
+      </div>
+    </form>
+  </div>`;
+
+  m.hidden=false;
+  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+
+  // Category Selector wiring
+  let currentCat = "visitor";
+  const catButtons = m.querySelectorAll("#sop_cats button");
+  catButtons.forEach(btn=>{
+    btn.onclick=()=>{
+      catButtons.forEach(b=>{
+        b.style.background="var(--surface)";
+        b.style.borderColor="var(--line)";
+        b.style.color="var(--fg)";
+        b.classList.remove("on");
+      });
+      btn.style.background="#f0f9ff";
+      btn.style.borderColor="#0284c7";
+      btn.style.color="#0369a1";
+      btn.classList.add("on");
+      currentCat = btn.dataset.cat;
+
+      if(currentCat === "delivery"){
+        $("#courier_alert").style.display="block";
+        $("#f_unsch").style.opacity="0.5";
+        $("#f_unsch").style.pointerEvents="none";
+      } else {
+        $("#courier_alert").style.display="none";
+        $("#f_unsch").style.opacity="1";
+        $("#f_unsch").style.pointerEvents="auto";
+      }
+    };
+  });
+
+  // Dynamic host extension update
+  const hostInp = $("#u_host"), agencySel = $("#u_agency"), extInp = $("#u_host_ext"), extDisp = $("#u_ext_disp");
+  function syncExt(){
+    const ext = getHostExt(hostInp.value, agencySel.value);
+    if(ext) {
+      extInp.value = ext;
+      extDisp.textContent = "Ext. " + ext;
+    }
+  }
+  hostInp.oninput = syncExt;
+  agencySel.onchange = syncExt;
+  extInp.oninput = () => { extDisp.textContent = "Ext. " + (extInp.value || "—"); };
+
+  // Helper to validate and build record
+  function buildUnschVisitor(status, verbalApproval, notes){
+    const name = $("#u_name").value.trim();
+    if(!name){ toast("Please enter visitor full name."); return null; }
+    const org = $("#u_org").value.trim() || "Visitor";
+    const phone = $("#u_phone").value.trim();
+    const host = $("#u_host").value.trim() || "Common Services";
+    const agency = $("#u_agency").value;
+    const purpose = $("#u_purpose").value.trim() || "Meeting";
+    const ext = $("#u_host_ext").value.trim() || "2010";
+    const ref = "UNH-U-" + Math.floor(1000 + Math.random()*9000);
+    const tag = (status === "arrived") ? nextTag : null;
+
+    return {
+      id: ref,
+      ref,
+      name,
+      org,
+      phone,
+      host,
+      agency,
+      purpose,
+      type: currentCat === "contractor" ? "contractor" : (currentCat === "vip" ? "vip" : "visitor"),
+      unscheduled: true,
+      category: "unscheduled",
+      status, // "arrived" (admitted at gate), "pending" (holding at gate), or "rejected"
+      expected: now(),
+      arrivedAt: now(),
+      assignedTag: tag,
+      tag: (status === "arrived") ? tag : "",
+      verbalApproval: !!verbalApproval,
+      verbalApprovalNote: notes || `Host confirmed on desk phone Ext. ${ext}`,
+      hostConfirmed: !!verbalApproval,
+      hostCalledExt: ext,
+      decidedBy: verbalApproval ? `${op()} (Host verbal Ext. ${ext})` : (status === "pending" ? "Gate Holding Area" : "Departed without admission"),
+      decidedAt: now(),
+      createdAt: now(),
+      registeredAt: now(),
+      registeredBy: op(),
+      building: "Main UN House Building",
+      log: [{ t: now(), act: `Unscheduled visitor intake at Station 1 (${currentCat}). ${notes || ""}`, by: op() }]
+    };
+  }
+
+  // Outcome 1: Host Confirmed (Admit & Tag)
+  $("#btn_u_admit").onclick = async () => {
+    const v = buildUnschVisitor("arrived", true, "Host confirmed admission on desk intercom.");
+    if(!v) return;
+    m.hidden = true;
+    visitors.unshift(v);
+    if(db) await db.collection("visitors").doc(v.id).set(v);
+    toast(`✓ ${v.name} admitted at Station 1! Allocated tag ${v.assignedTag}.`);
+    render();
+  };
+
+  // Outcome 2: Host Unavailable (Hold at Gate)
+  $("#btn_u_hold").onclick = async () => {
+    const v = buildUnschVisitor("pending", false, "Host unavailable on desk phone. Visitor placed in Station 1 Holding Area.");
+    if(!v) return;
+    m.hidden = true;
+    visitors.unshift(v);
+    if(db) await db.collection("visitors").doc(v.id).set(v);
+    toast(`⏳ ${v.name} logged. Holding at Station 1 reception awaiting host confirmation.`);
+    render();
+  };
+
+  // Outcome 3: Escalate to Security Supervisor
+  $("#btn_u_escalate").onclick = async () => {
+    const supReason = prompt("Enter escalation note for Duty Security Supervisor:", "Host unreachable / Urgent high-priority official business");
+    if(supReason === null) return;
+    const v = buildUnschVisitor("pending", false, `Escalated to Security Supervisor: ${supReason}`);
+    if(!v) return;
+    v.escalatedToSupervisor = true;
+    v.escalationNote = supReason;
+    m.hidden = true;
+    visitors.unshift(v);
+    if(db) await db.collection("visitors").doc(v.id).set(v);
+    toast(`🚨 ${v.name} escalated to UNDSS Duty Security Supervisor for decision.`);
+    render();
+  };
+
+  // Outcome 4: Reschedule or Depart
+  $("#btn_u_depart").onclick = async () => {
+    const v = buildUnschVisitor("rejected", false, "Host declined or not available. Visitor departed from gate without admission.");
+    if(!v) return;
+    v.rejectReason = "Host declined or not available; visitor departed.";
+    m.hidden = true;
+    visitors.unshift(v);
+    if(db) await db.collection("visitors").doc(v.id).set(v);
+    toast(`🚪 ${v.name} marked departed from Station 1 perimeter.`);
+    render();
+  };
+
+  // Outcome 5: Security Concern / Suspicious Behavior
+  $("#btn_u_alert").onclick = () => {
+    if(confirm("⚠️ SECURITY CONCERN PROTOCOL:\n\nAre you reporting a security concern or suspicious behavior for this visitor?\n\nThis will stop administrative processing and alert the UNDSS Armed Security Response Team.")){
+      m.hidden = true;
+      modal(`<div style="padding:10px">
+        <h2 style="color:#b91c1c;margin:0 0 8px">🚨 UNDSS Security Incident Triggered</h2>
+        <p class="small" style="color:var(--muted)">Normal intake processing stopped. Perimeter security alert dispatched to Station 1 Armed Guard &amp; FSM.</p>
+        <div style="background:#fef2f2;border:1px solid #fecaca;padding:12px;border-radius:8px;font-size:13px;color:#991b1b;margin:12px 0">
+          <b>Security Action Taken:</b> Visitor held under observation at Gate 1 holding post. Shift In-Charge notified.
+        </div>
+      </div>`, ()=>{});
+      toast("🚨 UNDSS Alert: Security Concern reported at Station 1 Gate!");
+    }
   };
 }
 
