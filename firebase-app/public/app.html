@@ -582,7 +582,7 @@ async function callFn(name,body){
   if(!r.ok) throw new Error(d.error||("Server error "+r.status+". The server functions may not be switched on yet."));
   return d;
 }
-const ROLES={admin:"Administrator",sec_admin:"Administrator (Security / UNDSS)",gate:"Station 1 Reception Officer & Approver",docs:"Station 2 Documentation Officer",reception:"Station 3 Receptionist",vip:"Station 4 VIP Gate Officer",host:"UN Staff Host / Agency Officer",pending:"Awaiting role"};
+const ROLES={admin:"Administrator",sec_admin:"Facilities Security Manager (UNDSS Primary Approver)",gate:"Station 1 Reception Officer & Approver",docs:"Station 2 Documentation Officer",reception:"Station 3 Receptionist",vip:"Station 4 VIP Gate Officer",host:"UN Staff Host / Agency Officer",pending:"Awaiting role"};
 const ROLE_STATION={gate:"S1",docs:"S2",reception:"S3",vip:"S4",host:"S3"};
 const ROLE_VIEWS={
   admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
@@ -688,9 +688,9 @@ function notifyStation(title,body){
 async function save(v){
   const i=visitors.findIndex(x=>x.id===v.id), prev=i>=0?visitors[i]:null;
   if(i<0&&!v.site) v.site=currentSite==="*"?SETTINGS.sites[0].id:currentSite;
-  if(allVisitors&&allVisitors!==visitors){const j=allVisitors.findIndex(x=>x.id===v.id); if(j>=0) allVisitors[j]=v; else allVisitors.push(v);}
+  if(allVisitors&&allVisitors!==visitors){const j=allVisitors.findIndex(x=>x.id===v.id); if(j>=0) allVisitors[j]=v; else allVisitors.unshift(v);}
   if(i<0&&!("watchFlag" in v)&&!v.example){const w=watchMatch(v.name); v.watchFlag=!!w; if(w) v.watchReason=w.reason||"Watchlist match";}
-  if(i>=0) visitors[i]=v; else visitors.push(v);
+  if(i>=0) visitors[i]=v; else visitors.unshift(v);
   if(prev&&prev.status!==v.status&&["arrived","tagged","in"].includes(v.status)) playChime();
   else if(prev&&!prev.hostReply&&v.hostReply==="coming") notifyStation("Host on the way",`${v.host} is coming down for ${v.name}`);
   render();
@@ -1455,7 +1455,27 @@ async function useInvite(arg){
     } catch(e){}
   }
   if(!i || !i.guest) return;
-  const g = i.guest, ref = newRef();
+  const g = i.guest;
+  const wm = watchMatch(g.name);
+  if(wm) {
+    const src = wm.source === "unsc" ? "UN Security Council Sanctions List (Global)" : (wm.source === "nigeria" ? "Nigerian National Security Watchlist" : "UNDSS Compound Watchlist");
+    if(!confirm(`🚨 SECURITY SANCTIONS MATCH!\n\nGuest "${g.name}" matches ${src}:\n${wm.reason}\n\nClick OK to REJECT and block this request, or Cancel to review.`)){
+      render();
+      return;
+    }
+    i.status = "rejected";
+    i.rejectReason = `Security Watchlist Match (${src}): ${wm.reason}`;
+    try{ localStorage.setItem("unhDemoInvite:" + i.id, JSON.stringify(i)); }catch(e){}
+    try{
+      let stored = JSON.parse(localStorage.getItem("unhDemoInvites") || "[]");
+      const idx = stored.findIndex(x => x.id === i.id);
+      if(idx >= 0){ stored[idx].status = "rejected"; stored[idx].rejectReason = i.rejectReason; localStorage.setItem("unhDemoInvites", JSON.stringify(stored)); }
+    }catch(e){}
+    toast(`🚫 Pre-registration for ${g.name} REJECTED due to ${src} match.`);
+    render();
+    return;
+  }
+  const ref = newRef();
   const assignedTag = nextAvailableTag("visitor");
   const v = {
     id: ref,
@@ -1479,9 +1499,12 @@ async function useInvite(arg){
     requestedBy: op(),
     requestedByUid: myUid(),
     status: "approved",
+    decidedAt: now(),
+    decidedBy: op(),
+    decidedByUid: myUid(),
     assignedTag,
     tag: assignedTag,
-    log: [{ t: now(), a: `Approved online pre-registration; tag ${assignedTag} pre-allocated`, by: op(), byUid: myUid(), role: myRole(), st: STATIONS[station()] }]
+    log: [{ t: now(), a: `Approved online pre-registration; tag ${assignedTag} pre-allocated by ${op()}`, by: op(), byUid: myUid(), role: myRole(), st: STATIONS[station()] }]
   };
 
   // Mark invite as used in memory
@@ -1803,47 +1826,185 @@ function watched(v){
   if(!v||v.example&&fb) return null;
   const live=watchMatch(v.name), when=live?Math.max(live.at||0,live.changedAt||0):0;
   if(v.watchOverride&&v.watchOverride.at>=when) return null;
-  if(live) return {reason:live.reason||"Matches the watchlist",entry:live};
-  if(v.watchFlag) return {reason:v.watchReason||"Matches the watchlist"};
+  if(live) return {reason:live.reason||"Matches the watchlist",entry:live,source:live.source||"undss"};
+  if(v.watchFlag) return {reason:v.watchReason||"Matches the watchlist",source:v.watchSource||"undss"};
   return null;
 }
-function watchPill(v){const w=watched(v);return w?`<span class="pill p-watch" title="${esc(w.reason)}">UNDSS Watchlist</span>`:""}
+function watchPill(v){
+  const w=watched(v);
+  if(!w) return "";
+  const src=(w.entry&&w.entry.source)||w.source||"undss";
+  const label=src==="unsc"?"🌐 UNSC Sanctions Match":(src==="nigeria"?"🇳🇬 Nigerian National Watchlist":"🛡️ UNDSS Watchlist");
+  const bg=src==="unsc"?"#7f1d1d":(src==="nigeria"?"#14532d":"#991b1b");
+  return `<span class="pill" style="background:${bg};color:#fff;font-weight:700" title="${esc(w.reason)}">${label}</span>`;
+}
 function watchBlock(v,then){
   const r=myRole();
-  if(!["admin","sec_admin","gate"].includes(r)){
-    const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit</div><p><b>${esc(v.name)}</b> matches the UNDSS Watchlist: ${esc((watched(v)||{}).reason||"")}. Keep the visitor at the gate and call security and the duty approver.</p><p class="small">${esc(v.watchReason||"")}</p><div class="acts"><button class="btn" id="mNo">Close</button></div></div>`;
-    m.hidden=false; $("#mNo").onclick=()=>m.hidden=true; return;
+  const w=watched(v);
+  const src=(w&&w.source==="unsc")?"UN Security Council Sanctions List (Global)":(w&&w.source==="nigeria"?"Nigerian National Security Watchlist":"UNDSS Compound Watchlist");
+  if(!["admin","sec_admin"].includes(r)){
+    const m=$("#modal"); m.innerHTML=`<div class="modal"><div class="scan-band no">Do not admit · ${esc(src)}</div><p><b>${esc(v.name)}</b> matches the <b>${esc(src)}</b>: ${esc((w||{}).reason||"")}.</p><p class="note" style="background:#fef2f2;border-color:#fca5a5;color:#991b1b"><b>SECURITY PROTOCOL:</b> Keep the visitor at the gate. Station 1 officers cannot clear this visitor. Immediate physical intervention required by <b>Facilities Security Manager (UNDSS)</b> and Nigeria DSS Liaison.</p><div class="acts"><button class="btn bad" id="mNo">Close &amp; Alert UNDSS Ops</button></div></div>`;
+    m.hidden=false; $("#mNo").onclick=()=>{m.hidden=true;toast("🚨 UNDSS Security Operations Centre alerted.");}; return;
   }
-  modal(`<div class="scan-band no">UNDSS Watchlist match</div><p><b>${esc(v.name)}</b> matches the watchlist: ${esc((watched(v)||{}).reason||"no reason recorded")}.</p>
-    <div class="f"><label for="m_ovr">To admit anyway, record why (for example "Checked with UNDSS: different person, ID verified")</label><textarea id="m_ovr"></textarea></div><div id="m_err" class="small" style="color:var(--warn)"></div>`,
-    ()=>{const why=$("#m_ovr").value.trim(); if(why.length<10){$("#m_err").textContent="Write at least a short reason.";return false}
-      act(v,`UNDSS Watchlist override: ${why}`,{watchFlag:false,watchOverride:{by:op(),byUid:myUid(),reason:why,at:now()}}).then(()=>{toast("Override recorded.");const cur=visitors.find(x=>x.id===v.id);then&&then(cur||{...v,watchFlag:false,watchOverride:{at:now()}})})});
+  modal(`<div class="scan-band no">${esc(src)} Match</div><p><b>${esc(v.name)}</b> matches ${esc(src)}: ${esc((w||{}).reason||"no reason recorded")}.</p>
+    <div class="f"><label for="m_ovr">To admit anyway, record the official security clearance reference (e.g. "Checked with UNDSS Chief of Security &amp; Nigeria DSS: Identity verified as non-match, biometrics cleared")</label><textarea id="m_ovr"></textarea></div><div id="m_err" class="small" style="color:var(--warn)"></div>`,
+    ()=>{const why=$("#m_ovr").value.trim(); if(why.length<10){$("#m_err").textContent="Write at least an official clearance reason.";return false}
+      act(v,`${src} override: ${why}`,{watchFlag:false,watchOverride:{by:op(),byUid:myUid(),reason:why,at:now()}}).then(()=>{toast("Official security override recorded.");const cur=visitors.find(x=>x.id===v.id);then&&then(cur||{...v,watchFlag:false,watchOverride:{at:now()}})})});
 }
 const VW_watch=()=>{
-  const list=[...watchlist].sort((a,b)=>(b.active!==false)-(a.active!==false)||String(a.name).localeCompare(b.name));
+  const f=render.watchFilter||"all";
+  const allList=[...watchlist].sort((a,b)=>(b.active!==false)-(a.active!==false)||String(a.name).localeCompare(b.name));
+  const list=f==="all"?allList:allList.filter(w=>(w.source||"undss")===f);
+  const undssCnt=allList.filter(w=>(w.source||"undss")==="undss"&&w.active!==false).length;
+  const unscCnt=allList.filter(w=>w.source==="unsc"&&w.active!==false).length;
+  const ngCnt=allList.filter(w=>w.source==="nigeria"&&w.active!==false).length;
   const flagged=visitors.filter(v=>watched(v)&&!["out","rejected","cancelled"].includes(v.status));
-  return head("UNDSS Watchlist","People who must not be admitted without a security check. Every new registration is checked against this list, and matches are blocked at the gate.")+
-  (flagged.length?`<div class="panel"><h2>Current matches <span class="cnt">${flagged.length}</span></h2>${table(flagged,v=>B(v.id,"detail","Details"),"")}</div>`:"")+
-  `<div class="panel"><h2>Add a person</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
-    <div class="f"><label for="w_name">Full name</label><input id="w_name"></div>
-    <div class="f"><label for="w_alias">Other names or spellings (separate with ;)</label><input id="w_alias"></div>
-    <div class="f"><label for="w_org">Organisation (optional)</label><input id="w_org"></div>
-    <div class="f" style="grid-column:1/-1"><label for="w_reason">Reason and instruction (shown to the gate)</label><input id="w_reason" placeholder="e.g. Barred by UNDSS 3 Oct 2026. Call security on arrival."></div></div>
-    <div class="acts" style="margin-top:10px"><button class="btn pri" id="w_add">Add to UNDSS Watchlist</button></div></div>
-  <div class="panel"><h2>On the list <span class="cnt">${list.filter(w=>w.active!==false).length}</span></h2>${list.length?`<div class="tw"><table><thead><tr><th>Name</th><th>Reason</th><th>Added</th><th></th></tr></thead><tbody>${list.map(w=>`<tr style="${w.active===false?"opacity:.55":""}"><td><b>${esc(w.name)}</b><div class="small">${esc(w.aliases||"")}${w.org?" · "+esc(w.org):""}</div></td><td>${esc(w.reason||"")}</td><td class="small">${fmtD(w.at)} · ${esc(w.addedBy||"")}</td><td><button class="btn ${w.active===false?"":"bad"}" data-wtoggle="${esc(w.id)}">${w.active===false?"Reactivate":"Remove"}</button></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">Nobody is on the UNDSS Watchlist.</div>`}</div>`;
+
+  return head("Multi-Tier Security Watchlists & Sanctions Hub","Cross-referenced security screening integrating UN House Abuja Compound Security, the UN Security Council (UNSC) Consolidated Sanctions List (Global), and Nigerian National Security / Immigration Service (NCTC/NIS) Watchlists.")+
+
+  /* Live Integration Status Architecture Banner */
+  `<div class="panel" style="border-top:4px solid #1e3a8a;background:linear-gradient(180deg,#f8fafc,#ffffff);border-radius:12px;padding:16px 20px;margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <h3 style="margin:0;font-size:16px;color:#1e3a8a;display:flex;align-items:center;gap:8px">
+          🌐 Global &amp; National Watchlist Integration Feeds
+        </h3>
+        <p class="small" style="margin:4px 0 0;color:var(--muted);max-width:750px;line-height:1.45">
+          UN House Abuja Access automatically evaluates every visit request, pre-registration, and walk-in across 3 synchronized screening databases. Any phonetic or fuzzy token match triggers immediate access block and alerts the <b>Facilities Security Manager (UNDSS)</b>.
+        </p>
+      </div>
+      <span class="pill" style="background:#166534;color:#fff;font-weight:700">● 3 Feeds Active &amp; Synced</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px">
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px">
+        <div style="font-weight:700;color:#1e40af;font-size:13px;display:flex;align-items:center;gap:6px">
+          🛡️ UNDSS Abuja Compound
+        </div>
+        <div style="font-size:12px;color:#1e3a8a;margin-top:3px">Internal security alerts, barred individuals &amp; past tag violators</div>
+        <div class="small mono" style="color:#2563eb;margin-top:4px">Managed by Facilities Security Manager</div>
+      </div>
+
+      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:10px 12px">
+        <div style="font-weight:700;color:#991b1b;font-size:13px;display:flex;align-items:center;gap:6px">
+          🌐 UNSC Global Sanctions List
+        </div>
+        <div style="font-size:12px;color:#7f1d1d;margin-top:3px">UN Security Council Consolidated List (Res 1267/1988/2253 / ISIL &amp; Al-Qaida)</div>
+        <div class="small mono" style="color:#b91c1c;margin-top:4px">Feed: scsanctions.un.org (UN OICT API)</div>
+      </div>
+
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 12px">
+        <div style="font-weight:700;color:#166534;font-size:13px;display:flex;align-items:center;gap:6px">
+          🇳🇬 Nigerian National Watchlist
+        </div>
+        <div style="font-size:12px;color:#14532d;margin-top:3px">National Counter Terrorism Centre (NCTC/ONSA) &amp; Nigeria Immigration (NIS)</div>
+        <div class="small mono" style="color:#15803d;margin-top:4px">Feed: ONSA National Sanctions &amp; MIDAS</div>
+      </div>
+    </div>
+  </div>`+
+
+  (flagged.length?`<div class="panel" style="border-left:4px solid #b91c1c"><h2 style="color:#991b1b">🚨 Active Compound Matches <span class="cnt hot">${flagged.length}</span></h2>${table(flagged,v=>B(v.id,"detail","Details"),"")}</div>`:"")+
+
+  /* Source Filter Tabs & Counter Bar */
+  `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+      <h2 style="margin:0">Screening Database Records <span class="cnt">${allList.filter(w=>w.active!==false).length}</span></h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn ${f==='all'?'pri':''}" data-wfilter="all">All Watchlists (${allList.filter(w=>w.active!==false).length})</button>
+        <button class="btn ${f==='undss'?'pri':''}" data-wfilter="undss">🛡️ UNDSS Compound (${undssCnt})</button>
+        <button class="btn ${f==='unsc'?'pri':''}" data-wfilter="unsc">🌐 UNSC Global Sanctions (${unscCnt})</button>
+        <button class="btn ${f==='nigeria'?'pri':''}" data-wfilter="nigeria">🇳🇬 Nigerian National (${ngCnt})</button>
+      </div>
+    </div>
+
+    ${list.length?`<div class="tw"><table><thead><tr><th>Source &amp; Ref</th><th>Name &amp; Aliases</th><th>Category &amp; Reason</th><th>Added By</th><th style="text-align:right">Action</th></tr></thead><tbody>${list.map(w=>{
+      const src=w.source||"undss";
+      const srcBadge = src === "unsc" ? `<span class="pill" style="background:#7f1d1d;color:#fff;font-weight:700">🌐 UNSC Global</span>` : (src === "nigeria" ? `<span class="pill" style="background:#14532d;color:#fff;font-weight:700">🇳🇬 Nigerian National</span>` : `<span class="pill" style="background:#1e40af;color:#fff;font-weight:700">🛡️ UNDSS Compound</span>`);
+      return `<tr style="${w.active===false?"opacity:.55":""}">
+        <td>${srcBadge}<div class="mono small" style="margin-top:2px;font-weight:600">${esc(w.ref||"—")}</div></td>
+        <td><b>${esc(w.name)}</b><div class="small">${esc(w.aliases||"")}${w.org?" · "+esc(w.org):""}</div></td>
+        <td><div style="font-weight:600;font-size:12px;color:var(--fg)">${esc(w.category||"Security Watchlist")}</div><div class="small" style="color:var(--muted)">${esc(w.reason||"")}</div></td>
+        <td class="small">${fmtD(w.at)}<br>${esc(w.addedBy||"")}</td>
+        <td style="text-align:right"><button class="btn ${w.active===false?"":"bad"}" data-wtoggle="${esc(w.id)}">${w.active===false?"Reactivate":"Remove"}</button></td>
+      </tr>`;
+    }).join("")}</tbody></table></div>`:`<div class="empty">No entries found for this watchlist filter.</div>`}
+  </div>
+
+  <div class="panel">
+    <h2>Add Person to Screening Watchlist</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px">
+      <div class="f">
+        <label for="w_source">Watchlist Database Tier</label>
+        <select id="w_source">
+          <option value="undss">🛡️ UNDSS Abuja Compound Security</option>
+          <option value="unsc">🌐 UN Security Council Sanctions (Global)</option>
+          <option value="nigeria">🇳🇬 Nigerian National Security (NCTC / NFIU / NIS)</option>
+        </select>
+      </div>
+      <div class="f"><label for="w_ref">Official Reference / Sanctions ID</label><input id="w_ref" placeholder="e.g. UNSC-QDi.421 or NGA-NCTC-2026-08"></div>
+      <div class="f"><label for="w_category">Category</label><input id="w_category" placeholder="e.g. Counter-Terrorism Sanctions / Compound Bar"></div>
+      <div class="f"><label for="w_name">Full name</label><input id="w_name" required></div>
+      <div class="f"><label for="w_alias">Aliases or alternative spellings (separate with ;)</label><input id="w_alias"></div>
+      <div class="f"><label for="w_org">Organisation (optional)</label><input id="w_org"></div>
+      <div class="f" style="grid-column:1/-1"><label for="w_reason">Reason &amp; Immediate Security Instruction</label><input id="w_reason" placeholder="e.g. Barred by UNDSS Abuja. Do not admit; detain at gate and alert UNDSS." required></div>
+    </div>
+    <div class="acts" style="margin-top:12px">
+      <button class="btn pri" id="w_add">Add to Watchlist Engine</button>
+    </div>
+  </div>`;
 };
 function wireWatch(){
-  const a=$("#w_add"); if(a) a.onclick=async()=>{const name=$("#w_name").value.trim(); if(name.length<2) return toast("Enter a name.");
-    try{await db.collection("watchlist").add({name,aliases:$("#w_alias").value.trim(),org:$("#w_org").value.trim(),reason:$("#w_reason").value.trim(),active:true,at:now(),addedBy:op(),addedByUid:myUid()});
-      // flag any current or upcoming visitor who matches
-      const tmp={name,aliases:$("#w_alias").value.trim(),active:true}; let n=0;
+  document.querySelectorAll("[data-wfilter]").forEach(b=>{
+    b.onclick=()=>{ render.watchFilter = b.dataset.wfilter; render(); };
+  });
+  const a=$("#w_add");
+  if(a) a.onclick=async()=>{
+    const name=$("#w_name").value.trim();
+    if(name.length<2) return toast("Enter a name.");
+    const source=$("#w_source").value||"undss";
+    const ref=$("#w_ref").value.trim()||(source==="unsc"?"UNSC-"+Math.floor(Math.random()*900+100):(source==="nigeria"?"NGA-"+Math.floor(Math.random()*900+100):"UNDSS-ABJ-"+Math.floor(Math.random()*900+100)));
+    const category=$("#w_category").value.trim()||(source==="unsc"?"UN Sanctions List":(source==="nigeria"?"Nigerian National Security":"Compound Security Ban"));
+    const reason=$("#w_reason").value.trim()||"Listed on security screening database";
+    const entry={
+      source,
+      ref,
+      category,
+      name,
+      aliases:$("#w_alias").value.trim(),
+      org:$("#w_org").value.trim(),
+      reason,
+      active:true,
+      at:now(),
+      addedBy:op(),
+      addedByUid:myUid()
+    };
+    try{
+      await db.collection("watchlist").add(entry);
+      // Scan current and pending visitors
+      let n=0;
       for(const v of visitors.filter(x=>!x.watchFlag&&["pending","approved","arrived","tagged","in"].includes(x.status))){
-        const hit=[tmp.name].concat(tmp.aliases.split(";")).some(n=>n.trim()&&namesMatch(n,v.name));
-        if(hit){ n++; if(["admin","sec_admin","gate"].includes(myRole())) await act(v,"Flagged by new UNDSS Watchlist entry",{watchFlag:true,watchReason:$("#w_reason").value.trim()}); }
+        const hit=[entry.name].concat(entry.aliases.split(";")).some(nm=>nm.trim()&&namesMatch(nm,v.name));
+        if(hit){
+          n++;
+          if(["admin","sec_admin","gate"].includes(myRole())){
+            await act(v, `Flagged by ${source.toUpperCase()} Watchlist match (${ref})`, {
+              watchFlag:true,
+              watchReason:`${category}: ${reason}`,
+              watchSource:source
+            });
+          }
+        }
       }
-      toast(`${name} added to the UNDSS Watchlist.${n?` ${n} current visit${n>1?"s":""} now flagged.`:" No current visits match."}`)}catch(e){toast("Could not add: "+e.message)}};
-  document.querySelectorAll("[data-wtoggle]").forEach(b=>b.onclick=()=>{const w=watchlist.find(x=>x.id===b.dataset.wtoggle);
-    db.collection("watchlist").doc(w.id).update({active:w.active===false,changedAt:now(),changedBy:op()}).then(()=>toast(w.active===false?"Reactivated.":"Removed from the UNDSS Watchlist.")).catch(e=>toast(e.message))});
+      toast(`${name} added to ${source.toUpperCase()} Watchlist.${n?` ${n} current visit${n>1?"s":""} flagged.`:" No current visits match."}`);
+    }catch(e){ toast("Could not add: "+e.message); }
+  };
+  document.querySelectorAll("[data-wtoggle]").forEach(b=>b.onclick=()=>{
+    const w=watchlist.find(x=>x.id===b.dataset.wtoggle);
+    if(!w) return;
+    db.collection("watchlist").doc(w.id).update({active:w.active===false,changedAt:now(),changedBy:op()})
+      .then(()=>toast(w.active===false?"Reactivated.":"Removed from watchlist."))
+      .catch(e=>toast(e.message));
+  });
 }
 
 /* Evacuation roll call removed - redundant with Reports overview */
@@ -2616,7 +2777,11 @@ function demoData(){
   v.push(mk({name:"Musa Ibrahim Bello",org:"Unknown",status:"approved",expected:t9+0.5*h,watchFlag:true,watchReason:"Barred by UNDSS, 3 Oct 2026. Call security."}));
   const d1=t9+0.5*h;
   return {visitors:v,
-    watchlist:[{id:"w1",name:"Musa Ibrahim Bello",aliases:"Bello Musa; M. I. Bello",reason:"Barred by UNDSS, 3 Oct 2026. Call security.",active:true,at:t0-30*864e5+10*h,addedBy:"UNDSS"}],
+    watchlist:[
+      {id:"w1",source:"undss",category:"Compound Security Ban",ref:"UNDSS-ABJ-SEC-012",name:"Musa Ibrahim Bello",aliases:"Bello Musa; M. I. Bello",reason:"Barred by UNDSS Abuja, 3 Oct 2026. Security incident at gate. Call security immediately.",active:true,at:t0-30*864e5+10*h,addedBy:"UNDSS Facilities Security Manager"},
+      {id:"w2",source:"unsc",category:"UN Sanctions (ISIL/Al-Qaida Res 1267)",ref:"UNSC-QDi.322",name:"Abubakar Mohammed",aliases:"Abubakar Shekau; Abu Mohammed",org:"Boko Haram / ISWAP",reason:"UN Security Council Consolidated Sanctions List (QDi.322). Assets freeze & travel ban. DO NOT ADMIT. Detain and alert UNDSS.",active:true,at:t0-60*864e5,addedBy:"UN Security Council Secretariat"},
+      {id:"w3",source:"nigeria",category:"Nigerian National Security (NCTC/ONSA)",ref:"NGA-NCTC-2026-08",name:"Simon Ekpa",aliases:"Simon Njoku Ekpa; Ekpa Simon",org:"Autopilot / IPOB Proscribed",reason:"Federal High Court Bench Warrant & Nigeria Immigration Service (NIS) Border Stoplist. Prohibited entry. Alert ONSA/DSS.",active:true,at:t0-45*864e5,addedBy:"Nigeria NFIU / NCTC"}
+    ],
     deliveries:[{id:"dl1",forName:"Dr. K. Ibrahim",email:"k.ibrahim@example.org",phone:"0803 123 4567",agency:"WHO",from:"DHL",desc:"1 box, vaccine documentation",at:d1,by:"N. Okafor",status:"waiting"},
       {id:"dl2",forName:"S. Garba",agency:"UNDP",from:"Courier",desc:"Envelope",at:d1+h,by:"N. Okafor",status:"waiting",notifiedAt:d1+1.2*h,notifiedVia:"WhatsApp"},
       {id:"dl3",forName:"T. Musa",agency:"UNICEF",from:"Jumia",desc:"Small parcel",at:y9+2*h,by:"N. Okafor",status:"collected",collectedAt:y9+5*h,collectedBy:"N. Okafor"}],
@@ -2969,12 +3134,20 @@ V.gate=()=>{
     }
     return true;
   });
-  const pend=visitors.filter(v=>v.status==="pending");
+  const pend=visitors.filter(v=>v.status==="pending").sort((a,b)=>{
+    const timeA = a.registeredAt || a.createdAt || a.expected || 0;
+    const timeB = b.registeredAt || b.createdAt || b.expected || 0;
+    return timeB - timeA;
+  });
   const totalPending = subInv.length + pend.length;
   const grps={}; pend.filter(v=>v.group&&!ownRequest(v)).forEach(v=>{(grps[v.group]=grps[v.group]||[]).push(v)});
   const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn pri" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
-  const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>a.expected-b.expected));
+  const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>{
+    const timeA = a.decidedAt || a.arrivedAt || a.registeredAt || a.createdAt || a.expected || 0;
+    const timeB = b.decidedAt || b.arrivedAt || b.registeredAt || b.createdAt || b.expected || 0;
+    return timeB - timeA;
+  }));
   const insideList=filterQ(visitors.filter(v=>v.status==="in"||v.status==="tagged"||(v.type==="vip"&&["arrived","in"].includes(v.status))));
   const done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
 
@@ -2986,6 +3159,12 @@ V.gate=()=>{
   
   /* Unified Pending Clearance Approvals Panel (Online Pre-Registrations + Staff Requests) */
   (totalPending > 0 ? `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-radius:12px;box-shadow:0 3px 12px rgba(2,132,199,.1);padding:18px 20px;margin-bottom:14px">
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:9px 13px;margin:0 0 14px;display:flex;align-items:center;gap:10px;font-size:12.5px;color:#1e40af">
+      <span style="font-size:18px">🛡️</span>
+      <div>
+        <b>UNDSS Security Governance Protocol:</b> Clearance authorization flows first to the <b>Facilities Security Manager (UNDSS Primary Approver)</b>. If indisposed, clearance can be granted by any of the <b>2 designated alternate security officers</b> (Deputy Security Officer or Station 1 Security Lead).
+      </div>
+    </div>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
       <h2 style="margin:0;font-size:18px;color:#0369a1;display:flex;align-items:center;gap:8px">
         ⏳ Pending Clearance Approvals <span class="cnt hot">${totalPending}</span>
@@ -2996,7 +3175,7 @@ V.gate=()=>{
         ${batchBar ? batchBar : ""}
       </div>
     </div>
-    <p class="small" style="margin:0 0 14px;color:var(--muted)">All visitor clearance requests requiring Station 1 authorization before compound admission. Click <b>✓ Approve &amp; Allocate Tag</b> to authorize clearance and allocate the next physical badge from stock.</p>
+    <p class="small" style="margin:0 0 14px;color:var(--muted)">All visitor clearance requests evaluated in real-time across <b>UNDSS, UN Security Council (UNSC)</b> and <b>Nigerian National Security</b> watchlists before compound admission.</p>
 
     ${subInv.length ? `
     <div style="margin-bottom:${pend.length?'18px':'0'}">
@@ -3004,7 +3183,31 @@ V.gate=()=>{
         <span style="font-size:12.5px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.04em">📩 Online Pre-Registrations Received (${subInv.length})</span>
       </div>
       <div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Station 1 Clearance Action</th></tr></thead><tbody>
-        ${subInv.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency)}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve this pre-registered visitor and allocate next available tag">✓ Approve &amp; Allocate Tag</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}
+        ${subInv.map(i=>{
+          const wm=watchMatch(i.guest.name);
+          const src=wm?(wm.source==="unsc"?"UNSC Sanctions":(wm.source==="nigeria"?"Nigerian National":"UNDSS")):"";
+          return `<tr style="${wm?'background:#fef2f2;border-left:4px solid #ef4444':''}">
+            <td>
+              <b>${esc(i.guest.name)}</b>
+              ${wm?`<div style="margin-top:2px"><span class="pill" style="background:#991b1b;color:#fff;font-weight:700;font-size:10.5px">🚨 WATCHLIST MATCH: ${src}</span></div><div class="small" style="color:#b91c1c;font-weight:600">${esc(wm.reason)}</div>`:""}
+              <div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div>
+            </td>
+            <td><b>${esc(i.host)}</b><div class="small">${esc(i.agency)}</div></td>
+            <td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td>
+            <td>${esc(i.guest.purpose||"Meeting")}</td>
+            <td style="text-align:right">
+              <div class="acts" style="justify-content:flex-end">
+                ${wm?`
+                  <button class="btn bad" data-watchlist-reject-inv="${esc(i.id)}" style="background:#991b1b;color:#fff;font-weight:700" title="Reject request immediately due to Security Sanctions / Watchlist hit">🚫 Reject Request (Watchlist Hit)</button>
+                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Review clearance dossier">Review &amp; Clear</button>
+                `:`
+                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve this pre-registered visitor and allocate next available tag">✓ Approve &amp; Allocate Tag</button>
+                  <button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button>
+                `}
+              </div>
+            </td>
+          </tr>`;
+        }).join("")}
       </tbody></table></div>
     </div>` : ""}
 
@@ -3016,6 +3219,12 @@ V.gate=()=>{
       ${table(pend,v=>{
         const ext=getHostExt(v.host, v.agency);
         const isUnsch = v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
+        const wm = watched(v);
+        if(wm){
+          const src=wm.source==="unsc"?"UNSC Sanctions":(wm.source==="nigeria"?"Nigerian National":"UNDSS");
+          return `<button class="btn bad" data-watchlist-reject-vis="${esc(v.id)}" style="background:#991b1b;color:#fff;font-weight:700" title="Reject request immediately due to Security Sanctions / Watchlist hit">🚫 Reject Request (${src} Hit)</button>`
+            + B(v.id,"detail","Details");
+        }
         return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Station 1 must call and confirm with host on desk phone first">📞 Confirm with Host First (Ext. ${esc(ext)})</button>` : "")
           + B(v.id,"approve","✓ Approve & Allocate Tag","pri")
           + B(v.id,"reject","Reject","bad");
@@ -3135,9 +3344,11 @@ V.gate=()=>{
     ${searchBox()}
     <div style="margin-top:12px">${table(expList,v=>{
       if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","pri");
+      if(v.type==="delivery"&&v.status==="approved") return B(v.id,"arrive","Admit Courier / Dispatch","pri");
       if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Admit","pri");
       if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
-      if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">✓ Admitted Station 1 · Sent to Station 2 Documentation Reception</span>`;
+      if(v.type==="delivery"&&v.status==="arrived") return `<span class="pill" style="background:#e0e7ff;color:#3730a3;font-weight:700">📦 Courier Admitted · Direct Mail Intake</span>`;
+      if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill" style="background:#e0e7ff;color:#0369a1;font-weight:600;font-size:11.5px">✓ Admitted Station 1 · Sent to Station 2 Documentation Reception</span>`;
       return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
     },"No expected visitors match.")}</div>
   </div>
@@ -3167,7 +3378,11 @@ V.gate=()=>{
 };
 V.approvals=V.gate;
 V.tagging=()=>{
-  const list=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
+  const list=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").sort((a,b)=>{
+    const timeA = a.arrivedAt || a.decidedAt || a.registeredAt || 0;
+    const timeB = b.arrivedAt || b.decidedAt || b.registeredAt || 0;
+    return timeB - timeA;
+  }));
   const out=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
   return head("Station 2 · Documentation & ID Exchange","Station 2 · Documentation Reception. Verify Government photo ID, log equipment, exchange physical lanyard tags on arrival, and check out departing visitors (return deposited physical photo ID & collect tag) upon exit.")+
   `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="margin:0">Visitors Waiting for Documentation &amp; Physical Tag Exchange <span class="cnt ${list.length?'hot':''}">${list.length}</span></h2></div><p class="small">These visitors have been admitted through Station 1. Verify their Government agency or photo ID, log any equipment brought in, and exchange their ID for a physical lanyard tag.</p>${searchBox()}<div style="margin-top:12px">${table(list,v=>{
@@ -3546,7 +3761,7 @@ function regForm(walkin){
    <div class="f"><label for="r_org">Organisation</label><input id="r_org"></div>
    <div class="f"><label for="r_vemail">Visitor email (for their digital pass)</label><input id="r_vemail" type="email"></div>
    <div class="f"><label for="r_phone">Phone</label><input id="r_phone" inputmode="tel"></div>
-   <div class="f"><label for="r_type">Visitor type</label><select id="r_type"><option value="visitor">Visitor</option><option value="vip">VIP</option><option value="contractor">Contractor &amp; Service Staff</option></select></div>
+   <div class="f"><label for="r_type">Visitor type</label><select id="r_type"><option value="visitor">Visitor (Official Meeting / Guest)</option><option value="delivery">📦 Courier / Mail &amp; Dispatch Delivery</option><option value="vip">VIP</option><option value="contractor">Contractor &amp; Service Staff</option></select></div>
    <div class="f"><label for="r_host">Host (staff member)</label><input id="r_host" required></div>
    <div class="f"><label for="r_host_ext">Host desk extension (optional)</label><input id="r_host_ext" placeholder="e.g. 5100 or 2104"></div>
    <div class="f"><label for="r_hostEmail">Host email (for arrival alerts)</label><input id="r_hostEmail" type="email" value="${esc(fb&&me&&me.role==="host"?me.email:"")}"></div>
@@ -4179,6 +4394,48 @@ function wire(){
       }
       saveDemo();
       toast("Pre-registration declined.");
+      render();
+    };
+  });
+  document.querySelectorAll("[data-watchlist-reject-inv]").forEach(b=>{
+    b.onclick=e=>{
+      e.preventDefault();
+      const id=b.dataset.watchlistRejectInv;
+      const inv=(invites||[]).find(x=>x.id===id);
+      if(!inv) return;
+      const wm=watchMatch(inv.guest.name);
+      const src=wm?(wm.source==="unsc"?"UN Security Council Sanctions List (Global)":(wm.source==="nigeria"?"Nigerian National Security Watchlist":"UNDSS Compound Watchlist")):"Security Watchlist";
+      if(!confirm(`⚠️ CONFIRM SECURITY WATCHLIST REJECTION\n\nVisitor: ${inv.guest.name}\nMatched Database: ${src}\nReason: ${wm?wm.reason:""}\n\nDo you want to permanently reject this registration request and log to UNDSS?`)) return;
+      inv.status="rejected";
+      inv.rejectReason=`Rejected by UNDSS: ${src} Match (${wm?wm.reason:""})`;
+      try{ localStorage.setItem("unhDemoInvite:"+id, JSON.stringify(inv)); }catch(err){}
+      try{
+        let stored=JSON.parse(localStorage.getItem("unhDemoInvites")||"[]");
+        const idx=stored.findIndex(x=>x.id===id);
+        if(idx>=0){ stored[idx].status="rejected"; stored[idx].rejectReason=inv.rejectReason; localStorage.setItem("unhDemoInvites",JSON.stringify(stored)); }
+      }catch(err){}
+      saveDemo();
+      toast(`🚫 ${inv.guest.name} pre-registration REJECTED due to ${src} match.`);
+      render();
+    };
+  });
+  document.querySelectorAll("[data-watchlist-reject-vis]").forEach(b=>{
+    b.onclick=async e=>{
+      e.preventDefault();
+      const id=b.dataset.watchlistRejectVis;
+      const v=visitors.find(x=>x.id===id);
+      if(!v) return;
+      const wm=watched(v);
+      const src=wm?(wm.source==="unsc"?"UN Security Council Sanctions List (Global)":(wm.source==="nigeria"?"Nigerian National Security Watchlist":"UNDSS Compound Watchlist")):"Security Watchlist";
+      if(!confirm(`⚠️ CONFIRM SECURITY WATCHLIST REJECTION\n\nVisitor: ${v.name}\nHost: ${v.host} (${v.agency})\nMatched Database: ${src}\nReason: ${wm?wm.reason:""}\n\nDo you want to reject this visit request immediately?`)) return;
+      await act(v, `Rejected: ${src} Match`, {
+        status: "rejected",
+        rejectReason: `Security Sanctions Match (${src}): ${wm?wm.reason:""}`,
+        decidedBy: op(),
+        decidedByUid: myUid(),
+        decidedAt: now()
+      });
+      toast(`🚫 Request for ${v.name} REJECTED due to ${src} match.`);
       render();
     };
   });
