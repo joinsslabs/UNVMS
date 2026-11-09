@@ -530,7 +530,6 @@ main{gap:20px}
       <option>Gate Reception Officer & Approver A. Bello</option><option>Documentation Officer C. Okonkwo</option><option>Receptionist N. Okafor</option><option>Administrator</option><option>Security Administrator</option>
     </select></div>
   </div>
-  <button class="btn pri" id="top_inv_btn" type="button" style="font-weight:600;font-size:12.5px;padding:6px 12px;gap:6px;display:inline-flex;align-items:center;background:#0284c7;border-color:#0284c7;white-space:nowrap" title="Generate an invitation link for a visitor to pre-register">✉️ Invite Visitor</button>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
   <button class="tbtn" id="soundBtn" type="button" title="Toggle sound &amp; notification alerts" aria-label="Toggle sound alerts"></button>
   <button class="tbtn" id="themeBtn" type="button" title="Toggle light or dark theme" aria-label="Toggle theme"></button>
@@ -3139,15 +3138,18 @@ V.gate=()=>{
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
       <div>
         <h2 style="margin:0;display:flex;align-items:center;gap:8px;font-size:18px;color:#92400e">
-          🚪 Register Unscheduled Visitor (Station 1 Walk-In)
+          🚪 Register &amp; Invite Visitors (Station 1)
         </h2>
         <p class="small" style="margin:5px 0 0;color:var(--muted);max-width:700px;line-height:1.45">
-          Visitors arriving at Station 1 without a scheduled invitation are classified as <b>Unscheduled Visitors</b>. UN Security protocol requires Station 1 officers to <b>contact and confirm with the host first</b> before compound entry is granted.
+          Register unscheduled walk-in visitors arriving at Gate 1, or generate pre-registration invitation links for scheduled guests. UN Security protocol requires Station 1 officers to <b>contact and confirm with the host first</b> before compound entry is granted for walk-ins.
         </p>
       </div>
-      <span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-weight:600;font-size:12px;padding:4px 10px">
-        ⚠️ Host Clearance Mandatory
-      </span>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn pri" id="gate_inv_btn" type="button" style="font-weight:700;font-size:13.5px;padding:8px 16px;border-radius:999px;background:#0284c7;border:none;box-shadow:0 4px 14px -3px rgba(2,132,199,.7);color:#fff;display:inline-flex;align-items:center;gap:6px;cursor:pointer" title="Generate a secure invitation link for a visitor to pre-register">✉️ Invite Visitor</button>
+        <span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-weight:600;font-size:12px;padding:4px 10px">
+          ⚠️ Host Clearance Mandatory
+        </span>
+      </div>
     </div>
     <div style="margin-top:14px">
       ${regForm(true)}
@@ -4120,6 +4122,7 @@ function wire(){
   const qs=$("#qscan"); if(qs) qs.onclick=scanBadge;
   const ib=$("#invNew"); if(ib) ib.onclick=createInvite;
   const tib=$("#top_inv_btn"); if(tib) tib.onclick=openInviteDialog;
+  const gib=$("#gate_inv_btn"); if(gib) gib.onclick=openInviteDialog;
   const invH=$("#inv_host"), invAg=$("#inv_agency");
   if(invH&&invAg){
     const hostAgencyMap={"Dr. K. Ibrahim":"WHO","S. Garba":"UNDP","P. Obi":"UNHCR","A. Lawal":"WFP","T. Musa":"UNICEF","R. Bassey":"UNFPA","Comms Office":"UN Women","Facilities Unit":"Common Services","Resident Coordinator":"Common Services"};
