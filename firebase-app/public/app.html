@@ -486,15 +486,21 @@ td{vertical-align:middle}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .av{color:hsl(var(--h) 70% 82%);background:hsl(var(--h) 35% 24%)}}
 .vis-t{min-width:0}.vn{font-weight:650;font-size:13.5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;line-height:1.25}.vn2{font-weight:600;font-size:13px;line-height:1.25}
 .vs{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.3}.vs .ref{font-size:11px}
-.tl{list-style:none;margin:0;padding:0;display:flex;align-items:flex-start}
-.tl li{position:relative;padding:0 12px 0 0;display:flex;flex-direction:column;gap:1px;font-size:10.5px;color:var(--muted)}
-.tl li:not(:last-child)::after{content:"";position:absolute;bottom:7px;right:4px;width:6px;height:1px;background:var(--line)}
-.tl li b{font-family:var(--mono);font-weight:600;font-size:12px;color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap}
-.tl li.muted b{color:var(--muted)} .tl li.cur span{color:var(--accent);font-weight:600} .tl li.cur b{font-weight:600}
-.tl-dur{display:inline-block;margin-top:4px;font-size:10.5px;font-weight:600;color:var(--ok);background:var(--ok-bg);padding:1px 7px;border-radius:999px}
-.tl-dur.warn{color:var(--warn);background:var(--warn-bg)} .tl-dur.muted{color:var(--muted);background:var(--surface2)}
+.tl{list-style:none;margin:0;padding:0;display:inline-flex;align-items:center;gap:6px;flex-wrap:nowrap}
+.tl li{display:flex;flex-direction:column;gap:1px;min-width:max-content}
+.tl li span{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);line-height:1}
+.tl li b{font-family:var(--mono);font-weight:600;font-size:11.5px;color:var(--fg);font-variant-numeric:tabular-nums;white-space:nowrap;line-height:1.2}
+.tl li.cur span{color:#0284c7;font-weight:700}
+.tl li.cur b{color:#0284c7;font-weight:700}
+.tl li.muted span{color:var(--muted);opacity:0.85}
+.tl li.muted b{color:var(--fg);opacity:0.9}
+.tl-sep{font-size:11px;color:#94a3b8;user-select:none;display:inline-flex;align-items:center;margin-top:9px}
+.tl-dur{display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-size:10.5px;font-weight:600;color:var(--ok);background:var(--ok-bg);padding:2px 8px;border-radius:999px;border:1px solid color-mix(in srgb,var(--ok) 25%,transparent)}
+.tl-dur.warn{color:#92400e;background:#fef3c7;border-color:#fde68a}
+.tl-dur.muted{color:var(--muted);background:var(--surface2);border-color:var(--line)}
 .st{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;white-space:nowrap}
-.tagchip{font-family:var(--mono);font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px dashed color-mix(in srgb,var(--fg) 30%,transparent);white-space:nowrap}
+.tagchip{font-family:var(--mono);font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;background:#f1f5f9;color:#334155;border:1px solid #cbd5e1;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.04)}
+:root[data-theme=dark] .tagchip{background:#1e293b;color:#e2e8f0;border-color:#334155}
 .btn-tag-exchange{display:inline-flex;align-items:stretch;padding:0!important;border-radius:8px;overflow:hidden;border:1.5px solid #0284c7;background:#0284c7;box-shadow:0 1px 3px rgba(2,132,199,0.18);white-space:nowrap;cursor:pointer;line-height:1;height:32px;transition:all .18s cubic-bezier(0.4, 0, 0.2, 1);outline:none;text-decoration:none}
 .btn-tag-exchange::before{display:none!important}
 .btn-tag-exchange:hover{border-color:#0369a1;box-shadow:0 3px 8px rgba(2,132,199,0.28);transform:translateY(-1px)}
@@ -505,7 +511,8 @@ td{vertical-align:middle}
 .btn-tag-exchange:hover .tag-act{background:#0369a1}
 .btn-tag-exchange .arr{font-size:13px;transition:transform .18s ease;display:inline-block}
 /* Fixed columns so actions line up row to row: main action | pass | group pass */
-.row-acts{display:grid;grid-template-columns:1fr 31px 31px;gap:5px;align-items:center;justify-items:end}
+.row-acts{display:flex;gap:6px;align-items:center;justify-content:flex-end}
+.ra-main{display:inline-flex;gap:5px;align-items:center}
 .ra-main{display:flex;gap:6px;align-items:center;justify-content:flex-end;white-space:nowrap;flex-wrap:nowrap}
 .ra-slot{width:31px;height:31px}
 .btn.icon{width:31px;height:31px;padding:0;gap:0;border-radius:7px}
@@ -525,7 +532,7 @@ tbody tr:hover td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .tw.tight-table .vs{font-size:11px;margin-top:1px}
 .tw.tight-table .vn2{font-size:12.5px}
 .tw.tight-table .tl{gap:2px}
-.tw.tight-table .tl li{padding:0 10px 0 0;font-size:10.5px}
+.tw.tight-table .tl li{font-size:10px}
 .tw.tight-table .tl li b{font-size:11.5px}
 .tw.tight-table .tl-dur{margin-top:2px;padding:1px 6px;font-size:10.5px}
 .tw.tight-table .st{gap:4px}
@@ -3543,8 +3550,13 @@ const stayMs=v=>now()>v.inAt?now()-v.inAt:Math.max(15*60e3,(today0()+12*3600e3)-
 function timeline(v){
   const steps=[["Expected",v.expected],["Gate",v.arrivedAt],["In",v.inAt],["Out",v.outAt]].filter((x,k)=>k===0||x[1]);
   const last=steps.length-1;
-  return `<ol class="tl">${steps.map((x,k)=>`<li class="${k===last?"cur":""}${k===0&&last>0?" muted":""}"><span>${x[0]}</span><b>${fmtT(x[1])}</b></li>`).join("")}</ol>`
-    +(v.status==="in"&&v.inAt?`<div class="tl-dur${overstay(v)?" warn":""}">Inside ${dur(stayMs(v))}${v.extendedUntil?` · ext. to ${fmtT(v.extendedUntil)}`:""}</div>`:v.outAt&&v.inAt?`<div class="tl-dur muted">Stayed ${dur(v.outAt-v.inAt)}</div>`:"");
+  const items = steps.map((x,k)=>{
+    const isCur = k===last;
+    const isMuted = k===0 && last>0;
+    return `<li class="${isCur?"cur":""}${isMuted?" muted":""}"><span>${x[0]}</span><b>${fmtT(x[1])}</b></li>`;
+  });
+  return `<ol class="tl">${items.join('<span class="tl-sep">→</span>')}</ol>`
+    +(v.status==="in"&&v.inAt?`<div class="tl-dur${overstay(v)?" warn":""}">⏱️ Inside ${dur(stayMs(v))}${v.extendedUntil?` · ext. to ${fmtT(v.extendedUntil)}`:""}</div>`:v.outAt&&v.inAt?`<div class="tl-dur muted">✓ Stayed ${dur(v.outAt-v.inAt)}</div>`:"");
 }
 function authBy(v){
   return (v.extendedUntil?`<div class="vs" style="color:var(--ok)" title="${esc(v.extendedNote||"")}">Extended to ${fmtT(v.extendedUntil)} · host ${esc(v.hostPermittedBy||v.host)}</div>`:"")
