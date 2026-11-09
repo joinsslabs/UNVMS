@@ -587,9 +587,9 @@ const ROLES={
 };
 const ROLE_STATION={gate:"S1",sec_admin:"S1",sec_deputy:"S1",docs:"S2",reception:"S3",vip:"S4",host:"S3"};
 const ROLE_VIEWS={
-  admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  sec_admin:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  sec_deputy:["dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  admin:["dashboard","clearance","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_admin:["clearance","dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_deputy:["clearance","dashboard","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
   gate:["gate","contractors","register","watch","history"],
   docs:["tagging","contractors","register","history"],
   reception:["reception","kiosk","register","history"],
@@ -672,7 +672,7 @@ const myUid=()=>fb&&me?me.uid:"demo:"+$("#operator").value;
 $("#station").onchange=()=>{try{localStorage.setItem("station",station())}catch(e){} view=defaultView(); render()};
 $("#operator").onchange=()=>{try{localStorage.setItem("op",op())}catch(e){} render()};
 function defaultView(){
-  if(fb){const r=myRole(); return {sec_admin:"gate",sec_deputy:"gate",gate:"gate",docs:"tagging",reception:"reception",vip:"vip"}[r]||"dashboard"}
+  if(fb){const r=myRole(); return {sec_admin:"clearance",sec_deputy:"clearance",gate:"gate",docs:"tagging",reception:"reception",vip:"vip",host:"register"}[r]||"dashboard"}
   return {S1:"gate",S2:"tagging",S3:"reception",S4:"vip"}[station()] || "dashboard"}
 
 const now=()=>Date.now();
@@ -1111,6 +1111,7 @@ function alertList(limit){
 /* ---------- views ---------- */
 const VIEWS=[
   ["dashboard","Dashboard","Overview",'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>'],
+  ["clearance","UNDSS Clearance","Clearance & Approvals",'<path d="M12 2.5l7.5 3.2v5.8c0 5-3.2 9.4-7.5 11-4.3-1.6-7.5-6-7.5-11V5.7L12 2.5z"/>'],
   ["gate","Station 1 · Gate","Stations",'<path d="M12 2.5l7.5 3.2v5.8c0 5-3.2 9.4-7.5 11-4.3-1.6-7.5-6-7.5-11V5.7L12 2.5z"/>'],
   ["tagging","Station 2 · Documentation","Stations",'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
   ["reception","Station 3 · Reception","Stations",'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'],
@@ -1128,15 +1129,21 @@ const VIEWS=[
 ];
 function renderNav(){
   const pendCount=visitors.filter(v=>v.status==="pending").length;
-  const c={gate:visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length+pendCount,
-    tagging:visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,reception:visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
-    vip:visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length};
+  const subInvCount=(invites||[]).filter(i=>i.status==="submitted"&&i.guest).length;
+  const totalClearance=pendCount+subInvCount;
+  const c={
+    clearance: totalClearance,
+    gate: visitors.filter(v=>["approved","arrived"].includes(v.status)&&isToday(v.expected)).length,
+    tagging: visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,
+    reception: visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
+    vip: visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length
+  };
   c.staff=staffList.filter(s=>s.role==="pending").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
     const hdr=sec!==lastSec?(lastSec=sec,`<div class="nav-sec">${esc(sec)}</div>`):"";
-    const hot=c[k]&&["staff"].includes(k)?" hot":"";
+    const hot=(c[k]&&["staff","clearance"].includes(k))?" hot":"";
     return `${hdr}<button class="${view===k?"on":""}" data-v="${k}"><span class="nl"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true">${ic}</svg><span>${l}</span></span>${c[k]?`<span class="cnt${hot}">${c[k]}</span>`:""}</button>`;
   }).join("");
   $("#nav").querySelectorAll("button").forEach(b=>b.onclick=()=>{goView(b.dataset.v)});
@@ -1407,7 +1414,7 @@ function inviteView(){
   const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
   return `<div class="panel">
     <h2 style="margin:0;display:flex;align-items:center;gap:8px">✉️ Invite a Visitor <span class="cnt hot">For Any UN Staff Host</span></h2>
-    <p class="small" style="margin:4px 0 0;color:var(--muted)">Generate a personalized pre-registration link for your visitor. Visitors fill in their own name, phone, organisation and arrival time without needing an account. Gate 1 automatically receives their registration for immediate compound clearance.</p>
+    <p class="small" style="margin:4px 0 0;color:var(--muted)">Generate a personalized pre-registration link for your visitor. Visitors fill in their own name, phone, organisation and arrival time without needing an account. The request routes to the <b>Facilities Security Manager (FSM)</b> for UNDSS clearance before being scheduled at Station 1.</p>
     
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:14px 0 10px">
       <div class="f">
@@ -1441,9 +1448,16 @@ function inviteView(){
     <div class="acts" style="margin-top:12px">
       <button class="btn pri" id="invNew" type="button" style="font-weight:700">Create &amp; Share Visitor Link</button>
     </div>
-    <p class="small" style="color:var(--muted);margin:8px 0 0">Visitor greeting preview: <i>"[Host Name] ([Host Agency]) has invited you. Fill in your details so the gate can expect you."</i></p>
+    <p class="small" style="color:var(--muted);margin:8px 0 0">Visitor greeting preview: <i>"[Host Name] ([Host Agency]) has invited you. Fill in your details so the Facilities Security Manager and gate can clear your entry."</i></p>
 
-    ${sub.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Details received <span class="cnt hot">${sub.length}</span></h2><div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Action</th></tr></thead><tbody>${sub.map(i=>`<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve and assign next available badge">✓ Approve &amp; Allocate Tag</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
+    ${sub.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Details received <span class="cnt hot">${sub.length}</span></h2>
+    <div class="note" style="background:#eff6ff;border:1px solid #bfdbfe;color:#1e40af;margin-bottom:10px;font-size:12.5px">
+      🛡️ <b>Pre-Arrival Clearance Protocol:</b> Pre-registrations route to the <b>Facilities Security Manager (FSM)</b> for UNDSS clearance. Once cleared, guests are dispatched to Station 1 as Expected Visitors.
+    </div>
+    <div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Clearance Status &amp; Action</th></tr></thead><tbody>${sub.map(i=>{
+      const canApprove = ["sec_admin","sec_deputy","admin"].includes(myRole());
+      return `<tr><td><b>${esc(i.guest.name)}</b><div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div></td><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}</div></td><td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td><td>${esc(i.guest.purpose||"Meeting")}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end">${canApprove ? `<button class="btn pri" data-inv-use="${esc(i.id)}" title="Grant UNDSS Clearance and dispatch to Station 1">✓ Grant FSM Clearance</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button>` : `<span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-weight:600">⏳ Awaiting FSM Security Clearance</span>`}</div></td></tr>`;
+    }).join("")}</tbody></table></div>`:""}
     ${open.length?`<h2 style="margin-top:20px;display:flex;align-items:center;gap:8px">Waiting for the guest <span class="cnt">${open.length}</span></h2><div class="tw"><table><thead><tr><th>Host &amp; Agency</th><th>Created / Expires</th><th style="text-align:right">Actions</th></tr></thead><tbody>${open.map(i=>`<tr><td><b>${esc(i.host)}</b><div class="small">${esc(i.agency||"")}${i.room?` · Room ${esc(i.room)}`:""}</div></td><td class="small">Created ${fmtD(i.createdAt)}<br>expires ${fmtD(i.expires)}</td><td style="text-align:right"><div class="acts" style="justify-content:flex-end"><button class="btn" data-inv-copy="${esc(i.id)}">📋 Copy link</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Cancel</button></div></td></tr>`).join("")}</tbody></table></div>`:""}
   </div>`;
 }
@@ -1604,7 +1618,7 @@ async function useInvite(arg){
   }
 
   saveDemo();
-  toast(`✓ ${g.name} approved & tag ${assignedTag} allocated. Ready for entry at Station 1.`);
+  toast(`✓ Pre-registration for ${g.name} cleared by Facilities Security Manager. Dispatched to Station 1 as Expected Guest.`);
   render();
 }
 
@@ -3464,7 +3478,7 @@ V.dashboard=()=>{
   </div>
   <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>canAct("checkout")?B(v.id,"checkout","Check out","pri"):"","Nobody is checked in.")}</div>`;
 };
-V.gate=()=>{
+V.clearance=()=>{
   loadDemoGuests();
   loadDemoInvites();
   const subInv=(invites||[]).filter(i=>{
@@ -3483,18 +3497,6 @@ V.gate=()=>{
   const totalPending = subInv.length + pend.length;
   const grps={}; pend.filter(v=>v.group&&!ownRequest(v)).forEach(v=>{(grps[v.group]=grps[v.group]||[]).push(v)});
   const batchBar=Object.entries(grps).filter(([,l])=>l.length>1).map(([g,l])=>`<button class="btn pri" data-approve-grp="${esc(g)}">Approve all ${l.length} in "${esc(g)}"</button>`).join("");
-  const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
-  const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>{
-    const timeA = a.decidedAt || a.arrivedAt || a.registeredAt || a.createdAt || a.expected || 0;
-    const timeB = b.decidedAt || b.arrivedAt || b.registeredAt || b.createdAt || b.expected || 0;
-    return timeB - timeA;
-  }));
-  const insideList=filterQ(visitors.filter(v=>v.status==="in"||v.status==="tagged"||(v.type==="vip"&&["arrived","in"].includes(v.status))));
-  const done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
-
-  const availV = getAvailableTags("visitor");
-  const availC = getAvailableTags("contractor");
-  const usedTags = visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag);
 
   const gov = getUndssGov();
   const isGovManager = ["sec_admin", "sec_deputy", "gate", "admin"].includes(myRole());
@@ -3536,10 +3538,11 @@ V.gate=()=>{
       ` : ''}
     </div>`;
 
-  return head("Station 1 · Reception, Approvals & Compound Access","Station 1. Review incoming visitor requests, verify expected guests, manage physical tag inventory rack, and admit visitors through Station 1 to Station 2.")+
+  const recentlyCleared = visitors.filter(v=>v.decidedBy&&v.status==="approved").sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
+
+  return head("UNDSS Clearance · Pre-Arrival Security Approvals","Pre-arrival visitor screening and authorization desk. The Facilities Security Manager (FSM) reviews and clears invitations and staff visit requests before visitors are dispatched to Station 1 for compound access.")+
   govBar+
   
-  /* Unified Pending Clearance Approvals Panel (Online Pre-Registrations + Staff Requests) */
   (totalPending > 0 ? `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-radius:12px;box-shadow:0 3px 12px rgba(2,132,199,.1);padding:18px 20px;margin-bottom:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
       <h2 style="margin:0;font-size:18px;color:#0369a1;display:flex;align-items:center;gap:8px">
@@ -3551,14 +3554,14 @@ V.gate=()=>{
         ${batchBar ? batchBar : ""}
       </div>
     </div>
-    <p class="small" style="margin:0 0 14px;color:var(--muted)">All visitor clearance requests evaluated in real-time across <b>UNDSS, UN Security Council (UNSC)</b> and <b>Nigerian National Security</b> watchlists before compound admission.</p>
+    <p class="small" style="margin:0 0 14px;color:var(--muted)">All visitor clearance requests evaluated in real-time across <b>UNDSS, UN Security Council (UNSC)</b> and <b>Nigerian National Security</b> watchlists. Once approved by FSM, visitors automatically flow to Station 1 as Expected Guests.</p>
 
     ${subInv.length ? `
     <div style="margin-bottom:${pend.length?'18px':'0'}">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="font-size:12.5px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.04em">📩 Online Pre-Registrations Received (${subInv.length})</span>
       </div>
-      <div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">Station 1 Clearance Action</th></tr></thead><tbody>
+      <div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">FSM Clearance Action</th></tr></thead><tbody>
         ${subInv.map(i=>{
           const wm=watchMatch(i.guest.name);
           const src=wm?(wm.source==="unsc"?"UNSC Sanctions":(wm.source==="nigeria"?"Nigerian National":"UNDSS")):"";
@@ -3577,7 +3580,7 @@ V.gate=()=>{
                   <button class="btn bad" data-watchlist-reject-inv="${esc(i.id)}" style="background:#991b1b;color:#fff;font-weight:700" title="Reject request immediately due to Security Sanctions / Watchlist hit">🚫 Reject Request (Watchlist Hit)</button>
                   <button class="btn pri" data-inv-use="${esc(i.id)}" title="Review clearance dossier">Review &amp; Clear</button>
                 `:`
-                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve this pre-registered visitor and allocate next available tag">${gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "✓ Alternate Clearance &amp; Allocate Tag" : "✓ Approve &amp; Allocate Tag"}</button>
+                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve pre-registration and dispatch to Station 1">${gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "✓ Alternate Clearance" : "✓ Grant Clearance"}</button>
                   <button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button>
                 `}
               </div>
@@ -3601,13 +3604,47 @@ V.gate=()=>{
           return `<button class="btn bad" data-watchlist-reject-vis="${esc(v.id)}" style="background:#991b1b;color:#fff;font-weight:700" title="Reject request immediately due to Security Sanctions / Watchlist hit">🚫 Reject Request (${src} Hit)</button>`
             + B(v.id,"detail","Details");
         }
-        return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Station 1 must call and confirm with host on desk phone first">📞 Confirm with Host First (Ext. ${esc(ext)})</button>` : "")
-          + B(v.id,"approve", gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "✓ Alternate Clearance & Allocate Tag" : "✓ Approve & Allocate Tag", "pri")
+        return (isUnsch ? `<button class="btn" data-confirm-host="${esc(v.id)}" style="background:#fef3c7;border-color:#fde68a;color:#92400e;font-weight:700" title="Unscheduled visitor: Confirm with host on desk phone first">📞 Confirm with Host (Ext. ${esc(ext)})</button>` : "")
+          + B(v.id,"approve", gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "✓ Alternate Clearance" : "✓ Grant Clearance", "pri")
           + B(v.id,"reject","Reject","bad");
       },"No pending staff requests.")}
     </div>` : ""}
 
-  </div>` : `<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px;background:#f0fdf4;border-color:#bbf7d0;color:#166534"><span>✓ <b>No pending approvals.</b> All visitor pre-registrations and clearance requests have been decided.</span></div>`)+
+  </div>` : `<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px;background:#f0fdf4;border-color:#bbf7d0;color:#166534"><span>✓ <b>No pending clearance requests.</b> All visitor invitations have been decided and dispatched to Station 1.</span></div>`)+
+  
+  /* Recently Cleared List in Clearance Desk */
+  `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <h2 style="margin:0;display:flex;align-items:center;gap:8px">
+        Recently Cleared &amp; Dispatched to Station 1 <span class="cnt">${recentlyCleared.length}</span>
+      </h2>
+      <span class="pill" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;font-weight:600">En Route / Scheduled at Gate</span>
+    </div>
+    <p class="small" style="color:var(--muted);margin:0 0 10px">Visitors cleared by Facilities Security Manager. These visitors appear in Station 1's expected list awaiting gate arrival.</p>
+    ${table(recentlyCleared, v=>`
+      <span class="pill p-approved" title="Cleared by ${esc(v.decidedBy)}">✓ Cleared for Station 1</span>
+      ${B(v.id,"detail","Details")}
+    `, "No recently cleared visitors.")}
+  </div>`;
+};
+
+V.gate=()=>{
+  loadDemoGuests();
+  loadDemoInvites();
+  const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
+  const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>{
+    const timeA = a.decidedAt || a.arrivedAt || a.registeredAt || a.createdAt || a.expected || 0;
+    const timeB = b.decidedAt || b.arrivedAt || b.registeredAt || b.createdAt || b.expected || 0;
+    return timeB - timeA;
+  }));
+  const insideList=filterQ(visitors.filter(v=>v.status==="in"||v.status==="tagged"||(v.type==="vip"&&["arrived","in"].includes(v.status))));
+  const done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
+
+  const availV = getAvailableTags("visitor");
+  const availC = getAvailableTags("contractor");
+  const usedTags = visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag);
+
+  return head("Station 1 · Gate Reception & Compound Access","Station 1. Verify expected & cleared visitors, manage physical tag inventory rack, and admit cleared visitors through Station 1 to Station 2.")+
   
   /* Station 1 Available Tags Feed & Physical Rack Inventory */
   `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#ffffff,#f8fafc);box-shadow:0 3px 12px rgba(2,132,199,.08);border-radius:12px;padding:18px 20px">
@@ -4174,10 +4211,46 @@ function regForm(walkin){
   </div><div class="acts" style="margin-top:14px"><button class="btn pri" type="submit" ${walkin?'style="background:#1e3a8a;border-color:#1e3a8a"':""}>${walkin?"✓ Register & Process Unscheduled Visitor":"Register visitor"}</button></div>
   <p class="small">${walkin?"Unscheduled visitors confirmed by host are admitted at Station 1 (tag allocated) and proceed to Station 2 Documentation. If host has not yet confirmed, they enter Pending Approvals until phone clearance is logged.":"Every registered visitor starts as <b>Pending approval</b> until approved by an approver, after which they appear as <b>Approved · expected</b> at the gate. No ID scans are stored."}</p></form>`;
 }
-V.register=()=>head("Register visitors","Register one visitor, send a guest a link to fill in their own details, or upload a list.")+inviteView()+
+V.register=()=>{
+  loadDemoInvites();
+  loadDemoGuests();
+  const pendRequests = visitors.filter(v=>v.status==="pending").sort((a,b)=>(b.registeredAt||b.createdAt||0)-(a.registeredAt||a.createdAt||0));
+  const subInv = (invites||[]).filter(i=>i.status==="submitted"&&i.guest);
+  const totalPending = pendRequests.length + subInv.length;
+  const isFsmApprover = ["sec_admin","sec_deputy","admin"].includes(myRole());
+
+  return head("Register visitors","Register one visitor, send a guest a link to fill in their own details, or upload a list.")+
+  
+  `<div class="note" style="background:#eff6ff;border:1.5px solid #bfdbfe;color:#1e40af;margin-bottom:14px;padding:12px 16px;border-radius:10px;display:flex;align-items:center;gap:12px;font-size:13px">
+    <span style="font-size:22px">🛡️</span>
+    <div>
+      <b>UNDSS Pre-Arrival Clearance Protocol:</b> When a staff member invites or registers a guest, clearance authorization must flow first to the <b>Facilities Security Manager (FSM)</b>. Station 1 Gate flow is kept free of approval bottlenecks — <b>if the FSM does not approve a request, it does not even go to Station 1.</b>
+    </div>
+  </div>`+
+
+  (totalPending > 0 ? `
+  <div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-radius:12px;box-shadow:0 3px 12px rgba(2,132,199,.08);margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <h2 style="margin:0;font-size:17px;color:#0369a1;display:flex;align-items:center;gap:8px">
+        ⏳ Guest Requests Awaiting FSM Security Clearance <span class="cnt hot">${totalPending}</span>
+      </h2>
+      ${isFsmApprover ? `<button class="btn pri" onclick="goView('clearance')" style="font-size:12px;padding:4px 10px">Open Full UNDSS Clearance Desk ➔</button>` : `<span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-size:11px">Pending FSM Decision · Station 1 Locked</span>`}
+    </div>
+    <p class="small" style="margin:0 0 12px;color:var(--muted)">These visitor requests are awaiting Facilities Security Manager authorization. Once approved, they are automatically scheduled at Station 1 for compound access.</p>
+    
+    ${table(pendRequests, v=>{
+      if(isFsmApprover){
+        return B(v.id, "approve", "✓ Grant FSM Clearance", "pri") + B(v.id, "reject", "Reject", "bad");
+      }
+      return `<span class="pill p-pending">⏳ Awaiting FSM Clearance</span> ` + B(v.id, "detail", "Details");
+    }, "No staff requests currently pending.")}
+  </div>` : "")+
+
+  inviteView()+
   `<div class="panel"><h2>Single visitor</h2>${regForm(false)}</div>
    <div class="panel"><h2>Bulk registration</h2><p class="small">Upload a CSV, a PDF, or a photo or scan of a printed list. One visitor per line, in this order: name, organisation, host, agency, type, expected date and time, purpose. You check every row before anything is registered. ${fb&&features.handwriting?"For handwritten lists, tick the box first.":"Handwritten lists need the AI reader, which an administrator can switch on."}</p>
    ${fb&&features.handwriting?`<label class="small" style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input type="checkbox" id="hwList" style="width:auto"> This list is handwritten (read by the AI service)</label>`:""}<div class="acts"><input type="file" id="csv" accept=".csv,text/csv,.pdf,application/pdf,image/png,image/jpeg,image/webp" style="max-width:340px"></div><div id="csvOut" class="small" style="margin-top:8px" aria-live="polite"></div><div id="bulkReview"></div></div>`;
+};
 // Approvals consolidated into V.gate
 V.contractors=()=>{
   const list=filterQ(visitors.filter(v=>v.type==="contractor"));
@@ -5630,14 +5703,14 @@ function doAct(a,v){
       );
     }
     const tag=(v.type!=="vip"&&!v.assignedTag)?nextAvailableTag(v.type):(v.assignedTag||null);
-    return act(v,`Approved at Station 1${tag?`; assigned tag ${tag}`:""}`,{
+    return act(v,`Cleared by UNDSS; dispatched to Station 1${tag?`; pre-assigned tag ${tag}`:""}`,{
       status:"approved",
       assignedTag:tag,
       decidedBy:clearanceStamp("Approved"),
       decidedByUid:myUid(),
       decidedAt:now(),
       rejectReason:""
-    }).then(()=>toast(`${v.name} approved at Station 1.${tag?` Assigned Tag: ${tag}.`:""}`));
+    }).then(()=>toast(`✓ ${v.name} cleared by UNDSS. Dispatched to Station 1 as Expected Guest.`));
   }
   if(a==="reject"){
     return modal(`<h2>Reject ${esc(v.name)}'s request?</h2>
