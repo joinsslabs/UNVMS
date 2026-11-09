@@ -3,1306 +3,260 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>UN House Visitor Management &amp; Access Control System | Abuja</title>
-<meta name="description" content="Official enterprise visitor management, physical ID safe custody, watchlist screening, and inward mail registry system for United Nations House, Abuja.">
+<title>UN House Visitor Management System</title>
+<meta name="description" content="Access and visitor management for United Nations House, Abuja: registration, approvals, tagging, reception and VIP access across four stations.">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+/* Layout: navy masthead band with sign-in, then a station strip, capabilities grid, security notes, footer */
 :root{
-  --bg:#f8fafc;
-  --surface:#ffffff;
-  --surface2:#f1f5f9;
-  --surface-trans:rgba(255,255,255,0.85);
-  --fg:#0f172a;
-  --fg-sub:#334155;
-  --muted:#64748b;
-  --line:#e2e8f0;
-  --navy:#0b192c;
-  --navy-deep:#050d18;
-  --navy-surface:#10223b;
-  --accent:#0284c7;
-  --accent-light:#38bdf8;
-  --accent-glow:rgba(2,132,199,0.35);
-  --ok:#0284c7;
-  --ok-bg:#e0f2fe;
-  --indigo:#4338ca;
-  --indigo-bg:#eef2ff;
-  --sans:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
-  --shadow-sm:0 1px 3px rgba(15,23,42,0.06);
-  --shadow-md:0 6px 16px -2px rgba(15,23,42,0.08),0 2px 6px -1px rgba(15,23,42,0.04);
-  --shadow-lg:0 20px 40px -10px rgba(15,23,42,0.12),0 8px 16px -4px rgba(15,23,42,0.06);
-  --shadow-glow:0 0 40px -5px rgba(2,132,199,0.3);
+  --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --fg:#0f172a; --muted:#526077; --line:#e2e8f0;
+  --navy:#0f1a30; --navy2:#080e1c; --accent:#0284c7; --accent-fg:#ffffff; --onnavy:#ffffff; --onnavy-muted:#94a3b8;
+  --ok:#0284c7; --ok-bg:#e0f2fe;
+  --shadow:0 1px 3px rgba(15,23,42,.04),0 10px 25px -5px rgba(15,23,42,.08);
+  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
 }
-
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
+  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
+  --ok:#38bdf8; --ok-bg:#0c2d48; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#070d18;
-  --surface:#0e1726;
-  --surface2:#162238;
-  --surface-trans:rgba(14,23,38,0.85);
-  --fg:#f8fafc;
-  --fg-sub:#cbd5e1;
-  --muted:#94a3b8;
-  --line:#1e2e4a;
-  --navy:#070d18;
-  --navy-deep:#03070d;
-  --navy-surface:#0f1a2d;
-  --accent:#38bdf8;
-  --accent-light:#7dd3fc;
-  --accent-glow:rgba(56,189,248,0.3);
-  --ok:#38bdf8;
-  --ok-bg:#082f49;
-  --indigo:#a5b4fc;
-  --indigo-bg:#1e1b4b;
-  --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md:0 8px 20px -3px rgba(0,0,0,0.5);
-  --shadow-lg:0 24px 48px -12px rgba(0,0,0,0.7);
-  --shadow-glow:0 0 50px -5px rgba(56,189,248,0.25);
-  color-scheme:dark;
-}
-
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --bg:#070d18;
-    --surface:#0e1726;
-    --surface2:#162238;
-    --surface-trans:rgba(14,23,38,0.85);
-    --fg:#f8fafc;
-    --fg-sub:#cbd5e1;
-    --muted:#94a3b8;
-    --line:#1e2e4a;
-    --navy:#070d18;
-    --navy-deep:#03070d;
-    --navy-surface:#0f1a2d;
-    --accent:#38bdf8;
-    --accent-light:#7dd3fc;
-    --accent-glow:rgba(56,189,248,0.3);
-    --ok:#38bdf8;
-    --ok-bg:#082f49;
-    --indigo:#a5b4fc;
-    --indigo-bg:#1e1b4b;
-    --shadow-sm:0 1px 3px rgba(0,0,0,0.3);
-    --shadow-md:0 8px 20px -3px rgba(0,0,0,0.5);
-    --shadow-lg:0 24px 48px -12px rgba(0,0,0,0.7);
-    --shadow-glow:0 0 50px -5px rgba(56,189,248,0.25);
-    color-scheme:dark;
-  }
-}
-
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-body{
-  background:var(--bg);
-  color:var(--fg);
-  font-family:var(--sans);
-  font-size:16px;
-  line-height:1.6;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  overflow-x:hidden;
-}
-
-/* Container & Layout */
-.wrap{max-width:1220px;margin:0 auto;padding:0 24px}
-@media (max-width:768px){.wrap{padding:0 18px}}
-
-/* Navigation Bar */
-header.site-header{
-  position:sticky;
-  top:0;
-  z-index:90;
-  background:rgba(11,25,44,0.92);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.nav-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  height:76px;
-  gap:20px;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  text-decoration:none;
-  color:#ffffff;
-}
-.brand-emblem{
-  width:46px;
-  height:46px;
-  border-radius:11px;
-  background:#0284c7;
-  display:grid;
-  place-items:center;
-  box-shadow:0 2px 10px rgba(2,132,199,0.4);
-  flex-shrink:0;
-  padding:5px;
-}
-.brand-emblem svg{
-  width:100%;
-  height:100%;
-  display:block;
-}
-.brand-text{display:flex;flex-direction:column}
-.brand-title{
-  font-size:17px;
-  font-weight:800;
-  letter-spacing:-0.01em;
-  line-height:1.15;
-  color:#ffffff;
-}
-.brand-sub{
-  font-size:11px;
-  font-weight:600;
-  letter-spacing:0.08em;
-  text-transform:uppercase;
-  color:#94a3b8;
-  margin-top:2px;
-}
-
-.nav-links{
-  display:flex;
-  align-items:center;
-  gap:28px;
-  list-style:none;
-}
-.nav-links a{
-  color:#cbd5e1;
-  text-decoration:none;
-  font-size:14px;
-  font-weight:600;
-  transition:color .18s ease;
-}
-.nav-links a:hover{color:#38bdf8}
-
-.nav-actions{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-/* Sleek Buttons */
-.btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  padding:10px 20px;
-  border-radius:10px;
-  font-weight:650;
-  font-size:14px;
-  text-decoration:none;
-  white-space:nowrap;
-  cursor:pointer;
-  transition:all .18s cubic-bezier(0.4, 0, 0.2, 1);
-  border:1px solid transparent;
-}
-.btn-pri{
-  background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);
-  color:#ffffff;
-  box-shadow:0 4px 14px rgba(2,132,199,0.38),0 1px 2px rgba(0,0,0,0.1);
-}
-.btn-pri:hover{
-  background:linear-gradient(135deg,#0369a1 0%,#075985 100%);
-  transform:translateY(-1.5px);
-  box-shadow:0 8px 24px rgba(2,132,199,0.5);
-  color:#ffffff;
-}
-.btn-ghost-dark{
-  background:rgba(255,255,255,0.08);
-  color:#ffffff;
-  border-color:rgba(255,255,255,0.18);
-}
-.btn-ghost-dark:hover{
-  background:rgba(255,255,255,0.16);
-  border-color:rgba(255,255,255,0.3);
-  color:#ffffff;
-  transform:translateY(-1.5px);
-}
-.btn-outline{
-  background:var(--surface);
-  color:var(--fg);
-  border-color:var(--line);
-  box-shadow:var(--shadow-sm);
-}
-.btn-outline:hover{
-  border-color:var(--accent);
-  color:var(--accent);
-  transform:translateY(-1.5px);
-  box-shadow:var(--shadow-md);
-}
-.tbtn{
-  width:40px;
-  height:40px;
-  border-radius:10px;
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.14);
-  color:#ffffff;
-  display:grid;
-  place-items:center;
-  cursor:pointer;
-  transition:all .15s ease;
-}
-.tbtn:hover{background:rgba(255,255,255,0.16);transform:scale(1.05)}
-.tbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2}
-
-/* Hero Section */
-.hero{
-  position:relative;
-  background:radial-gradient(1200px 600px at 75% 20%,rgba(2,132,199,0.28) 0%,rgba(11,25,44,0.95) 70%),
-             linear-gradient(180deg,#070d18 0%,#0b192c 100%);
-  color:#ffffff;
-  padding:72px 0 96px;
-  overflow:hidden;
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.hero::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:radial-gradient(circle at 15% 90%,rgba(56,189,248,0.12) 0%,transparent 50%);
-  pointer-events:none;
-}
-.hero-grid{
-  display:grid;
-  grid-template-columns:1.15fr 0.85fr;
-  gap:56px;
-  align-items:center;
-  position:relative;
-  z-index:2;
-}
-.hero-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:9px;
-  padding:6px 14px;
-  border-radius:999px;
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.18);
-  font-family:var(--mono);
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:0.04em;
-  color:#7dd3fc;
-  backdrop-filter:blur(8px);
-  margin-bottom:24px;
-}
-.hero-badge .pulse{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  background:#38bdf8;
-  box-shadow:0 0 10px #38bdf8;
-  animation:badgePulse 2s infinite ease-in-out;
-}
-@keyframes badgePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:0.6}}
-
-.hero h1{
-  font-size:46px;
-  font-weight:800;
-  line-height:1.15;
-  letter-spacing:-0.03em;
-  margin-bottom:20px;
-}
-.hero h1 span.highlight{
-  background:linear-gradient(135deg,#38bdf8 20%,#ffffff 80%);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
-.hero-desc{
-  font-size:17.5px;
-  line-height:1.6;
-  color:#cbd5e1;
-  max-width:560px;
-  margin-bottom:34px;
-  font-weight:450;
-}
-.hero-cta{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  flex-wrap:wrap;
-  margin-bottom:38px;
-}
-.hero-meta{
-  display:flex;
-  align-items:center;
-  gap:24px;
-  padding-top:24px;
-  border-top:1px solid rgba(255,255,255,0.12);
-}
-.meta-item{display:flex;flex-direction:column}
-.meta-val{font-size:18px;font-weight:700;color:#ffffff;font-family:var(--mono)}
-.meta-lbl{font-size:12px;color:#94a3b8;margin-top:2px;font-weight:500}
-
-/* Live Interactive Console Preview Card */
-.preview-card{
-  background:rgba(15,26,45,0.85);
-  border:1px solid rgba(255,255,255,0.14);
-  border-radius:18px;
-  box-shadow:0 24px 60px -10px rgba(0,0,0,0.6),0 0 40px rgba(2,132,199,0.25);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  overflow:hidden;
-}
-.pc-top{
-  padding:14px 18px;
-  background:rgba(0,0,0,0.3);
-  border-bottom:1px solid rgba(255,255,255,0.08);
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.pc-dots{display:flex;gap:7px}
-.pc-dots span{width:11px;height:11px;border-radius:50%}
-.pc-dots span:nth-child(1){background:#ef4444}
-.pc-dots span:nth-child(2){background:#f59e0b}
-.pc-dots span:nth-child(3){background:#10b981}
-.pc-title{font-size:12px;font-family:var(--mono);color:#94a3b8;font-weight:500}
-.pc-live{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:11px;
-  font-family:var(--mono);
-  font-weight:700;
-  color:#38bdf8;
-  background:rgba(56,189,248,0.12);
-  padding:3px 9px;
-  border-radius:999px;
-}
-.pc-live i{width:6px;height:6px;border-radius:50%;background:#38bdf8;box-shadow:0 0 6px #38bdf8}
-
-.pc-body{padding:20px;display:flex;flex-direction:column;gap:16px}
-.pc-station-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.pc-st-box{
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:10px;
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-.pc-st-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-.pc-st-code{
-  font-size:11px;
-  font-weight:800;
-  font-family:var(--mono);
-  color:#38bdf8;
-}
-.pc-st-name{font-size:13px;font-weight:700;color:#ffffff}
-.pc-st-stat{font-size:11.5px;color:#94a3b8}
-
-.pc-ticker{
-  background:rgba(2,132,199,0.12);
-  border:1px solid rgba(56,189,248,0.25);
-  border-radius:10px;
-  padding:12px 14px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-}
-.pc-ticker-left{display:flex;align-items:center;gap:10px}
-.pc-ticker-ic{font-size:20px}
-.pc-ticker-text{display:flex;flex-direction:column}
-.pc-ticker-title{font-size:12.5px;font-weight:700;color:#ffffff}
-.pc-ticker-sub{font-size:11px;color:#94a3b8}
-
-.pc-btn{
-  background:#0284c7;
-  color:#ffffff;
-  padding:10px;
-  border-radius:8px;
-  text-align:center;
-  font-size:13px;
-  font-weight:700;
-  text-decoration:none;
-  display:block;
-  transition:all .15s ease;
-}
-.pc-btn:hover{background:#0369a1;color:#ffffff}
-
-/* Agencies Bar */
-.agencies-band{
-  background:var(--surface);
-  border-bottom:1px solid var(--line);
-  padding:24px 0;
-}
-.agencies-title{
-  text-align:center;
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:0.12em;
-  font-weight:700;
-  color:var(--muted);
-  margin-bottom:18px;
-}
-.agency-chips{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-.achip{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  padding:6px 14px;
-  border-radius:8px;
-  background:var(--surface2);
-  border:1px solid var(--line);
-  font-size:13px;
-  font-weight:700;
-  color:var(--fg-sub);
-  letter-spacing:0.02em;
-}
-
-/* Sections */
-section.sec{padding:80px 0}
-.sec-head{
-  text-align:center;
-  max-width:720px;
-  margin:0 auto 54px;
-}
-.sec-tag{
-  display:inline-block;
-  font-size:11.5px;
-  font-weight:800;
-  text-transform:uppercase;
-  letter-spacing:0.12em;
-  color:var(--accent);
-  background:var(--ok-bg);
-  padding:4px 12px;
-  border-radius:999px;
-  margin-bottom:12px;
-}
-.sec-title{
-  font-size:34px;
-  font-weight:800;
-  line-height:1.2;
-  letter-spacing:-0.02em;
-  color:var(--fg);
-  margin-bottom:14px;
-}
-.sec-sub{
-  font-size:16.5px;
-  color:var(--muted);
-  line-height:1.55;
-}
-
-/* 4-Station Architecture Cards */
-.stations-grid{
-  display:grid;
-  grid-template-columns:repeat(4,1fr);
-  gap:20px;
-}
-@media (max-width:960px){.stations-grid{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:560px){.stations-grid{grid-template-columns:1fr}}
-
-.st-card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:26px 22px;
-  box-shadow:var(--shadow-sm);
-  display:flex;
-  flex-direction:column;
-  transition:all .22s cubic-bezier(0.4, 0, 0.2, 1);
-  position:relative;
-  overflow:hidden;
-}
-.st-card::before{
-  content:"";
-  position:absolute;
-  top:0;
-  left:0;
-  right:0;
-  height:4px;
-  background:var(--line);
-  transition:background .2s ease;
-}
-.st-card:hover{
-  transform:translateY(-4px);
-  box-shadow:var(--shadow-lg);
-  border-color:var(--accent);
-}
-.st-card:hover::before{background:var(--accent)}
-
-.st-badge{
-  font-family:var(--mono);
-  font-size:12px;
-  font-weight:700;
-  color:var(--accent);
-  background:var(--ok-bg);
-  display:inline-flex;
-  align-items:center;
-  gap:5px;
-  padding:3px 10px;
-  border-radius:6px;
-  align-self:flex-start;
-  margin-bottom:16px;
-}
-.st-icon{
-  font-size:28px;
-  margin-bottom:12px;
-}
-.st-name{
-  font-size:18px;
-  font-weight:800;
-  color:var(--fg);
-  margin-bottom:6px;
-  letter-spacing:-0.01em;
-}
-.st-where{
-  font-size:12px;
-  font-weight:600;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:0.06em;
-  margin-bottom:12px;
-}
-.st-desc{
-  font-size:14px;
-  color:var(--fg-sub);
-  line-height:1.5;
-  margin-bottom:16px;
-  flex:1;
-}
-.st-pill-preview{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-size:11px;
-  font-weight:700;
-  padding:3px 9px;
-  border-radius:999px;
-  align-self:flex-start;
-}
-
-/* Feature Pillars Grid */
-.pillars-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:24px;
-}
-@media (max-width:880px){.pillars-grid{grid-template-columns:repeat(2,1fr)}}
-@media (max-width:580px){.pillars-grid{grid-template-columns:1fr}}
-
-.pillar-card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:16px;
-  padding:28px 24px;
-  box-shadow:var(--shadow-sm);
-  transition:all .2s ease;
-}
-.pillar-card:hover{
-  border-color:var(--accent);
-  box-shadow:var(--shadow-md);
-  transform:translateY(-2px);
-}
-.pillar-ic{
-  width:46px;
-  height:46px;
-  border-radius:12px;
-  background:var(--ok-bg);
-  color:var(--accent);
-  display:grid;
-  place-items:center;
-  font-size:22px;
-  margin-bottom:18px;
-}
-.pillar-title{
-  font-size:18px;
-  font-weight:800;
-  color:var(--fg);
-  margin-bottom:8px;
-  letter-spacing:-0.01em;
-}
-.pillar-desc{
-  font-size:14.5px;
-  color:var(--fg-sub);
-  line-height:1.55;
-}
-
-/* Registry Highlight Banner */
-.reg-banner{
-  background:linear-gradient(135deg,var(--surface) 0%,var(--surface2) 100%);
-  border:1.5px solid var(--line);
-  border-radius:20px;
-  padding:40px;
-  margin-top:60px;
-  box-shadow:var(--shadow-md);
-  display:grid;
-  grid-template-columns:1.2fr 0.8fr;
-  gap:40px;
-  align-items:center;
-}
-@media (max-width:860px){.reg-banner{grid-template-columns:1fr;padding:28px}}
-
-.reg-left h3{
-  font-size:26px;
-  font-weight:800;
-  letter-spacing:-0.02em;
-  margin-bottom:12px;
-  color:var(--fg);
-}
-.reg-left p{
-  font-size:15px;
-  color:var(--fg-sub);
-  line-height:1.55;
-  margin-bottom:20px;
-}
-.reg-steps{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.reg-step-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  font-size:13.5px;
-  color:var(--fg);
-  font-weight:600;
-}
-.reg-step-num{
-  width:26px;
-  height:26px;
-  border-radius:50%;
-  background:var(--accent);
-  color:#fff;
-  display:grid;
-  place-items:center;
-  font-size:12px;
-  font-weight:800;
-  flex-shrink:0;
-}
-.reg-right-card{
-  background:var(--surface);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:22px;
-  box-shadow:var(--shadow-sm);
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-.rrc-head{
-  font-size:12px;
-  font-weight:700;
-  color:var(--accent);
-  text-transform:uppercase;
-  letter-spacing:0.08em;
-}
-.rrc-title{font-size:16px;font-weight:800;color:var(--fg)}
-.rrc-meta{
-  font-family:var(--mono);
-  font-size:12.5px;
-  background:var(--surface2);
-  padding:10px;
-  border-radius:8px;
-  border:1px solid var(--line);
-  color:var(--fg-sub);
-  line-height:1.45;
-}
-
-/* Security & Compliance Callout */
-.comp-band{
-  background:var(--navy);
-  color:#ffffff;
-  padding:72px 0;
-  border-top:1px solid rgba(255,255,255,0.08);
-  border-bottom:1px solid rgba(255,255,255,0.08);
-}
-.comp-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:48px;
-  align-items:center;
-}
-@media (max-width:800px){.comp-grid{grid-template-columns:1fr;gap:36px}}
-
-.comp-left h2{
-  font-size:32px;
-  font-weight:800;
-  letter-spacing:-0.02em;
-  margin-bottom:14px;
-  line-height:1.2;
-}
-.comp-left p{
-  font-size:16px;
-  color:#cbd5e1;
-  line-height:1.55;
-  margin-bottom:24px;
-}
-.comp-list{
-  list-style:none;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-}
-.comp-item{
-  display:flex;
-  gap:14px;
-  align-items:flex-start;
-}
-.comp-ic{
-  width:32px;
-  height:32px;
-  border-radius:8px;
-  background:rgba(56,189,248,0.15);
-  color:#38bdf8;
-  display:grid;
-  place-items:center;
-  font-size:16px;
-  flex-shrink:0;
-  margin-top:2px;
-}
-.comp-text b{display:block;font-size:15px;color:#ffffff;margin-bottom:2px}
-.comp-text span{font-size:13.5px;color:#94a3b8;line-height:1.45}
-
-/* Footer */
-footer.site-foot{
-  background:var(--navy-deep);
-  color:#ffffff;
-  padding:64px 0 32px;
-  border-top:1px solid rgba(255,255,255,0.06);
-}
-.foot-grid{
-  display:grid;
-  grid-template-columns:1.4fr 1fr 1fr 1fr;
-  gap:40px;
-  margin-bottom:48px;
-}
-@media (max-width:960px){.foot-grid{grid-template-columns:1fr 1fr}}
-@media (max-width:540px){.foot-grid{grid-template-columns:1fr}}
-
-.foot-col h4{
-  font-size:14px;
-  font-weight:700;
-  letter-spacing:0.04em;
-  text-transform:uppercase;
-  color:#94a3b8;
-  margin-bottom:18px;
-}
-.foot-col p{
-  font-size:13.5px;
-  color:#cbd5e1;
-  line-height:1.55;
-}
-.foot-links{
-  list-style:none;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.foot-links a{
-  color:#cbd5e1;
-  text-decoration:none;
-  font-size:13.5px;
-  transition:color .15s ease;
-}
-.foot-links a:hover{color:#38bdf8}
-
-.foot-base{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding-top:28px;
-  border-top:1px solid rgba(255,255,255,0.08);
-  font-size:12.5px;
-  color:#64748b;
-  flex-wrap:wrap;
-  gap:12px;
-}
+  --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
+  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
+  --ok:#38bdf8; --ok-bg:#0c2d48; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.band{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.in{max-width:1100px;margin:0 auto}
+header.band{background:radial-gradient(900px 420px at 85% 20%,rgba(29,108,224,.28),transparent 70%),linear-gradient(180deg,var(--navy),var(--navy2));color:var(--onnavy);position:relative;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px;flex-wrap:wrap;border-bottom:1px solid #ffffff14}
+.mark{display:flex;align-items:center;gap:12px}
+.logo{height:50px;width:auto;display:block;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+.logo-slot{height:50px;width:37px;border:1px solid #ffffff38;background:#0468B1;border-radius:6px;display:grid;place-items:center;color:#fff;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.22)}
+.logo-slot svg{width:100%;height:100%;display:block}
+.mark b{display:block;font-size:16px;letter-spacing:.01em}
+.mark span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--onnavy-muted)}
+.top-acts{display:flex;align-items:center;gap:10px}
+.tbtn{all:unset;cursor:pointer;width:38px;height:38px;border-radius:9px;display:grid;place-items:center;background:#ffffff14;border:1px solid #ffffff28;color:#fff;transition:background .15s,transform .12s}
+.tbtn:hover{background:#ffffff26}
+.tbtn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:999px;font-weight:600;font-size:13.5px;text-decoration:none;border:1px solid transparent;transition:transform .14s ease,filter .15s,background .15s,box-shadow .2s;white-space:nowrap}
+.btn.pri{background:linear-gradient(135deg,#0284c7,#0369a1);color:#ffffff;box-shadow:0 4px 14px -3px rgba(2,132,199,.7);border:1px solid rgba(255,255,255,0.2)}
+.btn.ghost{border-color:rgba(255,255,255,0.22);background:rgba(255,255,255,0.07);color:var(--onnavy);backdrop-filter:blur(8px)}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1.5px);box-shadow:0 6px 18px -4px rgba(0,0,0,.35)}
+.btn.pri:hover{box-shadow:0 6px 20px -3px rgba(2,132,199,.85)}
+.btn:active{transform:translateY(0)}
+.btn:focus-visible{outline:2px solid var(--onnavy);outline-offset:3px}
+.hero{padding-block:54px 64px;display:grid;grid-template-columns:1.2fr .8fr;gap:44px;align-items:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--onnavy-muted);background:#ffffff12;border:1px solid #ffffff22;padding:4px 12px;border-radius:999px}
+.eyebrow i{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.25)}
+h1{font-size:clamp(30px,4.5vw,46px);line-height:1.12;margin:14px 0 16px;text-wrap:balance;font-weight:700;letter-spacing:-.02em}
+.lead{font-size:17px;color:var(--onnavy-muted);max-width:56ch;margin:0 0 24px;line-height:1.55}
+.ctas{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pass{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 24px 50px -12px rgba(0,0,0,.45);max-width:350px;justify-self:end;width:100%;border-top:4px solid var(--accent)}
+.pass .ph{background:var(--navy2);color:var(--onnavy);padding:11px 18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.pass .ph .st-ok{color:#38bdf8;display:inline-flex;align-items:center;gap:5px}
+.pass .ph .st-ok::before{content:"";width:6px;height:6px;border-radius:50%;background:#38bdf8}
+.pass .pb{padding:20px 18px;display:grid;gap:11px}
+.pass .top-r{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.pass .nm{font-size:21px;font-weight:700;line-height:1.2}
+.pass .ref{font-family:var(--mono);color:var(--accent);font-size:12.5px;margin-top:2px}
+.pass .tag{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:.05em;background:var(--surface2);border:1px dashed var(--line);padding:4px 10px;border-radius:8px}
+.pass .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:9px}
+.pass .row b{color:var(--fg);font-weight:600}
+main .sec{padding-block:56px}
+h2{font-size:26px;font-weight:700;letter-spacing:-.015em;margin:0 0 8px;text-wrap:balance}
+.sub{color:var(--muted);margin:0 0 28px;max-width:62ch}
+.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.flow li{padding:22px 20px;border:1px solid var(--line);border-top:3px solid var(--accent);border-radius:16px;background:var(--surface);box-shadow:var(--shadow);position:relative;min-width:0;transition:transform .18s ease,box-shadow .18s ease}
+.flow li:hover{transform:translateY(-3px);box-shadow:0 12px 28px -10px rgba(15,23,42,.12)}
+.flow .no{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--accent);letter-spacing:.08em;background:var(--surface2);border:1px solid var(--line);display:inline-block;padding:2px 8px;border-radius:999px;margin-bottom:8px}
+.flow h3{font-size:17px;margin:4px 0 2px}
+.flow .where{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.flow p{font-size:14px;color:var(--muted);margin:10px 0 0}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.grid>div{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow);transition:transform .18s ease}
+.grid>div:hover{transform:translateY(-2px)}
+.grid h3{font-size:16px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.grid h3::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);flex:none}
+.grid p{font-size:14px;color:var(--muted);margin:0}
+.secure{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.two{display:grid;grid-template-columns:1fr 1.2fr;gap:36px;align-items:start}
+.two ul{margin:0;padding:0;list-style:none;color:var(--muted);font-size:15px;display:grid;gap:12px}
+.two ul li{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.two ul b{color:var(--fg)}
+footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padding-block:44px 28px}
+.fcols{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:28px}
+.fcols>div{display:flex;flex-direction:column;gap:8px;min-width:0}
+.fcols p{margin:0;max-width:34ch}
+.fh{color:var(--onnavy);font-weight:600}
+.fl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--onnavy);margin-bottom:2px}
+.fcols a{color:var(--onnavy-muted);text-decoration:none;width:fit-content}
+.fcols a:hover{color:var(--onnavy)}
+.fcols a:focus-visible{outline:2px solid var(--onnavy);outline-offset:3px}
+.fbase{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:32px;padding-top:18px;border-top:1px solid #ffffff22;font-size:13px}
+@media (max-width:860px){.hero{grid-template-columns:1fr}.pass{justify-self:start}.flow{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.fcols{grid-template-columns:1fr 1fr}}
+@media (max-width:520px){.flow{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.fcols{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
-
-<!-- Header Navigation -->
-<header class="site-header">
-  <div class="wrap">
-    <div class="nav-row">
-      <a href="index.html" class="brand" aria-label="UN House Visitor Management System">
-        <div class="brand-emblem">
-          <svg viewBox="0 0 466.2 395.8" fill="#ffffff">
-            <use href="un-emblem.svg#g3320"></use>
-          </svg>
+<header class="band">
+  <div class="in top">
+    <div class="mark">
+      <img src="un-emblem.svg" alt="United Nations" style="height:48px;width:auto;display:block;flex-shrink:0">
+      <div><b>UN House Visitor Management System</b><span>United Nations Common Services · Abuja</span></div>
+    </div>
+    <div class="top-acts">
+      <button class="tbtn" id="themeBtn" type="button" title="Toggle light or dark theme" aria-label="Toggle theme"></button>
+      <a class="btn" href="app.html#register" style="font-weight:600;font-size:12.5px;padding:6px 14px;background:#0284c7;color:#fff;border:none">✉️ Staff: Invite Visitor</a>
+      <a class="btn ghost" href="app.html">Staff sign-in</a>
+    </div>
+  </div>
+  <div class="in hero">
+    <div>
+      <div class="eyebrow"><i></i>United Nations House, Abuja</div>
+      <h1>Every visitor registered, approved, tagged and accounted for.</h1>
+      <p class="lead">One shared visitor record for the gate, documentation, internal reception and the VIP entrance. It replaces logbooks and spreadsheets with live, role-based access control.</p>
+      <div class="ctas">
+        <a class="btn pri" href="app.html">Open system &rarr;</a>
+        <a class="btn ghost" href="app.html#register">✉️ Staff: Invite visitor</a>
+        <a class="btn ghost" href="app.html?demo">✨ Guided demo</a>
+        <a class="btn ghost" href="#how">How it works</a>
+      </div>
+      <div class="metrics-bar" style="margin-top:22px;padding:9px 18px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border-radius:999px;display:inline-flex;gap:18px;align-items:center;box-shadow:0 6px 20px -6px rgba(0,0,0,0.3);flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:13px">⚡</span>
+          <div style="display:flex;flex-direction:column;line-height:1.15">
+            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">&lt; 45s</span>
+            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Gate Clearance</span>
+          </div>
         </div>
-        <div class="brand-text">
-          <span class="brand-title">UNITED NATIONS</span>
-          <span class="brand-sub">UN House Abuja · Access Management</span>
+        <div style="width:1px;height:18px;background:rgba(255,255,255,0.16);flex:none"></div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:13px">🏛️</span>
+          <div style="display:flex;flex-direction:column;line-height:1.15">
+            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">16 Agencies</span>
+            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Unified Compound</span>
+          </div>
         </div>
-      </a>
-
-      <ul class="nav-links">
-        <li><a href="#stations">The 4 Stations</a></li>
-        <li><a href="#capabilities">Security Matrix</a></li>
-        <li><a href="#registry">UN Registry</a></li>
-        <li><a href="#compliance">Privacy &amp; NDPA</a></li>
-      </ul>
-
-      <div class="nav-actions">
-        <button class="tbtn" id="themeBtn" type="button" title="Toggle color mode" aria-label="Toggle theme">
-          <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
-        <a href="app.html?demo" class="btn btn-ghost-dark">Demo</a>
-        <a href="app.html" class="btn btn-pri">Enter Console ➔</a>
+        <div style="width:1px;height:18px;background:rgba(255,255,255,0.16);flex:none"></div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:13px">🛡️</span>
+          <div style="display:flex;flex-direction:column;line-height:1.15">
+            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">4 Stations</span>
+            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Sequential Flow</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pass" aria-label="Example visitor pass">
+      <div class="ph"><span>Visitor pass</span><span class="st-ok">Checked in</span></div>
+      <div class="pb">
+        <div class="top-r">
+          <div><div class="nm">Amaka Nwosu</div><div class="ref">UNH-261107-K4TZ</div></div>
+          <div class="tag">V-014</div>
+        </div>
+        <div class="row"><span>Organisation</span><b>Federal Ministry of Health</b></div>
+        <div class="row"><span>Host</span><b>Dr. K. Ibrahim · WHO</b></div>
+        <div class="row"><span>Building</span><b>Main UN House Building</b></div>
+        <div class="row"><span>Time</span><b>Admitted 09:12 · In 09:18</b></div>
       </div>
     </div>
   </div>
 </header>
 
-<!-- Main Hero Section -->
-<section class="hero">
-  <div class="wrap">
-    <div class="hero-grid">
+<main>
+  <section class="band sec" id="how">
+    <div class="in">
+      <h2>Four stations, one record</h2>
+      <p class="sub">A visitor moves through each station in turn. Each officer sees the same record, and can act only on their own step.</p>
+      <ol class="flow">
+        <li><div class="no">STATION 1 · COMPUTER 1</div><h3>Gate reception</h3><div class="where">Access Control Building</div><p>Confirm the visitor is approved, verify them and admit. Register walk-ins.</p></li>
+        <li><div class="no">STATION 2 · COMPUTER 2</div><h3>Documentation &amp; tags</h3><div class="where">Main Access Control Building</div><p>Record the ID document checked and issue a numbered visitor tag.</p></li>
+        <li><div class="no">STATION 3 · COMPUTER 3</div><h3>Internal reception</h3><div class="where">Main UN House Building</div><p>Receive documented visitors and VIP guests, contact the host to receive them, check them in, and collect tags on departure.</p></li>
+        <li><div class="no">STATION 4 · TABLET</div><h3>VIP gate</h3><div class="where">VIP Gate</div><p>Verify VIP guests against the approved list and send them to Internal Reception (Station 3), where the host is contacted.</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="band sec" style="padding-top:8px">
+    <div class="in">
+      <h2>What it handles</h2>
+      <p class="sub">Built to the UN Common Services requirements for visitor, contractor and VIP access.</p>
+      <div class="grid">
+        <div><h3>Registration</h3><p>Single visitors, groups and walk-ins, bulk upload by CSV or scan, and advance registration by staff hosts.</p></div>
+        <div><h3>Approvals</h3><p>Every visitor, VIP and contractor request goes to an approver before becoming expected at the gate. No one can approve their own request.</p></div>
+        <div><h3>Tags and badges</h3><p>Unique reference numbers, tag assignment, digital phone passes, and tracking of every tag issued and returned.</p></div>
+        <div><h3>Contractors</h3><p>Access limited by building and date, expiry warnings, multi-day re-entry, and immediate suspension when needed.</p></div>
+        <div><h3>Live dashboard</h3><p>Expected visitors, who is on site, occupancy by building and agency, overstays and exceptions.</p></div>
+        <div><h3>Reports and history</h3><p>Searchable visitor history, daily to monthly counts, evacuation roll calls, and CSV reports for management.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band sec secure">
+    <div class="in two">
       <div>
-        <div class="hero-badge">
-          <span class="pulse"></span>
-          <span>UNDSS &amp; UN COMMON SERVICES · LIVE SYSTEM</span>
-        </div>
-        <h1>
-          Secure, Sovereign Access for <span class="highlight">UN House Abuja.</span>
-        </h1>
-        <p class="hero-desc">
-          Automated multi-agency visitor screening, physical ID safe custody, real-time UN Security Council &amp; National watchlist matching, and tripartite inward mail custody across 16 resident UN entities.
-        </p>
-
-        <div class="hero-cta">
-          <a href="app.html" class="btn btn-pri" style="font-size:15px;padding:12px 24px">
-            <span>Open Access Console</span>
-            <span>➔</span>
-          </a>
-          <a href="app.html?demo" class="btn btn-ghost-dark" style="font-size:15px;padding:12px 22px">
-            <span>Guided Protocol Walkthrough</span>
-          </a>
-          <a href="app.html?view=register" class="btn btn-outline" style="background:rgba(255,255,255,0.05);color:#ffffff;border-color:rgba(255,255,255,0.18)">
-            <span>Staff Pre-Registration</span>
-          </a>
-        </div>
-
-        <div class="hero-meta">
-          <div class="meta-item">
-            <span class="meta-val">4 Posts</span>
-            <span class="meta-lbl">Partitioned Stations</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-val">0 Biometrics</span>
-            <span class="meta-lbl">Zero Physical ID Scans Stored</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-val">3 Lists</span>
-            <span class="meta-lbl">UNDSS / UNSC / National</span>
-          </div>
-          <div class="meta-item">
-            <span class="meta-val">100% Audit</span>
-            <span class="meta-lbl">Cryptographic Ledger</span>
-          </div>
-        </div>
+        <h2>Security and accountability</h2>
+        <p class="sub" style="margin:0">Access rules are enforced on the server for every read and write, not just hidden in the screen.</p>
       </div>
+      <ul>
+        <li><b>Role-based access.</b> Gate, documentation, reception, VIP, host, approver and administrator roles, each strictly partitioned to its operational post.</li>
+        <li><b>Server-Enforced Audit Trail.</b> Every registration, approval, check-in and check-out is committed to an append-only server log (/audit). Client browsers have zero permissions to delete or alter historical entries.</li>
+        <li><b>Data Minimisation &amp; Physical ID Custody.</b> Zero physical ID scans, photocopies, or biometrics are uploaded or stored. Original IDs are held in physical security custody at Station 2 and returned upon exit.</li>
+        <li><b>Staff accounts &amp; Governance.</b> Each staff member signs in with their UN identity. Administrator roles are strictly capped at 3 with peer audit oversight.</li>
+      </ul>
+    </div>
+  </section>
+</main>
 
-      <!-- Live Interactive Console Card -->
-      <div class="preview-card">
-        <div class="pc-top">
-          <div class="pc-dots">
-            <span></span><span></span><span></span>
-          </div>
-          <div class="pc-title">UN HOUSE ABUJA · LIVE ACCESS MONITOR</div>
-          <div class="pc-live"><i></i> ACTIVE</div>
-        </div>
-
-        <div class="pc-body">
-          <div class="pc-station-grid">
-            <div class="pc-st-box">
-              <div class="pc-st-head">
-                <span class="pc-st-code">STATION 1</span>
-                <span style="font-size:10px;background:#0284c7;color:#fff;padding:1px 5px;border-radius:4px;font-weight:700">GATE</span>
-              </div>
-              <div class="pc-st-name">Gate Reception</div>
-              <div class="pc-st-stat">Admitted at Station 1 · Rack Sync</div>
-            </div>
-
-            <div class="pc-st-box">
-              <div class="pc-st-head">
-                <span class="pc-st-code">STATION 2</span>
-                <span style="font-size:10px;background:#38bdf8;color:#0f172a;padding:1px 5px;border-radius:4px;font-weight:700">DOCS</span>
-              </div>
-              <div class="pc-st-name">Documentation</div>
-              <div class="pc-st-stat">Physical ID Custody &amp; Active Tag</div>
-            </div>
-
-            <div class="pc-st-box">
-              <div class="pc-st-head">
-                <span class="pc-st-code">STATION 3</span>
-                <span style="font-size:10px;background:#4338ca;color:#fff;padding:1px 5px;border-radius:4px;font-weight:700">ESCORT</span>
-              </div>
-              <div class="pc-st-name">Internal Reception</div>
-              <div class="pc-st-stat">Host Phone Alert &amp; Check-In</div>
-            </div>
-
-            <div class="pc-st-box">
-              <div class="pc-st-head">
-                <span class="pc-st-code">STATION 4</span>
-                <span style="font-size:10px;background:#ffd166;color:#0f172a;padding:1px 5px;border-radius:4px;font-weight:700">DIPLOMATIC</span>
-              </div>
-              <div class="pc-st-name">VIP Gate</div>
-              <div class="pc-st-stat">Motorcade Protocol Clearance</div>
-            </div>
-          </div>
-
-          <div class="pc-ticker">
-            <div class="pc-ticker-left">
-              <span class="pc-ticker-ic">📦</span>
-              <div class="pc-ticker-text">
-                <span class="pc-ticker-title">UN Registry &amp; Inward Mail</span>
-                <span class="pc-ticker-sub">Smiths Detection HI-SCAN 6040 X-Ray Cleared</span>
-              </div>
-            </div>
-            <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:#38bdf8">e-POD ACTIVE</span>
-          </div>
-
-          <a href="app.html" class="pc-btn">Launch Station Operations Console ➔</a>
-        </div>
+<footer class="band">
+  <div class="in">
+    <div class="fcols">
+      <div>
+        <div class="fh">UN House Visitor Management System</div>
+        <p>Access and visitor management for UN Common Services, United Nations House, Abuja.</p>
+        <p style="margin-top:8px;font-size:12.5px;color:var(--onnavy-muted)"><b>Support &amp; ICT Helpdesk:</b> Ext. 2030 / Common Services Ext. 2010</p>
+      </div>
+      <div>
+        <div class="fl">System</div>
+        <a href="app.html">Open the system</a>
+        <a href="app.html">Staff sign-in</a>
+        <a href="#how">How it works</a>
+        <a href="app.html?demo">Guided demo</a>
+        <a href="app.html?rules">Visitor rules</a>
+      </div>
+      <div>
+        <div class="fl">Stations</div>
+        <span>Gate reception</span><span>Documentation &amp; tags</span><span>Internal reception</span><span>VIP gate</span>
+      </div>
+      <div>
+        <div class="fl">Privacy &amp; Compliance</div>
+        <span>Zero ID scans, photos or biometrics stored.</span>
+        <span>Physical ID held in custody &amp; returned.</span>
+        <span>Aligned with Nigeria NDPA 2023 &amp; UN HLCM.</span>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- Resident Agencies Band -->
-<section class="agencies-band">
-  <div class="wrap">
-    <div class="agencies-title">Integrated Common Services Compound · 16 Resident Agencies &amp; Entities</div>
-    <div class="agency-chips">
-      <span class="achip">UNDP</span>
-      <span class="achip">UNICEF</span>
-      <span class="achip">WHO</span>
-      <span class="achip">WFP</span>
-      <span class="achip">UNHCR</span>
-      <span class="achip">UNFPA</span>
-      <span class="achip">UN Women</span>
-      <span class="achip">OCHA</span>
-      <span class="achip">UNDSS</span>
-      <span class="achip">UNODC</span>
-      <span class="achip">FAO</span>
-      <span class="achip">UNESCO</span>
-      <span class="achip">UNIDO</span>
-      <span class="achip">UN Common Services</span>
-    </div>
-  </div>
-</section>
-
-<!-- The 4-Station Security Pipeline -->
-<section class="sec" id="stations">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="sec-tag">Operational Integrity</span>
-      <h2 class="sec-title">The Four-Station Security Architecture</h2>
-      <p class="sec-sub">
-        Access control is physically partitioned across four distinct operational posts. No single station can bypass or duplicate the checks of another.
-      </p>
-    </div>
-
-    <div class="stations-grid">
-      <div class="st-card">
-        <span class="st-badge">STATION 1</span>
-        <div class="st-icon">🛡️</div>
-        <h3 class="st-name">Gate Reception</h3>
-        <div class="st-where">Outer Perimeter Gate</div>
-        <p class="st-desc">
-          Perimeter guards screen expected guests, verify UNDSS clearance, allocate next available physical tag from the active tray rack, and admit visitors into the compound.
-        </p>
-        <span class="st-pill-preview" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">
-          • Admitted at Station 1
-        </span>
-      </div>
-
-      <div class="st-card">
-        <span class="st-badge">STATION 2</span>
-        <div class="st-icon">🪪</div>
-        <h3 class="st-name">Documentation</h3>
-        <div class="st-where">Access Control Building</div>
-        <p class="st-desc">
-          Physical government photo ID is inspected and deposited in the Station 2 ID safe custody tray. The pre-assigned active lanyard tag is activated for compound movement.
-        </p>
-        <span class="st-pill-preview" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">
-          • Documented &amp; Tagged
-        </span>
-      </div>
-
-      <div class="st-card">
-        <span class="st-badge">STATION 3</span>
-        <div class="st-icon">🏢</div>
-        <h3 class="st-name">Agency Reception</h3>
-        <div class="st-where">Main UN House Lobby</div>
-        <p class="st-desc">
-          Visitor reaches the destination agency reception. The host is automatically alerted via sound chime, email and internal desk extension for escort handover.
-        </p>
-        <span class="st-pill-preview" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">
-          • Checked in
-        </span>
-      </div>
-
-      <div class="st-card">
-        <span class="st-badge">STATION 4</span>
-        <div class="st-icon">🚗</div>
-        <h3 class="st-name">VIP Gate</h3>
-        <div class="st-where">Diplomatic Motorcade Gate</div>
-        <p class="st-desc">
-          High-level diplomats, heads of agency, and government dignitaries enter via dedicated motorcade gate with pre-cleared diplomatic vehicles and direct host escort.
-        </p>
-        <span class="st-pill-preview" style="background:#0f172a;color:#ffd166;border:1px solid #334155">
-          • VIP Diplomatic Pass
-        </span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Enterprise Security & Governance Matrix -->
-<section class="sec" id="capabilities" style="background:var(--surface2)">
-  <div class="wrap">
-    <div class="sec-head">
-      <span class="sec-tag">UNDSS Standard Operating Procedures</span>
-      <h2 class="sec-title">Enterprise Security &amp; Compound Governance</h2>
-      <p class="sec-sub">
-        Built strictly to the United Nations Security Management System (UNSMS) guidelines and Nigeria National Data Protection Act (NDPA 2023).
-      </p>
-    </div>
-
-    <div class="pillars-grid">
-      <div class="pillar-card">
-        <div class="pillar-ic">🚨</div>
-        <h3 class="pillar-title">3-Tier Watchlist Screening</h3>
-        <p class="pillar-desc">
-          Every clearance and gate admission runs real-time matching against UNDSS Local Security Bans, UN Security Council (UNSC ISIL/Al-Qaida 1267), and Nigerian National Security stoplists (ONSA/NCTC).
-        </p>
-      </div>
-
-      <div class="pillar-card">
-        <div class="pillar-ic">🔒</div>
-        <h3 class="pillar-title">Zero Biometric &amp; ID Scans Stored</h3>
-        <p class="pillar-desc">
-          Completely eliminates identity theft and privacy risk. Zero national ID scans, photocopies, or biometrics are ever uploaded to cloud servers. Physical IDs are securely held in custody at Station 2.
-        </p>
-      </div>
-
-      <div class="pillar-card">
-        <div class="pillar-ic">📱</div>
-        <h3 class="pillar-title">Anti-Screenshot Dynamic Pass</h3>
-        <p class="pillar-desc">
-          Approved visitors receive an encrypted digital pass featuring a synchronized real-time millisecond pulsing clock and dynamic QR token, completely preventing counterfeit screenshot fraud.
-        </p>
-      </div>
-
-      <div class="pillar-card">
-        <div class="pillar-ic">🛠️</div>
-        <h3 class="pillar-title">Contractor &amp; Equipment Custody</h3>
-        <p class="pillar-desc">
-          Multi-day maintenance contractors are restricted by building, room, and permit expiry. Specialized tools and equipment passes are logged with serial numbers and gate-exit verification.
-        </p>
-      </div>
-
-      <div class="pillar-card">
-        <div class="pillar-ic">📜</div>
-        <h3 class="pillar-title">Immutable Server Audit Trail</h3>
-        <p class="pillar-desc">
-          Every registration, FSM decision, gate admittance, tag exchange, and departure is written directly to an append-only server audit log (<span style="font-family:var(--mono);font-size:12px">/audit</span>). Cannot be altered or deleted by client browsers.
-        </p>
-      </div>
-
-      <div class="pillar-card">
-        <div class="pillar-ic">🚨</div>
-        <h3 class="pillar-title">Evacuation &amp; Roll-Call Ready</h3>
-        <p class="pillar-desc">
-          One-click real-time muster roll call by building and agency. Immediate accounting of every visitor, contractor, and vehicle physically inside the compound in emergencies.
-        </p>
-      </div>
-    </div>
-
-    <!-- UN Registry & Inward Mail Feature -->
-    <div class="reg-banner" id="registry">
-      <div class="reg-left">
-        <span style="font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.1em">Integrated Logistics Authority</span>
-        <h3>UN Registry &amp; Inward Mail Management</h3>
-        <p>
-          Couriers and dispatch messengers remain safely at the designated Gate 1 intake point. Inward official correspondence and packages pass through mandatory UNDSS X-Ray screening before formal custody handover to UN Registry.
-        </p>
-        <div class="reg-steps">
-          <div class="reg-step-row">
-            <span class="reg-step-num">1</span>
-            <span>Gate 1 Intake &amp; Courier Registration (Courier stays at perimeter)</span>
-          </div>
-          <div class="reg-step-row">
-            <span class="reg-step-num">2</span>
-            <span>UNDSS Screening (Smiths Detection HI-SCAN 6040 X-Ray Cleared)</span>
-          </div>
-          <div class="reg-step-row">
-            <span class="reg-step-num">3</span>
-            <span>UN Registry Official Tracking &amp; Custody Assignment</span>
-          </div>
-          <div class="reg-step-row">
-            <span class="reg-step-num">4</span>
-            <span>Electronic Proof of Delivery (e-POD) Receipt with Email / WhatsApp Dispatch</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="reg-right-card">
-        <span class="rrc-head">ELECTRONIC PROOF OF DELIVERY (e-POD)</span>
-        <h4 class="rrc-title">REC-REG-2026-0042</h4>
-        <div class="rrc-meta">
-          <div><b>Courier:</b> DHL Express (M. Aliyu)</div>
-          <div><b>Recipient:</b> Dr. K. Ibrahim (WHO)</div>
-          <div><b>Contents:</b> Diagnostic Testing Kits</div>
-          <div><b>Security:</b> X-Ray Cleared (HI-SCAN 6040)</div>
-          <div><b>Custody:</b> UN Registry Custody Confirmed</div>
-        </div>
-        <a href="app.html?view=registry" class="btn btn-outline" style="font-size:12.5px;text-align:center">View Inward Mailroom Desk ➔</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Compliance & Data Protection -->
-<section class="comp-band" id="compliance">
-  <div class="wrap">
-    <div class="comp-grid">
-      <div class="comp-left">
-        <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:#38bdf8;text-transform:uppercase;letter-spacing:0.1em">Sovereignty &amp; Data Protection</span>
-        <h2>Strict Data Minimisation &amp; Legal Compliance</h2>
-        <p>
-          Designed in strict harmony with the <b>Nigeria Data Protection Act (NDPA 2023)</b> and the <b>UN High-Level Committee on Management (HLCM) Data Privacy Framework</b>.
-        </p>
-        <a href="app.html?rules" class="btn btn-ghost-dark">View Visitor Rules &amp; Protocols</a>
-      </div>
-
-      <div class="comp-right">
-        <ul class="comp-list">
-          <li class="comp-item">
-            <div class="comp-ic">✓</div>
-            <div class="comp-text">
-              <b>Physical ID Custody Instead of Digital Copies</b>
-              <span>No visitor passports, driver's licenses, or national ID cards are scanned or stored. Physical IDs are locked in Station 2 custody trays and returned upon exit.</span>
-            </div>
-          </li>
-
-          <li class="comp-item">
-            <div class="comp-ic">✓</div>
-            <div class="comp-text">
-              <b>Role-Based Cryptographic Isolation</b>
-              <span>Station staff only see what is necessary for their post. Gate cannot edit host profiles, and hosts cannot approve their own visitors.</span>
-            </div>
-          </li>
-
-          <li class="comp-item">
-            <div class="comp-ic">✓</div>
-            <div class="comp-text">
-              <b>Automatic Record Retention &amp; Expiry</b>
-              <span>Historical visit logs are retained in accordance with UN Common Services administrative retention schedules and securely purged.</span>
-            </div>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Footer -->
-<footer class="site-foot">
-  <div class="wrap">
-    <div class="foot-grid">
-      <div class="foot-col">
-        <h4 style="color:#ffffff">UN House Visitor Management</h4>
-        <p>
-          Official visitor, contractor, VIP diplomatic motorcade, and inward mail registry system for United Nations Common Services, UN House Abuja.
-        </p>
-        <p style="margin-top:14px;font-size:12.5px;color:#94a3b8">
-          <b>ICT Helpdesk:</b> Ext. 2030<br>
-          <b>Common Services:</b> Ext. 2010<br>
-          <b>Perimeter Security:</b> 61–62 Diplomatic Drive, CBD, Abuja
-        </p>
-      </div>
-
-      <div class="foot-col">
-        <h4>Navigation</h4>
-        <ul class="foot-links">
-          <li><a href="app.html">Launch Operations Console</a></li>
-          <li><a href="app.html?demo">Guided Protocol Demo</a></li>
-          <li><a href="app.html?view=register">Staff Pre-Registration</a></li>
-          <li><a href="app.html?view=registry">UN Registry &amp; Mailroom</a></li>
-          <li><a href="app.html?rules">Visitor Security Rules</a></li>
-        </ul>
-      </div>
-
-      <div class="foot-col">
-        <h4>The 4 Stations</h4>
-        <ul class="foot-links">
-          <li><a href="app.html?view=gate">Station 1 · Gate Reception</a></li>
-          <li><a href="app.html?view=tagging">Station 2 · Documentation</a></li>
-          <li><a href="app.html?view=reception">Station 3 · Agency Reception</a></li>
-          <li><a href="app.html?view=vip">Station 4 · VIP Diplomatic Gate</a></li>
-          <li><a href="app.html?view=clearance">UNDSS Clearance Desk</a></li>
-        </ul>
-      </div>
-
-      <div class="foot-col">
-        <h4>Standards</h4>
-        <p style="font-size:13px;color:#94a3b8;line-height:1.5">
-          • Nigeria NDPA 2023 Compliant<br>
-          • UN HLCM Data Privacy Aligned<br>
-          • Smiths Detection HI-SCAN 6040 Certified<br>
-          • UN Security Council Resolution 1267 Active<br>
-          • Enterprise Version 2.5.0
-        </p>
-      </div>
-    </div>
-
-    <div class="foot-base">
-      <span>© <span id="yr">2026</span> United Nations Common Services · UN House Abuja, Nigeria</span>
-      <span>Official United Nations Diplomatic Compound System</span>
+    <div class="fbase">
+      <span>© <span id="yr">2026</span> United Nations Common Services · UN House Abuja</span>
+      <span>Enterprise Version 2.4.0 (Live Production)</span>
     </div>
   </div>
 </footer>
-
 <script>
 document.getElementById("yr").textContent=new Date().getFullYear();
 (function(){
   const root=document.documentElement, btn=document.getElementById("themeBtn");
   const isDark=()=>root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
-  const sync=()=>{
-    const d=isDark();
-    btn.innerHTML=d
-      ?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>'
-      :'<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-    btn.title=d?"Switch to light mode":"Switch to dark mode";
-  };
+  const sync=()=>{const d=isDark();btn.innerHTML=d?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>':'<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';btn.title=d?"Switch to light mode":"Switch to dark mode"};
   try{const s=localStorage.getItem("theme");if(s==="dark"||s==="light")root.dataset.theme=s}catch(e){}
   sync();
-  btn.onclick=()=>{
-    const n=isDark()?"light":"dark";
-    root.dataset.theme=n;
-    try{localStorage.setItem("theme",n)}catch(e){}
-    sync();
-  };
+  btn.onclick=()=>{const n=isDark()?"light":"dark";root.dataset.theme=n;try{localStorage.setItem("theme",n)}catch(e){}sync()};
 })();
 </script>
 </body>

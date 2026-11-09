@@ -585,6 +585,21 @@ h1{font-weight:700;letter-spacing:-.015em;font-size:24px}
 main{gap:20px}
 @media (max-width:860px){.wrap{grid-template-columns:1fr}nav{flex-direction:row;overflow-x:auto;border-right:0;border-bottom:1px solid var(--line);padding:10px 14px;gap:6px}.nav-sec{display:none}nav button{white-space:nowrap;border-radius:999px;padding:7px 13px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* UN Registry & Inward Mail Modern Styling */
+.reg-pipeline-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+@media(max-width:960px){.reg-pipeline-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.reg-pipeline-grid{grid-template-columns:1fr}}
+.reg-step-card{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:5px;transition:border-color .15s ease}
+.reg-step-card:hover{border-color:var(--accent)}
+.reg-step-num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;display:flex;align-items:center;gap:6px}
+.reg-step-title{font-size:13px;font-weight:700;color:var(--navy);margin:2px 0 0}
+.reg-step-desc{font-size:11.5px;color:var(--muted);line-height:1.4}
+.reg-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;font-size:11.5px;font-weight:600;border-radius:999px;border:1px solid var(--line);background:var(--surface2);color:var(--fg);cursor:pointer;user-select:none;transition:all .15s ease}
+.reg-chip:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.copy-pill{cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;background:var(--surface2);color:var(--fg);border:1px solid var(--line);transition:background .15s}
+.copy-pill:hover{background:#e2e8f0}
+
 </style>
 
 <header class="top">
@@ -5225,6 +5240,7 @@ UN House Security & Common Services`;
 
 /* ---------- UN Registry & Inward Mail Tripartite Management ---------- */
 let regFilterTab = "all"; // "all" | "cat1" | "cat2" | "screening" | "custody" | "archive"
+let regFilterAgency = "all"; // "all" | agency name
 
 function nextRegNum(){
   const yr = new Date().getFullYear();
@@ -5255,35 +5271,51 @@ async function deleteDelivery(id){
 }
 
 function openRegIntakeModal(){
-  const m=$("#modal");
+  const m = $("#modal");
   const nextNum = nextRegNum();
+  const couriers = [
+    "DHL Express", "FedEx", "UPS", "Diplomatic Courier",
+    "MFA Protocol", "Federal Ministry Dispatch", "NIPOST", "Red Star Express", "Speedaf"
+  ];
+  const agencies = [
+    "UNDP", "UNICEF", "WHO", "WFP", "UNHCR", "UN Women", "RCO", "UNFPA", "FAO", "Common Services"
+  ];
+
   m.innerHTML = `
-  <div class="modal" style="max-width:580px;border-radius:14px">
+  <div class="modal" style="max-width:620px;border-radius:14px;padding:22px">
     <button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">x</button>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <span style="font-size:22px">📦</span>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📦</div>
       <div>
-        <h2 style="margin:0;font-size:18px;color:var(--navy)">Gate 1 · Inward Courier &amp; Mail Intake</h2>
-        <div class="small" style="color:var(--muted)">Initial registration at Gatehouse perimeter desk. Couriers must remain at Gate 1 holding desk.</div>
+        <h2 style="margin:0;font-size:18px;color:var(--navy);letter-spacing:-.01em">Gate 1 · Inward Courier &amp; Mail Intake</h2>
+        <div class="small" style="color:var(--muted);margin-top:2px">Official registration at Gatehouse holding desk. Couriers remain at Station 1.</div>
       </div>
     </div>
 
-    <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:10px 12px;border-radius:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:12px;font-weight:600;color:#0369a1">Generated Inward Reference:</span>
-      <b class="mono" style="font-size:13px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:4px">${nextNum}</b>
+    <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:10px 14px;border-radius:8px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:12px;font-weight:600;color:#0369a1">System Generated Inward Reference:</span>
+      <b class="mono" style="font-size:13.5px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:4px;border:1px solid #bae6fd">${nextNum}</b>
+    </div>
+
+    <!-- Quick Courier Selection Chips -->
+    <div style="margin-bottom:12px">
+      <div class="small" style="font-weight:700;color:var(--navy);margin-bottom:6px">Quick Courier Preset:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${couriers.map(c => `<button type="button" class="reg-chip" data-set-courier="${c}">${c}</button>`).join("")}
+      </div>
     </div>
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div class="f">
-        <label for="ri_cat" class="small"><b>Item Category</b></label>
+        <label for="ri_cat" class="small"><b>Item Classification</b></label>
         <select id="ri_cat">
-          <option value="correspondence">✉️ Category 1: Official Correspondence</option>
-          <option value="package">📦 Category 2: Parcels and Packages</option>
+          <option value="correspondence">✉️ Category 1: Official Correspondence / Note Verbale</option>
+          <option value="package">📦 Category 2: Parcels, Cargo &amp; Equipment</option>
         </select>
       </div>
       <div class="f">
-        <label for="ri_company" class="small"><b>Courier / Origin</b></label>
-        <input id="ri_company" placeholder="e.g. DHL, FedEx, Ministry Dispatch, Diplomatic Courier">
+        <label for="ri_company" class="small"><b>Courier Company / Originating Body *</b></label>
+        <input id="ri_company" placeholder="e.g. DHL Express, MFA Protocol" required autofocus>
       </div>
     </div>
 
@@ -5293,55 +5325,103 @@ function openRegIntakeModal(){
         <input id="ri_rider" placeholder="e.g. M. Aliyu (0802 334 1122)">
       </div>
       <div class="f">
-        <label for="ri_waybill" class="small"><b>Waybill / Consignment / Note Verbale #</b></label>
+        <label for="ri_waybill" class="small"><b>Waybill / Consignment / Note Verbale Ref #</b></label>
         <input id="ri_waybill" placeholder="e.g. DHL-9923812048 or MFA/2026/09">
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <!-- Quick Agency Selection Chips -->
+    <div style="margin-top:6px;margin-bottom:6px">
+      <div class="small" style="font-weight:700;color:var(--navy);margin-bottom:6px">Destination Agency:</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${agencies.map(a => `<button type="button" class="reg-chip" data-set-agency="${a}">${a}</button>`).join("")}
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:10px">
       <div class="f">
-        <label for="ri_agency" class="small"><b>Destination UN Agency</b></label>
+        <label for="ri_agency" class="small"><b>UN Agency</b></label>
         <select id="ri_agency">
-          ${["UNDP","UNICEF","WHO","WFP","UNHCR","UN Women","RCO","UNAIDS","UNESCO","UNFPA","FAO","Common Services"].map(a=>`<option value="${a}">${a}</option>`).join("")}
+          ${agencies.map(a => `<option value="${a}">${a}</option>`).join("")}
         </select>
       </div>
       <div class="f">
-        <label for="ri_for" class="small"><b>Addressed Recipient (Staff / Officer)</b></label>
-        <input id="ri_for" placeholder="e.g. Dr. K. Ibrahim or Resident Coordinator">
+        <label for="ri_for" class="small"><b>Addressed Recipient (Staff / Office) *</b></label>
+        <input id="ri_for" placeholder="e.g. Dr. K. Ibrahim or Resident Coordinator" required>
       </div>
     </div>
 
-    <div class="f">
-      <label for="ri_desc" class="small"><b>Item Description &amp; Quantity</b></label>
-      <input id="ri_desc" placeholder="e.g. 1 sealed envelope containing diplomatic note verbale, or 2 cartons medical diagnostic kits">
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px">
+      <div class="f">
+        <label for="ri_desc" class="small"><b>Item Description &amp; Quantity</b></label>
+        <input id="ri_desc" placeholder="e.g. 1 sealed diplomatic pouch or 2 cartons medical diagnostic supplies">
+      </div>
+      <div class="f">
+        <label for="ri_bin" class="small"><b>Registry Storage Rack / Bin</b></label>
+        <input id="ri_bin" placeholder="e.g. Bin A-04, Vault 1" value="Bin A-01">
+      </div>
     </div>
 
-    <div style="background:#fffbeb;border:1px solid #fde68a;padding:10px 12px;border-radius:8px;margin-top:6px">
-      <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:#92400e;margin:0">
+    <div style="background:#fffbeb;border:1px solid #fde68a;padding:10px 14px;border-radius:8px;margin-top:8px">
+      <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:#92400e;margin:0;cursor:pointer">
         <input type="checkbox" id="ri_hold_confirm" checked style="width:auto">
-        Mandatory Protocol: Courier remains at Gate 1 holding desk. Zero unescorted entry past Station 1.
+        Mandatory Protocol: Courier remains at Gate 1 holding desk. Zero unescorted compound entry.
       </label>
     </div>
 
-    <div class="acts" style="margin-top:14px">
-      <button class="btn pri" id="ri_save_btn">Confirm Gate Intake &amp; Send to Security</button>
+    <div class="acts" style="margin-top:16px">
+      <button class="btn pri" id="ri_save_btn" style="background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);padding:8px 18px">
+        Confirm Gate Intake &amp; Send to Security
+      </button>
       <button class="btn" id="mNo">Cancel</button>
     </div>
   </div>`;
-  m.hidden=false;
+  m.hidden = false;
 
-  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
-  $("#ri_save_btn").onclick=async()=>{
-    const company = $("#ri_company").value.trim() || "Courier Dispatch";
-    const forName = $("#ri_for").value.trim() || "UN House General Registry";
+  // Wire Courier Chips
+  m.querySelectorAll("[data-set-courier]").forEach(btn => {
+    btn.onclick = () => {
+      const coInput = $("#ri_company");
+      if(coInput){ coInput.value = btn.dataset.setCourier; coInput.focus(); }
+    };
+  });
+
+  // Wire Agency Chips
+  m.querySelectorAll("[data-set-agency]").forEach(btn => {
+    btn.onclick = () => {
+      const agSelect = $("#ri_agency");
+      if(agSelect){ agSelect.value = btn.dataset.setAgency; }
+      const forInput = $("#ri_for");
+      if(forInput && !forInput.value.trim()){
+        const defaults = {
+          "WHO": "Dr. K. Ibrahim",
+          "UNDP": "S. Garba",
+          "UNICEF": "T. Musa",
+          "WFP": "A. Lawal",
+          "UNHCR": "P. Obi",
+          "UN Women": "Country Representative",
+          "RCO": "Resident Coordinator",
+          "Common Services": "Facilities Unit Lead"
+        };
+        if(defaults[btn.dataset.setAgency]) forInput.value = defaults[btn.dataset.setAgency];
+      }
+    };
+  });
+
+  $("#mNo").onclick = $("#mX").onclick = () => m.hidden = true;
+
+  $("#ri_save_btn").onclick = async () => {
+    const company = ($("#ri_company").value || "").trim() || "Courier Dispatch";
+    const forName = ($("#ri_for").value || "").trim() || "UN House General Registry";
     const agency = $("#ri_agency").value;
     const cat = $("#ri_cat").value;
-    const rider = $("#ri_rider").value.trim();
-    const waybill = $("#ri_waybill").value.trim();
-    const desc = $("#ri_desc").value.trim() || (cat==="correspondence" ? "1 official envelope / document" : "1 package");
+    const rider = ($("#ri_rider").value || "").trim();
+    const waybill = ($("#ri_waybill").value || "").trim();
+    const bin = ($("#ri_bin").value || "").trim() || "Mailroom Intake";
+    const desc = ($("#ri_desc").value || "").trim() || (cat === "correspondence" ? "1 sealed official document" : "1 parcel / consignment");
 
     const item = {
-      id: "dl" + Math.random().toString(36).slice(2,9),
+      id: "dl" + Math.random().toString(36).slice(2, 9),
       regNum: nextNum,
       category: cat,
       from: company,
@@ -5350,129 +5430,136 @@ function openRegIntakeModal(){
       forName: forName,
       agency: agency,
       desc: desc,
+      storageBin: bin,
       at: now(),
-      intakeOfficer: op() + " (Gate 1)",
+      intakeOfficer: op() + " (Gate 1 Intake)",
       securityStatus: "pending",
       status: "gate_screening"
     };
 
     await saveDelivery(item);
-    m.hidden=true;
-    toast(`📦 ${nextNum} registered at Gate 1. Sent to Security for screening.`);
+    m.hidden = true;
+    toast(`📦 ${nextNum} logged at Gate 1 holding desk. Routed to Security X-Ray screening.`);
   };
 }
 
 function openRegScreenModal(d){
-  const m=$("#modal");
+  const m = $("#modal");
   m.innerHTML = `
-  <div class="modal" style="max-width:520px;border-radius:14px">
+  <div class="modal" style="max-width:540px;border-radius:14px;padding:22px">
     <button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">x</button>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <span style="font-size:22px">🛡️</span>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🛡️</div>
       <div>
-        <h2 style="margin:0;font-size:18px;color:var(--navy)">UNDSS Security Screening &amp; X-Ray</h2>
-        <div class="small" style="color:var(--muted)">Physical mail security screening protocol for ${esc(d.regNum||"delivery")}.</div>
+        <h2 style="margin:0;font-size:18px;color:var(--navy);letter-spacing:-.01em">UNDSS Security Screening &amp; X-Ray</h2>
+        <div class="small" style="color:var(--muted);margin-top:2px">Physical security threat inspection for ${esc(d.regNum || "Delivery")}.</div>
       </div>
     </div>
 
     <div style="background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
         <span class="small" style="color:var(--muted)">Reference / Tracking:</span>
-        <b class="mono">${esc(d.regNum)}</b>
+        <b class="mono" style="color:#0369a1">${esc(d.regNum)}</b>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <span class="small" style="color:var(--muted)">Courier &amp; Sender:</span>
-        <b>${esc(d.from)}</b>
+        <span class="small" style="color:var(--muted)">Courier &amp; Origin:</span>
+        <b>${esc(d.from)} ${d.waybill ? `[#${esc(d.waybill)}]` : ''}</b>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <span class="small" style="color:var(--muted)">Recipient &amp; Agency:</span>
+        <span class="small" style="color:var(--muted)">Addressed Recipient:</span>
         <b>${esc(d.forName)} (${esc(d.agency)})</b>
       </div>
       <div style="display:flex;justify-content:space-between">
-        <span class="small" style="color:var(--muted)">Contents:</span>
+        <span class="small" style="color:var(--muted)">Contents / Declared:</span>
         <span>${esc(d.desc)}</span>
       </div>
     </div>
 
     <div class="f">
-      <label for="sc_method" class="small"><b>Screening Procedure Applied</b></label>
+      <label for="sc_method" class="small"><b>Screening Technology Applied</b></label>
       <select id="sc_method">
-        <option value="Smiths Detection HI-SCAN 6040 (X-Ray Cleared)">Smiths Detection HI-SCAN 6040 (X-Ray Scanned)</option>
-        <option value="Physical &amp; Visual Inspection (Intact Seals Checked)">Physical &amp; Visual Inspection (Intact Seals Checked)</option>
-        <option value="Trace Vapor &amp; Metal Detection Verified">Trace Vapor &amp; Metal Detection Verified</option>
+        <option value="Smiths Detection HI-SCAN 6040 (X-Ray Cleared)">Smiths Detection HI-SCAN 6040 (Dual-View X-Ray Cleared)</option>
+        <option value="Visual &amp; Physical Seal Verification (Intact MFA / Diplomatic Pouch)">Visual &amp; Physical Seal Verification (Intact MFA / Diplomatic Pouch)</option>
+        <option value="Trace Vapor &amp; Explosives Detection (ETD Safe)">Trace Vapor &amp; Explosives Detection (ETD Safe)</option>
         <option value="K9 Scent Detection Screening">K9 Scent Detection Screening</option>
       </select>
     </div>
 
     <div class="f">
-      <label for="sc_notes" class="small"><b>Security Officer Verification Notes</b></label>
-      <input id="sc_notes" value="Negative for explosives, radiological, or hazardous materials. Package verified safe.">
+      <label for="sc_bin" class="small"><b>Assign Custody Storage Shelf / Rack</b></label>
+      <input id="sc_bin" value="${esc(d.storageBin || 'Bin A-01 (Mailroom)')}">
     </div>
 
-    <div class="acts" style="margin-top:14px;justify-content:space-between">
+    <div class="f">
+      <label for="sc_notes" class="small"><b>Security Officer Verification Notes</b></label>
+      <input id="sc_notes" value="Negative for explosives, radiological, chemical or prohibited materials. Package verified safe.">
+    </div>
+
+    <div class="acts" style="margin-top:16px;justify-content:space-between">
       <button class="btn bad" id="sc_suspicious_btn" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5" title="Flag as suspicious item, quarantine, and alert Security Control Room">
         ⚠️ Flag Suspicious / Quarantine
       </button>
       <div style="display:flex;gap:6px">
         <button class="btn" id="mNo">Cancel</button>
         <button class="btn pri" id="sc_clear_btn" style="background:#0284c7;border-color:#0284c7">
-          ✓ Clear for UN Registry
+          ✓ Clear for UN Registry Custody
         </button>
       </div>
     </div>
   </div>`;
-  m.hidden=false;
+  m.hidden = false;
 
-  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+  $("#mNo").onclick = $("#mX").onclick = () => m.hidden = true;
 
-  $("#sc_clear_btn").onclick=async()=>{
+  $("#sc_clear_btn").onclick = async () => {
     d.securityStatus = "screened_cleared";
     d.status = "registry_custody";
     d.screenedAt = now();
-    d.screenedBy = op() + " (Security)";
+    d.screenedBy = op() + " (UNDSS Screening Desk)";
     d.screeningMethod = $("#sc_method").value;
     d.securityNotes = $("#sc_notes").value.trim();
+    d.storageBin = $("#sc_bin").value.trim();
     if(!d.custodyAt){
       d.custodyAt = now();
-      d.custodyBy = "UN Registry Lead";
+      d.custodyBy = "UN Registry Lead Officer";
     }
     await saveDelivery(d);
-    m.hidden=true;
-    toast(`🛡️ ${d.regNum} screened and cleared! Transferred to UN Registry custody.`);
+    m.hidden = true;
+    toast(`🛡️ ${d.regNum} cleared by Smiths HI-SCAN 6040! Physical custody accepted into UN Registry.`);
   };
 
-  $("#sc_suspicious_btn").onclick=async()=>{
+  $("#sc_suspicious_btn").onclick = async () => {
     d.securityStatus = "suspicious";
     d.status = "suspicious";
     d.flaggedAt = now();
-    d.flaggedBy = op() + " (Security)";
-    d.suspiciousReason = $("#sc_notes").value.trim() || "Screening irregularity detected. Package quarantined.";
+    d.flaggedBy = op() + " (UNDSS Screening Desk)";
+    d.suspiciousReason = $("#sc_notes").value.trim() || "Irregular screening profile. Quarantined.";
     await saveDelivery(d);
-    m.hidden=true;
-    toast(`🚨 SECURITY ALERT: ${d.regNum} flagged as suspicious! Isolated at Gate 1 containment bin.`);
+    m.hidden = true;
+    toast(`🚨 SECURITY ALERT: ${d.regNum} flagged suspicious! Isolated at Gate 1 containment bin.`);
   };
 }
 
 function openRegDeliverModal(d){
-  const m=$("#modal");
+  const m = $("#modal");
   m.innerHTML = `
-  <div class="modal" style="max-width:520px;border-radius:14px">
+  <div class="modal" style="max-width:540px;border-radius:14px;padding:22px">
     <button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">x</button>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <span style="font-size:22px">✍️</span>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">✍️</div>
       <div>
-        <h2 style="margin:0;font-size:18px;color:var(--navy)">Proof of Delivery &amp; Acknowledgment</h2>
-        <div class="small" style="color:var(--muted)">Record official handover of ${esc(d.regNum)} to agency focal point or recipient.</div>
+        <h2 style="margin:0;font-size:18px;color:var(--navy);letter-spacing:-.01em">Official Handover &amp; e-POD Signature</h2>
+        <div class="small" style="color:var(--muted);margin-top:2px">Transfer custody of ${esc(d.regNum)} to authorized agency personnel.</div>
       </div>
     </div>
 
     <div style="background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <span class="small" style="color:var(--muted)">Inward Registry Ref:</span>
-        <b class="mono">${esc(d.regNum)}</b>
+        <span class="small" style="color:var(--muted)">Inward Ref:</span>
+        <b class="mono" style="color:#0369a1">${esc(d.regNum)}</b>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
-        <span class="small" style="color:var(--muted)">Sender:</span>
+        <span class="small" style="color:var(--muted)">Courier &amp; Sender:</span>
         <b>${esc(d.from)}</b>
       </div>
       <div style="display:flex;justify-content:space-between;margin-bottom:4px">
@@ -5480,39 +5567,48 @@ function openRegDeliverModal(d){
         <b>${esc(d.forName)} (${esc(d.agency)})</b>
       </div>
       <div style="display:flex;justify-content:space-between">
-        <span class="small" style="color:var(--muted)">Description:</span>
-        <span>${esc(d.desc)}</span>
+        <span class="small" style="color:var(--muted)">Storage Location:</span>
+        <span class="mono" style="background:#e0f2fe;color:#0369a1;padding:1px 6px;border-radius:4px">${esc(d.storageBin || "Mailroom")}</span>
       </div>
     </div>
 
     <div class="f">
-      <label for="rd_ack_by" class="small"><b>Received By (Recipient Staff or Agency Focal Point)</b></label>
-      <input id="rd_ack_by" value="${esc(d.forName)}">
+      <label for="rd_role_select" class="small"><b>Handover Handed To</b></label>
+      <select id="rd_role_select">
+        <option value="recipient">Addressed Recipient in Person</option>
+        <option value="focal">Authorized Agency Correspondence Focal Point</option>
+        <option value="dispatch">Internal Compound Messenger / Floor Dispatch</option>
+      </select>
     </div>
 
     <div class="f">
-      <label for="rd_notes" class="small"><b>Handover Notes / Verification</b></label>
+      <label for="rd_ack_by" class="small"><b>Received &amp; Acknowledged By (Full Name) *</b></label>
+      <input id="rd_ack_by" value="${esc(d.forName)}" required>
+    </div>
+
+    <div class="f">
+      <label for="rd_notes" class="small"><b>Handover Audit Notes / Condition</b></label>
       <input id="rd_notes" value="Photo ID verified. Handed over intact and acknowledged in good condition.">
     </div>
 
-    <div style="background:#ecfdf5;border:1px solid #a7f3d0;padding:10px 12px;border-radius:8px;margin-top:6px">
-      <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:#065f46;margin:0">
+    <div style="background:#ecfdf5;border:1px solid #a7f3d0;padding:10px 14px;border-radius:8px;margin-top:6px">
+      <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:600;color:#065f46;margin:0;cursor:pointer">
         <input type="checkbox" id="rd_confirm_check" checked style="width:auto">
-        Confirmed: Recipient / Agency Focal Point has inspected and accepted official custody.
+        Confirmed: UN Staff / Agency Photo ID sighted. Recipient has accepted physical custody.
       </label>
     </div>
 
-    <div class="acts" style="margin-top:14px">
-      <button class="btn pri" id="rd_save_btn" style="background:#065f46;border-color:#065f46">
-        ✓ Complete Handover &amp; Archive
+    <div class="acts" style="margin-top:16px">
+      <button class="btn pri" id="rd_save_btn" style="background:#065f46;border-color:#065f46;padding:8px 18px">
+        ✓ Complete Handover &amp; Issue e-POD
       </button>
       <button class="btn" id="mNo">Cancel</button>
     </div>
   </div>`;
-  m.hidden=false;
+  m.hidden = false;
 
-  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
-  $("#rd_save_btn").onclick=async()=>{
+  $("#mNo").onclick = $("#mX").onclick = () => m.hidden = true;
+  $("#rd_save_btn").onclick = async () => {
     const ackName = $("#rd_ack_by").value.trim() || d.forName;
     d.status = "delivered";
     d.receiptNum = "REC-" + d.regNum;
@@ -5522,28 +5618,26 @@ function openRegDeliverModal(d){
     d.idVerified = "UN Staff Photo ID Verified";
     d.deliveredByOfficer = op() + " (UN Registry)";
     await saveDelivery(d);
-    m.hidden=true;
-    toast(`✓ Handover complete! Receipt ${d.receiptNum} auto-generated for ${ackName}.`);
-    // Automatically open the generated e-POD Receipt modal!
-    setTimeout(()=>openRegReceiptModal(d), 150);
+    m.hidden = true;
+    toast(`✓ Handover complete! Official e-POD Receipt ${d.receiptNum} generated for ${ackName}.`);
+    setTimeout(() => openRegReceiptModal(d), 150);
   };
 }
 
-
 function openRegReceiptModal(d){
-  const m=$("#modal");
+  const m = $("#modal");
   const isCat1 = d.category === "correspondence";
   const recNum = d.receiptNum || ("REC-" + d.regNum);
   const ackTime = d.acknowledgedAt || now();
   const defMsg = "UNITED NATIONS HOUSE ABUJA - OFFICIAL PROOF OF DELIVERY RECEIPT\n\nReceipt #: " + recNum + "\nInward Ref: " + d.regNum + "\nStatus: DELIVERED & ACKNOWLEDGED\nDate/Time: " + fmtD(ackTime) + "\n\n• Item: " + d.desc + " (" + (isCat1 ? 'Category 1: Official Correspondence' : 'Category 2: Parcel/Package') + ")\n• Courier / Origin: " + d.from + (d.waybill ? ' [Waybill: ' + d.waybill + ']' : '') + "\n• Security Screening: Smiths Detection HI-SCAN 6040 X-Ray Cleared (" + (d.screenedBy||'Security') + ")\n• Addressed To: " + d.forName + " (" + d.agency + ")\n• Acknowledged By: " + (d.acknowledgedBy||d.forName) + "\n• Delivered By: " + (d.deliveredByOfficer||'UN Registry Common Services') + "\n\nThis is an official system-generated Electronic Proof of Delivery (e-POD). Retention 7 years under UN Records Standard.\n\nUN House Abuja Common Services";
 
   m.innerHTML = `
-  <div class="modal" style="max-width:620px;border-radius:14px;padding:24px;border:2px solid #0284c7">
+  <div class="modal" style="max-width:640px;border-radius:14px;padding:24px;border:2px solid #0284c7">
     <button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">x</button>
     
-    <!-- Receipt Official UN Header -->
+    <!-- Receipt Official Header -->
     <div style="display:flex;align-items:center;gap:14px;border-bottom:2px solid var(--navy);padding-bottom:14px;margin-bottom:16px">
-      <img src="un-emblem.svg" alt="United Nations" style="height:52px;width:auto;display:block;flex-shrink:0">
+      <img src="un-emblem.svg" alt="United Nations" style="height:48px;width:auto;display:block;flex-shrink:0" onerror="this.style.display='none'">
       <div style="flex:1">
         <div style="font-weight:800;font-size:16px;color:var(--navy);letter-spacing:.02em">UNITED NATIONS HOUSE ABUJA</div>
         <div style="font-size:12px;font-weight:600;color:var(--muted)">Common Services · UN Registry &amp; Inward Mail Unit</div>
@@ -5577,7 +5671,7 @@ function openRegReceiptModal(d){
         <tbody>
           <tr style="border-bottom:1px solid var(--line)">
             <td style="padding:8px 12px;width:150px;color:var(--muted)"><b>1. Gate 1 Intake:</b></td>
-            <td style="padding:8px 12px">${esc(d.from)} ${d.waybill ? `[Waybill: ${esc(d.waybill)}]` : ''} · Rider: ${esc(d.courierRider||'Perimeter Dispatch')} · <i>Arrived ${fmtD(d.at)}</i></td>
+            <td style="padding:8px 12px">${esc(d.from)} ${d.waybill ? `[Waybill: ${esc(d.waybill)}]` : ''} · Rider: ${esc(d.courierRider||'Perimeter Desk')} · <i>Arrived ${fmtD(d.at)}</i></td>
           </tr>
           <tr style="border-bottom:1px solid var(--line)">
             <td style="padding:8px 12px;color:var(--muted)"><b>2. Security Screening:</b></td>
@@ -5613,13 +5707,13 @@ function openRegReceiptModal(d){
       <button class="btn pri" id="mNo" style="background:var(--navy);border-color:var(--navy)">✓ Done</button>
     </div>
   </div>`;
-  m.hidden=false;
+  m.hidden = false;
 
-  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+  $("#mNo").onclick = $("#mX").onclick = () => m.hidden = true;
 
   const emailBtn = $("#rc_email_btn");
   if(emailBtn){
-    emailBtn.onclick=()=>{
+    emailBtn.onclick = () => {
       const subj = "OFFICIAL RECEIPT: UN House Delivery " + recNum + " for " + (d.acknowledgedBy||d.forName) + " (" + d.agency + ")";
       emailBtn.href = "mailto:?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(defMsg);
       toast("📧 Email client opened with official receipt " + recNum + ".");
@@ -5628,7 +5722,7 @@ function openRegReceiptModal(d){
 
   const waBtn = $("#rc_wa_btn");
   if(waBtn){
-    waBtn.onclick=()=>{
+    waBtn.onclick = () => {
       waBtn.href = "https://wa.me/?text=" + encodeURIComponent(defMsg);
       toast("💬 WhatsApp opened with official receipt " + recNum + ".");
     };
@@ -5636,7 +5730,7 @@ function openRegReceiptModal(d){
 }
 
 function openRegSlipModal(d){
-  const m=$("#modal");
+  const m = $("#modal");
   const isCat1 = d.category === "correspondence";
   m.innerHTML = `
   <div class="modal" style="max-width:560px;border-radius:14px;padding:24px">
@@ -5644,7 +5738,7 @@ function openRegSlipModal(d){
     <div style="text-align:center;border-bottom:2px solid var(--navy);padding-bottom:12px;margin-bottom:14px">
       <div style="font-weight:700;font-size:16px;color:var(--navy);letter-spacing:.03em">UNITED NATIONS HOUSE ABUJA</div>
       <div style="font-size:12px;color:var(--muted);margin-top:2px">Common Services · UN Registry &amp; Mail Management</div>
-      <div style="font-size:14px;font-weight:700;margin-top:8px;background:#f8fafc;padding:4px;border-radius:4px;display:inline-block">
+      <div style="font-size:14px;font-weight:700;margin-top:8px;background:#f8fafc;padding:4px 10px;border-radius:4px;display:inline-block">
         OFFICIAL INWARD MAIL &amp; CUSTODY ROUTING SLIP
       </div>
     </div>
@@ -5664,9 +5758,9 @@ function openRegSlipModal(d){
     <table style="width:100%;font-size:12.5px;border-collapse:collapse;margin-bottom:14px">
       <tbody>
         <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted);width:140px">Courier / Origin:</td><td style="padding:6px 0;font-weight:600">${esc(d.from)} ${d.waybill ? `(Waybill: ${esc(d.waybill)})` : ''}</td></tr>
-        <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Courier Rider:</td><td style="padding:6px 0">${esc(d.courierRider||'Perimeter Dispatch Desk')}</td></tr>
+        <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Courier Rider:</td><td style="padding:6px 0">${esc(d.courierRider||'Perimeter Desk')}</td></tr>
         <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Recipient &amp; Agency:</td><td style="padding:6px 0;font-weight:600;color:var(--navy)">${esc(d.forName)} — <span class="pill" style="font-size:10.5px">${esc(d.agency)}</span></td></tr>
-        <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Location / Room:</td><td style="padding:6px 0">${esc(d.room||'Main Office')}</td></tr>
+        <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Storage Shelf / Bin:</td><td style="padding:6px 0"><span class="mono" style="font-weight:600">${esc(d.storageBin || 'Mailroom Bin A-01')}</span></td></tr>
         <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Item Description:</td><td style="padding:6px 0">${esc(d.desc)}</td></tr>
         <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Security Screening:</td><td style="padding:6px 0;color:#065f46;font-weight:600">✓ ${esc(d.screeningMethod||'X-Ray Scanned & Cleared')} · ${fmtD(d.screenedAt||d.at)}</td></tr>
         <tr style="border-bottom:1px solid var(--line)"><td style="padding:6px 0;color:var(--muted)">Registry Custody:</td><td style="padding:6px 0">${esc(d.custodyBy||'UN Registry')} · ${fmtD(d.custodyAt||d.at)}</td></tr>
@@ -5690,28 +5784,28 @@ function openRegSlipModal(d){
       <button class="btn pri" id="mNo">Done</button>
     </div>
   </div>`;
-  m.hidden=false;
-  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+  m.hidden = false;
+  $("#mNo").onclick = $("#mX").onclick = () => m.hidden = true;
 }
 
 function openRegNotifyModal(d){
-  const m=$("#modal");
+  const m = $("#modal");
   const isCat1 = d.category === "correspondence";
-  const defMsg = "UNITED NATIONS HOUSE ABUJA - UN REGISTRY NOTIFICATION\n\nDear " + d.forName + " (" + d.agency + "),\n\nAn incoming " + (isCat1 ? 'official correspondence item' : 'package / parcel') + " has been screened by UNDSS Security and accepted into UN Registry custody.\n\n• Inward Reference: " + d.regNum + "\n• Sender / Courier: " + d.from + (d.waybill ? ' (Waybill: ' + d.waybill + ')' : '') + "\n• Description: " + d.desc + "\n• Security Status: Cleared & Safe (X-Ray Scanned)\n• Custody Location: UN Registry Desk / Central Mailroom\n\nPlease arrange for yourself or your designated Agency Correspondence Focal Point to collect and sign for this item.\n\nUN House Registry & Common Services Unit";
+  const defMsg = "UNITED NATIONS HOUSE ABUJA - UN REGISTRY NOTIFICATION\n\nDear " + d.forName + " (" + d.agency + "),\n\nAn incoming " + (isCat1 ? 'official correspondence item' : 'package / parcel') + " has been screened by UNDSS Security (Smiths HI-SCAN 6040 Cleared) and accepted into UN Registry custody.\n\n• Inward Reference: " + d.regNum + "\n• Sender / Courier: " + d.from + (d.waybill ? ' (Waybill: ' + d.waybill + ')' : '') + "\n• Description: " + d.desc + "\n• Storage Rack: " + (d.storageBin || 'Central Mailroom') + "\n• Custody Desk: Central Registry, Ground Floor Common Services\n\nPlease arrange for yourself or your designated Agency Correspondence Focal Point to collect and sign for this item.\n\nUN House Registry & Common Services Unit";
 
   m.innerHTML = `
-  <div class="modal" style="max-width:540px;border-radius:14px">
+  <div class="modal" style="max-width:540px;border-radius:14px;padding:22px">
     <button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="position:absolute;top:14px;right:14px">x</button>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-      <span style="font-size:22px">📢</span>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div style="width:40px;height:40px;border-radius:10px;background:#e0f2fe;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📢</div>
       <div>
-        <h2 style="margin:0;font-size:18px;color:var(--navy)">Notify Recipient / Agency Focal Point</h2>
-        <div class="small" style="color:var(--muted)">Dispatch collection notice for ${esc(d.regNum)}.</div>
+        <h2 style="margin:0;font-size:18px;color:var(--navy);letter-spacing:-.01em">Notify Recipient / Agency Focal Point</h2>
+        <div class="small" style="color:var(--muted);margin-top:2px">Dispatch collection alert for ${esc(d.regNum)}.</div>
       </div>
     </div>
 
     <div class="f">
-      <label for="rn_msg" class="small"><b>Notification Template</b></label>
+      <label for="rn_msg" class="small"><b>Official Diplomatic Notification Template</b></label>
       <textarea id="rn_msg" style="min-height:160px;font-family:var(--mono);font-size:11.5px;line-height:1.4">${esc(defMsg)}</textarea>
     </div>
 
@@ -5722,15 +5816,15 @@ function openRegNotifyModal(d){
       <button class="btn" id="mNo">Close</button>
     </div>
   </div>`;
-  m.hidden=false;
+  m.hidden = false;
 
   const getMsg = () => $("#rn_msg") ? $("#rn_msg").value.trim() : defMsg;
 
-  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
+  $("#mNo").onclick = $("#mX").onclick = () => m.hidden = true;
 
   const emailBtn = $("#rn_email_btn");
   if(emailBtn){
-    emailBtn.onclick=()=>{
+    emailBtn.onclick = () => {
       const subj = "UN House Registry: Cleared Inward Mail " + d.regNum + " for " + d.forName + " (" + d.agency + ")";
       emailBtn.href = "mailto:?subject=" + encodeURIComponent(subj) + "&body=" + encodeURIComponent(getMsg());
       d.status = "ready_pickup";
@@ -5743,7 +5837,7 @@ function openRegNotifyModal(d){
 
   const waBtn = $("#rn_wa_btn");
   if(waBtn){
-    waBtn.onclick=()=>{
+    waBtn.onclick = () => {
       waBtn.href = "https://wa.me/?text=" + encodeURIComponent(getMsg());
       d.status = "ready_pickup";
       d.notifiedAt = now();
@@ -5755,14 +5849,14 @@ function openRegNotifyModal(d){
 
   const copyBtn = $("#rn_copy_btn");
   if(copyBtn){
-    copyBtn.onclick=async()=>{
+    copyBtn.onclick = async () => {
       try{
         await navigator.clipboard.writeText(getMsg());
         d.status = "ready_pickup";
         d.notifiedAt = now();
         d.notifiedVia = "Copied Template";
         saveDelivery(d);
-        toast("📋 Notice copied to clipboard! Paste into Outlook or Teams.");
+        toast("📋 Notice copied to clipboard! Ready to paste.");
       }catch(e){
         $("#rn_msg").select();
         toast("Selected notice text.");
@@ -5771,8 +5865,9 @@ function openRegNotifyModal(d){
   }
 }
 
+/* Master Registry View Component */
 V.registry = () => {
-  const list = (deliveries || []).slice().sort((a,b)=>(b.at||0)-(a.at||0));
+  const list = (deliveries || []).slice().sort((a,b) => (b.at||0) - (a.at||0));
   const q = (render.q || "").toLowerCase().trim();
 
   const total = list.length;
@@ -5781,8 +5876,12 @@ V.registry = () => {
   const readyPickup = list.filter(d => d.status === "ready_pickup").length;
   const delivered = list.filter(d => d.status === "delivered").length;
   const suspicious = list.filter(d => d.status === "suspicious" || d.securityStatus === "suspicious").length;
+  const cat1Count = list.filter(d => d.category === "correspondence").length;
+  const cat2Count = list.filter(d => d.category === "package").length;
 
   let filtered = list;
+
+  // Tab Filtering
   if(regFilterTab === "cat1") filtered = filtered.filter(d => d.category === "correspondence");
   else if(regFilterTab === "cat2") filtered = filtered.filter(d => d.category === "package");
   else if(regFilterTab === "screening") filtered = filtered.filter(d => d.status === "gate_screening" || d.securityStatus === "pending");
@@ -5790,19 +5889,27 @@ V.registry = () => {
   else if(regFilterTab === "archive") filtered = filtered.filter(d => d.status === "delivered");
   else filtered = filtered.filter(d => d.status !== "delivered" || total <= 5);
 
+  // Agency Dropdown Filtering
+  if(regFilterAgency && regFilterAgency !== "all") {
+    filtered = filtered.filter(d => d.agency === regFilterAgency);
+  }
+
+  // Text Search
   if(q){
     filtered = filtered.filter(d => [
-      d.regNum, d.waybill, d.from, d.forName, d.agency, d.courierRider, d.desc, d.focalPoint, d.type
+      d.regNum, d.waybill, d.from, d.forName, d.agency, d.courierRider, d.desc, d.focalPoint, d.storageBin
     ].join(" ").toLowerCase().includes(q));
   }
 
-  return head("UN Registry & Inward Mail Management",
-    "Tripartite Controlled Mail Process: Station 1 Gatehouse Intake & Courier Hold · UNDSS Security Screening (X-Ray / Trace) · UN Registry Official Custody & Inward Tracking · Controlled Agency Distribution & Proof of Delivery.") +
+  const agencies = ["All Agencies", "UNDP", "UNICEF", "WHO", "WFP", "UNHCR", "UN Women", "RCO", "UNFPA", "FAO", "Common Services"];
 
-  `<div class="panel" style="border-left:4px solid #0284c7;background:linear-gradient(180deg,var(--surface),#f8fafc);padding:16px 20px;border-radius:12px;margin-bottom:14px">
+  return head("UN Registry & Inward Mail Management",
+    "Tripartite Controlled Mail Process: Station 1 Gatehouse Intake & Courier Hold · UNDSS Security Screening (Smiths HI-SCAN 6040 X-Ray) · UN Registry Official Custody & Inward Tracking · Controlled Agency Distribution & Proof of Delivery (e-POD).") +
+
+  `<div class="panel" style="border-left:4px solid #0284c7;background:linear-gradient(180deg,var(--surface),#f8fafc);padding:18px 20px;border-radius:12px;margin-bottom:14px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
       <div>
-        <h2 style="margin:0;font-size:16px;color:var(--navy);display:flex;align-items:center;gap:8px">
+        <h2 style="margin:0;font-size:17px;color:var(--navy);display:flex;align-items:center;gap:8px">
           🏢 UN House Tripartite Inward Mail &amp; Courier Governance
         </h2>
         <p class="small" style="margin:4px 0 0;color:var(--muted);max-width:760px;line-height:1.45">
@@ -5810,29 +5917,43 @@ V.registry = () => {
         </p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn pri" id="btn_reg_new" style="height:34px;padding:0 16px;font-size:12.5px;background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);border-radius:999px;font-weight:600">
+        <button class="btn pri" id="btn_reg_new" style="height:36px;padding:0 18px;font-size:12.5px;background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);border-radius:999px;font-weight:600;box-shadow:0 2px 6px rgba(2,132,199,0.3)">
           + Log Inward Courier &amp; Mail
+        </button>
+        <button class="btn" onclick="window.print()" style="height:36px;padding:0 14px;font-size:12.5px;border-radius:999px">
+          🖨️ Print Log
         </button>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-top:14px">
-      <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px 12px">
-        <div style="font-size:11.5px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.05em">1. Reception (Gate 1 Intake)</div>
-        <div class="small" style="color:#0c4a6e;margin-top:3px;line-height:1.4">
+    <!-- Sleek 4-Stage Tripartite SOP Stepper -->
+    <div class="reg-pipeline-grid">
+      <div class="reg-step-card">
+        <div class="reg-step-num"><span>01</span> · Gate 1 Perimeter</div>
+        <div class="reg-step-title">Perimeter Intake &amp; Hold</div>
+        <div class="reg-step-desc">
           Courier registers at gate intake. <b>Courier remains at Gate 1 holding desk</b>; zero roaming inside the compound.
         </div>
       </div>
-      <div style="background:#fef3c7;border:1px solid #fde68a;border-radius:8px;padding:10px 12px">
-        <div style="font-size:11.5px;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em">2. UNDSS Security Screening</div>
-        <div class="small" style="color:#78350f;margin-top:3px;line-height:1.4">
-          X-Ray scanning &amp; trace detection applied. Cleared items receive security stamp. <b>Suspicious items immediately quarantined</b>.
+      <div class="reg-step-card">
+        <div class="reg-step-num"><span>02</span> · UNDSS Screening</div>
+        <div class="reg-step-title">Smiths HI-SCAN 6040 X-Ray</div>
+        <div class="reg-step-desc">
+          Dual-view X-Ray &amp; vapor trace scan. Cleared items receive security stamp. <b>Threats immediately quarantined</b>.
         </div>
       </div>
-      <div style="background:#ecfdf5;border:1px solid #a7f3d0;border-radius:8px;padding:10px 12px">
-        <div style="font-size:11.5px;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.05em">3. UN Registry Custody &amp; Handover</div>
-        <div class="small" style="color:#064e3b;margin-top:3px;line-height:1.4">
-          Registry assigns <b>REG-2026-XXXX</b> inward tracking #, logs chain of custody, notifies agency focal point, and collects proof of receipt.
+      <div class="reg-step-card">
+        <div class="reg-step-num"><span>03</span> · Central Mailroom</div>
+        <div class="reg-step-title">UN Registry Custody</div>
+        <div class="reg-step-desc">
+          Registry assigns <b>REG-2026-XXXX</b> inward tracking ref, logs storage shelf, and alerts agency focal point.
+        </div>
+      </div>
+      <div class="reg-step-card">
+        <div class="reg-step-num"><span>04</span> · Agency Handover</div>
+        <div class="reg-step-title">Signed e-POD Receipt</div>
+        <div class="reg-step-desc">
+          Photo ID verified. Official electronic proof of delivery receipt issued with <b>7-year UN audit retention</b>.
         </div>
       </div>
     </div>
@@ -5841,7 +5962,7 @@ V.registry = () => {
   <div class="kpis" style="grid-template-columns:repeat(5,1fr)">
     <div class="kpi">
       <div class="n">${total}</div>
-      <div class="l">Total Registered</div>
+      <div class="l">Total Registered <span style="font-size:11px;font-weight:400;color:var(--muted)">(${cat1Count} Docs · ${cat2Count} Pkgs)</span></div>
     </div>
     <div class="kpi ${awaitingScreen ? 'alert' : ''}">
       <div class="n">${awaitingScreen}</div>
@@ -5866,14 +5987,22 @@ V.registry = () => {
       <div style="flex:1;min-width:240px">
         ${searchBox("Search by Registry Ref (e.g. REG-2026-0041), Waybill, Sender, Recipient, Courier or Agency...")}
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn ${regFilterTab==='all'?'pri':''}" id="reg_tab_all">All Active</button>
-        <button class="btn ${regFilterTab==='cat1'?'pri':''}" id="reg_tab_cat1" title="Letters, Diplomatic Pouches, Note Verbales">✉️ Cat 1: Correspondence</button>
-        <button class="btn ${regFilterTab==='cat2'?'pri':''}" id="reg_tab_cat2" title="Parcels, Boxes, Logistics Equipment">📦 Cat 2: Parcels</button>
-        <button class="btn ${regFilterTab==='screening'?'pri':''}" id="reg_tab_screen">🛡️ Screening (${awaitingScreen})</button>
-        <button class="btn ${regFilterTab==='custody'?'pri':''}" id="reg_tab_custody">🏢 Registry Custody (${inCustody + readyPickup})</button>
-        <button class="btn ${regFilterTab==='archive'?'pri':''}" id="reg_tab_archive">✓ Delivered Archive (${delivered})</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span class="small" style="font-weight:700;color:var(--muted)">Agency:</span>
+        <select id="reg_agency_select" style="height:32px;font-size:12px;padding:2px 10px;border-radius:6px">
+          ${agencies.map(a => `<option value="${a==='All Agencies'?'all':a}" ${regFilterAgency===(a==='All Agencies'?'all':a)?'selected':''}>${a}</option>`).join("")}
+        </select>
       </div>
+    </div>
+
+    <!-- Filter Tabs Bar -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px">
+      <button class="btn ${regFilterTab==='all'?'pri':''}" id="reg_tab_all" style="font-size:12px">All Active (${total - delivered})</button>
+      <button class="btn ${regFilterTab==='cat1'?'pri':''}" id="reg_tab_cat1" style="font-size:12px" title="Official Letters, Diplomatic Pouches, Note Verbales">✉️ Cat 1: Correspondence (${cat1Count})</button>
+      <button class="btn ${regFilterTab==='cat2'?'pri':''}" id="reg_tab_cat2" style="font-size:12px" title="Parcels, Boxes, Logistics Equipment">📦 Cat 2: Parcels (${cat2Count})</button>
+      <button class="btn ${regFilterTab==='screening'?'pri':''}" id="reg_tab_screen" style="font-size:12px">🛡️ Screening Queue (${awaitingScreen})</button>
+      <button class="btn ${regFilterTab==='custody'?'pri':''}" id="reg_tab_custody" style="font-size:12px">🏢 In Registry Custody (${inCustody + readyPickup})</button>
+      <button class="btn ${regFilterTab==='archive'?'pri':''}" id="reg_tab_archive" style="font-size:12px">✓ Delivered Archive (${delivered})</button>
     </div>
   </div>
 
@@ -5887,14 +6016,14 @@ V.registry = () => {
 
     ${filtered.length ? `
     <div class="tw">
-      <table class="dep-table">
+      <table class="dep-table" style="font-size:13px">
         <thead>
           <tr>
-            <th style="width:125px">Registry # &amp; Cat</th>
-            <th style="width:26%">Courier &amp; Origin</th>
-            <th style="width:24%">Recipient &amp; Agency</th>
-            <th style="width:160px">Security Screening</th>
-            <th style="width:140px">Custody Status</th>
+            <th style="width:135px">Registry # &amp; Cat</th>
+            <th style="width:25%">Courier &amp; Consignment</th>
+            <th style="width:23%">Recipient &amp; Agency</th>
+            <th style="width:170px">UNDSS Security Screening</th>
+            <th style="width:150px">Custody Status</th>
             <th style="width:150px;text-align:right">Actions</th>
           </tr>
         </thead>
@@ -5906,23 +6035,23 @@ V.registry = () => {
             const isDelivered = d.status === "delivered";
 
             let catBadge = isCat1
-              ? `<span class="pill" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;font-size:10.5px">✉️ Cat 1: Official Mail</span>`
-              : `<span class="pill" style="background:#fdf2f8;color:#be185d;border-color:#fbcfe8;font-size:10.5px">📦 Cat 2: Parcel / Pkg</span>`;
+              ? `<span class="pill" style="background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe;font-size:10px">✉️ Cat 1: Official Mail</span>`
+              : `<span class="pill" style="background:#fdf2f8;color:#be185d;border-color:#fbcfe8;font-size:10px">📦 Cat 2: Parcel / Cargo</span>`;
 
             let secBadge = isSuspicious
               ? `<span class="pill p-rejected" style="font-weight:700;font-size:10.5px">🚨 Quarantined · Suspicious</span>`
               : isScreened
-                ? `<div style="display:flex;flex-direction:column;gap:2px"><span class="pill p-approved" style="font-size:10.5px">🛡️ Screened &amp; Cleared</span><span class="small" style="font-size:10.5px;color:var(--muted)">${esc(d.screenedBy||"Security")} · ${fmtT(d.screenedAt)}</span></div>`
-                : `<div style="display:flex;flex-direction:column;gap:2px"><span class="pill p-pending" style="font-size:10.5px">⏳ Awaiting X-Ray / Screen</span><span class="small" style="font-size:10.5px;color:var(--muted)">Gate 1 Holding Desk</span></div>`;
+                ? `<div style="display:flex;flex-direction:column;gap:2px"><span class="pill p-approved" style="font-size:10.5px;background:#ecfdf5;color:#065f46;border-color:#a7f3d0">🛡️ HI-SCAN 6040 Cleared</span><span class="small" style="font-size:10.5px;color:var(--muted)">${esc(d.screenedBy||"UNDSS")} · ${fmtT(d.screenedAt)}</span></div>`
+                : `<div style="display:flex;flex-direction:column;gap:2px"><span class="pill p-pending" style="font-size:10.5px">⏳ Awaiting X-Ray Scan</span><span class="small" style="font-size:10.5px;color:var(--muted)">Gate 1 Holding Desk</span></div>`;
 
             let statusBadge = isSuspicious
               ? `<span class="pill p-rejected" style="font-size:11px">Security Alert</span>`
               : isDelivered
                 ? `<div style="display:flex;flex-direction:column;gap:2px"><span class="pill p-in" style="font-size:10.5px;background:#ecfdf5;color:#065f46;border-color:#a7f3d0">✓ Delivered</span><span class="small" style="font-size:10.5px;color:var(--muted)">Signed: ${esc(d.acknowledgedBy||"Staff")}</span></div>`
                 : d.status === "ready_pickup"
-                  ? `<span class="pill" style="background:#e0f2fe;color:#0369a1;border-color:#bae6fd;font-size:10.5px">Ready for Pickup</span>`
+                  ? `<div style="display:flex;flex-direction:column;gap:2px"><span class="pill" style="background:#e0f2fe;color:#0369a1;border-color:#bae6fd;font-size:10.5px">Ready for Pickup</span><span class="small" style="font-size:10.5px;color:var(--muted)">Rack: ${esc(d.storageBin||"Mailroom")}</span></div>`
                   : d.status === "registry_custody"
-                    ? `<span class="pill" style="background:#ecfdf5;color:#065f46;border-color:#a7f3d0;font-size:10.5px">In Registry Custody</span>`
+                    ? `<div style="display:flex;flex-direction:column;gap:2px"><span class="pill" style="background:#ecfdf5;color:#065f46;border-color:#a7f3d0;font-size:10.5px">In Registry Custody</span><span class="small" style="font-size:10.5px;color:var(--muted)">Rack: ${esc(d.storageBin||"Mailroom")}</span></div>`
                     : `<span class="pill p-pending" style="font-size:10.5px">At Gate 1 Hold</span>`;
 
             return `
@@ -5931,27 +6060,28 @@ V.registry = () => {
                 <div style="display:flex;flex-direction:column;gap:3px">
                   <b class="mono" style="font-size:12.5px;color:var(--navy)">${esc(d.regNum||"Pending Ref")}</b>
                   ${catBadge}
+                  <span class="small" style="font-size:10.5px;color:var(--muted)">${fmtT(d.at)}</span>
                 </div>
               </td>
               <td>
                 <div class="dep-v">
-                  <div class="dep-vn">
+                  <div class="dep-vn" style="font-weight:600;color:var(--navy)">
                     <span>${esc(d.from||"Courier")}</span>
-                    ${d.waybill ? `<span class="mono small" style="background:#f1f5f9;color:#475569;padding:1px 5px;border-radius:4px;font-size:10.5px">#${esc(d.waybill)}</span>` : ''}
+                    ${d.waybill ? `<span class="copy-pill" title="Click to copy waybill" onclick="navigator.clipboard.writeText('${esc(d.waybill)}');toast('Copied waybill: ${esc(d.waybill)}')">#${esc(d.waybill)} 📋</span>` : ''}
                   </div>
-                  <div class="dep-vs">
-                    ${d.courierRider ? `<span>Rider: ${esc(d.courierRider)}</span> · ` : ''}
-                    <span>${esc(d.desc||"1 item")}</span>
+                  <div class="dep-vs" style="margin-top:2px">
+                    ${d.courierRider ? `<span style="color:var(--muted)">Rider: ${esc(d.courierRider)}</span> · ` : ''}
+                    <span style="color:var(--fg)">${esc(d.desc||"1 item")}</span>
                   </div>
                 </div>
               </td>
               <td>
                 <div class="dep-h">
                   <div class="dep-hn">
-                    <span>${esc(d.forName)}</span>
+                    <b style="color:var(--navy)">${esc(d.forName)}</b>
                     <span class="pill" style="font-size:10px;padding:1px 6px;margin-left:4px;background:#e0f2fe;color:#0369a1;border-color:#bae6fd">${esc(d.agency)}</span>
                   </div>
-                  <div class="dep-hs">
+                  <div class="dep-hs" style="margin-top:2px">
                     <span>${d.room ? esc(d.room) : 'Main Office'}</span>
                     ${d.focalPoint ? ` · <span title="Agency Correspondence Focal Point">Focal: ${esc(d.focalPoint)}</span>` : ''}
                   </div>
@@ -5976,12 +6106,12 @@ V.registry = () => {
                       📢 Alert
                     </button>
                     <button class="btn pri" data-reg-act="deliver" data-id="${esc(d.id)}" style="font-size:11px;padding:3px 9px;height:28px;background:#1e3a8a;border-color:#1e3a8a" title="Hand over &amp; auto-generate official e-POD receipt">
-                      ✓ Hand Over
+                      ✍️ Hand Over
                     </button>
                   ` : ''}
                   ${isDelivered ? `
                     <button class="btn pri" data-reg-act="receipt" data-id="${esc(d.id)}" style="font-size:11px;padding:3px 9px;height:28px;background:#065f46;border-color:#065f46" title="View auto-generated official Delivery Receipt (e-POD)">
-                      📜 e-Receipt
+                      📜 e-POD
                     </button>
                   ` : ''}
                   <button class="btn icon" data-reg-act="slip" data-id="${esc(d.id)}" style="width:28px;height:28px" title="View / Print Inward Registry Routing Slip">
@@ -6013,6 +6143,14 @@ function wireRegistry(){
   const tabCustody = $("#reg_tab_custody"); if(tabCustody) tabCustody.onclick=()=>{ regFilterTab="custody"; render(); };
   const tabArchive = $("#reg_tab_archive"); if(tabArchive) tabArchive.onclick=()=>{ regFilterTab="archive"; render(); };
 
+  const agSelect = $("#reg_agency_select");
+  if(agSelect){
+    agSelect.onchange = () => {
+      regFilterAgency = agSelect.value;
+      render();
+    };
+  }
+
   document.querySelectorAll("[data-reg-act]").forEach(b => {
     b.onclick = () => {
       const act = b.dataset.regAct;
@@ -6036,7 +6174,6 @@ function wireRegistry(){
   });
 }
 
-// Move to a screen and record it in the browser history (Back returns to the previous screen).
 function goView(v,opts={}){
   if(!v) return;
   view=v; selected=null; if(v!=="wall") document.body.classList.remove("wall-mode");
