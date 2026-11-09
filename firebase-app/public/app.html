@@ -117,12 +117,12 @@ tr:last-child td{border-bottom:0}
   -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
 .btn[data-act="arrive"],.btn[data-act="vipadmit"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 17l5-5-5-5M15 12H3M15 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4'/%3E%3C/svg%3E")}
 .btn[data-act="checkout"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 17l5-5-5-5M19 12H8M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4'/%3E%3C/svg%3E")}
-.btn[data-act="checkout"]{
+.btn[data-act="arrive"],.btn[data-act="vipadmit"],.btn[data-act="checkout"]{
   background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);
   color:#fff;
   border-radius:999px;
   height:32px;
-  padding:0 14px;
+  padding:0 15px;
   font-size:12.5px;
   font-weight:600;
   letter-spacing:.015em;
@@ -132,7 +132,7 @@ tr:last-child td{border-bottom:0}
   position:relative;
   overflow:hidden;
 }
-.btn[data-act="checkout"]::after{
+.btn[data-act="arrive"]::after,.btn[data-act="vipadmit"]::after,.btn[data-act="checkout"]::after{
   content:"";
   position:absolute;
   top:0;left:-100%;width:50%;height:100%;
@@ -141,14 +141,14 @@ tr:last-child td{border-bottom:0}
   transition:left .55s ease;
   pointer-events:none;
 }
-.btn[data-act="checkout"]:hover{
+.btn[data-act="arrive"]:hover,.btn[data-act="vipadmit"]:hover,.btn[data-act="checkout"]:hover{
   background:linear-gradient(135deg,#0369a1 0%,#075985 100%);
   box-shadow:0 6px 18px -3px rgba(2,132,199,.55),0 2px 4px rgba(15,23,42,.12);
   transform:translateY(-1.5px);
   filter:brightness(1.05);
 }
-.btn[data-act="checkout"]:hover::after{left:140%}
-.btn[data-act="checkout"]:active{
+.btn[data-act="arrive"]:hover::after,.btn[data-act="vipadmit"]:hover::after,.btn[data-act="checkout"]:hover::after{left:140%}
+.btn[data-act="arrive"]:active,.btn[data-act="vipadmit"]:active,.btn[data-act="checkout"]:active{
   transform:scale(.94) translateY(0);
   box-shadow:0 1px 3px rgba(2,132,199,.35);
   transition:transform .06s ease;
@@ -3805,8 +3805,8 @@ V.gate=()=>{
       if(v.type==="delivery"&&v.status==="approved") return B(v.id,"arrive","Admit Courier / Dispatch","pri");
       if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Admit","pri");
       if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
-      if(v.type==="delivery"&&v.status==="arrived") return `<span class="pill" style="background:#e0e7ff;color:#3730a3;font-weight:700">📦 Courier Admitted · Direct Mail Intake</span>`;
-      if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill" style="background:#e0e7ff;color:#0369a1;font-weight:600;font-size:11.5px">✓ Admitted Station 1 · Sent to Station 2 Documentation Reception</span>`;
+      if(v.type==="delivery"&&v.status==="arrived") return `<span class="pill p-in" style="font-size:11.5px">📦 Mail Intake</span>`;
+      if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill p-in" style="font-size:11.5px">At Station 2 ➔</span>`;
       return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
     },"No expected visitors match.")}</div>
   </div>
