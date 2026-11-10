@@ -3870,799 +3870,370 @@ function wireSettings(){
 /* ---------- Public visitor rules page: app.html?rules ---------- */
 const RULES_I18N = {
   en: {
-    eyebrow: "UNITED NATIONS COMMON SERVICES · ABUJA",
-    dept: "Department of Safety and Security (UNDSS) & Joint Operations",
-    title: "Visitor Information & Security Guidelines",
-    lead: "Welcome to UN House Abuja. Please review the official compound security guidelines, physical identification procedures, emergency actions, and data protection policies below to ensure an orderly and secure visit.",
-    badge: "Policy Rev. UNH-2026-11",
-    condition: "Security Level 2 · Active Screening",
-    printBtn: "Print Official Guidelines",
-    returnBtn: "← Return to Public Portal",
-    navPills: [
-      { id: "sec-guidelines", label: "01 · Core Guidelines" },
-      { id: "sec-lanyards", label: "02 · Lanyard Colors" },
-      { id: "sec-stations", label: "03 · 4-Station Flow" },
-      { id: "sec-prohibited", label: "04 · Prohibited Items" },
-      { id: "sec-emergency", label: "05 · Emergency & Muster" },
-      { id: "sec-privacy", label: "06 · Data Privacy" },
-      { id: "sec-ack", label: "07 · Acknowledgment" }
-    ],
-    rulesTitle: "Compound Security Guidelines & Code of Conduct",
-    rulesSubtitle: "Mandatory standards for all guests, contractors, and visiting delegations.",
+    title: "Visitor Rules",
+    subtitle: "UN House Abuja · Department of Safety and Security",
+    returnBtn: "← Return to Portal",
     rules: [
       {
         num: "01",
-        tag: "Physical Identification",
-        title: "Visible Lanyard & Badge Display",
-        text: "Visitors must wear the assigned colour-coded lanyard and photographic badge visibly above the waist at all times while inside the compound. The pass remains the property of the United Nations and must be returned at Station 4 upon exit.",
-        tip: "VIP high-level delegations are exempt from physical lanyards under official protocol escort.",
+        tag: "Identification",
+        title: "Visitor Identification",
+        text: "Wear the assigned colour-coded lanyard or badge visibly above the waist at all times while inside the compound, and return it upon departure (VIP delegations exempt).",
+        tip: "Keep badge visible at all times.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>'
       },
       {
         num: "02",
-        tag: "Perimeter & Zone Security",
-        title: "Authorized Movement & Floor Boundaries",
-        text: "Physical access is strictly limited to authorized floors, conference halls, and the specific offices of your designated host agency. Unescorted exploration of other wings, rooftops, or technical plant rooms is strictly prohibited.",
-        tip: "Electronic access readers log turnstile crossings to maintain an active occupancy headcount.",
+        tag: "Access",
+        title: "Authorized Access",
+        text: "Access is strictly limited to designated floors, wings, and host offices. Unescorted movement to other floors or technical areas is prohibited.",
+        tip: "Remain within authorized areas.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 11h.01"/></svg>'
       },
       {
         num: "03",
-        tag: "Escort & Accompaniment",
-        title: "Host Escort & Common Areas",
-        text: "Visitors must be received at Station 2 Main Reception by their host officer or designated staff representative. Guests must remain accompanied by their host throughout the meeting and until they return to the security perimeter.",
-        tip: "Host officers are legally and operationally accountable for their registered visitors.",
+        tag: "Escort",
+        title: "Host and Escort",
+        text: "Visitors must remain with their designated host or official escort in approved common areas throughout the visit.",
+        tip: "Hosts are responsible for their visitors.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
       },
       {
         num: "04",
-        tag: "UNDSS Directives",
-        title: "Compliance with Security Instructions",
-        text: "All visitors must promptly follow directives issued by UN House Security Officers (UNDSS), including physical metal detector screening, X-ray scanning of hand luggage, and instructions delivered during security alerts.",
-        tip: "Security officers are authorized to refuse entry or revoke compound access at any time.",
+        tag: "Security",
+        title: "Security Instructions",
+        text: "Visitors must strictly comply with all instructions issued by the UN House Security Team (UNDSS), including screening and emergency procedures.",
+        tip: "Follow officer instructions promptly.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
       },
       {
         num: "05",
-        tag: "Media & Recording",
-        title: "Prohibition of Unauthorized Recording",
-        text: "Unauthorized photography, video filming, live-streaming, and audio recording inside the compound, security checkpoints, and office corridors are strictly prohibited. Press crews must obtain prior written accreditation from UNIC.",
-        tip: "Violations will lead to immediate confiscation of media and diplomatic incident reporting.",
+        tag: "Media",
+        title: "Photography and Recording",
+        text: "Unauthorized photography, filming, and audio recording inside the compound, security checkpoints, and offices are strictly prohibited.",
+        tip: "Obtain prior authorization for media.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"/></svg>'
       },
       {
         num: "06",
-        tag: "Data Governance",
-        title: "Visitor Information & Data Protection",
-        text: "Visitor identity credentials are collected solely to verify bona fides, facilitate authorized compound entry, and maintain emergency muster accountability in alignment with UN BOS 2.0 and strict data protection principles.",
-        tip: "Visitor records are stored securely, access-restricted, and never shared for commercial purposes.",
+        tag: "Privacy",
+        title: "Privacy Notice",
+        text: "Visitor information is collected and processed responsibly for compound security, access management, and emergency accountability.",
+        tip: "Data is protected under UN principles.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
       }
-    ],
-    lanyardsTitle: "Physical Pass & Lanyard Color Classification",
-    lanyardsSubtitle: "Every visitor badge is colour-coded to correspond with physical lanyard ribbons worn on site.",
-    lanyards: [
-      { name: "General Visitor", color: "#087fc5", bg: "#eaf6ff", border: "#bae6fd", text: "#0369a1", desc: "For approved business meetings, interviews, and events. Escort required at all times." },
-      { name: "Registry & Delivery", color: "#166534", bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", desc: "For couriers, postal delivery, and official documents. Limited to ground floor registry lobby." },
-      { name: "Contractor", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", text: "#115e59", desc: "For maintenance, construction, and IT contractors. Confined strictly to work-order zones." },
-      { name: "Protocol & Agency", color: "#6b21a8", bg: "#faf5ff", border: "#e9d5ff", text: "#581c87", desc: "For visiting UN personnel, foreign diplomats, and technical missions." },
-      { name: "VIP Delegation", color: "#1e293b", bg: "#f8fafc", border: "#cbd5e1", text: "#0f172a", desc: "High-level dignitaries, ambassadors, and heads of agency. Official diplomatic courtesy." }
-    ],
-    stationsTitle: "Compound Access Architecture · 4-Station Flow",
-    stationsSubtitle: "A seamless 4-station physical security and identification process.",
-    stations: [
-      { num: "1", title: "Station 1 · Gate Screening", desc: "Vehicle undercarriage scan, pedestrian metal detector, and government photo ID credential verification." },
-      { num: "2", title: "Station 2 · Main Reception", desc: "Digital badge issuance, colour-coded lanyard collection, and automated host arrival notification." },
-      { num: "3", title: "Station 3 · Floor Verification", desc: "Turnstile badge scan, host escort rendezvous, and entry into approved agency premises." },
-      { num: "4", title: "Station 4 · Departure & Drop-Box", desc: "Badge deposit into RFID departure drop-box, system check-out, and pass deactivation." }
-    ],
-    prohibitedTitle: "Prohibited & Restricted Items",
-    prohibitedSubtitle: "Bringing any of the following items onto UN compound grounds without written authorization is strictly illegal:",
-    prohibitedItems: [
-      "Firearms, Ammunition & Explosives",
-      "Blades, Knives & Concealed Weapons",
-      "Unauthorized Recording Rigs & Drones",
-      "Hazardous Chemicals & Flammables"
-    ],
-    emTitle: "🚨 Emergency Procedures & Evacuation Plan",
-    emSubtitle: "In the event of a fire alarm, security lockdown, or emergency directive:",
-    emPoints: [
-      "<b>Remain Calm:</b> Follow the verbal instructions of your designated host officer or UNDSS Floor Warden immediately.",
-      "<b>Do NOT Use Elevators:</b> Proceed in an orderly manner down the nearest emergency staircase.",
-      "<b>Muster Assembly Area:</b> Assemble on the <b>Compound Central Lawn (North Flagpole Plaza)</b>.",
-      "<b>Muster Roll Call:</b> Remain with your host until your presence is verified against the real-time VMS headcount.",
-      "<b>Security Operations Center:</b> In any compound emergency, dial <b>Ext. 6555</b> or <b>+234 (0) 9 461 6500</b>."
-    ],
-    accTitle: "♿ Accessibility & Inclusive Diplomatic Services",
-    accText: "UN House Abuja is committed to ensuring full accessibility for all visitors. The compound features step-free ramp entrances, braille elevator controls, wheelchair-accessible restrooms, and dedicated disabled parking bays. For specialized mobility, sensory, or sign language assistance prior to arrival, contact Common Services at <b>Ext. 2010</b>.",
-    privTitle: "📋 Data Protection, Storage & Retention Transparency",
-    privBullets: [
-      "<b>Data Collected:</b> Visitor full name, organization, national ID/passport type (visually inspected; no copies retained), vehicle registration, host officer name, and exact check-in/out timestamps.",
-      "<b>Lawful Purpose:</b> Processing is strictly necessary for compound perimeter defense, physical access authorization, and statutory UNDSS evacuation muster accountability under UN BOS 2.0.",
-      "<b>Security Isolation:</b> All visitor logs are encrypted at rest and restricted to accredited security personnel using role-based multi-factor authentication.",
-      "<b>Retention & Purging:</b> Routine visitor audit logs are held for 30 calendar days for security verification, after which they are automatically purged from the active system."
-    ],
-    ackTitle: "Visitor Onboarding Acknowledgement",
-    ackSub: "Please review and check the box below to record that you have reviewed the UN House Visitor Guidelines, Emergency Plan, and Privacy Notice.",
-    ackLabel: "I confirm that I have reviewed, understand, and agree to abide by the UN House Visitor Guidelines, Emergency Procedures, and Data Protection Policies.",
-    ackNamePlaceholder: "Visitor Full Name (optional for digital stamp)",
-    ackDone: "✓ Guidelines Officially Acknowledged & Verified",
-    ackTokenText: "Verification Code:"
+    ]
   },
   fr: {
-    eyebrow: "SERVICES COMMUNS DES NATIONS UNIES · ABUJA",
-    dept: "Département de la sûreté et de la sécurité (UNDSS) & Opérations conjointes",
-    title: "Directives de sécurité et information des visiteurs",
-    lead: "Bienvenue à UN House Abuja. Veuillez consulter ci-dessous les directives officielles de sécurité, les procédures d'identification, le plan d'urgence et la politique de protection des données afin d'assurer un séjour fluide et sécurisé.",
-    badge: "Version UNH-2026-11",
-    condition: "Niveau de sécurité 2 · Contrôles actifs",
-    printBtn: "Imprimer les directives",
-    returnBtn: "← Retour au portail public",
-    navPills: [
-      { id: "sec-guidelines", label: "01 · Directives" },
-      { id: "sec-lanyards", label: "02 · Cordons couleur" },
-      { id: "sec-stations", label: "03 · Les 4 stations" },
-      { id: "sec-prohibited", label: "04 · Objets interdits" },
-      { id: "sec-emergency", label: "05 · Urgences & Évacuation" },
-      { id: "sec-privacy", label: "06 · Confidentialité" },
-      { id: "sec-ack", label: "07 · Confirmation" }
-    ],
-    rulesTitle: "Directives de sécurité et code de conduite",
-    rulesSubtitle: "Normes obligatoires pour tous les invités, prestataires et délégations officielles.",
+    title: "Règles pour les visiteurs",
+    subtitle: "UN House Abuja · Département de la sûreté et de la sécurité",
+    returnBtn: "← Retour au portail",
     rules: [
       {
         num: "01",
-        tag: "Identification physique",
-        title: "Port visible du badge et du cordon",
-        text: "Les visiteurs doivent porter le badge avec cordon de couleur attribué de manière visible au-dessus de la taille en permanence dans l'enceinte du complexe. Le pass doit être retourné à la station 4 lors du départ.",
-        tip: "Les délégations VIP sont dispensées du cordon sous escorte protocolaire officielle.",
+        tag: "Identification",
+        title: "Identification du visiteur",
+        text: "Portez votre badge ou cordon couleur de manière visible au-dessus de la taille en permanence et restituez-le au départ (délégations VIP dispensées).",
+        tip: "Conservez votre badge visible.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>'
       },
       {
         num: "02",
-        tag: "Sécurité du périmètre",
-        title: "Déplacements autorisés et délimitation des étages",
-        text: "L'accès physique est strictement limité aux étages et bureaux autorisés de l'agence hôte. Les déplacements non accompagnés dans d'autres ailes ou locaux techniques sont formellement proscrits.",
-        tip: "Les tourniquets électroniques enregistrent les passages pour le suivi de l'effectif en temps réel.",
+        tag: "Accès",
+        title: "Accès autorisé",
+        text: "L'accès est strictement limité aux étages et bureaux autorisés. La circulation sans escorte dans les autres zones est interdite.",
+        tip: "Restez dans les zones autorisées.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 11h.01"/></svg>'
       },
       {
         num: "03",
-        tag: "Accompagnement",
-        title: "Escorte par l'hôte & espaces communs",
-        text: "Les visiteurs doivent être accueillis à la réception principale (Station 2) par leur hôte et rester accompagnés tout au long de la visite jusqu'au franchissement de la sortie.",
-        tip: "Les fonctionnaires hôtes sont responsables de la conformité de leurs visiteurs.",
+        tag: "Escorte",
+        title: "Hôte et escorte",
+        text: "Les visiteurs doivent rester accompagnés de leur hôte ou de l'escorte officielle désignée tout au long de la visite.",
+        tip: "Les hôtes sont responsables de leurs invités.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
       },
       {
         num: "04",
-        tag: "Directives UNDSS",
-        title: "Respect des consignes de sûreté",
-        text: "Tout visiteur doit obtempérer aux directives des agents de sécurité de l'UNDSS, incluant le contrôle par portique de détection, la radiographie des bagages et les consignes d'alerte.",
-        tip: "La sécurité se réserve le droit de révoquer l'accès au complexe à tout moment.",
+        tag: "Sécurité",
+        title: "Consignes de sécurité",
+        text: "Respectez scrupuleusement toutes les consignes de sécurité de l'équipe UNDSS et les procédures d'évacuation d'urgence.",
+        tip: "Suivez les consignes sans délai.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
       },
       {
         num: "05",
-        tag: "Enregistrement & Médias",
-        title: "Interdiction des prises de vue non autorisées",
-        text: "Les photographies, vidéos, enregistrements sonores ou transmissions sans accréditation préalable du Centre d'information des Nations Unies (UNIC) sont strictement interdits.",
-        tip: "Tout manquement entraîne la saisie immédiate du matériel et un rapport diplomatique.",
+        tag: "Médias",
+        title: "Photographies et enregistrements",
+        text: "Toute prise de vue, vidéo ou enregistrement audio sans autorisation préalable est strictement interdite dans le complexe.",
+        tip: "Autorisation requise pour les médias.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"/></svg>'
       },
       {
         num: "06",
-        tag: "Gouvernance des données",
-        title: "Traitement et protection des informations",
-        text: "Les données des visiteurs sont recueillies dans le seul but de sécuriser le complexe, d'autoriser les accès et de faciliter le recensement d'urgence selon la stratégie BOS 2.0.",
-        tip: "Les données sont chiffrées, strictement sécurisées et jamais divulguées à des tiers.",
+        tag: "Confidentialité",
+        title: "Avis de confidentialité",
+        text: "Les données des visiteurs sont recueillies et traitées de manière responsable pour la sécurité et la gestion des accès.",
+        tip: "Protection conforme aux principes de l'ONU.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
       }
-    ],
-    lanyardsTitle: "Classification des badges et cordons de couleur",
-    lanyardsSubtitle: "Chaque badge correspond à une couleur spécifique déterminant l'autorisation sur site.",
-    lanyards: [
-      { name: "Visiteur Général", color: "#087fc5", bg: "#eaf6ff", border: "#bae6fd", text: "#0369a1", desc: "Réunions d'affaires et conférences. Escorte requise en permanence." },
-      { name: "Courrier & Registre", color: "#166534", bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", desc: "Livraisons et courriers officiels. Limité au rez-de-chaussée." },
-      { name: "Prestataire", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", text: "#115e59", desc: "Maintenance technique et informatique. Restreint aux zones d'intervention." },
-      { name: "Protocole & Agence", color: "#6b21a8", bg: "#faf5ff", border: "#e9d5ff", text: "#581c87", desc: "Personnel de l'ONU en mission, diplomates et délégations." },
-      { name: "Délégation VIP", color: "#1e293b", bg: "#f8fafc", border: "#cbd5e1", text: "#0f172a", desc: "Dignitaires, ambassadeurs et chefs d'agence. Courtoisie diplomatique." }
-    ],
-    stationsTitle: "Circuit de sécurité · Les 4 Stations",
-    stationsSubtitle: "Un processus fluide en 4 étapes pour garantir la sûreté du complexe diplomatique.",
-    stations: [
-      { num: "1", title: "Station 1 · Filtrage du portail", desc: "Contrôle des véhicules, portique piéton et vérification de la pièce d'identité officielle." },
-      { num: "2", title: "Station 2 · Réception principale", desc: "Émission du badge numérique, remise du cordon et notification automatique de l'hôte." },
-      { num: "3", title: "Station 3 · Accès aux étages", desc: "Passage aux tourniquets, jonction avec l'escorte et accès aux bureaux autorisés." },
-      { num: "4", title: "Station 4 · Restitution & Départ", desc: "Dépôt du badge dans la boîte sécurisée, clôture automatique de la visite." }
-    ],
-    prohibitedTitle: "Objets strictement prohibés",
-    prohibitedSubtitle: "Il est formellement interdit d'introduire les articles suivants dans l'enceinte de l'ONU :",
-    prohibitedItems: [
-      "Armes à feu, munitions & explosifs",
-      "Armes blanches, couteaux & objets tranchants",
-      "Drones & dispositifs d'espionnage non agréés",
-      "Produits chimiques inflammables ou dangereux"
-    ],
-    emTitle: "🚨 Procédures d'urgence et plan d'évacuation",
-    emSubtitle: "En cas de déclenchement d'alarme incendie ou de directive de confinement :",
-    emPoints: [
-      "<b>Gardez votre calme :</b> Suivez immédiatement les consignes de votre hôte ou du coordinateur UNDSS.",
-      "<b>Ne prenez pas les ascenseurs :</b> Empruntez les escaliers de secours les plus proches.",
-      "<b>Point de rassemblement :</b> Rendez-vous sur la <b>pelouse centrale (place du mât nord)</b>.",
-      "<b>Appel nominal :</b> Restez au point de rassemblement jusqu'à la vérification complète de l'effectif.",
-      "<b>Centre de sécurité :</b> En cas d'urgence dans le complexe, composez le <b>poste 6555</b> ou le <b>+234 (0) 9 461 6500</b>."
-    ],
-    accTitle: "♿ Accessibilité et services inclusifs",
-    accText: "UN House Abuja garantit une accessibilité totale : rampes d'accès, ascenseurs en braille, sanitaires adaptés et places de stationnement réservées. Pour toute demande préalable d'assistance mobilité ou auditive, contactez le <b>poste 2010</b>.",
-    privTitle: "📋 Traitement des données et politique de confidentialité",
-    privBullets: [
-      "<b>Données enregistrées :</b> Nom complet, organisation, pièce d'identité (vérifiée sans conservation de copie), immatriculation, hôte et horodatages précis.",
-      "<b>Base légale :</b> Traitement justifié par la protection des personnes et le recensement obligatoire d'urgence sous le cadre BOS 2.0.",
-      "<b>Sécurité :</b> Données chiffrées au repos et réservées au personnel de sécurité agréé avec authentification stricte.",
-      "<b>Durée de conservation :</b> Purge automatique des journaux d'accès après 30 jours calendaires."
-    ],
-    ackTitle: "Confirmation de prise de connaissance",
-    ackSub: "Veuillez cocher la case ci-dessous pour confirmer que vous avez lu et compris les consignes du complexe.",
-    ackLabel: "Je confirme avoir lu, compris et accepté de me conformer aux consignes de sécurité, au plan d'urgence et à la politique de confidentialité de UN House.",
-    ackNamePlaceholder: "Nom complet du visiteur (optionnel)",
-    ackDone: "✓ Directives officiellement confirmées & vérifiées",
-    ackTokenText: "Code de vérification :"
+    ]
   },
   es: {
-    eyebrow: "SERVICIOS COMUNES DE LAS NACIONES UNIDAS · ABUYA",
-    dept: "Departamento de Seguridad y Protección (UNDSS) y Operaciones Conjuntas",
-    title: "Pautas de seguridad e información para visitantes",
-    lead: "Bienvenido a UN House Abuya. Revise las pautas oficiales del complejo sobre identificación física, emergencias y protección de datos para garantizar una visita segura y ordenada.",
-    badge: "Versión UNH-2026-11",
-    condition: "Nivel de seguridad 2 · Inspección activa",
-    printBtn: "Imprimir pautas oficiales",
-    returnBtn: "← Volver al portal público",
-    navPills: [
-      { id: "sec-guidelines", label: "01 · Pautas principales" },
-      { id: "sec-lanyards", label: "02 · Cordones de color" },
-      { id: "sec-stations", label: "03 · Las 4 estaciones" },
-      { id: "sec-prohibited", label: "04 · Artículos prohibidos" },
-      { id: "sec-emergency", label: "05 · Plan de emergencia" },
-      { id: "sec-privacy", label: "06 · Privacidad de datos" },
-      { id: "sec-ack", label: "07 · Confirmación" }
-    ],
-    rulesTitle: "Pautas de seguridad y código de conducta del complejo",
-    rulesSubtitle: "Normas obligatorias para todos los invitados, contratistas y delegaciones.",
+    title: "Reglas para visitantes",
+    subtitle: "UN House Abuya · Departamento de Seguridad y Protección",
+    returnBtn: "← Volver al portal",
     rules: [
       {
         num: "01",
-        tag: "Identificación física",
-        title: "Uso visible de credencial y cordón",
-        text: "Los visitantes deben portar la credencial y el cordón de color asignado visiblemente sobre la cintura en todo momento dentro del recinto. Debe devolverse en la Estación 4 al salir.",
-        tip: "Las delegaciones VIP están exentas del cordón bajo escolta diplomática oficial.",
+        tag: "Identificación",
+        title: "Identificación del visitante",
+        text: "Lleve la credencial o cordón asignado visiblemente sobre la cintura en todo momento y devuélvalo al salir (delegaciones VIP exentas).",
+        tip: "Mantenga su credencial visible.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>'
       },
       {
         num: "02",
-        tag: "Seguridad perimetral",
-        title: "Movimiento autorizado y límites de piso",
-        text: "El acceso físico se limita estrictamente a los pisos y oficinas aprobados de la agencia anfitriona. Queda prohibido circular sin autorización por otras alas o salas técnicas.",
-        tip: "Los torniquetes electrónicos registran los accesos para el control de aforo en tiempo real.",
+        tag: "Acceso",
+        title: "Acceso autorizado",
+        text: "El acceso está estrictamente limitado a los pisos y oficinas aprobados. Queda prohibido circular sin escolta por otras áreas.",
+        tip: "Permanezca en áreas autorizadas.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 11h.01"/></svg>'
       },
       {
         num: "03",
-        tag: "Acompañamiento",
-        title: "Escolta del anfitrión y áreas comunes",
-        text: "Los visitantes deben ser recibidos en la Recepción Principal (Estación 2) por su anfitrión y permanecer acompañados durante toda la visita hasta cruzar la salida del recinto.",
-        tip: "Los funcionarios anfitriones son responsables de sus visitantes registrados.",
+        tag: "Escolta",
+        title: "Anfitrión y escolta",
+        text: "Los visitantes deben permanecer acompañados por su anfitrión o escolta oficial durante toda la visita.",
+        tip: "Los anfitriones responden por sus visitantes.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
       },
       {
         num: "04",
-        tag: "Instrucciones UNDSS",
-        title: "Cumplimiento de órdenes de seguridad",
-        text: "Todos los visitantes deben seguir las instrucciones de los oficiales de seguridad de la ONU (UNDSS), incluyendo arcos detectores, inspección de bolsos y medidas de emergencia.",
-        tip: "La seguridad está facultada para revocar el acceso al recinto en cualquier momento.",
+        tag: "Seguridad",
+        title: "Instrucciones de seguridad",
+        text: "Cumpla estrictamente todas las instrucciones del personal de seguridad de la ONU (UNDSS) y los protocolos de emergencia.",
+        tip: "Siga las indicaciones con prontitud.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
       },
       {
         num: "05",
-        tag: "Grabación y medios",
-        title: "Prohibición de fotografía y grabación",
-        text: "Queda terminantemente prohibido tomar fotografías, vídeos o grabaciones de audio dentro del complejo sin autorización escrita previa del Centro de Información de la ONU (UNIC).",
-        tip: "El incumplimiento provocará la confiscación del equipo y un reporte diplomático.",
+        tag: "Medios",
+        title: "Fotografía y grabación",
+        text: "Queda terminantemente prohibida la fotografía, vídeo o grabación no autorizada dentro del recinto.",
+        tip: "Requiere autorización oficial previa.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"/></svg>'
       },
       {
         num: "06",
-        tag: "Gobernanza de datos",
-        title: "Tratamiento y protección de la información",
-        text: "Los datos de los visitantes se recopilan únicamente para verificar identidades, permitir el acceso y garantizar el pase de lista de emergencia bajo las directrices BOS 2.0.",
-        tip: "La información está cifrada y nunca se compartirá con fines comerciales.",
+        tag: "Privacidad",
+        title: "Aviso de privacidad",
+        text: "Los datos de los visitantes se recopilan de manera responsable para la seguridad, el control de acceso y las emergencias.",
+        tip: "Datos protegidos bajo directrices de la ONU.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
       }
-    ],
-    lanyardsTitle: "Clasificación de cordones y pases físicos",
-    lanyardsSubtitle: "Cada credencial refleja un color correspondiente a la cinta física asignada.",
-    lanyards: [
-      { name: "Visitante General", color: "#087fc5", bg: "#eaf6ff", border: "#bae6fd", text: "#0369a1", desc: "Reuniones de trabajo y conferencias. Requiere escolta continua." },
-      { name: "Registro y Entrega", color: "#166534", bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", desc: "Mensajería y correspondencia diplomática. Limitado a recepción en planta baja." },
-      { name: "Contratista", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", text: "#115e59", desc: "Mantenimiento e infraestructura. Restringido a zonas de trabajo autorizadas." },
-      { name: "Protocolo y Agencia", color: "#6b21a8", bg: "#faf5ff", border: "#e9d5ff", text: "#581c87", desc: "Personal de la ONU en misión, diplomáticos y delegaciones bilaterales." },
-      { name: "Delegación VIP", color: "#1e293b", bg: "#f8fafc", border: "#cbd5e1", text: "#0f172a", desc: "Altos dignatarios, embajadores y jefes de agencia. Cortesía diplomática." }
-    ],
-    stationsTitle: "Arquitectura de acceso · Las 4 Estaciones",
-    stationsSubtitle: "Un flujo integral en 4 puntos para mantener la máxima seguridad perimetral.",
-    stations: [
-      { num: "1", title: "Estación 1 · Filtro de entrada", desc: "Inspección de vehículos, arco detector de metales y verificación de documento oficial." },
-      { num: "2", title: "Estación 2 · Recepción principal", desc: "Emisión de credencial digital, entrega de cordón y aviso automático al anfitrión." },
-      { num: "3", title: "Estación 3 · Verificación de piso", desc: "Paso de torniquetes, encuentro con el anfitrión y acceso a oficinas aprobadas." },
-      { num: "4", title: "Estación 4 · Salida y depósito", desc: "Depósito de la credencial en el buzón RFID y cierre automático del registro." }
-    ],
-    prohibitedTitle: "Artículos terminantemente prohibidos",
-    prohibitedSubtitle: "Está prohibido ingresar al complejo con cualquiera de los siguientes elementos:",
-    prohibitedItems: [
-      "Armas de fuego, municiones y explosivos",
-      "Armas blancas, cuchillos y objetos punzantes",
-      "Drones y equipos de espionaje no autorizados",
-      "Sustancias químicas inflamables o peligrosas"
-    ],
-    emTitle: "🚨 Procedimientos de emergencia y plan de evacuación",
-    emSubtitle: "En caso de alarma de incendios, cierre de seguridad o evacuación:",
-    emPoints: [
-      "<b>Mantenga la calma:</b> Siga de inmediato las instrucciones de su anfitrión o del oficial UNDSS.",
-      "<b>NO use ascensores:</b> Diríjase por las escaleras de emergencia señalizadas más próximas.",
-      "<b>Punto de reunión:</b> Acuda al <b>Jardín Central del Complejo (Plaza del Mástil Norte)</b>.",
-      "<b>Pase de lista:</b> Permanezca en el punto hasta verificar su presencia en el sistema VMS.",
-      "<b>Línea directa de seguridad:</b> En caso de emergencia, llame a la <b>ext. 6555</b> o al <b>+234 (0) 9 461 6500</b>."
-    ],
-    accTitle: "♿ Accesibilidad y servicios inclusivos",
-    accText: "UN House Abuya cuenta con accesibilidad plena: rampas de acceso, controles en braille, baños adaptados y aparcamiento reservado. Para asistencia previa especial, contacte a Servicios Comunes en la <b>ext. 2010</b>.",
-    privTitle: "📋 Protección de datos y política de retención",
-    privBullets: [
-      "<b>Datos recopilados:</b> Nombre completo, institución, tipo de identificación, vehículo, anfitrión y horarios.",
-      "<b>Propósito:</b> Seguridad perimetral y pase de lista ante incidentes según el marco BOS 2.0.",
-      "<b>Seguridad:</b> Datos cifrados y accesibles exclusivamente por personal de seguridad autorizado.",
-      "<b>Retención:</b> Los registros de visitas se purgan automáticamente tras 30 días naturales."
-    ],
-    ackTitle: "Confirmación del visitante",
-    ackSub: "Marque la casilla para registrar que ha revisado las pautas de seguridad y el plan de emergencia.",
-    ackLabel: "Confirmo que he leído, comprendo y acepto cumplir las pautas de seguridad, el plan de emergencia y la política de privacidad de UN House.",
-    ackNamePlaceholder: "Nombre completo del visitante (opcional)",
-    ackDone: "✓ Pautas oficialmente confirmadas y verificadas",
-    ackTokenText: "Código de verificación:"
+    ]
   },
   ar: {
-    eyebrow: "الخدمات المشتركة للأمم المتحدة · أبوجا",
-    dept: "إدارة السلامة والأمن (UNDSS) والعمليات المشتركة",
-    title: "إرشادات أمن ومعلومات الزوار",
-    lead: "مرحباً بكم في مبنى الأمم المتحدة بأبوجا. يُرجى الاطلاع على التعليمات الأمنية الرسمية وإجراءات التحقق وخطط الطوارئ وسياسة حماية البيانات لضمان زيارة سلسة وآمنة.",
-    badge: "الإصدار UNH-2026-11",
-    condition: "مستوى الأمان 2 · فحص أمني دقيق",
-    printBtn: "طباعة الإرشادات الرسمية",
-    returnBtn: "← العودة إلى البوابة العامة",
-    navPills: [
-      { id: "sec-guidelines", label: "01 · الإرشادات الأساسية" },
-      { id: "sec-lanyards", label: "02 · أشرطة الشارات" },
-      { id: "sec-stations", label: "03 · المحطات الأربع" },
-      { id: "sec-prohibited", label: "04 · المواد المحظورة" },
-      { id: "sec-emergency", label: "05 · خطة الطوارئ" },
-      { id: "sec-privacy", label: "06 · حماية البيانات" },
-      { id: "sec-ack", label: "07 · الإقرار" }
-    ],
-    rulesTitle: "إرشادات أمن المجمع وقواعد السلوك",
-    rulesSubtitle: "معايير إلزامية تسري على جميع الضيوف والمقاولين والوفود الزائرة.",
+    title: "قواعد الزوار",
+    subtitle: "مبنى الأمم المتحدة بأبوجا · إدارة السلامة والأمن",
+    returnBtn: "← العودة إلى البوابة",
     rules: [
       {
         num: "01",
         tag: "التعريف الشخصي",
-        title: "حمل الشارة والشريط الملون بوضوح",
-        text: "يجب ارتداء الشارة والشريط الملون المخصص في مكان ظاهر أعلى الخصر طوال فترة التواجد داخل المجمع، وإعادتها عند المغادرة في المحطة 4.",
-        tip: "تُعفى الوفود الرسمية رفيعة المستوى من الشريط الملون وفق البروتوكول الدبلوماسي المعتمد.",
+        title: "بطاقة تعريف الزائر",
+        text: "ارتداء شارة الزائر أو الشريط الملون بوضوح أعلى الخصر طوال فترة الزيارة وإعادتها عند المغادرة (تُعفى وفود كبار الشخصيات).",
+        tip: "حافظ على ظهور الشارة دائماً.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>'
       },
       {
         num: "02",
-        tag: "أمن النطاق",
-        title: "التنقل المصرح به وحدود الطوابق",
-        text: "يقتصر الدخول حصرياً على الطوابق والقاعات والمكاتب المحددة للجهة المضيفة، ويُمنع منعاً باتاً التجول المنفرد في الأجنحة الأخرى أو غرف المرافق.",
-        tip: "تسجل البوابات الإلكترونية حركة الدخول لضمان إحصاء دقيق للمتواجدين في كل لحظة.",
+        tag: "الدخول المصرح",
+        title: "الوصول المصرح به",
+        text: "يقتصر الدخول حصرياً على الطوابق والمكاتب المعتمدة، ويُمنع التجول المنفرد في باقي المرافق.",
+        tip: "التزم بالمناطق المصرح بها فقط.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 11h.01"/></svg>'
       },
       {
         num: "03",
-        tag: "المرافقة الرسمية",
-        title: "استقبال المضيف والتواجد المشترك",
-        text: "يجب أن يلتقي المضيف بالزائر في الاستقبال الرئيسي (المحطة 2) وأن يرافقه خلال الاجتماع وحتى مغادرة حدود المجمع الأمني.",
-        tip: "يتحمل الموظفون المضيفون المسؤولية القانونية والأمنية عن زوارهم المسجلين.",
+        tag: "المرافقة",
+        title: "المضيف والمرافقة",
+        text: "يجب البقاء بصحبة المضيف أو المرافق المعتمد داخل المناطق المخصصة طوال مدة الزيارة.",
+        tip: "المضيف مسؤول عن زائريه.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
       },
       {
         num: "04",
-        tag: "تعليمات الأمن",
-        title: "الامتثال لتعليمات فريق السلامة والأمن",
-        text: "يجب الالتزام التام بكافة تعليمات ضباط أمن الأمم المتحدة (UNDSS) بما يشمل أجهزة فحص المعادن وفحص الأمتعة بالأشعة وإجراءات الإنذار.",
-        tip: "يحق لضباط الأمن إلغاء إذن الدخول أو سحب الشارة في أي وقت لدواعي أمنية.",
+        tag: "الأمن",
+        title: "تعليمات الأمن والسلامة",
+        text: "الامتثال التام لتعليمات فريق أمن الأمم المتحدة (UNDSS) وإجراءات التفتيش وخطط الطوارئ.",
+        tip: "اتبع التعليمات فوراً.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
       },
       {
         num: "05",
-        tag: "الإعلام والتسجيل",
-        title: "حظر التصوير والتسجيل غير المصرح به",
-        text: "يُحظر منعاً باتاً التقاط الصور الفوتوغرافية أو الفيديو أو التسجيل الصوتي داخل المجمع دون تصريح مسبق من مركز الأمم المتحدة للإعلام (UNIC).",
-        tip: "تؤدي المخالفات إلى مصادرة الأجهزة فوراً وتحرير تقرير دبلوماسي بالواقعة.",
+        tag: "الإعلام",
+        title: "التصوير والتسجيل",
+        text: "يُحظر تماماً التقاط الصور أو مقاطع الفيديو أو التسجيل الصوتي دون إذن رسمي مسبق.",
+        tip: "يتطلب إذناً رسمياً مسبقاً.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"/></svg>'
       },
       {
         num: "06",
-        tag: "إدارة البيانات",
-        title: "حماية بيانات ومعلومات الزوار",
-        text: "تُجمع بيانات الزائرين حصراً لتوثيق الهوية وإدارة التصاريح وحصر المتواجدين في الطوارئ بما يتماشى مع معايير BOS 2.0 ومبادئ حماية البيانات.",
-        tip: "البيانات مشفرة ومحمية بالكامل ولا تتم مشاركتها لأي أغراض تجارية إطلاقاً.",
+        tag: "الخصوصية",
+        title: "إشعار الخصوصية",
+        text: "تُجمع بيانات الزوار وتُعالج بمسؤولية لأغراض أمن المجمع وإدارة الدخول وحالات الطوارئ.",
+        tip: "البيانات محمية وفق معايير الأمم المتحدة.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
       }
-    ],
-    lanyardsTitle: "تصنيف الشارات والأشرطة الملونة",
-    lanyardsSubtitle: "يرتبط كل تصنيف زائر بلون شريط محدد للتعرف البصري الفوري داخل المجمع.",
-    lanyards: [
-      { name: "زائر عام", color: "#087fc5", bg: "#eaf6ff", border: "#bae6fd", text: "#0369a1", desc: "للاجتماعات الرسمية والمؤتمرات. المرافقة إلزامية في كافة الأوقات." },
-      { name: "البريد والطرود", color: "#166534", bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", desc: "لتسليم المستندات والطرود الدبلوماسية. يقتصر على استلام الطابق الأرضي." },
-      { name: "مقاول / صيانة", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", text: "#115e59", desc: "للصيانة الفنية وأعمال تكنولوجيا المعلومات ضمن مناطق العمل المحددة." },
-      { name: "بروتوكول / وكالات", color: "#6b21a8", bg: "#faf5ff", border: "#e9d5ff", text: "#581c87", desc: "لموظفي الأمم المتحدة الزائرين والدبلوماسيين والوفود الفنية." },
-      { name: "وفود كبار الشخصيات", color: "#1e293b", bg: "#f8fafc", border: "#cbd5e1", text: "#0f172a", desc: "السفراء والوزراء ورؤساء الوكالات مع التكريم الدبلوماسي الكامل." }
-    ],
-    stationsTitle: "مسار العبور الأمني · المحطات الأربع",
-    stationsSubtitle: "نظام عبور متسلسل عبر 4 محطات لضمان أقصى درجات الانضباط الأمني.",
-    stations: [
-      { num: "1", title: "المحطة 1 · نقطة التفتيش الرئيسية", desc: "فحص أسفل المركبات، بوابة الكشف عن المعادن والتحقق من الهوية الرسمية." },
-      { num: "2", title: "المحطة 2 · الاستقبال المركزي", desc: "إصدار الشارة الرقمية وتسليم الشريط الملون وإشعار المضيف آلياً." },
-      { num: "3", title: "المحطة 3 · بوابات الطوابق", desc: "تمرير الشارة على البوابات الذكية والانتقال بصحبة المضيف للمكتب المعتمد." },
-      { num: "4", title: "المحطة 4 · صندوق إيداع المغادرة", desc: "إيداع الشارة في الصندوق الذكي وتسجيل الخروج الفوري وإلغاء التصريح." }
-    ],
-    prohibitedTitle: "المواد والأجهزة المحظورة",
-    prohibitedSubtitle: "يُحظر تماماً إدخال أي من المواد التالية إلى حرم مبنى الأمم المتحدة:",
-    prohibitedItems: [
-      "الأسلحة النارية والذخائر والمتفجرات",
-      "الأسلحة البيضاء والسكاكين والأدوات الحادة",
-      "طائرات الدرون وأجهزة التنصت غير المصرح بها",
-      "المواد الكيميائية والمشتعلة والخطرة"
-    ],
-    emTitle: "🚨 إجراءات الطوارئ وخطة الإخلاء",
-    emSubtitle: "عند انطلاق صفارات الإنذار أو إعلان حالة الإغلاق الأمني:",
-    emPoints: [
-      "<b>التزم الهدوء:</b> اتبع توجيهات المضيف أو مشرف الطابق الأمني التابع لـ UNDSS على الفور.",
-      "<b>لا تستخدم المصاعد:</b> توجه مباشرة إلى أقرب درج طوارئ مخصص.",
-      "<b>نقطة التجمع:</b> التجمع في <b>الحديقة الرئيسية للمجمع (ساحة السارية الشمالية)</b>.",
-      "<b>حصر المتواجدين:</b> البقاء مع المضيف حتى مطابقة الاسم مع السجل الرقمي الفوري.",
-      "<b>خط الطوارئ المباشر:</b> في حالات الطوارئ اتصل بالتحويلة <b>6555</b> أو <b>4616500 (9) 234+</b>."
-    ],
-    accTitle: "♿ سهولة الوصول والخدمات الدبلوماسية الشاملة",
-    accText: "يلتزم مجمع الأمم المتحدة بتوفير بيئة ميسرة بالكامل: منحدرات للكراسي المتحركة، مصاعد مزودة بلغة بريل، ودورات مياه ومواقف مخصصة. لطلب المساعدة الخاصة قبل الحضور، اتصل بالتحويلة <b>2010</b>.",
-    privTitle: "📋 حماية البيانات والشفافية وحفظ السجلات",
-    privBullets: [
-      "<b>البيانات المسجلة:</b> الاسم الكامل، المؤسسة، نوع الهوية، رقم لوحة السيارة، المضيف، وتوقيت الدخول والخروج.",
-      "<b>المسوغ القانوني:</b> حماية أمن المجمع وضمان السلامة العامة وحصر الأشخاص أثناء الطوارئ تحت مظلة BOS 2.0.",
-      "<b>حماية السجلات:</b> تشفير كامل للبيانات وتقييد الصلاحيات لضباط الأمن المعتمدين فقط.",
-      "<b>مدة الاحتفاظ:</b> تُحذف سجلات الزيارات الروتينية آلياً بعد انقضاء 30 يوماً من تاريخ الزيارة."
-    ],
-    ackTitle: "إقرار واطلاع الزائر",
-    ackSub: "يرجى تحديد المربع أدناه لتأكيد الاطلاع والالتزام بضوابط مبنى الأمم المتحدة.",
-    ackLabel: "أؤكد أنني قرأت وفهمت ووافقت على الامتثال لكافة إرشادات الزوار وإجراءات الطوارئ وسياسة حماية البيانات بمبنى الأمم المتحدة.",
-    ackNamePlaceholder: "الاسم الكامل للزائر (اختياري للختم الرقمي)",
-    ackDone: "✓ تم تسجيل الإقرار والتحقق رسمياً",
-    ackTokenText: "رمز التحقق المعتمد:"
+    ]
   },
   zh: {
-    eyebrow: "联合国驻阿布贾共同服务处",
-    dept: "联合国安全保障部 (UNDSS) 与联合行动指挥处",
-    title: "访客须知与安全指引",
-    lead: "欢迎莅临阿布贾联合国大楼。请审阅以下官方安全守则、实体身份核验、紧急处置程序与数据保护政策，确保访问安全、规范与有序。",
-    badge: "政策核定版 UNH-2026-11",
-    condition: "安全二级防卫 · 严格安全核验",
-    printBtn: "打印官方安全指引",
+    title: "访客守则",
+    subtitle: "联合国驻阿布贾大楼 · 安全保障部",
     returnBtn: "← 返回公开门户",
-    navPills: [
-      { id: "sec-guidelines", label: "01 · 核心安全指引" },
-      { id: "sec-lanyards", label: "02 · 挂绳证件分类" },
-      { id: "sec-stations", label: "03 · 四级通关流线" },
-      { id: "sec-prohibited", label: "04 · 违禁品清册" },
-      { id: "sec-emergency", label: "05 · 应急疏散集结" },
-      { id: "sec-privacy", label: "06 · 数据保护透明度" },
-      { id: "sec-ack", label: "07 · 知悉确认" }
-    ],
-    rulesTitle: "联合国大楼安保准则与行为规范",
-    rulesSubtitle: "适用于所有来宾、外包工程人员及访问代表团的强制性标准。",
     rules: [
       {
         num: "01",
-        tag: "实体身份核验",
-        title: "规范佩戴指定挂绳与胸卡",
-        text: "访客进入大楼防区后，必须全程在腰部以上显眼位置佩戴指定的彩色挂绳及带照片证件。证件属联合国财产，离场时必须在第4站交还。",
-        tip: "高级别贵宾代表团在正式外交陪同下可豁免佩戴彩色挂绳。",
+        tag: "身份佩戴",
+        title: "访客身份识别",
+        text: "进入大楼防区后，全程在腰部以上显眼位置佩戴指定的彩色挂绳或证件，离场时必须交还（贵宾代表团除外）。",
+        tip: "全程保持证件处于显眼位置。",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>'
       },
       {
         num: "02",
-        tag: "防线与楼层管控",
-        title: "受权通行范围与楼层边界",
-        text: "实体通行权限严格受限于受权楼层、会议室及接待机构特定办公室。严禁无陪同擅自前往其他办公翼、天台或机房设备重地。",
-        tip: "电子闸机实时记录出入频次，确保在场人员名册精准无误。",
+        tag: "授权范围",
+        title: "授权区域通行",
+        text: "出入权限严格限定于授权楼层及接待人办公室，严禁无陪同擅自前往其他楼层或机房重地。",
+        tip: "严禁擅自脱离受权区域。",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 11h.01"/></svg>'
       },
       {
         num: "03",
-        tag: "全程人员陪同",
-        title: "接待人员引领与公共区域守则",
-        text: "访客必须由接待官员或指定代表在第2站大厅接引，在会晤全过程及返回安防门禁前，均须由接待官员全程陪同。",
-        tip: "接待官员对所邀访客在联合国区域内的全部行为承担直接连带责任。",
+        tag: "人员陪同",
+        title: "接待与陪同",
+        text: "访客在指定区域内必须全程由指定接待官员或官方陪同人员带领，不得单独行动。",
+        tip: "接待官员对访客承担全面责任。",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
       },
       {
         num: "04",
-        tag: "安保指令服从",
-        title: "严格服从安保官员执勤指令",
-        text: "所有访客必须完全服从联合国安保官员（UNDSS）的现场指令，包括安检门检测、行李X光机透视扫描以及突发警报下的现场管控。",
-        tip: "安保人员有权在出现安全隐患时随时中止访问或注销通行权限。",
+        tag: "安全指令",
+        title: "安全守则指令",
+        text: "必须严格服从联合国安保团队（UNDSS）的所有现场安保指示及突发应急疏散指令。",
+        tip: "请即时服从现场安保指挥。",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
       },
       {
         num: "05",
-        tag: "影音摄影受限",
-        title: "严禁未经授权拍照与音视频记录",
-        text: "严禁在联合国办公大楼、安防卡口及办公走廊内进行未经正式许可的拍照、摄像或录音。媒体采访必须提前获得联合国新闻中心（UNIC）书面授权。",
-        tip: "违规行为将导致设备暂扣并通报涉事机构或外交部。",
+        tag: "影音摄影",
+        title: "严禁摄影录音",
+        text: "严禁在联合国办公区、安防卡口及办公走廊内部未经正式许可进行任何拍照、摄像或录音。",
+        tip: "媒体采访需提前报批核准。",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"/></svg>'
       },
       {
         num: "06",
-        tag: "数据治理与隐私",
-        title: "访客档案管理与隐私安全说明",
-        text: "采集访客身份数据仅用于安全核验、通行赋权及紧急疏散点名，全面遵循联合国 BOS 2.0 效率框架及数据保护原则。",
-        tip: "访客档案实行高强度加密防护，绝不向任何第三方或商业用途开放。",
+        tag: "隐私安全",
+        title: "隐私政策声明",
+        text: "收集访客信息仅用于大楼安保、通行核验及应急人员清点，遵循联合国数据保护原则。",
+        tip: "个人数据严格受限于安全用途。",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
       }
-    ],
-    lanyardsTitle: "实体访客证件与挂绳色彩级别对照表",
-    lanyardsSubtitle: "每种访客卡片均与现场领取的物理挂绳颜色严格对应，便于安保快速视觉识别。",
-    lanyards: [
-      { name: "普通访客", color: "#087fc5", bg: "#eaf6ff", border: "#bae6fd", text: "#0369a1", desc: "适用于业务会谈、招聘面试及日常会议。全程必须有人员陪同。" },
-      { name: "收发与物流", color: "#166534", bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", desc: "适用于文件速递与外交邮袋交接。仅限一层收发室前厅区域。" },
-      { name: "工程与维保", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", text: "#115e59", desc: "适用于设备维保、弱电网络及施工人员。严格限定在派工单划定区域。" },
-      { name: "礼宾与机构", color: "#6b21a8", bg: "#faf5ff", border: "#e9d5ff", text: "#581c87", desc: "适用于联合国跨机构出差人员、使领馆外交官及技术专家组。" },
-      { name: "贵宾代表团", color: "#1e293b", bg: "#f8fafc", border: "#cbd5e1", text: "#0f172a", desc: "部长级以上官员、特命全权大使及机构代表。享受外交礼宾通道。" }
-    ],
-    stationsTitle: "复合防区通关架构 · 四级流线",
-    stationsSubtitle: "闭环的四级物理安保通关机制，确保园区安全万无一失。",
-    stations: [
-      { num: "1", title: "第1站 · 外围大门安检", desc: "车辆底盘防爆扫描、行人金属探测门安检与官方带照片有效身份证件核验。" },
-      { num: "2", title: "第2站 · 中央大堂接待", desc: "核发电子访客通行卡、领取对应颜色挂绳，系统自动向接待官员发送到访通知。" },
-      { num: "3", title: "第3站 · 楼层门禁核验", desc: "感应刷卡通过闸机通道，与接待人员汇合并前往受权办公区域。" },
-      { num: "4", title: "第4站 · 离场投卡归还", desc: "将通行卡投入智能回收箱，系统自动完成离场注销并即时解除通行赋权。" }
-    ],
-    prohibitedTitle: "严禁携带入内物品",
-    prohibitedSubtitle: "未经联合国安全主管书面许可，严禁携带以下任何物品进入联合国大楼：",
-    prohibitedItems: [
-      "枪支、弹药、枪械配件与爆炸物",
-      "管制刀具、匕首与具攻击性锐器",
-      "未经许可的无人机及侦察窃听器材",
-      "易燃易爆物、压缩气体与危险化学品"
-    ],
-    emTitle: "🚨 突发应急程序与疏散集结方案",
-    emSubtitle: "如遇火警警报、防卫封锁或紧急疏散指令：",
-    emPoints: [
-      "<b>保持冷静：</b> 立即听从接待官员或现场 UNDSS 楼层安全员指挥，不得慌乱奔跑。",
-      "<b>切勿使用电梯：</b> 遵从安全出口绿色指示，经就近防烟逃生楼梯有序撤离。",
-      "<b>指定集结地点：</b> 统一前往<b>大楼主草坪（北侧联合国旗杆广场）</b>集结点。",
-      "<b>在场人员点名：</b> 请与接待人员在一起，直至安保系统核销确认您的名册记录。",
-      "<b>安保行动中心：</b> 紧急求助电话请拨打分机 <b>6555</b> 或 <b>+234 (0) 9 461 6500</b>。"
-    ],
-    accTitle: "♿ 无障碍通行与包容性外交服务",
-    accText: "阿布贾联合国大楼全力保障无障碍通行：设有轮椅无障碍坡道、盲文点字电梯、无障碍独立洗手间及专用残疾人停车位。如抵馆前需特殊轮椅接引或手语协助，请致电共同服务处分机 <b>2010</b>。",
-    privTitle: "📋 数据处理、存储与保留透明度告知",
-    privBullets: [
-      "<b>登记信息范围：</b> 访客全名、所属机构、证件类型（仅查验真伪，不留存证件复印件）、车牌号、接待官员及精准打卡时间戳。",
-      "<b>法定处理依据：</b> 依照联合国 BOS 2.0 协定，此处理专用于园区物理安全防御、通行门禁授权及突发事故点名核查。",
-      "<b>技术隔离保护：</b> 全部数据在数据库中高强度加密静态存储，仅限受权安保官员通过多因素验证访问。",
-      "<b>数据留存周期：</b> 日常访客审计日志保留30天，期满后由系统后台自动彻底物理粉碎。"
-    ],
-    ackTitle: "访客已知悉确认书",
-    ackSub: "请勾选下方确认框，以在系统内记录您已审阅安全守则与应急须知。",
-    ackLabel: "我确认已仔细阅读、完全理解并同意严格遵守联合国阿布贾大楼访客安全指引、应急处置程序及数据隐私保护政策。",
-    ackNamePlaceholder: "访客真实姓名（选填，用于生成电子签章）",
-    ackDone: "✓ 访客安全守则已成功完成确认与数字认证",
-    ackTokenText: "防伪认证凭证码："
+    ]
   },
   ru: {
-    eyebrow: "ОБЩИЕ СЛУЖБЫ ОРГАНИЗАЦИИ ОБЪЕДИНЕННЫХ НАЦИЙ · АБУДЖА",
-    dept: "Департамент по вопросам охраны и безопасности (UNDSS) и Объединенные операции",
-    title: "Правила безопасности и информация для посетителей",
-    lead: "Добро пожаловать в Дом ООН в Абудже. Ознакомьтесь с официальными правилами безопасности, процедурами идентификации, планом действий при ЧС и политикой защиты данных для безопасного и организованного визита.",
-    badge: "Версия UNH-2026-11",
-    condition: "Уровень безопасности 2 · Усиленный досмотр",
-    printBtn: "Распечатать правила",
+    title: "Правила для посетителей",
+    subtitle: "Дом ООН в Абудже · Департамент по вопросам охраны и безопасности",
     returnBtn: "← Вернуться на главный портал",
-    navPills: [
-      { id: "sec-guidelines", label: "01 · Основные правила" },
-      { id: "sec-lanyards", label: "02 · Цвета лент и бейджей" },
-      { id: "sec-stations", label: "03 · Четыре поста" },
-      { id: "sec-prohibited", label: "04 · Запрещенные предметы" },
-      { id: "sec-emergency", label: "05 · План эвакуации" },
-      { id: "sec-privacy", label: "06 · Конфиденциальность" },
-      { id: "sec-ack", label: "07 · Подтверждение" }
-    ],
-    rulesTitle: "Правила безопасности и кодекс поведения на территории",
-    rulesSubtitle: "Обязательные требования для всех гостей, подрядчиков и официальных делегаций.",
     rules: [
       {
         num: "01",
-        tag: "Идентификация личности",
-        title: "Постоянное ношение бейджа и ленты",
-        text: "Посетители обязаны носить выданный бейдж и цветную ленту на видном месте выше пояса на протяжении всего пребывания на территории. Бейдж подлежит обязательной сдаче на Посту 4 при выходе.",
-        tip: "Высокопоставленные делегации освобождаются от ношения ленты при официальном дипломатическом сопровождении.",
+        tag: "Идентификация",
+        title: "Идентификация посетителя",
+        text: "Постоянно носите выданный бейдж или ленту выше пояса на видном месте и верните при выходе (VIP-делегации освобождаются).",
+        tip: "Держите бейдж на видном месте.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>'
       },
       {
         num: "02",
-        tag: "Периметр и доступ",
-        title: "Разрешенные зоны и границы этажей",
-        text: "Доступ строго ограничен согласованным этажом и офисом принимающего агентства. Несанкционированное перемещение по другим крыльям здания или техническим помещениям строго запрещено.",
-        tip: "Электронные турникеты фиксируют перемещения для ведения поименного списка находящихся в здании.",
+        tag: "Доступ",
+        title: "Санкционированный доступ",
+        text: "Доступ строго ограничен указанным этажом и офисом принимающей стороны. Передвижение без сопровождения запрещено.",
+        tip: "Оставайтесь в разрешенных зонах.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M14 11h.01"/></svg>'
       },
       {
         num: "03",
         tag: "Сопровождение",
-        title: "Встреча принимающей стороной и сопровождение",
-        text: "Посетителей встречает на Посту 2 принимающий сотрудник, который обязан сопровождать гостей на протяжении всего визита до момента прохода через пункт выхода.",
-        tip: "Принимающие сотрудники несут персональную ответственность за поведение своих гостей.",
+        title: "Хозяин и сопровождение",
+        text: "Посетители должны постоянно находиться в сопровождении принимающего сотрудника на протяжении всего визита.",
+        tip: "Принимающие отвечают за гостей.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
       },
       {
         num: "04",
-        tag: "Инструкции UNDSS",
-        title: "Выполнение указаний службы безопасности",
-        text: "Все посетители обязаны неукоснительно соблюдать требования сотрудников службы безопасности ООН (UNDSS), включая досмотр на металлодетекторе и сканирование ручной клади.",
-        tip: "Служба безопасности вправе отозвать пропуск при малейшей угрозе безопасности комплекса.",
+        tag: "Безопасность",
+        title: "Инструкции по безопасности",
+        text: "Выполняйте все указания службы безопасности ООН (UNDSS), включая досмотр и действия при эвакуации.",
+        tip: "Следуйте указаниям незамедлительно.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>'
       },
       {
         num: "05",
-        tag: "Аудио- и видеосъемка",
-        title: "Запрет несанкционированной съемки",
-        text: "Фото-, видео- и аудиозапись внутри здания, на контрольно-пропускных пунктах и в коридорах без официальной аккредитации Информационного центра ООН (UNIC) строго запрещена.",
-        tip: "Нарушение влечет изъятие аппаратуры и составление дипломатического протокола.",
+        tag: "Медиа",
+        title: "Фото- и видеосъемка",
+        text: "Несанкционированная фото-, видео- и аудиозапись на территории и в офисах строго запрещена.",
+        tip: "Требуется предварительное разрешение.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M21 21H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h3m3-3h6l2 3h4a2 2 0 0 1 2 2v9.34m-7.72-2.06a4 4 0 1 1-5.56-5.56"/></svg>'
       },
       {
         num: "06",
-        tag: "Защита данных",
-        title: "Конфиденциальность и обработка сведений",
-        text: "Сведения о посетителях собираются исключительно для проверки полномочий, контроля доступа и переклички при ЧС в соответствии с BOS 2.0 и правилами защиты данных ООН.",
-        tip: "Данные надежно зашифрованы и никогда не передаются в коммерческих целях.",
+        tag: "Конфиденциальность",
+        title: "Уведомление о конфиденциальности",
+        text: "Сведения о посетителях обрабатываются исключительно в целях обеспечения безопасности и контроля доступа.",
+        tip: "Данные защищены регламентами ООН.",
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
       }
-    ],
-    lanyardsTitle: "Цветовая кодировка пропусков и лент",
-    lanyardsSubtitle: "Каждому цифровому бейджу соответствует физическая лента определенного цвета.",
-    lanyards: [
-      { name: "Обычный посетитель", color: "#087fc5", bg: "#eaf6ff", border: "#bae6fd", text: "#0369a1", desc: "Деловые встречи и конференции. Сопровождение обязательно." },
-      { name: "Экспедиция и почта", color: "#166534", bg: "#f0fdf4", border: "#bbf7d0", text: "#14532d", desc: "Доставка почты и дипломатической корреспонденции. Только холл первого этажа." },
-      { name: "Подрядчик", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4", text: "#115e59", desc: "Техническое обслуживание и IT-работы в границах наряд-заказа." },
-      { name: "Протокол и агентства", color: "#6b21a8", bg: "#faf5ff", border: "#e9d5ff", text: "#581c87", desc: "Сотрудники агентств ООН, дипломаты и экспертные миссии." },
-      { name: "VIP-делегация", color: "#1e293b", bg: "#f8fafc", border: "#cbd5e1", text: "#0f172a", desc: "Высокопоставленные лица, послы и главы агентств. Дипломатический этикет." }
-    ],
-    stationsTitle: "Архитектура доступа · 4 контрольных поста",
-    stationsSubtitle: "Последовательный четырехэтапный контроль для поддержания безопасности комплекса.",
-    stations: [
-      { num: "1", title: "Пост 1 · Входной КПП", desc: "Осмотр днища автотранспорта, рамка металлодетектора и проверка удостоверения личности." },
-      { num: "2", title: "Пост 2 · Главная стойка", desc: "Выдача электронного пропуска, получение цветной ленты и автоматическое уведомление хозяина." },
-      { num: "3", title: "Пост 3 · Этажный контроль", desc: "Проход через турникеты, встреча с сопровождающим и проход в офис." },
-      { num: "4", title: "Пост 4 · Выход и сдача", desc: "Опускание карты в ящик возврата, автоматическое снятие с учета и аннулирование пропуска." }
-    ],
-    prohibitedTitle: "Запрещенные предметы",
-    prohibitedSubtitle: "Категорически запрещен внос на территорию следующих предметов:",
-    prohibitedItems: [
-      "Огнестрельное оружие, патроны и взрывчатка",
-      "Холодное оружие, ножи и колюще-режущие предметы",
-      "Беспилотные аппараты (дроны) и шпионские устройства",
-      "Горючие, токсичные и едкие химические вещества"
-    ],
-    emTitle: "🚨 Действия при чрезвычайных ситуациях и план эвакуации",
-    emSubtitle: "При сигнале пожарной тревоги или распоряжении об эвакуации:",
-    emPoints: [
-      "<b>Сохраняйте спокойствие:</b> Немедленно следуйте указаниям принимающего лица или дежурного офицера UNDSS.",
-      "<b>НЕ пользуйтесь лифтами:</b> Спускайтесь строго по ближайшим эвакуационным лестницам.",
-      "<b>Пункт сбора:</b> Направляйтесь на <b>Главный газон комплекса (северная площадка у флагштока)</b>.",
-      "<b>Перекличка:</b> Оставайтесь с сопровождающим до завершения сверки со списком в системе VMS.",
-      "<b>Горячая линия безопасности:</b> При ЧС звоните по добавочному <b>6555</b> или <b>+234 (0) 9 461 6500</b>."
-    ],
-    accTitle: "♿ Доступная среда и помощь маломобильным посетителям",
-    accText: "Дом ООН в Абудже полностью оборудован для маломобильных граждан: пандусы, лифты со шрифтом Брайля, адаптированные санузлы и выделенные парковочные места. Для предварительного заказа помощи обращайтесь по добавочному <b>2010</b>.",
-    privTitle: "📋 Обработка, хранение и сроки защиты персональных данных",
-    privBullets: [
-      "<b>Состав данных:</b> ФИО, организация, тип документа, номер автомобиля, принимающее лицо и точное время входа/выхода.",
-      "<b>Правовые основания:</b> Физическая охрана объекта, допуск и учет людей при ЧС в рамках стратегии BOS 2.0.",
-      "<b>Защита:</b> База данных зашифрована и доступна только аккредитованным офицерам охраны с многофакторной аутентификацией.",
-      "<b>Срок хранения:</b> Журнал посещений хранится 30 календарных дней, после чего автоматически уничтожается."
-    ],
-    ackTitle: "Подтверждение ознакомления посетителя",
-    ackSub: "Отметьте пункт ниже для регистрации факта ознакомления с правилами в журнале доступа.",
-    ackLabel: "Подтверждаю, что ознакомлен(а) и согласен(на) строго соблюдать правила безопасности, план эвакуации и политику конфиденциальности Дома ООН.",
-    ackNamePlaceholder: "ФИО посетителя (необязательно, для цифровой отметки)",
-    ackDone: "✓ Правила безопасности официально приняты и подтверждены",
-    ackTokenText: "Проверочный код подтверждения:"
+    ]
   }
 };
 
 function showRules(){
+  document.body.classList.add("guest-mode", "rules-mode");
   const draw=()=>{
     const info = RULES_I18N[LANG] || RULES_I18N.en;
-    const isAck = (()=>{try{return localStorage.getItem("un_rules_acknowledged")==="1"}catch(e){return false}})();
-    const ackName = (()=>{try{return localStorage.getItem("un_rules_ack_name")||""}catch(e){return ""}})();
-    const ackDate = (()=>{try{return localStorage.getItem("un_rules_ack_date")||""}catch(e){return ""}})();
     const isRtl = LANG==="ar";
 
     $("#main").innerHTML = `${langSwitch()}
     <div class="rules-wrap" ${isRtl?'dir="rtl"':''}>
 
-      <!-- CATEGORY NAV PILLS -->
-      <nav class="rules-nav" aria-label="Guidelines navigation">
-        ${info.navPills.map((p, idx)=>`
-          <a class="rules-nav-pill ${idx===0?'active':''}" href="#${p.id}">${esc(p.label)}</a>
-        `).join("")}
-      </nav>
-
-      <!-- HERO BANNER -->
-      <div class="rules-hero">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap">
-          <div style="max-width:680px">
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-              <div style="width:42px;height:42px;border-radius:12px;background:#eef7ff;border:1px solid #bae6fd;display:grid;place-items:center">
-                <img src="un-emblem.svg" alt="UN Emblem" style="width:28px;height:28px">
-              </div>
-              <div>
-                <span class="eyebrow" style="margin:0">${esc(info.eyebrow)}</span>
-                <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px">${esc(info.dept)}</div>
-              </div>
-            </div>
-
-            <h1 style="font-size:clamp(26px,3.8vw,36px);line-height:1.15;margin:12px 0 10px;color:var(--navy);letter-spacing:-.6px">
+      <!-- CLEAN MINIMAL HEADER -->
+      <div class="rules-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:16px;background:#ffffff;border:1.5px solid #cbd5e1;border-radius:20px;padding:20px 24px;box-shadow:0 4px 18px rgba(16,45,76,.04)">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:44px;height:44px;border-radius:12px;background:#eef7ff;border:1.5px solid #bae6fd;display:grid;place-items:center;flex-shrink:0">
+            <img src="un-emblem.svg" alt="UN Emblem" style="width:28px;height:28px">
+          </div>
+          <div>
+            <h1 class="rules-hero-title" style="margin:0;font-size:24px;letter-spacing:-.4px;white-space:nowrap">
               ${esc(info.title)}
             </h1>
-            <p class="lead" style="margin:0 0 16px;color:var(--text);font-size:14.5px;line-height:1.65;opacity:.9">
-              ${esc(info.lead)}
-            </p>
-          </div>
-
-          <div class="btn-print" style="display:flex;flex-direction:column;gap:8px">
-            <button type="button" class="btn" onclick="window.print()" style="font-size:13px;padding:10px 18px;border:1.5px solid var(--line);background:var(--surface);display:inline-flex;align-items:center;gap:8px;font-weight:750;box-shadow:0 2px 6px rgba(0,0,0,.04)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-              ${esc(info.printBtn)}
-            </button>
-            <a href="index.html" class="btn" style="font-size:12px;padding:8px 14px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);text-decoration:none;text-align:center;font-weight:600">
-              ${esc(info.returnBtn)}
-            </a>
+            <div style="font-size:12px;color:var(--muted);font-weight:600;margin-top:2px">
+              ${esc(info.subtitle)}
+            </div>
           </div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap">
-          <span class="pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-weight:800;font-size:11px">
-            ${esc(info.badge)}
-          </span>
-          <span class="pill" style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;font-weight:800;font-size:11px">
-            ${esc(info.condition)}
-          </span>
-          <span class="small mono" style="color:var(--muted);font-size:11px;margin-left:auto">
-            Diplomatic Zone · Central Business District, Abuja
-          </span>
-        </div>
+        <a href="index.html" class="btn" style="border:1.5px solid var(--line);background:var(--surface2);font-size:12.5px;padding:8px 16px;color:var(--blue);font-weight:750;text-decoration:none;display:inline-flex;align-items:center;gap:6px">
+          ${esc(info.returnBtn)}
+        </a>
       </div>
 
-      <!-- SECTION 1: CORE GUIDELINES -->
-      <section id="sec-guidelines" class="rules-section-container">
-        <div style="margin-bottom:14px">
-          <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin:0 0 4px">${esc(info.rulesTitle)}</h2>
-          <p style="font-size:13px;color:var(--muted);margin:0">${esc(info.rulesSubtitle)}</p>
-        </div>
-
-        <div class="rules-grid">
+      <!-- THE 6 VISITOR RULES ONLY -->
+      <div class="rules-section-container" style="padding:28px">
+        <div class="rules-grid" style="margin-top:0">
           ${info.rules.map(r=>`
             <article class="rule-card">
               <div class="rule-card-top">
@@ -4674,221 +4245,20 @@ function showRules(){
               </div>
               <h3 class="rule-title">${esc(r.title)}</h3>
               <p class="rule-text">${esc(r.text)}</p>
-              <div class="rule-tip">
-                <strong>Protocol tip:</strong> ${esc(r.tip)}
-              </div>
+              ${r.tip ? `<div class="rule-tip"><strong>Protocol tip:</strong> ${esc(r.tip)}</div>` : ''}
             </article>
           `).join("")}
         </div>
-      </section>
+      </div>
 
-      <!-- SECTION 2: LANYARD COLOR CLASSIFICATION -->
-      <section id="sec-lanyards" class="rules-section-container">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <div style="width:34px;height:34px;border-radius:10px;background:#eef7ff;display:grid;place-items:center;color:var(--blue)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-          </div>
-          <div>
-            <h2 style="font-size:17px;font-weight:800;color:var(--navy);margin:0">${esc(info.lanyardsTitle)}</h2>
-            <div style="font-size:12.5px;color:var(--muted)">${esc(info.lanyardsSubtitle)}</div>
-          </div>
-        </div>
-
-        <div class="lanyard-grid">
-          ${info.lanyards.map(l=>`
-            <div class="lanyard-card" style="border-top:4px solid ${l.color}">
-              <span class="lanyard-badge" style="background:${l.bg};color:${l.text};border:1px solid ${l.border}">
-                ${esc(l.name)}
-              </span>
-              <p class="lanyard-desc">${esc(l.desc)}</p>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-
-      <!-- SECTION 3: 4-STATION FLOW -->
-      <section id="sec-stations" class="rules-section-container">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <div style="width:34px;height:34px;border-radius:10px;background:#eef7ff;display:grid;place-items:center;color:var(--blue)">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
-          </div>
-          <div>
-            <h2 style="font-size:17px;font-weight:800;color:var(--navy);margin:0">${esc(info.stationsTitle)}</h2>
-            <div style="font-size:12.5px;color:var(--muted)">${esc(info.stationsSubtitle)}</div>
-          </div>
-        </div>
-
-        <div class="station-flow">
-          ${info.stations.map(s=>`
-            <div class="station-step">
-              <div class="station-step-num">${esc(s.num)}</div>
-              <div class="station-step-title">${esc(s.title)}</div>
-              <div class="station-step-desc">${esc(s.desc)}</div>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-
-      <!-- SECTION 4: PROHIBITED ITEMS -->
-      <section id="sec-prohibited" class="rules-section-container" style="border-left:5px solid #ef4444">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <div style="width:34px;height:34px;border-radius:10px;background:#fef2f2;display:grid;place-items:center;color:#dc2626">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
-          </div>
-          <div>
-            <h2 style="font-size:17px;font-weight:800;color:#991b1b;margin:0">${esc(info.prohibitedTitle)}</h2>
-            <div style="font-size:12.5px;color:var(--muted)">${esc(info.prohibitedSubtitle)}</div>
-          </div>
-        </div>
-
-        <div class="prohibited-grid">
-          ${info.prohibitedItems.map(item=>`
-            <div class="prohibited-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-              <span>${esc(item)}</span>
-            </div>
-          `).join("")}
-        </div>
-      </section>
-
-      <!-- SECTION 5: EMERGENCY EVACUATION -->
-      <section id="sec-emergency" class="rules-section-container" style="border-left:5px solid #f59e0b">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:34px;height:34px;border-radius:10px;background:#fef3c7;display:grid;place-items:center;color:#d97706">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <div>
-            <h2 style="font-size:17px;font-weight:800;color:var(--navy);margin:0">${info.emTitle}</h2>
-            <div style="font-size:12.5px;color:var(--muted)">${esc(info.emSubtitle)}</div>
-          </div>
-        </div>
-
-        <ul style="margin:0;padding-left:20px;font-size:13px;color:var(--text);line-height:1.65;display:flex;flex-direction:column;gap:6px">
-          ${info.emPoints.map(pt=>`<li>${pt}</li>`).join("")}
-        </ul>
-      </section>
-
-      <!-- ACCESSIBILITY -->
-      <section class="rules-section-container" style="border-left:5px solid #0284c7">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-          <div style="width:34px;height:34px;border-radius:10px;background:#e0f2fe;display:grid;place-items:center;color:#0284c7">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-          </div>
-          <h2 style="font-size:17px;font-weight:800;color:var(--navy);margin:0">${info.accTitle}</h2>
-        </div>
-        <div class="small" style="color:var(--text);line-height:1.6;opacity:.9">${info.accText}</div>
-      </section>
-
-      <!-- SECTION 6: PRIVACY & DATA TRANSPARENCY -->
-      <section id="sec-privacy" class="rules-section-container" style="border-left:5px solid #10b981">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <div style="width:34px;height:34px;border-radius:10px;background:#d1fae5;display:grid;place-items:center;color:#059669">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <h2 style="font-size:17px;font-weight:800;color:var(--navy);margin:0">${info.privTitle}</h2>
-        </div>
-        <ul style="margin:0;padding-left:20px;font-size:13px;color:var(--text);line-height:1.65;display:flex;flex-direction:column;gap:6px">
-          ${info.privBullets.map(b=>`<li>${b}</li>`).join("")}
-        </ul>
-      </section>
-
-      <!-- SECTION 7: VISITOR ACKNOWLEDGEMENT BOX -->
-      <section id="sec-ack" class="ack-box">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <div style="width:36px;height:36px;border-radius:10px;background:#bbf7d0;display:grid;place-items:center;color:#15803d">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <div>
-            <h3 style="font-size:17px;font-weight:800;color:#14532d;margin:0">${esc(info.ackTitle)}</h3>
-            <div style="font-size:12.5px;color:#166534">${esc(info.ackSub)}</div>
-          </div>
-        </div>
-
-        <div style="display:flex;gap:12px;margin:14px 0 10px;flex-wrap:wrap">
-          <input type="text" id="txtAckName" placeholder="${esc(info.ackNamePlaceholder)}" value="${esc(ackName)}" style="flex:1;min-width:240px;height:42px;border:1.5px solid #86efac;border-radius:10px;padding:0 14px;font-size:13px;background:#ffffff;color:#14532d;font-weight:600">
-        </div>
-
-        <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;margin-top:8px">
-          <input type="checkbox" id="chkRulesAck" style="width:22px;height:22px;margin-top:2px;cursor:pointer" ${isAck?"checked":""}>
-          <span style="font-size:13.5px;color:#14532d;line-height:1.5;font-weight:650">${esc(info.ackLabel)}</span>
-        </label>
-
-        <!-- VERIFICATION STAMP -->
-        <div id="ackStamp" class="ack-stamp" style="display:${isAck?'block':'none'}">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-            <div>
-              <div style="font-size:14px;font-weight:800;color:#15803d;display:flex;align-items:center;gap:6px">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                ${esc(info.ackDone)}
-              </div>
-              <div id="ackStampMeta" style="font-size:12px;color:#166534;margin-top:3px;font-weight:600">
-                ${ackName ? 'Acknowledged by: ' + esc(ackName) + ' · ' : ''}Confirmed: ${ackDate || 'Live Recorded'}
-              </div>
-            </div>
-            <div style="font-family:var(--mono);font-size:11.5px;color:#047857;background:#ecfdf5;padding:6px 12px;border-radius:8px;border:1px solid #a7f3d0">
-              ${esc(info.ackTokenText)} <strong id="ackToken">UNH-ACK-${((isAck&&localStorage.getItem("un_rules_ack_token"))||Math.random().toString(36).slice(2,8).toUpperCase())}</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- BOTTOM NAVIGATION -->
-      <div class="return-btn-wrap" style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;flex-wrap:wrap;gap:14px">
-        <a href="index.html" class="btn" style="border:1.5px solid var(--line);background:var(--surface);font-size:13px;padding:10px 20px;color:var(--blue);font-weight:750;text-decoration:none;display:inline-flex;align-items:center;gap:8px">
-          ${esc(info.returnBtn)}
-        </a>
-        <div class="small mono" style="color:var(--muted);font-size:11.5px">
-          United Nations House Abuja · Plot 617/618 Diplomatic Drive
-        </div>
+      <!-- FOOTER -->
+      <div style="text-align:center;margin-top:22px;font-size:12px;color:var(--muted);font-family:var(--mono)">
+        United Nations House Abuja · Plot 617/618 Diplomatic Drive
       </div>
 
     </div>`;
 
     wireLang(draw);
-
-    const chk = $("#chkRulesAck");
-    const txtName = $("#txtAckName");
-    const stamp = $("#ackStamp");
-    const stampMeta = $("#ackStampMeta");
-    const tokenEl = $("#ackToken");
-
-    if (chk) {
-      chk.onchange = () => {
-        const checked = chk.checked;
-        const nameVal = (txtName ? txtName.value.trim() : "") || "Guest Visitor";
-        const dateStr = new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
-        const token = "UNH-ACK-" + Math.random().toString(36).slice(2,8).toUpperCase();
-
-        try {
-          localStorage.setItem("un_rules_acknowledged", checked ? "1" : "0");
-          if (checked) {
-            localStorage.setItem("un_rules_ack_name", nameVal);
-            localStorage.setItem("un_rules_ack_date", dateStr);
-            localStorage.setItem("un_rules_ack_token", token.replace("UNH-ACK-", ""));
-          } else {
-            localStorage.removeItem("un_rules_ack_name");
-            localStorage.removeItem("un_rules_ack_date");
-            localStorage.removeItem("un_rules_ack_token");
-          }
-        } catch(e){}
-
-        if (stamp) stamp.style.display = checked ? "block" : "none";
-        if (checked) {
-          if (stampMeta) stampMeta.textContent = "Acknowledged by: " + nameVal + " · Confirmed: " + dateStr;
-          if (tokenEl) tokenEl.textContent = token;
-          toast("Guidelines acknowledged. Digital security verification recorded.");
-        }
-      };
-    }
-
-    if (txtName) {
-      txtName.oninput = () => {
-        if (chk && chk.checked) {
-          try { localStorage.setItem("un_rules_ack_name", txtName.value.trim()); } catch(e){}
-          if (stampMeta) stampMeta.textContent = "Acknowledged by: " + (txtName.value.trim() || "Guest Visitor") + " · Confirmed: " + (localStorage.getItem("un_rules_ack_date") || "Live Recorded");
-        }
-      };
-    }
   };
   draw();
 }
