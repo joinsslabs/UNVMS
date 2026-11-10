@@ -460,7 +460,280 @@ body.guest-mode .wrap{display:block;min-height:calc(100vh - 140px)}
 body.guest-mode nav{display:none!important}
 body.guest-mode #top_inv_btn{display:none!important}
 body.guest-mode main{align-items:center;padding-block:28px 40px}
-body.guest-mode main>*{width:100%;max-width:440px;margin-inline:auto}
+body.guest-mode:not(.rules-mode) main>*{width:100%;max-width:440px;margin-inline:auto}
+body.rules-mode{background-color:#f1f5f9;background-image:radial-gradient(at 10% 12%,rgba(8,127,197,.08) 0px,transparent 450px),radial-gradient(at 90% 15%,rgba(7,84,155,.09) 0px,transparent 450px),radial-gradient(at 50% 85%,rgba(8,127,197,.06) 0px,transparent 500px),linear-gradient(#e2e8f0 1px,transparent 1px),linear-gradient(90deg,#e2e8f0 1px,transparent 1px);background-size:100% 100%,100% 100%,100% 100%,28px 28px,28px 28px;background-attachment:fixed}
+body.rules-mode .wrap{display:block!important;min-height:calc(100vh - 120px)!important;max-width:1100px!important;margin:0 auto!important}
+body.rules-mode main{padding:24px 16px 48px!important;display:block!important}
+body.rules-mode main>*{width:100%!important;max-width:1040px!important;margin-inline:auto!important}
+body.pass-mode{background:var(--bg) linear-gradient(180deg,var(--navy) 0 180px,transparent 180px) no-repeat}
+body.pass-mode .vpass{margin-top:0}
+.vp-qr{box-shadow:0 0 0 1px var(--line)}
+@media (min-width:700px){body.pass-mode main{padding-top:40px}}
+.evac-alert{all:unset;box-sizing:border-box;cursor:pointer;display:block;width:100%;padding:12px 16px;border-radius:12px;background:var(--warn);color:#fff;font-weight:700;animation:evPulse 1.6s infinite alternate}
+@keyframes evPulse{from{opacity:.85}to{opacity:1}}
+.evac-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--warn);color:#fff;border-radius:16px;padding:16px 18px}
+.evac-n{font-size:28px;font-weight:700}
+.evac-bar{height:10px;border-radius:6px;background:var(--surface2);overflow:hidden}.evac-bar span{display:block;height:100%;background:var(--ok);transition:width .3s}
+.evac{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px}
+.evac li label{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--surface2);cursor:pointer}
+.evac li.ok label{background:var(--ok-bg)} .evac input{width:22px;height:22px}
+.agree{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:13px}.agree summary{cursor:pointer;font-weight:600}.agree ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}
+.lang{display:flex;gap:6px;justify-content:center;align-items:center;margin:0 auto 14px;flex-wrap:wrap;transition:all .2s ease}
+.lang button{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12.5px;color:var(--onnavy-muted,#b9c4d8);font-weight:600;transition:all .18s ease}
+.lang button.on{background:#ffffff22;color:#fff;font-weight:700}
+body:not(.pass-mode) .lang button{color:var(--muted);background:var(--surface2)}
+body:not(.pass-mode) .lang button.on{background:var(--blue);color:#fff}
+.lang-cute-btn{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:750;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#0369a1!important;border:1px solid #bae6fd;box-shadow:0 2px 6px rgba(2,132,199,.15);transition:all .2s ease}
+.lang-cute-btn:hover{transform:translateY(-1px) scale(1.03);background:linear-gradient(135deg,#bae6fd,#bfdbfe);box-shadow:0 4px 10px rgba(2,132,199,.25)}
+.lang-cute-btn.open{background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff!important;border-color:#0369a1}
+.lang-un-extra{display:none;align-items:center;gap:5px;animation:cutePop .24s cubic-bezier(.34,1.56,.64,1);flex-wrap:wrap}
+.lang-un-extra.open{display:inline-flex}
+@keyframes cutePop{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:scale(1)}}
+
+/* Visitor Rules & Guidelines Layout */
+.rules-wrap{max-width:1040px;width:100%;margin:10px auto 40px;padding:0}
+.rules-hero{background:#ffffff;border:1.5px solid #cbd5e1;border-radius:24px;padding:36px 36px 32px;box-shadow:0 8px 30px rgba(16,45,76,.06);margin-bottom:28px;position:relative;overflow:hidden}
+.rules-hero::before{content:"";position:absolute;top:-80px;right:-80px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(8,127,197,.08) 0%,transparent 70%);pointer-events:none}
+.rules-hero-title{font-size:clamp(22px,2.9vw,34px);font-weight:850;line-height:1.2;margin:14px 0 10px;color:var(--navy);letter-spacing:-.6px;white-space:nowrap}
+@media (max-width:820px){.rules-hero-title{white-space:normal}}
+.rules-straight-line{height:3.5px;width:88px;background:linear-gradient(90deg,#087fc5,#03a0d1);border-radius:2px;margin:8px 0 16px}
+.rules-nav{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:24px;scrollbar-width:none}
+.rules-nav::-webkit-scrollbar{display:none}
+.rules-nav-pill{background:#ffffff;border:1.5px solid #e2e8f0;border-radius:20px;padding:8px 16px;font-size:12px;font-weight:750;color:var(--muted);cursor:pointer;white-space:nowrap;transition:all .15s;text-decoration:none;box-shadow:0 2px 6px rgba(0,0,0,.02)}
+.rules-nav-pill:hover,.rules-nav-pill.active{background:#e0f2fe;color:#0284c7;border-color:#bae6fd;box-shadow:0 4px 12px rgba(2,132,199,.15)}
+.rules-section-container{background:#ffffff;border:1.5px solid #cbd5e1;border-radius:22px;padding:30px 28px;margin-bottom:28px;box-shadow:0 6px 24px rgba(16,45,76,.05);position:relative;overflow:hidden}
+.rules-section-container::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#087fc5,#03a0d1,#10b981)}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;margin-top:18px}
+.rule-card{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 8px rgba(16,45,76,.02);transition:all .2s ease;position:relative}
+.rule-card:hover{background:#ffffff;border-color:#93c5fd;transform:translateY(-3px);box-shadow:0 8px 24px rgba(8,127,197,.1)}
+.rule-card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.rule-icon{width:46px;height:46px;border-radius:12px;background:#eef7ff;color:var(--blue);display:grid;place-items:center;flex-shrink:0}
+.rule-icon svg{width:24px;height:24px}
+.rule-num{font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--blue);background:rgba(8,127,197,.08);padding:3px 8px;border-radius:6px;text-transform:uppercase}
+.rule-tag{font-size:10.5px;font-weight:750;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.rule-title{font-size:15.5px;font-weight:800;color:var(--navy);margin:0;line-height:1.25}
+.rule-text{font-size:13px;color:var(--text);line-height:1.55;margin:0;opacity:.92}
+.rule-tip{background:#ffffff;border:1px solid #e2e8f0;border-left:3.5px solid var(--blue);padding:10px 14px;border-radius:8px;font-size:12px;color:var(--muted);line-height:1.45;margin-top:auto}
+.rule-tip strong{color:var(--navy)}
+
+/* Lanyard Reference Section */
+.lanyard-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:18px}
+.lanyard-card{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:16px;position:relative;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.02);transition:transform .15s}
+.lanyard-card:hover{transform:translateY(-2px);background:#ffffff}
+.lanyard-badge{display:inline-block;padding:4px 9px;border-radius:6px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.lanyard-desc{font-size:12px;color:var(--muted);line-height:1.45;margin:0}
+
+/* 4-Station Flow */
+.station-flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:18px}
+.station-step{background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px 16px;position:relative}
+.station-step-num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:#e0f2fe;color:#0284c7;font-weight:800;font-size:12px;margin-bottom:10px}
+.station-step-title{font-size:13.5px;font-weight:800;color:var(--navy);margin-bottom:6px}
+.station-step-desc{font-size:12px;color:var(--muted);line-height:1.45}
+
+/* Prohibited Items */
+.prohibited-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:16px}
+.prohibited-item{background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;font-size:12.5px;font-weight:750;color:#991b1b}
+.prohibited-item svg{width:18px;height:18px;flex-shrink:0;color:#dc2626}
+
+/* Ack Box */
+.ack-box{background:linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%);border:2px solid #86efac;border-radius:22px;padding:28px 30px;margin:28px 0;box-shadow:0 6px 20px rgba(34,197,94,.09)}
+.ack-stamp{background:#ffffff;border:1.5px solid #86efac;border-radius:14px;padding:16px 20px;margin-top:16px;display:none;animation:cutePop .25s ease}
+
+@media print{
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    width: 100% !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body > *:not(#printArea) {
+    display: none !important;
+  }
+  #printArea {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    box-sizing: border-box !important;
+  }
+  .print-doc {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+  .print-doc table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .print-doc tr, .print-doc td, .print-doc th {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .tsheet {
+    display: grid;
+    grid-template-columns: 86mm 86mm;
+    gap: 4mm 6mm;
+    padding: 4mm 8mm;
+    justify-content: center;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .tcard {
+    width: 86mm;
+    height: 54mm;
+    box-sizing: border-box;
+    border: 1px dashed #555;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    color: #000;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .tc-h {
+    background: #1e2f52 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    display: flex;
+    justify-content: space-between;
+    padding: 2mm 3mm;
+    font-size: 8pt;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+  .tc-b {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4mm;
+  }
+  .tc-n {
+    font-family: monospace;
+    font-size: 30pt;
+    font-weight: bold;
+  }
+  .tc-b img {
+    width: 26mm;
+    height: 26mm;
+  }
+  .tc-f {
+    font-size: 6pt;
+    text-align: center;
+    padding: 1mm;
+    border-top: 1px solid #000;
+  }
+  .pbadge {
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+    color: #000;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  body.print-badge .pbadge {
+    width: 86mm;
+    height: 54mm;
+    border: 1px solid #000;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+  }
+  .pb-h {
+    background: #1e2f52 !important;
+    color: #fff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    display: flex;
+    justify-content: space-between;
+    padding: 2mm 3mm;
+    font-size: 8pt;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .pb-b {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 2mm;
+    padding: 2mm 3mm;
+  }
+  .pb-b img {
+    width: 24mm;
+    height: 24mm;
+  }
+  .pb-n { font-size: 12pt; font-weight: bold; }
+  .pb-o { font-size: 8pt; }
+  .pb-t { font-family: monospace; font-size: 16pt; font-weight: bold; margin: 1mm 0; }
+  .pb-r { font-size: 7pt; }
+  .pb-ref { font-family: monospace; font-size: 8pt; font-weight: bold; margin-top: 1mm; }
+  .pb-f { font-size: 6pt; padding: 1mm 3mm; border-top: 1px solid #000; }
+}
+/* Default print page: standard A4 portrait with clean margins for reports, closeouts, and passes */
+@page {
+  size: A4 portrait;
+  margin: 10mm 12mm;
+}
+/* Tag sheet page: full A4 portrait with tight margins */
+body.print-sheet {
+  page: sheet;
+}
+@page sheet {
+  size: A4 portrait;
+  margin: 6mm 8mm;
+}
+/* Single badges print on 86x54mm ID card paper */
+body.print-badge {
+  page: card;
+}
+@page card {
+  size: 86mm 54mm;
+  margin: 0;
+}
+.scan-band{border-radius:12px;padding:16px;font-size:20px;font-weight:700;text-align:center}
+.scan-band.ok{background:var(--ok-bg);color:var(--ok)} .scan-band.no{background:var(--warn-bg);color:var(--warn)} .scan-band.info{background:var(--info-bg);color:var(--accent)}
+.vpass{max-width:420px;width:100%;margin:12px auto;background:var(--surface);border-radius:22px;overflow:hidden;box-shadow:0 22px 55px -20px rgba(0,0,0,.35);display:flex;flex-direction:column;border:2px solid var(--pass-border,var(--line));transition:border-color .2s,box-shadow .2s}
+.vpass.no{border-color:var(--warn)}
+.vpass.checked-out{border-color:#cbd5e1}
+.vpass-ribbon{height:16px;background:var(--pass-primary,#0875df);width:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.vpass-ribbon::before{content:"";position:absolute;top:-18px;width:34px;height:24px;border:3.5px solid var(--pass-primary,#0875df);border-bottom:0;border-radius:18px 18px 0 0;background:transparent}
+.vpass-ribbon::after{content:"";position:absolute;top:5px;width:26px;height:5px;border-radius:3px;background:rgba(255,255,255,.55)}
+.vpass-banner{padding:12px 18px;color:#fff;background:var(--pass-header,linear-gradient(135deg,#0284c7,#0875df));display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.vpass-body{padding:20px;display:flex;flex-direction:column;gap:12px}
+.vpass-color-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:750;background:var(--pass-pill-bg,#e0f2fe);color:var(--pass-pill-color,#0369a1);border:1px solid var(--pass-border,#bae6fd)}
+.vp-load{color:var(--muted);text-align:center;padding:30px 0}
+.vp-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
+.vp-kind{color:var(--muted)} .vpass.ok .vp-st{color:var(--ok)} .vpass.no .vp-st{color:var(--warn)} .vpass.checked-out .vp-st{color:#334155;background:#e2e8f0;padding:2px 8px;border-radius:6px;font-weight:700}
+.vp-name{font-size:26px;font-weight:700;line-height:1.15} .vp-org{color:var(--muted);margin-top:-8px}
+.vp-qr{background:#fff;border-radius:14px;padding:14px;align-self:center}.vp-qr img{width:220px;height:220px;display:block}
+.vp-clock{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums}
+.vp-clock i{width:10px;height:10px;border-radius:50%;background:var(--pass-primary,var(--ok));animation:vpPulse 1s infinite alternate}
+@keyframes vpPulse{from{opacity:.25;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
+.vp-msg{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:12px;font-weight:500;margin:0}
+.vp-dl{margin:0;display:grid;gap:6px}.vp-dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:6px;font-size:14px}
+.vp-dl dt{color:var(--muted)}.vp-dl dd{margin:0;font-weight:600;text-align:right}
+.vp-foot{font-size:12px;color:var(--muted);margin:0}
+/* Visitor-facing pages (pass, invite): one centred column, no staff menu. */
+body.guest-mode .wrap{display:block;min-height:calc(100vh - 140px)}
+body.guest-mode nav{display:none!important}
+body.guest-mode #top_inv_btn{display:none!important}
+body.guest-mode main{align-items:center;padding-block:28px 40px}
+body.guest-mode:not(.rules-mode) main>*{width:100%;max-width:440px;margin-inline:auto}
+body.rules-mode{background-color:#f1f5f9;background-image:radial-gradient(at 10% 12%,rgba(8,127,197,.08) 0px,transparent 450px),radial-gradient(at 90% 15%,rgba(7,84,155,.09) 0px,transparent 450px),radial-gradient(at 50% 85%,rgba(8,127,197,.06) 0px,transparent 500px),linear-gradient(#e2e8f0 1px,transparent 1px),linear-gradient(90deg,#e2e8f0 1px,transparent 1px);background-size:100% 100%,100% 100%,100% 100%,28px 28px,28px 28px;background-attachment:fixed}
+body.rules-mode .wrap{display:block!important;min-height:calc(100vh - 120px)!important;max-width:1100px!important;margin:0 auto!important}
+body.rules-mode main{padding:24px 16px 48px!important;display:block!important}
+body.rules-mode main>*{width:100%!important;max-width:1040px!important;margin-inline:auto!important}
 body.pass-mode{background:var(--bg) linear-gradient(180deg,var(--navy) 0 180px,transparent 180px) no-repeat}
 body.pass-mode .vpass{margin-top:0}
 .vp-qr{box-shadow:0 0 0 1px var(--line)}
@@ -4383,7 +4656,7 @@ function showRules(){
       </div>
 
       <!-- SECTION 1: CORE GUIDELINES -->
-      <section id="sec-guidelines" style="margin-bottom:28px">
+      <section id="sec-guidelines" class="rules-section-container">
         <div style="margin-bottom:14px">
           <h2 style="font-size:20px;font-weight:800;color:var(--navy);margin:0 0 4px">${esc(info.rulesTitle)}</h2>
           <p style="font-size:13px;color:var(--muted);margin:0">${esc(info.rulesSubtitle)}</p>
@@ -4410,7 +4683,7 @@ function showRules(){
       </section>
 
       <!-- SECTION 2: LANYARD COLOR CLASSIFICATION -->
-      <section id="sec-lanyards" class="info-box" style="margin-bottom:24px">
+      <section id="sec-lanyards" class="rules-section-container">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <div style="width:34px;height:34px;border-radius:10px;background:#eef7ff;display:grid;place-items:center;color:var(--blue)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
@@ -4434,7 +4707,7 @@ function showRules(){
       </section>
 
       <!-- SECTION 3: 4-STATION FLOW -->
-      <section id="sec-stations" class="info-box" style="margin-bottom:24px">
+      <section id="sec-stations" class="rules-section-container">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <div style="width:34px;height:34px;border-radius:10px;background:#eef7ff;display:grid;place-items:center;color:var(--blue)">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
@@ -4457,7 +4730,7 @@ function showRules(){
       </section>
 
       <!-- SECTION 4: PROHIBITED ITEMS -->
-      <section id="sec-prohibited" class="info-box" style="border-left:4px solid #ef4444;margin-bottom:24px">
+      <section id="sec-prohibited" class="rules-section-container" style="border-left:5px solid #ef4444">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <div style="width:34px;height:34px;border-radius:10px;background:#fef2f2;display:grid;place-items:center;color:#dc2626">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
@@ -4479,7 +4752,7 @@ function showRules(){
       </section>
 
       <!-- SECTION 5: EMERGENCY EVACUATION -->
-      <section id="sec-emergency" class="info-box" style="border-left:4px solid #f59e0b;margin-bottom:24px">
+      <section id="sec-emergency" class="rules-section-container" style="border-left:5px solid #f59e0b">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           <div style="width:34px;height:34px;border-radius:10px;background:#fef3c7;display:grid;place-items:center;color:#d97706">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -4496,7 +4769,7 @@ function showRules(){
       </section>
 
       <!-- ACCESSIBILITY -->
-      <section class="info-box" style="border-left:4px solid #0284c7;margin-bottom:24px">
+      <section class="rules-section-container" style="border-left:5px solid #0284c7">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
           <div style="width:34px;height:34px;border-radius:10px;background:#e0f2fe;display:grid;place-items:center;color:#0284c7">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
@@ -4507,7 +4780,7 @@ function showRules(){
       </section>
 
       <!-- SECTION 6: PRIVACY & DATA TRANSPARENCY -->
-      <section id="sec-privacy" class="info-box" style="border-left:4px solid #10b981;margin-bottom:24px">
+      <section id="sec-privacy" class="rules-section-container" style="border-left:5px solid #10b981">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
           <div style="width:34px;height:34px;border-radius:10px;background:#d1fae5;display:grid;place-items:center;color:#059669">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
