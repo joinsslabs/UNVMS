@@ -3712,7 +3712,7 @@ function row(v,actions,isTight=false){
   return `<tr><td><div class="vis"><span class="av" style="--h:${hue(v.name)}">${esc(initials(v.name))}</span><div class="vis-t"><div class="vn">${esc(v.name)} ${tpill(v)}${watchPill(v)}</div><div class="vs">${esc(v.org||"")}${v.org?" · ":""}<span class="ref">${esc(v.ref)}</span>${v.type==="vip"&&v.vehicle?` · <span class="mono" title="VIP Diplomatic Motorcade">🚗 ${esc(v.vehicle)}</span>`:""}</div></div></div></td>
   <td><div class="vn2">${esc(v.host)}</div><div class="vs">${esc(v.agency)}${v.room?" · "+esc(v.room):""}${v.backupHost&&v.status==="tagged"?` · <span title="Backup / delegate contact">Alt: ${esc(v.backupHost)}</span>`:""}${v.hostReply?' · <b style="color:var(--ok)">Coming '+fmtT(v.hostReplyAt)+'</b>':""}</div></td>
   <td>${timeline(v)}</td>
-  <td><div class="st">${pill(v)}${v.tag?`<span class="tagchip">${esc(v.tag)}</span>`:v.type==="vip"?`<span class="tagchip" style="background:#e0ecff;color:#1e40af;border-color:#bfdbfe">No Badge · VIP</span>`:""}</div>${authBy(v)}</td>
+  <td><div class="st">${pill(v)}${v.tag?`<span class="tagchip">${esc(v.tag)}</span>`:v.type==="vip"?`<span class="tagchip" style="background:#e0ecff;color:#1e40af;border-color:#bfdbfe">VIP Protocol Pass</span>`:""}</div>${authBy(v)}</td>
   <td><div class="row-acts"><div class="ra-main">${acts}</div>${extra}</div></td></tr>`}
 function table(list,actions,empty,cls=""){
   if(!list.length) return `<div class="empty">${empty}</div>`;
@@ -4194,7 +4194,7 @@ V.tagging=()=>{
         <span class="pill" style="background:#dcfce7;color:#166534;font-size:11.5px;font-weight:700;border:1px solid #bbf7d0" title="Issue Green Lanyard for Registry, courier, and official correspondence">🟩 Green: Registry &amp; Mail</span>
         <span class="pill" style="background:#fef3c7;color:#92400e;font-size:11.5px;font-weight:700;border:1px solid #fde68a" title="Issue Amber Lanyard for contractors, maintenance, IT service vendors">🟧 Amber: Contractor</span>
         <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11.5px;font-weight:700;border:1px solid #e9d5ff" title="Issue Purple Lanyard for official protocol visits">🟪 Purple: Protocol</span>
-        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11.5px;font-weight:800;border:1px solid #bae6fd" title="Diplomatic courtesy: VIP guests do not wear lanyards">⭐ VIP: Lanyard-Exempt</span>
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11.5px;font-weight:800;border:1px solid #bae6fd" title="Diplomatic courtesy: VIP guests do not wear lanyards">⭐ VIP: Protocol Pass</span>
       </div>
     </div>
   </div>
@@ -4275,7 +4275,7 @@ V.tagging=()=>{
           ${fmtT(v.taggedAt||v.arrivedAt)}
         </td>
         <td style="white-space:nowrap">
-          <span class="id-safe-badge" title="Physical photo ID safely secured in safe custody tray">🪪 ID in Safe</span>
+          <span class="id-safe-badge" title="Physical photo ID inspected in person (zero cloud storage)">🪪 ID in Safe</span>
         </td>
         <td style="text-align:right;white-space:nowrap">
           <div style="display:inline-flex;gap:6px;align-items:center;justify-content:flex-end">
@@ -4888,7 +4888,7 @@ V.reception=()=>{
         <span class="pill" style="background:#dcfce7;color:#166534;font-size:11px;font-weight:600" title="Registry Visitor: Controlled administrative visit">🟩 Green (Registry)</span>
         <span class="pill" style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:600" title="Contractor: Work-order restricted">🟧 Amber (Contractor)</span>
         <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11px;font-weight:600" title="Protocol Visitor: Handled via official protocol">🟪 Purple (Protocol)</span>
-        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700" title="VIP Guest: Diplomatic courtesy, lanyard-exempt">⭐ VIP (Exempt)</span>
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700" title="VIP Guest: Diplomatic courtesy, lanyard-exempt">⭐ VIP (Protocol Pass)</span>
       </div>
     </div>
   </div>
@@ -4962,7 +4962,7 @@ V.reception=()=>{
 };
 V.vip=()=>{
   const list=filterQ(visitors.filter(v=>v.type==="vip"&&["approved","arrived","in","pending"].includes(v.status)));
-  return head("Station 4 · VIP Gate","Station 4 VIP Entrance & Canopy. Accredited VIP guests, Ambassadorial delegations, and Heads of Mission are lanyard-exempt under diplomatic protocol. They check in directly with diplomatic courtesy and are received at Station 3 by the host or Protocol Officer.")+
+  return head("Station 4 · VIP Gate","Station 4 VIP Entrance & Canopy. Accredited VIP guests, Ambassadorial delegations, and Heads of Mission are received under diplomatic protocol. They check in with discreet protocol credentials and are escorted by the host or Protocol Officer.")+
 
   `<div class="panel">${searchBox("Search VIP name, plate or reference")}</div>
   <div style="display:flex;flex-direction:column;gap:10px">${list.length?list.map(v=>`<div class="vcard" style="border-left:4px solid #0284c7"><div><div class="nm">${esc(v.name)}</div><div class="small">${esc(v.org)} · Host: ${esc(v.host)} · Expected ${fmtT(v.expected)}${v.type==="vip"&&v.vehicle?` · <span class="mono" style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:700">🚗 ${esc(v.vehicle)}</span>`:""}</div><div style="margin-top:6px">${pill(v)} <span class="ref">${esc(v.ref)}</span>${["in","arrived"].includes(v.status)?` · <span class="small">✨ Auto Checked In · Host notified ${fmtT(v.hostNotified||v.inAt)}</span>`:""}</div></div><div class="acts">${
