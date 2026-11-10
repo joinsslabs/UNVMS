@@ -730,8 +730,8 @@ const ACT_ROLES={
   // Station 3: Internal Reception only
   checkin:["reception","admin","sec_admin","sec_deputy"],
   notify:["reception","admin","sec_admin","sec_deputy"],
-  checkout:["docs","gate","admin","sec_admin","sec_deputy"],
-  extendstay:["docs","gate","admin","sec_admin","sec_deputy"],
+  checkout:["reception","docs","gate","admin","sec_admin","sec_deputy"],
+  extendstay:["reception","docs","gate","admin","sec_admin","sec_deputy"],
   // Station 4: VIP Gate only
   vipadmit:["vip","admin","sec_admin","sec_deputy"],
   // Approvals & Contractor Governance
@@ -1973,7 +1973,7 @@ function nextStep(v){
   if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit"];
   if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
   if((v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived))))&&(r==="reception"||any)) return ["checkin",v.type==="vip"?"Host received VIP":"Check in"];
-  if((v.status==="in"||v.status==="tagged")&&(r==="docs"||r==="gate")) return ["checkout",v.type==="vip"?"Record VIP Exit":"Check Out"];
+  if((v.status==="in"||v.status==="tagged")&&(r==="docs"||r==="gate"||r==="reception"||any)) return ["checkout",v.type==="vip"?"Record VIP Exit":"Check Out"];
   return null;
 }
 function scanResult(v,p,title,msg){
@@ -2062,7 +2062,7 @@ async function printTagSheet(){
   if(to<from) return toast("The last number must be the same as or after the first.");
   try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool.")}
   const kind={V:"Visitor",C:"Contractor",P:"VIP"}[pre], cards=[];
-  for(let n=from;n<=to;n++){const t=`${pre}-${String(n).padStart(3,"0")}`;cards.push(`<div class="tcard"><div class="tc-h"><span>UN House Abuja</span><span>${kind}</span></div><div class="tc-b"><div class="tc-n">${t}</div><img src="${await qrDataUrl("UNHTAG:"+t,140)}" alt=""></div><div class="tc-f">Ref: ${t} · Property of UN Common Services · Return on leaving</div></div>`)}
+  for(let n=from;n<=to;n++){const t=`${pre}-${String(n).padStart(3,"0")}`;cards.push(`<div class="tcard"><div class="tc-h"><span>UN House Abuja</span><span>${kind}</span></div><div class="tc-b"><div class="tc-n">${t}</div><img src="${await qrDataUrl("UNHTAG:"+t,140)}" alt=""></div><div style="font-size:7.5px;font-weight:700;letter-spacing:.03em;color:#0369a1;background:#f0f9ff;border-radius:3px;padding:2px 4px;margin:2px 0;text-align:center">AUTHORIZED DESTINATION ONLY · ACCESS TO OTHER FLOORS PROHIBITED</div><div class="tc-f">Ref: ${t} · UN Common Services · Return on exit</div></div>`)}
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   p.innerHTML=`<div class="tsheet">${cards.join("")}</div>`;
   document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},120);
@@ -2353,7 +2353,7 @@ async function kioskScan(txt){
 
 /* ---------- 5. Visitor agreements ---------- */
 const AGREEMENT={version:"UNH-2026-11",
-  en:["I will wear my visitor tag or show my pass at all times and return the tag when I leave.","I will stay with my host or in the areas I am allowed to visit.","I will follow security staff instructions, including in an emergency.","I will not take photos or recordings inside without permission.","Privacy: UN House records my name, organisation, contact details, host and visit times to manage access and safety. Records are kept for a limited period and are not shared outside the UN, except where the law requires."],
+  en:["I will wear my color-coded visitor lanyard/tag visibly at all times and return the tag upon departure (VIP delegations exempt).","Floor Restriction: Access is strictly limited to the authorized destination floor and host office. Unescorted movement to other floors is prohibited.","I will stay with my host or designated escort in approved areas.","I will follow security staff instructions, including in an emergency.","I will not take photos or recordings inside without permission.","Privacy: UN House records my name, organisation, contact details, host and visit times to manage access and safety. Records are kept for a limited period and are not shared outside the UN, except where the law requires."],
   fr:["Je porterai mon badge visiteur ou présenterai mon laissez-passer en permanence et rendrai le badge en partant.","Je resterai avec mon hôte ou dans les zones autorisées.","Je suivrai les consignes du personnel de sécurité, y compris en cas d'urgence.","Je ne prendrai ni photos ni enregistrements à l'intérieur sans autorisation.","Confidentialité : UN House enregistre mon nom, mon organisation, mes coordonnées, mon hôte et mes heures de visite pour gérer l'accès et la sécurité. Ces données sont conservées pour une durée limitée et ne sont pas partagées en dehors de l'ONU, sauf obligation légale."]};
 function agreementBlock(lang,id){return `<details class="agree"><summary>${lang==="fr"?"Règles de visite et confidentialité":"Visitor rules and privacy notice"}</summary><ul>${AGREEMENT[lang].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
   <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="${id}" style="width:auto;margin-top:2px" required> <span>${lang==="fr"?"J'ai lu et j'accepte les règles de visite et l'avis de confidentialité.":"I have read and accept the visitor rules and privacy notice."}</span></label>`}
@@ -4041,7 +4041,23 @@ V.tagging=()=>{
   }));
   const out=visitors.filter(v=>v.tag&&["tagged","in"].includes(v.status));
   return head("Station 2 · Documentation & ID Exchange","Station 2 · Documentation Reception. Verify Government photo ID, log equipment, exchange physical lanyard tags on arrival, and check out departing visitors (return deposited physical photo ID & collect tag) upon exit.")+
-  `<div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="margin:0">Visitors Waiting for Documentation &amp; Physical Tag Exchange <span class="cnt ${list.length?'hot':''}">${list.length}</span></h2></div><p class="small">These visitors have been admitted through Station 1. Verify their Government agency or photo ID, log any equipment brought in, and exchange their ID for a physical lanyard tag.</p>${searchBox()}<div style="margin-top:12px">${table(list,v=>{
+  `<!-- Official UN House Lanyard Colour-Code Protocol Guide -->
+  <div style="background:linear-gradient(180deg,#f8fafc,#f1f5f9);border:1.5px solid #cbd5e1;border-radius:12px;padding:12px 16px;margin-bottom:14px;box-shadow:var(--shadow)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <div style="font-weight:700;font-size:13px;color:var(--navy);display:flex;align-items:center;gap:6px">
+        🏷️ UN House Visual Lanyard Colour-Code System:
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span class="pill" style="background:#dbeafe;color:#1e40af;font-size:11.5px;font-weight:700;border:1px solid #bfdbfe" title="Issue Blue Lanyard for official meetings, interviews, conferences">🟦 Blue: General Visitor</span>
+        <span class="pill" style="background:#dcfce7;color:#166534;font-size:11.5px;font-weight:700;border:1px solid #bbf7d0" title="Issue Green Lanyard for Registry, courier, and official correspondence">🟩 Green: Registry &amp; Mail</span>
+        <span class="pill" style="background:#fef3c7;color:#92400e;font-size:11.5px;font-weight:700;border:1px solid #fde68a" title="Issue Amber Lanyard for contractors, maintenance, IT service vendors">🟧 Amber: Contractor</span>
+        <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11.5px;font-weight:700;border:1px solid #e9d5ff" title="Issue Purple Lanyard for official protocol visits">🟪 Purple: Protocol</span>
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11.5px;font-weight:800;border:1px solid #bae6fd" title="Diplomatic courtesy: VIP guests do not wear lanyards">⭐ VIP: Lanyard-Exempt</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="margin:0">Visitors Waiting for Documentation &amp; Physical Tag Exchange <span class="cnt ${list.length?'hot':''}">${list.length}</span></h2></div><p class="small">These visitors have been admitted through Station 1. Verify their Government agency or photo ID, log any equipment brought in, and exchange their ID for a physical lanyard tag.</p>${searchBox()}<div style="margin-top:12px">${table(list,v=>{
     const tag = v.assignedTag || v.tag || nextAvailableTag(v.type);
     return `<button class="btn pri btn-tag-exchange" data-id="${esc(v.id)}" data-act="tag" title="Exchange verified physical photo ID for lanyard tag ${esc(tag)}"><span class="tag-lbl">🏷️ ${esc(tag)}</span><span class="tag-act">Exchange ID <span class="arr">→</span></span></button>`;
   },"No visitors are waiting for documentation.")}</div></div>
@@ -4710,46 +4726,99 @@ V.reception=()=>{
   const wait=filterQ(visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))));
   const enRoute=filterQ(visitors.filter(v=>v.status==="arrived"&&v.type!=="vip"));
   const inside=filterQ(visitors.filter(v=>v.status==="in"||(v.type==="vip"&&v.status==="arrived")));
-  return head("Station 3 · Internal Reception","Station 3, Main UN House Building. Receive documented visitors from Station 2, notify host to receive guest, record host check-in, and monitor active compound occupancy.")+
-  `<div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-      <h2 style="margin:0;display:flex;align-items:center;gap:8px">Waiting for host <span class="cnt ${wait.length?'hot':''}">${wait.length}</span></h2>
+
+  return head("Station 3 · Internal Reception · Main UN House Building","Station 3, Main Building Ground Floor Lobby. Receive documented visitors from Station 2, contact host via desk phone/intercom, verify floor clearance, and collect tags on departure.")+
+  `<!-- Reception Operational Quick Tools & Security Palette -->
+  <div style="background:linear-gradient(180deg,var(--surface),var(--surface2));border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin-bottom:14px;box-shadow:var(--shadow)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <button class="btn" id="btn_open_ext_dir" type="button" style="height:34px;font-size:12.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px">
+          📞 Extension Directory <span class="mono" style="background:#e0f2fe;color:#0284c7;padding:1px 6px;border-radius:4px;font-size:11px">Ext. 1000</span>
+        </button>
+        <button class="btn" onclick="showRules()" type="button" style="height:34px;font-size:12.5px;font-weight:600">
+          📋 Access &amp; Floor Rules
+        </button>
+      </div>
+      <!-- Lanyard Color Code Legend for Receptionist Floor Verification -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <span class="small" style="font-weight:700;color:var(--muted);margin-right:2px">Lanyards:</span>
+        <span class="pill" style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:600" title="General Visitor: Approved meetings & conferences">🟦 Blue (General)</span>
+        <span class="pill" style="background:#dcfce7;color:#166534;font-size:11px;font-weight:600" title="Registry Visitor: Controlled administrative visit">🟩 Green (Registry)</span>
+        <span class="pill" style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:600" title="Contractor: Work-order restricted">🟧 Amber (Contractor)</span>
+        <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11px;font-weight:600" title="Protocol Visitor: Handled via official protocol">🟪 Purple (Protocol)</span>
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700" title="VIP Guest: Diplomatic courtesy, lanyard-exempt">⭐ VIP (Exempt)</span>
+      </div>
     </div>
-    <p class="small">Documented visitors from Station 2. Notify the host and record check-in when host receives visitor.</p>
-    ${searchBox()}
+  </div>
+
+  <!-- Queue 1: Waiting for Host -->
+  <div class="panel" style="border-top:4px solid #0284c7">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <h2 style="margin:0;display:flex;align-items:center;gap:8px">
+        Waiting for Host <span class="cnt ${wait.length?'hot':''}">${wait.length}</span>
+      </h2>
+      <span class="small" style="color:var(--muted)">Documented visitors arrived at Station 3 with physical tags</span>
+    </div>
+    <p class="small">Contact the host via desk phone. Check in visitor once host or designated escort receives them at reception.</p>
+    ${searchBox("Search name, tag, host or organization...")}
     <div style="margin-top:12px">
     ${table(wait, v => {
       const ext = getHostExt(v.host, v.agency);
       const notifBtn = v.hostNotified
         ? `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600" title="${esc(v.hostNotifiedNote||"")}">✓ Host contacted (${fmtT(v.hostNotified)})</span> <button class="btn small" data-act="notify" data-id="${esc(v.id)}" title="Call or notify host again" style="padding:2px 8px;font-size:11px">Re-notify</button>`
-        : B(v.id, "notify", "Notify host");
+        : `<button class="btn" data-act="notify" data-id="${esc(v.id)}" title="Call host desk extension ${esc(ext)}">📞 Call host (Ext. ${esc(ext)})</button>`;
       return notifBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "pri");
     }, "Nobody is currently waiting for host.")}
     </div>
   </div>
+
+  <!-- Queue 2: En Route from Station 2 -->
   ${enRoute.length ? `<div class="panel" style="border-left:4px solid #0284c7;background:var(--surface2)">
     <h2>En Route · In Documentation at Station 2 <span class="cnt">${enRoute.length}</span></h2>
     <p class="small">These visitors have passed Station 1 and are currently at <b>Station 2 Documentation Reception</b> exchanging photo ID for physical tags. They will automatically move to "Waiting for host" above once documentation is completed.</p>
     ${table(enRoute, v=>`<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">In Station 2 Documentation Desk</span>`,"", "tight-table")}
   </div>` : ""}
-  <div class="panel" style="border-left:4px solid #1e3a8a">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-      <h2 style="margin:0;display:flex;align-items:center;gap:8px;color:var(--navy)">
-        🏢 Checked in with host <span class="cnt" style="background:#e0f2fe;color:#0369a1;font-weight:700">${inside.length}</span>
-      </h2>
-      <span class="small" style="color:var(--muted)">Currently inside UN House offices with their host</span>
+
+  <!-- Queue 3: Checked In With Host & Active on Premises -->
+  <div class="panel" style="border-left:4px solid #1e3a8a;background:linear-gradient(180deg,var(--surface),#f8fafc)">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <h2 style="margin:0;display:flex;align-items:center;gap:8px;font-size:18px;color:var(--navy)">
+            🏢 Checked in with Host <span class="cnt" style="background:#e0f2fe;color:#0369a1;font-weight:700">${inside.length}</span>
+          </h2>
+          <span class="small" style="color:var(--muted)">Currently inside UN House offices with their host</span>
+        </div>
+        <p class="small" style="margin:5px 0 0;color:var(--muted);max-width:720px;line-height:1.45">
+          When visitors conclude their visit and exit through <b>Station 3</b>: collect their physical lanyard tag (restocked to tray) and click <b>Collect Tag &amp; Check Out</b>.
+        </p>
+      </div>
     </div>
+
+    <!-- Fast Tag Return & Departure Search Bar for Station 3 -->
+    <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="f" style="flex:1;min-width:240px">
+        <label for="quick_exit_input" class="small"><b>⚡ Fast Check-Out &amp; Collect Tag</b> (Scan barcode or enter tag e.g. V-020)</label>
+        <input id="quick_exit_input" placeholder="Scan tag barcode or type tag number / visitor name to collect tag and check out...">
+      </div>
+      <button class="btn pri" id="btn_quick_exit" style="margin-top:16px;height:36px;padding:0 18px;background:#1e3a8a;border-color:#1e3a8a;color:#fff" title="Collect physical tag and check out departing visitor">
+        Collect Tag &amp; Check Out
+      </button>
+    </div>
+
+    <div style="margin-top:12px">
     ${table(inside, v => {
       if (v.type === "vip" && !v.vipReceived) {
         return (v.hostNotified ? `<span class="small" style="color:#0369a1;font-weight:600">Host notified ${fmtT(v.hostNotified)}</span>` : B(v.id, "notify", "Notify host")) + B(v.id, "checkin", "Host received", "pri");
       }
-      return `<span class="pill p-in" style="font-size:10.5px">With Host</span>`;
+      return `<span class="pill p-in" style="font-size:10.5px">With Host</span> ` + B(v.id, "checkout", v.type === "vip" ? "Record VIP exit" : "Collect tag &amp; check out", "pri");
     }, "Nobody is currently checked in.", "tight-table")}
+    </div>
   </div>`;
 };
 V.vip=()=>{
   const list=filterQ(visitors.filter(v=>v.type==="vip"&&["approved","arrived","in","pending"].includes(v.status)));
-  return head("Station 4 · VIP Gate","Station 4. Accredited VIP guests, Ambassadorial delegations, and Diplomatic Mission Heads check in directly with diplomatic courtesy.")+
+  return head("Station 4 · VIP Gate","Station 4 VIP Entrance & Canopy. Accredited VIP guests, Ambassadorial delegations, and Heads of Mission are lanyard-exempt under diplomatic protocol. They check in directly with diplomatic courtesy and are received at Station 3 by the host or Protocol Officer.")+
 
   `<div class="panel">${searchBox("Search VIP name, plate or reference")}</div>
   <div style="display:flex;flex-direction:column;gap:10px">${list.length?list.map(v=>`<div class="vcard" style="border-left:4px solid #0284c7"><div><div class="nm">${esc(v.name)}</div><div class="small">${esc(v.org)} · Host: ${esc(v.host)} · Expected ${fmtT(v.expected)}${v.type==="vip"&&v.vehicle?` · <span class="mono" style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:700">🚗 ${esc(v.vehicle)}</span>`:""}</div><div style="margin-top:6px">${pill(v)} <span class="ref">${esc(v.ref)}</span>${["in","arrived"].includes(v.status)?` · <span class="small">✨ Auto Checked In · Host notified ${fmtT(v.hostNotified||v.inAt)}</span>`:""}</div></div><div class="acts">${
@@ -7360,7 +7429,7 @@ function doAct(a,v){
         <div style="width:44px;height:44px;border-radius:10px;background:#e0f2fe;border:1px solid #bae6fd;display:grid;place-items:center;font-size:24px">🚪</div>
         <div>
           <h2 style="margin:0;font-size:19px;color:var(--navy)">Visitor Departure &amp; ID Handover</h2>
-          <p class="small" style="margin:2px 0 0;color:var(--muted)">Station 2 Check-Out Desk · Compound Exit Protocol</p>
+          <p class="small" style="margin:2px 0 0;color:var(--muted)">${station()==="S3"?"Station 3 Internal Reception":"Station 2 Documentation Reception"} · Compound Exit &amp; ID Handover Protocol</p>
         </div>
       </div>
 
