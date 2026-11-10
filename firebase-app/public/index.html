@@ -9,13 +9,20 @@
 :root{--navy:#092653;--blue:#0875df;--sky:#eaf4ff;--ink:#10264b;--muted:#5c6f8e;--line:#d5e4f7;--white:#fff;--shadow:0 12px 30px rgba(14,68,137,.10)}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink);background:#f5f9ff}a{text-decoration:none;color:inherit}
 .container{width:min(1180px,92%);margin:auto}
-header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid #e4edf8}
+header{position:sticky;top:0;z-index:10;background:#091e3a;border-bottom:1px solid rgba(255,255,255,0.12);color:#fff}
 .nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-.brand{display:flex;align-items:center;gap:12px;font-weight:800;color:var(--navy)}.brand img{height:44px;width:auto;display:block;flex-shrink:0}.brand small{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
-.navlinks{display:flex;align-items:center;gap:25px;font-size:13px;font-weight:650}.navlinks a{transition:color .15s ease}.navlinks a:hover{color:var(--blue)}
+.brand{display:flex;align-items:center;gap:13px;text-decoration:none}
+.brand img{height:46px;width:auto;display:block;flex-shrink:0}
+.brand-text{display:flex;flex-direction:column;gap:2px}
+.brand-title{font-size:16px;font-weight:800;color:#ffffff;letter-spacing:-0.01em;line-height:1.2}
+.brand-sub{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#94a3b8;line-height:1}
+.navlinks{display:flex;align-items:center;gap:25px;font-size:13px;font-weight:650}
+.navlinks a{color:rgba(255,255,255,0.8);transition:color .15s ease}
+.navlinks a:hover{color:#ffffff}
 .login-wrap{display:flex;align-items:center;gap:10px}
-.pilot-pill{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:5px 12px;border-radius:999px;white-space:nowrap}
-.login{padding:10px 18px;border-radius:30px;background:var(--blue);color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:background .15s ease,transform .15s ease}.login:hover{background:#0565c4;transform:translateY(-1px)}
+.pilot-pill{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#7dd3fc;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.28);padding:4px 11px;border-radius:999px;white-space:nowrap}
+.login{padding:10px 18px;border-radius:30px;background:#0284c7;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:background .15s ease,transform .15s ease;box-shadow:0 4px 14px rgba(2,132,199,0.35)}
+.login:hover{background:#0369a1;transform:translateY(-1px)}
 .hero{position:relative;overflow:hidden;background:linear-gradient(105deg,#f7fbff 0%,#eaf4ff 47%,#d9ecff 100%);min-height:510px;display:flex;align-items:center}
 .hero:after{content:"";position:absolute;right:-7%;top:-15%;width:65%;height:130%;background:linear-gradient(135deg,rgba(24,121,225,.05),rgba(24,121,225,.22));transform:skewX(-19deg);pointer-events:none}
 .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center;padding:58px 0 74px;position:relative;z-index:1}
@@ -119,7 +126,10 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
   <div class="container nav">
     <a class="brand" href="index.html">
       <img src="un-emblem.svg" alt="United Nations Emblem">
-      <span>UN House <small>Abuja · Visitor Management System</small></span>
+      <div class="brand-text">
+        <div class="brand-title">UN House Visitor Management System</div>
+        <div class="brand-sub">UNITED NATIONS COMMON SERVICES · ABUJA</div>
+      </div>
     </a>
     <nav class="navlinks" aria-label="Main navigation">
       <a href="#">Home</a>
@@ -159,9 +169,9 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
       </div>
     </div>
     <div class="hero-photo">
-      <img src="un-house-building.jpg" alt="United Nations House Abuja Compound" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85'">
+      <img src="un-house-hero.jpg" alt="UN House Abuja Building with UN Flag, Nigerian Flag and Wall Logo" onerror="this.src='un-house-building.jpg'">
       <div class="photo-overlay"></div>
-      <div class="photo-caption">United Nations House · Diplomatic Zone, Abuja</div>
+      <div class="photo-caption">United Nations House · Diplomatic Compound, Abuja</div>
     </div>
   </div>
 </section>
