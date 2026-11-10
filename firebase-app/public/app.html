@@ -705,15 +705,15 @@ const ROLES={
 };
 const ROLE_STATION={gate:"S1",sec_admin:"S1",sec_deputy:"S1",docs:"S2",reception:"S3",vip:"S4",registry:"REG",host:"S3"};
 const ROLE_VIEWS={
-  admin:["dashboard","clearance","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  sec_admin:["clearance","dashboard","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  sec_deputy:["clearance","dashboard","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  gate:["gate","registry","contractors","register","watch","history"],
-  docs:["tagging","registry","contractors","register","history"],
-  reception:["reception","registry","kiosk","register","history"],
-  vip:["vip","register","history"],
-  registry:["registry","dashboard","history"],
-  host:["register","registry","dashboard","history"]
+  admin:["dashboard","clearance","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_admin:["clearance","dashboard","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_deputy:["clearance","dashboard","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  gate:["gate","registry","contractors","register","muster","watch","history"],
+  docs:["tagging","registry","contractors","register","muster","history"],
+  reception:["reception","registry","kiosk","register","muster","history"],
+  vip:["vip","register","muster","history"],
+  registry:["registry","dashboard","muster","history"],
+  host:["register","registry","dashboard","muster","history"]
 };
 const ACT_ROLES={
   reply:["admin","sec_admin","sec_deputy"],
@@ -1327,6 +1327,7 @@ const VIEWS=[
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
   ["register","Register & Invite","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
   ["contractors","Contractors & Service Staff","Access & Guests",'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>'],
+  ["muster","UNDSS Muster Roll","Safety & Analytics",'<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'],
   ["watch","UNDSS Watchlist","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M5.7 5.7l12.6 12.6"/>'],
   ["reports","Reports","Safety & Analytics",'<path d="M18 20V10M12 20V4M6 20v-6"/>'],
   ["history","History & audit","Safety & Analytics",'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
@@ -1348,6 +1349,7 @@ function renderNav(){
   c.staff=staffList.filter(s=>s.role==="pending").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
   c.registry=(deliveries||[]).filter(d=>d.status!=="delivered"||d.securityStatus==="pending").length;
+  c.muster=visitors.filter(v=>["in","tagged"].includes(v.status)||(v.type==="vip"&&["arrived","in"].includes(v.status))).length;
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
     const hdr=sec!==lastSec?(lastSec=sec,`<div class="nav-sec">${esc(sec)}</div>`):"";
@@ -3753,6 +3755,99 @@ V.dashboard=()=>{
   </div>
   <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>canAct("checkout")?B(v.id,"checkout","Check out","pri"):"","Nobody is checked in.")}</div>`;
 };
+
+V.muster = () => {
+  const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
+  if(!window._accountedMusterSet) window._accountedMusterSet = new Set();
+  const acc = window._accountedMusterSet;
+  const accCount = inside.filter(v => acc.has(v.id)).length;
+  const unaccCount = inside.length - accCount;
+  const pct = inside.length ? Math.round((accCount / inside.length) * 100) : 100;
+
+  return head("UNDSS Emergency Evacuation Muster Roll", "Compound Perimeter Headcount & Building Evacuation Roll Call. Designated Assembly Point: Main Compound Gate Lawn (Assembly Area A).")+
+  `<div class="panel" style="border-top:4px solid #dc2626;background:linear-gradient(180deg,#ffffff,#fef2f2);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:48px;height:48px;border-radius:12px;background:#fee2e2;border:2px solid #fca5a5;display:grid;place-items:center;font-size:26px">🚨</div>
+        <div>
+          <h2 style="margin:0;font-size:18px;color:#991b1b;display:flex;align-items:center;gap:8px">
+            Perimeter Compound Evacuation Manifest
+            <span class="pill" style="background:#dc2626;color:#fff;font-size:11px;font-weight:800;letter-spacing:.05em">LIVE ROLL CALL</span>
+          </h2>
+          <p class="small" style="margin:2px 0 0;color:var(--muted)">
+            SOP-04: Verify all visitors and non-staff persons reach designated assembly areas with their host.
+          </p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn pri" id="v_btn_print_muster" style="background:#dc2626;border-color:#dc2626;font-weight:700;display:inline-flex;align-items:center;gap:6px">
+          🖨️ Print Official Manifest
+        </button>
+        <button class="btn" id="v_btn_export_muster_csv" style="display:inline-flex;align-items:center;gap:6px">
+          📊 Export CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><div class="n">${inside.length}</div><div class="l">Total On Premises</div></div>
+    <div class="kpi ok"><div class="n" style="color:#16a34a">${accCount}</div><div class="l">✓ Accounted at Assembly Area</div></div>
+    <div class="kpi ${unaccCount ? 'alert' : ''}"><div class="n" style="color:${unaccCount ? '#dc2626' : 'var(--navy)'}">${unaccCount}</div><div class="l">⚠️ Unaccounted (Inside)</div></div>
+    <div class="kpi"><div class="n" style="color:#0284c7">${pct}%</div><div class="l">Evacuation Clearance</div></div>
+  </div>
+
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn" id="v_btn_mark_all_muster" style="font-size:12px">✓ Mark All Accounted</button>
+        <button class="btn" id="v_btn_reset_muster" style="font-size:12px">Reset Checkmarks</button>
+      </div>
+      <div class="search" style="margin:0;max-width:320px"><div class="search-in"><input id="v_muster_search" placeholder="Search name, tag, building, host..."><kbd>/</kbd></div></div>
+    </div>
+
+    <div style="margin-top:12px" id="v_muster_table_wrap">
+      ${inside.length ? `<div class="tw"><table class="dep-table" style="width:100%;font-size:13px">
+        <thead><tr style="background:#f1f5f9;border-bottom:2px solid #cbd5e1">
+          <th style="width:50px;text-align:center">Muster</th>
+          <th style="width:85px">Tag</th>
+          <th>Visitor / Org</th>
+          <th>Location &amp; Agency Wing</th>
+          <th>Responsible Host &amp; Ext</th>
+          <th style="width:100px;text-align:right">Time Inside</th>
+        </tr></thead>
+        <tbody>
+          ${inside.map(v => {
+            const isAcc = acc.has(v.id);
+            const ext = getHostExt(v.host, v.agency);
+            return `<tr style="background:${isAcc ? '#f0fdf4' : 'transparent'};border-bottom:1px solid var(--line)">
+              <td style="text-align:center">
+                <input type="checkbox" data-vmuster-id="${esc(v.id)}" ${isAcc ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:#16a34a">
+              </td>
+              <td class="mono"><b>${esc(v.tag || (v.type === 'vip' ? '⭐ VIP' : '—'))}</b></td>
+              <td>
+                <div style="font-weight:700;color:var(--fg)">${esc(v.name)}</div>
+                <div class="small" style="color:var(--muted)">${esc(v.org || 'Official Guest')}</div>
+              </td>
+              <td>
+                <div style="font-weight:600">${esc(v.building || 'Main UN House')}</div>
+                <div class="small" style="color:#0284c7">${esc(v.agency)} Wing ${v.room ? '· ' + esc(v.room) : ''}</div>
+              </td>
+              <td>
+                <div style="font-weight:600">${esc(v.host)}</div>
+                <div class="small mono" style="color:var(--muted)">Desk Ext. ${esc(ext)}</div>
+              </td>
+              <td style="text-align:right" class="mono small">
+                ${fmtT(v.inAt || v.taggedAt || v.arrivedAt)}
+              </td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table></div>` : `<div class="empty">Perimeter compound is clear. Zero visitors currently inside.</div>`}
+    </div>
+  </div>`;
+};
+
 V.clearance=()=>{
   loadDemoGuests();
   loadDemoInvites();
@@ -6769,6 +6864,45 @@ function wire(){
   wireRegistry();
   const edBtn=$("#btn_open_ext_dir"); if(edBtn) edBtn.onclick=()=>openExtensionDirectory();
   const evacBtn=$("#btn_evac_muster"); if(evacBtn) evacBtn.onclick=()=>openEvacMuster();
+  document.querySelectorAll("input[data-vmuster-id]").forEach(chk => {
+    chk.onchange = () => {
+      const id = chk.dataset.vmusterId;
+      if(!window._accountedMusterSet) window._accountedMusterSet = new Set();
+      if(chk.checked) window._accountedMusterSet.add(id);
+      else window._accountedMusterSet.delete(id);
+      render();
+    };
+  });
+  const vPrintMuster = $("#v_btn_print_muster");
+  if(vPrintMuster) vPrintMuster.onclick = () => {
+    const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
+    printEvacManifest(inside, window._accountedMusterSet || new Set());
+  };
+  const vExpMuster = $("#v_btn_export_muster_csv");
+  if(vExpMuster) vExpMuster.onclick = () => {
+    const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
+    exportEvacCsv(inside, window._accountedMusterSet || new Set());
+  };
+  const vMarkAll = $("#v_btn_mark_all_muster");
+  if(vMarkAll) vMarkAll.onclick = () => {
+    const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
+    if(!window._accountedMusterSet) window._accountedMusterSet = new Set();
+    inside.forEach(v => window._accountedMusterSet.add(v.id));
+    render();
+  };
+  const vReset = $("#v_btn_reset_muster");
+  if(vReset) vReset.onclick = () => {
+    if(window._accountedMusterSet) window._accountedMusterSet.clear();
+    render();
+  };
+  const vMusterSearch = $("#v_muster_search");
+  if(vMusterSearch) vMusterSearch.oninput = () => {
+    const q = vMusterSearch.value.toLowerCase().trim();
+    document.querySelectorAll("#v_muster_table_wrap tbody tr").forEach(tr => {
+      tr.style.display = (!q || tr.textContent.toLowerCase().includes(q)) ? "" : "none";
+    });
+  };
+
   const calBtn=$("#btn_cal_to_gate"); if(calBtn) calBtn.onclick=()=>openCalendarToGateModal();
   const bosCsvBtn=$("#btn_export_bos_csv"); if(bosCsvBtn) bosCsvBtn.onclick=()=>{
     const rows = [["UN_Agency", "Visitor_Footfall", "Traffic_Percentage", "Cost_Apportionment_Factor", "BOS_Compliance_Status"]];
