@@ -44,12 +44,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .tbtn:hover{background:#ffffff26}
 .tbtn:active{transform:scale(.95)}
 .tbtn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.wrap{display:grid;grid-template-columns:228px 1fr;min-height:calc(100vh - 60px);max-width:1680px;margin:0 auto}
+.wrap{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 60px);max-width:1680px;margin:0 auto}
 nav{background:transparent;padding:18px 12px 28px;display:flex;flex-direction:column;gap:2px;border-right:1px solid color-mix(in srgb,var(--line) 70%,transparent)}
 .nav-sec{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);padding:12px 12px 4px;opacity:.85}
 .nav-sec:first-child{padding-top:2px}
-nav button{all:unset;cursor:pointer;padding:8px 12px;border-radius:10px;transition:background .15s,color .15s,box-shadow .15s;color:var(--muted);font-weight:500;font-size:13.5px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative}
-nav button .nl{display:flex;align-items:center;gap:9px;min-width:0}
+nav button{all:unset;cursor:pointer;padding:8px 12px;border-radius:10px;transition:background .15s,color .15s,box-shadow .15s;color:var(--muted);font-weight:500;font-size:13px;display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;white-space:nowrap}
+nav button .nl{display:flex;align-items:center;gap:9px;min-width:0;white-space:nowrap}
+nav button .nl span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 nav button .ni{width:16px;height:16px;flex:none;opacity:.75;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 nav button:hover{background:color-mix(in srgb,var(--surface) 75%,var(--surface2));color:var(--fg)}
 nav button:hover .ni{opacity:1}
@@ -3753,7 +3754,7 @@ V.muster = () => {
   const unaccCount = inside.length - accCount;
   const pct = inside.length ? Math.round((accCount / inside.length) * 100) : 100;
 
-  return head("UNDSS Emergency Evacuation Muster Roll", "Compound Perimeter Headcount & Building Evacuation Roll Call. Designated Assembly Point: Main Compound Gate Lawn (Assembly Area A).")+
+  return head("UNDSS Emergency Evacuation Muster Roll", "Compound Perimeter Headcount & Building Evacuation Roll Call. Designated Assembly Point: Primary Compound Assembly Point (as marked on UNDSS Evacuation Signage).")+
   `<div class="panel" style="border-top:4px solid #dc2626;background:linear-gradient(180deg,#ffffff,#fef2f2);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:12px">
@@ -6561,7 +6562,7 @@ function openEvacMuster(){
             <span class="pill" style="background:#dc2626;color:#fff;font-size:11px;font-weight:800;letter-spacing:.05em">LIVE ROLL CALL</span>
           </h2>
           <p class="small" style="margin:3px 0 0;color:var(--muted)">
-            UN House Abuja Perimeter Compound · Designated Assembly Point: <b>Main Compound Gate Lawn (Assembly Area A)</b>
+            UN House Abuja Perimeter Compound · Designated Assembly Point: <b>Primary Compound Assembly Point (per UNDSS Evacuation Signage)</b>
           </p>
         </div>
       </div>
@@ -6705,7 +6706,7 @@ function printEvacManifest(inside, acc){
       </div>
       <div style="text-align:right;font-size:12px">
         <div>Generated: ${nowStr}</div>
-        <div>Assembly Point: Main Gate Lawn (Area A)</div>
+        <div>Assembly Point: Designated Compound Assembly Point</div>
       </div>
     </div>
     <div style="font-size:12px;margin-bottom:10px">
