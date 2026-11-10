@@ -4211,13 +4211,37 @@ async function showInvite(tok){
           }
           localStorage.setItem("unhDemoInvites", JSON.stringify(storedList));
         }catch(e){}
+        const ref = "UNH-" + String(Math.floor(1000 + Math.random() * 9000));
+        const newVis = {
+          id: ref,
+          ref,
+          name: guest.name,
+          org: guest.org || "",
+          phone: guest.phone || "",
+          visitorEmail: guest.email || "",
+          vehicle: "",
+          type: "visitor",
+          room: (i && i.room) || "",
+          host: hostName,
+          hostPhone: (i && i.hostPhone) || getHostPhone(hostName, agencyName),
+          hostEmail: (i && i.hostEmail) || getHostEmail(hostName, agencyName),
+          hostExt: (i && i.hostExt) || getHostExt(hostName, agencyName),
+          agency: agencyName,
+          building: BUILDINGS[0] || "Main Building",
+          expected: guest.expected ? new Date(guest.expected).getTime() || now() : now(),
+          purpose: guest.purpose || "Meeting",
+          restricted: false,
+          escort: false,
+          requestedBy: hostName,
+          requestedByUid: "demo",
+          status: "pending",
+          log: [{ t: now(), a: "Online pre-registration submitted by guest; awaiting Gate 1 clearance", by: "Guest (" + guest.name + ")", st: "Online Pre-Registration" }]
+        };
         try{
-          const ref="UNH-"+String(Math.floor(1000+Math.random()*9000));
-          const newVis={id:ref,ref,name:guest.name,org:guest.org||"",phone:guest.phone||"",visitorEmail:guest.email||"",vehicle:"",type:"visitor",room:(i&&i.room)||"",host:hostName,hostEmail:(i&&i.hostEmail)||"",agency:agencyName,building:BUILDINGS[0],expected:guest.expected?new Date(guest.expected).getTime()||now():now(),purpose:guest.purpose||"Meeting",restricted:false,escort:false,requestedBy:hostName,requestedByUid:"demo",status:"pending",log:[{t:now(),a:"Online pre-registration submitted by guest; awaiting Gate 1 clearance",by:"Guest ("+guest.name+")",st:"Online Pre-Registration"}]};
-          let gList=[];
-          try{gList=JSON.parse(localStorage.getItem("unhDemoSubmittedGuests")||"[]");}catch(x){}
-          if(!gList.some(x=>x.name===newVis.name)) gList.unshift(newVis);
-          localStorage.setItem("unhDemoSubmittedGuests",JSON.stringify(gList));
+          let gList = [];
+          try{ gList = JSON.parse(localStorage.getItem("unhDemoSubmittedGuests") || "[]"); }catch(x){}
+          if(!gList.some(x => x.name === newVis.name)) gList.unshift(newVis);
+          localStorage.setItem("unhDemoSubmittedGuests", JSON.stringify(gList));
         }catch(e){}
         // Generate and ensure live digital pass for the pre-registered guest
         const passCode = "UNHPASS-" + String(Math.floor(100000 + Math.random() * 900000));
@@ -4362,7 +4386,10 @@ async function showInvite(tok){
         if(bCopy) bCopy.onclick = async () => {
           try{ await navigator.clipboard.writeText(finalPassUrl); toast("Digital pass link copied to clipboard."); }catch(e){ toast(finalPassUrl); }
         };
-      }catch(x){$("#g_err").textContent=T.sendErr}};
+      }catch(x){
+        console.error("Error submitting guest registration:", x);
+        $("#g_err").textContent = (x && x.message) ? x.message : T.sendErr;
+      }};
   };
   draw();
 }
