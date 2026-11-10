@@ -622,14 +622,20 @@ main{gap:20px}
   <div id="demoSel" style="display:contents">
   <div class="f" style="gap:2px"><label for="station">Station</label>
     <select id="station">
-      <option value="S1">1 · Reception / Initial Access (Computer 1)</option>
-      <option value="S2">2 · Documentation Reception (Computer 2)</option>
-      <option value="S3">3 · Internal Reception, Main Building (Computer 3)</option>
-      <option value="S4">4 · VIP Gate (Tablet 1)</option>
+      <option value="S1">Station 1 · Gate Reception (Computer 1)</option>
+      <option value="S2">Station 2 · Documentation &amp; ID (Computer 2)</option>
+      <option value="S3">Station 3 · Main Reception (Computer 3)</option>
+      <option value="S4">Station 4 · VIP Gate (Tablet 1)</option>
+      <option value="REG">Mail Room / UN Registry (Station R)</option>
     </select></div>
   <div class="f" style="gap:2px"><label for="operator">Operator</label>
     <select id="operator">
-      <option>Gate Reception Officer & Approver A. Bello</option><option>Documentation Officer C. Okonkwo</option><option>Receptionist N. Okafor</option><option>Administrator</option><option>Security Administrator</option>
+      <option>FSM · Field Security Manager</option>
+      <option>Station 1 Officer A. Bello</option>
+      <option>Station 2 Documentation Officer C. Okonkwo</option>
+      <option>Station 3 Receptionist N. Okafor</option>
+      <option>VIP Protocol Officer</option>
+      <option>Mail Room Officer</option>
     </select></div>
   </div>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
@@ -678,13 +684,13 @@ async function callFn(name,body){
 }
 const ROLES={
   admin:"Administrator",
-  sec_admin:"Facilities Security Manager (UNDSS Primary Approver)",
-  sec_deputy:"Deputy Security Officer (UNDSS Alternate Approver)",
-  gate:"Station 1 Security Lead (UNDSS Alternate Approver)",
-  docs:"Station 2 Documentation Officer",
-  reception:"Station 3 Receptionist",
-  vip:"Station 4 VIP Gate Officer",
-  registry:"UN Registry & Mailroom Officer",
+  sec_admin:"FSM · Field Security Manager",
+  sec_deputy:"Deputy Security Officer",
+  gate:"Station 1 · Gate Reception",
+  docs:"Station 2 · Documentation & ID",
+  reception:"Station 3 · Main Reception",
+  vip:"Station 4 · VIP Diplomatic Gate",
+  registry:"Mail Room Officer (UN Registry)",
   host:"UN Staff Host / Agency Officer",
   pending:"Awaiting role"
 };
@@ -693,12 +699,12 @@ const ROLE_VIEWS={
   admin:["dashboard","clearance","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
   sec_admin:["clearance","dashboard","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
   sec_deputy:["clearance","dashboard","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  gate:["gate","registry","contractors","register","muster","watch","history"],
-  docs:["tagging","registry","contractors","register","muster","history"],
-  reception:["reception","registry","kiosk","register","muster","history"],
-  vip:["vip","register","muster","history"],
-  registry:["registry","dashboard","muster","history"],
-  host:["register","registry","dashboard","muster","history"]
+  gate:["gate","registry","contractors","register","watch","history"],
+  docs:["tagging","registry","contractors","register","history"],
+  reception:["reception","registry","kiosk","register","history"],
+  vip:["vip","register","history"],
+  registry:["registry","dashboard","history"],
+  host:["register","registry","dashboard","history"]
 };
 const ACT_ROLES={
   reply:["admin","sec_admin","sec_deputy"],
@@ -1039,7 +1045,7 @@ function showLogin(_m,msg){
 
       <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px" class="small">
         <a href="index.html" style="color:#0284c7;font-weight:600;text-decoration:none">← Return to UN House Portal</a>
-        <span style="color:var(--muted);font-size:11.5px">ST/SGB/2004/15 Compliant</span>
+        <span style="color:var(--muted);font-size:11.5px">Built with Security and Data Protection Principles in Mind</span>
       </div>
     </div>
   </div>`;
@@ -1134,7 +1140,7 @@ function showPasswordLogin(mode="in"){
 
       <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px" class="small">
         <a href="index.html" style="color:#0284c7;font-weight:600;text-decoration:none">← Return to UN House Portal</a>
-        <span style="color:var(--muted);font-size:11.5px">ST/SGB/2004/15 Compliant</span>
+        <span style="color:var(--muted);font-size:11.5px">Built with Security and Data Protection Principles in Mind</span>
       </div>
     </div>
   </div>`;
@@ -3637,20 +3643,21 @@ window.addEventListener("storage",e=>{
 });
 function startDemo(){
   DEMO=true; fb={demo:true}; db=demoDb();
-  me={uid:"demo-admin",name:"Demo Administrator",role:"admin",email:"demo@example.org",active:true};
+  me={uid:"demo-fsm",name:"FSM (demo)",role:"sec_admin",email:"fsm@un.org",active:true};
   const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[]; handovers=d.handovers||[];
   events=d.events||(demoData().events||[]); assetPasses=d.assetPasses||d.assets||(demoData().assets||[]); dobs=d.dobs||(demoData().dobs||[]); parkings=d.parkings||(demoData().parkings||[]);
-  if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role){me.role=saved.role;me.name=saved.role==="admin"?"Demo Administrator":ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
+  const demoRoles=["sec_admin","gate","docs","reception","vip","registry"];
+  if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role&&demoRoles.includes(saved.role)){me.role=saved.role;me.name=ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
   loadDemoGuests();
   loadDemoInvites();
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
-  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${["sec_admin","sec_deputy","gate","admin","docs","reception","vip","registry","host"].map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
+  $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${demoRoles.map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
   $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
   const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
   open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
-  const startView=location.hash.slice(1)||(saved&&saved.view)||"dashboard";
+  const startView=location.hash.slice(1)||(saved&&saved.view)||defaultView();
   view=startView; try{history.replaceState({view,tour:tourStep},"",location.pathname+location.search+"#"+view)}catch(e){}
   render(); drawTour();
   if(saved&&saved.tourHidden){$("#tour").hidden=true;open.hidden=false}
@@ -4148,23 +4155,20 @@ V.gate=()=>{
     },"No expected visitors match.")}</div>
   </div>
 
-  <!-- UN House Unscheduled Visitor Management (Station 1 SOP) -->
+  <!-- Unscheduled Visitor Intake -->
   <div style="display:flex;justify-content:space-between;align-items:center;gap:14px;margin-top:14px;padding:16px 18px;background:linear-gradient(135deg,#ffffff,#f0f9ff);border:1.5px solid #bae6fd;border-radius:12px;box-shadow:0 2px 8px rgba(2,132,199,.08);flex-wrap:wrap">
     <div style="max-width:700px">
       <div style="font-size:14px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:8px">
-        <span style="font-size:18px">🚶</span> UN House Unscheduled Visitor Management (Station 1 SOP)
-        <span class="pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:10.5px">Standard Protocol</span>
+        <span style="font-size:18px">🚶</span> Unscheduled Visitor Intake
+        <span class="pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-size:10.5px">Direct Processing</span>
       </div>
       <div class="small" style="color:var(--muted);margin-top:4px;line-height:1.45">
-        Every unscheduled arrival must establish their identity and purpose at Gate 1 reception. Visitors remain in the designated holding area until host confirmation is verified. <b>No confirmation = No access.</b>
+        Every unscheduled arrival must establish their identity and purpose at Gate Reception. Visitors remain in the designated holding area until host confirmation is verified. <b>No confirmation = No access.</b>
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="btn pri" type="button" onclick="openUnscheduledIntakeModal()" style="font-size:12.5px;padding:7px 15px;background:#0284c7">
         + Process Unscheduled Visitor
-      </button>
-      <button class="btn" type="button" onclick="openUnscheduledSopModal()" style="font-size:12.5px;padding:7px 14px">
-        📋 View SOP Workflow
       </button>
     </div>
   </div>
@@ -4552,79 +4556,7 @@ function promptHostCall(v){
 }
 
 
-/* ---------- UN House Unscheduled Visitor SOP & Intake Flow ---------- */
-function openUnscheduledSopModal(){
-  const m=$("#modal");
-  m.innerHTML=`<div class="modal" style="max-width:740px;padding:24px">
-    <button class="modal-x" id="mX" type="button" title="Close" aria-label="Close" style="position:absolute;top:16px;right:16px">×</button>
-    
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-      <div style="width:42px;height:42px;border-radius:10px;background:#e0f2fe;color:#0369a1;display:grid;place-items:center;font-size:22px;flex-shrink:0">📋</div>
-      <div>
-        <h2 style="margin:0;font-size:18px;color:var(--navy)">UN House — Unscheduled Visitor Management SOP</h2>
-        <p class="small" style="margin:2px 0 0;color:var(--muted)">Station 1 Perimeter Reception &amp; Security Triage Standard Operating Procedure</p>
-      </div>
-    </div>
-
-    <!-- Core Principle Banner -->
-    <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#1e40af;line-height:1.45">
-      <b>Core Mandate:</b> Every unscheduled visitor must establish their identity and purpose at Gate 1. <b>Visitors remain strictly in the designated perimeter reception holding area</b> until host or departmental authorization is verified. <i>No confirmation = No access.</i>
-    </div>
-
-    <!-- 4 Triage Categories -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px">
-      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
-        <div style="font-size:18px">💼</div>
-        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">1. Meeting / Business</div>
-        <div class="small" style="color:var(--muted);line-height:1.35">Contact host on desk phone. Host confirms? ➔ Security clearance &amp; Tag.</div>
-      </div>
-
-      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
-        <div style="font-size:18px">📦</div>
-        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">2. Mail / Courier</div>
-        <div class="small" style="color:var(--muted);line-height:1.35">Courier stays at Gate 1 holding desk. UNDSS X-Ray ➔ UN Registry custody.</div>
-      </div>
-
-      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
-        <div style="font-size:18px">🛠️</div>
-        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">3. Contractor / Vendor</div>
-        <div class="small" style="color:var(--muted);line-height:1.35">Contact Facilities / ICT. Verified? ➔ Escort &amp; Equipment pass procedures.</div>
-      </div>
-
-      <div style="background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px">
-        <div style="font-size:18px">👤</div>
-        <div style="font-weight:700;font-size:13px;margin:4px 0 2px">4. Personal / Inquiries</div>
-        <div class="small" style="color:var(--muted);line-height:1.35">Refer to agency focal point. Personal visits without staff escort prohibited.</div>
-      </div>
-    </div>
-
-    <!-- Key Decision Points -->
-    <div style="background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:16px">
-      <div style="font-weight:700;font-size:13px;color:var(--navy);margin-bottom:8px">Key Decision Points &amp; Security Thresholds:</div>
-      <ul style="margin:0;padding-left:18px;font-size:12.5px;color:var(--fg);display:grid;gap:6px;line-height:1.4">
-        <li><b>No Host Confirmation:</b> Visitor is strictly barred from passing Station 1. Hold at reception, escalate to Duty Security Supervisor, or reschedule &amp; depart.</li>
-        <li><b>Host Confirms:</b> Security still executes mandatory watchlist screening (UNDSS/UNSC/National) and allocates available rack tag before compound entry.</li>
-        <li><b>Suspicious Behavior / Watchlist Hit:</b> Immediately stop normal administrative processing, detain or monitor visitor, and alert UNDSS armed response.</li>
-        <li><b>Couriers &amp; Dispatch:</b> Follow the separate Gate 1 Courier Intake ➔ UN Registry tripartite custody flow. Couriers never enter the main building.</li>
-      </ul>
-    </div>
-
-    <div class="acts" style="justify-content:flex-end;gap:8px">
-      <button class="btn" id="mNo" type="button">Close</button>
-      <button class="btn pri" id="mStartIntake" type="button" style="background:#0284c7">
-        + Process Unscheduled Visitor ➔
-      </button>
-    </div>
-  </div>`;
-
-  m.hidden=false;
-  $("#mNo").onclick=$("#mX").onclick=()=>m.hidden=true;
-  $("#mStartIntake").onclick=()=>{
-    m.hidden=true;
-    openUnscheduledIntakeModal();
-  };
-}
-
+/* ---------- UN House Unscheduled Visitor Intake Flow ---------- */
 function openUnscheduledIntakeModal(){
   const m=$("#modal");
   const availV = getAvailableTags("visitor");
@@ -4644,7 +4576,7 @@ function openUnscheduledIntakeModal(){
 
     <!-- Category Selector -->
     <div style="margin-bottom:12px">
-      <label class="small" style="font-weight:700;color:var(--navy);display:block;margin-bottom:6px">1. Select Visitor Category (SOP Triage):</label>
+      <label class="small" style="font-weight:700;color:var(--navy);display:block;margin-bottom:6px">1. Select Visitor Category:</label>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="sop_cats">
         <button type="button" class="btn on" data-cat="visitor" style="height:36px;font-size:12px;padding:0 8px;border-color:#0284c7;background:#f0f9ff;color:#0369a1;font-weight:700">💼 Meeting</button>
         <button type="button" class="btn" data-cat="delivery" style="height:36px;font-size:12px;padding:0 8px">📦 Courier</button>
@@ -4659,7 +4591,7 @@ function openUnscheduledIntakeModal(){
         <span>📦</span> Separate UN Registry Process
       </div>
       <p class="small" style="margin:3px 0 10px;color:#1e40af">
-        Under UN House SOP, couriers remain at the Gate 1 holding desk. Inward correspondence and packages are screened via HI-SCAN 6040 and transferred to UN Registry.
+        Couriers remain at the Gate 1 holding desk. Inward correspondence and packages are screened via HI-SCAN 6040 and transferred to UN Registry custody.
       </p>
       <button class="btn pri" type="button" onclick="$('#modal').hidden=true;openRegIntakeModal()" style="font-size:12px;padding:6px 14px;background:#0284c7">
         Open Gate 1 Inward Mail Intake ➔

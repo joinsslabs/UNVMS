@@ -36,7 +36,7 @@ h1{font-size:clamp(36px,4.8vw,56px);line-height:1.06;letter-spacing:-1.8px;margi
 .secret-dot{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;opacity:0.75;transition:opacity .15s ease,transform .15s ease;margin-left:4px}.secret-dot:hover{opacity:1;transform:scale(1.25)}
 .secret-dot span{width:7px;height:7px;border-radius:50%;background:#0875df;box-shadow:0 0 0 3px rgba(8,117,223,.3);display:inline-block}
 .hero-photo{height:370px;border-radius:24px;position:relative;overflow:hidden;background:linear-gradient(145deg,#a9d6ff,#477fba);box-shadow:0 20px 45px rgba(23,62,115,.22);border:1px solid rgba(255,255,255,0.8)}
-.hero-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:88% center;display:block}
 .photo-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,38,83,.20),transparent 50%),linear-gradient(0deg,rgba(9,38,83,.40),transparent 65%)}
 .photo-caption{position:absolute;left:20px;bottom:16px;z-index:2;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:.02em;background:rgba(9,38,83,.65);backdrop-filter:blur(6px);padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2)}
 .quicklinks{position:relative;margin-top:-38px;z-index:2}
@@ -61,7 +61,7 @@ section{padding:78px 0}
 .category{background:white;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 8px 18px rgba(11,74,144,.05);display:flex;flex-direction:column}
 .category-top{padding:12px 10px;text-align:center;color:white;font-weight:800;font-size:12.5px;letter-spacing:.02em}
 .category-body{padding:18px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;flex:1}
-.lanyard{width:104px;height:116px;margin:22px auto 14px;position:relative;border:3.5px solid currentColor;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;background:#fff;letter-spacing:.02em;box-sizing:border-box;padding:12px 6px 4px;box-shadow:0 4px 12px rgba(11,74,144,.07);text-align:center;white-space:nowrap}
+.lanyard{width:116px;max-width:100%;height:122px;margin:22px auto 14px;position:relative;border:3.5px solid currentColor;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;background:#fff;letter-spacing:.02em;box-sizing:border-box;padding:14px 4px 6px;box-shadow:0 4px 12px rgba(11,74,144,.07);text-align:center;white-space:nowrap}
 .lanyard:before{content:"";position:absolute;top:-20px;width:30px;height:20px;border:3.5px solid currentColor;border-bottom:0;border-radius:15px 15px 0 0}
 .lanyard:after{content:"";position:absolute;top:8px;width:24px;height:3px;border-radius:2px;background:currentColor;opacity:.35}
 .category-body p{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
@@ -240,8 +240,8 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
         <div class="step-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <h3>Gate Reception</h3>
-        <div class="step-loc">Access Control Building</div>
+        <h3>Station 1</h3>
+        <div class="step-loc">Gate Reception</div>
         <p>Confirm pre-approval, verify against the live UNDSS watchlist, and admit cleared visitors.</p>
       </a>
 
@@ -251,8 +251,8 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
         <div class="step-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
         </div>
-        <h3>Documentation &amp; Tags</h3>
-        <div class="step-loc">Main Access Control Desk</div>
+        <h3>Station 2</h3>
+        <div class="step-loc">Documentation &amp; Tags</div>
         <p>Inspect physical Government photo ID in person and issue a numbered colour-coded tag.</p>
       </a>
 
@@ -262,8 +262,8 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
         <div class="step-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 18h16M6 14v4M18 14v4M12 3v15M8 7h8M8 11h8"/></svg>
         </div>
-        <h3>Internal Reception</h3>
-        <div class="step-loc">Main UN House Building</div>
+        <h3>Station 3</h3>
+        <div class="step-loc">Internal Reception</div>
         <p>Receive documented guests, alert host officer, complete check-in, and collect tags on departure.</p>
       </a>
 
@@ -273,8 +273,8 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
         <div class="step-icon">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </div>
-        <h3>VIP Diplomatic Gate</h3>
-        <div class="step-loc">VIP Diplomatic Canopy</div>
+        <h3>Station 4</h3>
+        <div class="step-loc">VIP Diplomatic Gate</div>
         <p>Ambassadors and Ministers fast-tracked with diplomatic courtesy and protocol officer escort.</p>
       </a>
     </div>
@@ -381,9 +381,9 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
   <div class="container">
     <div class="commit-card">
       <div>
-        <span class="eyebrow">Our Commitment</span>
-        <h2>A Safe, Accountable and Welcoming UN House</h2>
-        <p>Working together for a secure, efficient compound serving 16 resident UN agencies in Abuja. Visitor access is governed by server-enforced role permissions and immutable audit records.</p>
+        <span class="eyebrow">Security &amp; Privacy</span>
+        <h2>Built with Security and Data Protection Principles in Mind</h2>
+        <p>Designed to support responsible visitor registration, access management and protection of visitor information.</p>
         <a class="btn btn-outline" href="app.html?rules" style="color:white;border-color:#8dbbff">Visitor Security Rules →</a>
       </div>
       <div class="commit-list">
