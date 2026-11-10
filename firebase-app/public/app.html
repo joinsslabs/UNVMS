@@ -3036,8 +3036,6 @@ const VW_myguests=()=>{
 
 /* Deliveries log removed */
 /* ---------- 9. Reports ---------- */
-let bosBudgetPool = 50000; // Default monthly Common Compound Security & Operations Pool ($)
-
 const VW_reports=()=>{
   const period = render.reportPeriod || "daily";
   const days = period === "daily" ? 1 : (period === "weekly" ? 7 : 30);
@@ -3198,7 +3196,7 @@ const VW_reports=()=>{
     </div>
   </div>
 
-  <!-- UN BOS 2.0 Inter-Agency Cost-Sharing & Apportionment Panel with Interactive Budget Simulator -->
+  <!-- UN BOS 2.0 Inter-Agency Cost-Sharing & Footfall Apportionment (Based Strictly on Verified Compound Traffic) -->
   <div class="panel" style="border-top:4px solid #059669;background:linear-gradient(180deg,#ffffff,#f0fdf4);border-radius:14px;padding:22px;box-shadow:0 4px 20px rgba(0,0,0,0.06);margin-bottom:18px">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px">
       <div>
@@ -3218,24 +3216,6 @@ const VW_reports=()=>{
       </div>
     </div>
 
-    <!-- Addictive Interactive Budget Pool Simulator -->
-    <div style="background:#ecfdf5;border:1px solid #a7f3d0;padding:12px 18px;border-radius:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-        <span style="font-weight:700;font-size:12.5px;color:#065f46">💵 Compound Monthly Common Budget Pool:</span>
-        <div style="display:inline-flex;align-items:center;background:#fff;border:1.5px solid #059669;border-radius:8px;padding:2px 10px">
-          <span style="font-weight:700;color:#059669;margin-right:4px">$</span>
-          <input type="number" id="bos_budget_input" value="${bosBudgetPool}" step="5000" min="5000" style="width:90px;font-weight:700;font-size:14px;border:none;outline:none;color:#064e3b">
-        </div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <span style="font-size:11px;color:#047857;font-weight:600">Quick Sim:</span>
-        <button class="btn" data-bos-preset="25000" style="font-size:11px;padding:3px 8px;height:26px;$border:1px solid #a7f3d0">$25k</button>
-        <button class="btn" data-bos-preset="50000" style="font-size:11px;padding:3px 8px;height:26px;$border:1px solid #a7f3d0">$50k</button>
-        <button class="btn" data-bos-preset="100000" style="font-size:11px;padding:3px 8px;height:26px;$border:1px solid #a7f3d0">$100k</button>
-        <button class="btn" data-bos-preset="250000" style="font-size:11px;padding:3px 8px;height:26px;$border:1px solid #a7f3d0">$250k</button>
-      </div>
-    </div>
-
     <div class="tw" style="overflow-x:auto">
       <table style="width:100%;font-size:13px;border-collapse:collapse">
         <thead>
@@ -3244,7 +3224,6 @@ const VW_reports=()=>{
             <th style="padding:8px 10px;text-align:right">Visitor Footfall</th>
             <th style="padding:8px 10px;text-align:right">Compound Traffic Share</th>
             <th style="padding:8px 10px;text-align:right">Cost Apportionment Factor</th>
-            <th style="padding:8px 10px;text-align:right">Simulated Apportionment ($)</th>
             <th style="padding:8px 10px;text-align:center">BOS 2.0 Status</th>
           </tr>
         </thead>
@@ -3253,7 +3232,6 @@ const VW_reports=()=>{
             const totalArr = arr.length || 1;
             const pct = ((count / totalArr) * 100).toFixed(1);
             const factor = (count / totalArr).toFixed(3);
-            const dollarShare = Math.round((count / totalArr) * bosBudgetPool).toLocaleString();
             return `<tr style="border-bottom:1px solid #e2e8f0;transition:background .15s ease" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
               <td style="padding:7px 10px"><b>${esc(agency)}</b></td>
               <td class="mono" style="padding:7px 10px;text-align:right"><b>${count}</b></td>
@@ -3265,21 +3243,31 @@ const VW_reports=()=>{
                   <span class="mono" style="font-weight:700;color:#047857">${pct}%</span>
                 </div>
               </td>
-              <td class="mono" style="padding:7px 10px;text-align:right">${factor}</td>
-              <td class="mono" style="padding:7px 10px;text-align:right;font-weight:700;color:#064e3b">${dollarShare}</td>
+              <td class="mono" style="padding:7px 10px;text-align:right;font-weight:600">${factor}</td>
               <td style="padding:7px 10px;text-align:center"><span class="pill" style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700">✓ Apportioned</span></td>
             </tr>`;
-          }).join("") || `<tr><td colspan="6" class="small" style="padding:14px;text-align:center;color:#64748b">No visitor traffic recorded for this timeframe.</td></tr>`}
+          }).join("") || `<tr><td colspan="5" class="small" style="padding:14px;text-align:center;color:#64748b">No visitor traffic recorded for this timeframe.</td></tr>`}
           ${agencySorted.length ? `<tr style="background:#ecfdf5;font-weight:700;border-top:2px solid #059669">
             <td style="padding:8px 10px">TOTAL COMPOUND FOOTFALL</td>
             <td class="mono" style="padding:8px 10px;text-align:right">${arr.length}</td>
             <td class="mono" style="padding:8px 10px;text-align:right;color:#047857">100.0%</td>
             <td class="mono" style="padding:8px 10px;text-align:right">1.000</td>
-            <td class="mono" style="padding:8px 10px;text-align:right;color:#064e3b">${Number(bosBudgetPool).toLocaleString()}</td>
             <td style="padding:8px 10px;text-align:center"><span style="color:#059669;font-weight:800;font-size:11.5px">✓ OMT Certified</span></td>
           </tr>` : ""}
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="panel">
+      <h2>${arrivalsTitle}</h2>
+      ${bars(perDay.map(x=>x.n),perDay.map(x=>x.label),600,140)}
+    </div>
+    <div class="panel">
+      <h2>Busiest hours (06:00 to 20:00)</h2>
+      ${bars(perHour.slice(6,21),[...Array(15)].map((_,i)=>String(i+6).padStart(2,"0")+":00"),600,140)}
+      <p class="small">Aggregated traffic distribution across compound gates.</p>
     </div>
   </div>
 
@@ -3312,7 +3300,7 @@ const VW_reports=()=>{
         <button class="btn" id="rp_csv">📊 Export ${periodTitle} CSV</button>
         <button class="btn" id="rp_log_csv">📋 Export Register CSV</button>
       </div>
-      <button class="btn pri" id="rp_ho" style="background:#1e3a8a;border-color:#1e3a8a;font-weight:700">🔒 17:00 Daily Closeout Sheet</button>
+      
     </div>
   </div>`;
 };
@@ -3451,6 +3439,20 @@ function openHandover(){
   };
   draw();
 }
+function getVisitorCategory(v){
+  if(v.type === "vip") return "VIP Protocol Pass";
+  if(v.type === "protocol") return "Protocol Visitor";
+  if(v.type === "delivery") return "Courier & Delivery";
+  if(v.type === "contractor") return "Contractor";
+  const tag = (v.tag || v.assignedTag || "").toUpperCase();
+  const org = (v.org || "").toLowerCase();
+  const purpose = (v.purpose || "").toLowerCase();
+  if(tag.startsWith("D-") || /dhl|fedex|courier|mail|dispatch|logistics delivery|pouch/i.test(org) || /delivery|courier|dispatch/i.test(purpose)) return "Courier & Delivery";
+  if(tag.startsWith("C-") || /facilities|catering|elevator|clean|electric|construction|maintenance|service staff|hvac/i.test(org) || /contractor|repairs|servicing|maintenance/i.test(purpose)) return "Contractor";
+  if(tag.startsWith("P-") || /embassy|delegation|ministry|high commission|diplomatic/i.test(org) || /bilateral|protocol|courtesy call/i.test(purpose)) return "Protocol Visitor";
+  return "General Visitor";
+}
+
 function buildReportHtml(period="daily"){
   const days = period === "daily" ? 1 : (period === "weekly" ? 7 : 30);
   const start = period === "daily" ? today0() : today0() - (days - 1) * 864e5;
@@ -3630,7 +3632,7 @@ function buildReportHtml(period="daily"){
             <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9"><b>${esc(v.name)}</b></td>
             <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.org||"—")}</td>
             <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.host)} (${esc(v.agency)})</td>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${v.type==="vip"?"VIP Protocol Pass":v.type==="delivery"?"Courier / Mail (X-Ray Scanned)":v.type==="contractor"?"Contractor":v.type==="protocol"?"Protocol Visitor":"General Visitor"}</td>
+            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${getVisitorCategory(v)}</td>
             <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;font-family:monospace">${fmtT(v.inAt||v.arrivedAt||v.expected)}</td>
             <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.status)}</td>
           </tr>`).join("")}
@@ -3639,20 +3641,75 @@ function buildReportHtml(period="daily"){
       </table>
     </div>
 
-    <!-- Official Non-Redundant Signatures Block -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1.5px solid #0f172a;padding-top:10px;margin-top:14px;font-size:9pt">
-      <div>
-        <b>Station 1 Access Control &amp; Verification Officer:</b><br>
-        <span style="font-size:8.5pt;color:#334155">${op().toLowerCase().includes("fsm") || op().toLowerCase().includes("facilities security manager") ? "Station 1 Lead Duty Officer (UN Common Services Reception)" : esc(op())}</span><br>
-        <span style="font-size:8pt;color:#64748b">Gate / Reception Signature: _____________________________________</span>
+    <!-- Merged 17:00 End-of-Day Reception Closeout & Compound Clearance Reconciliation (Integrated) -->
+    <div style="border:1.5px solid #1e3a8a;border-radius:8px;padding:12px;margin-bottom:14px;background:#f8fafc">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #cbd5e1;padding-bottom:6px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px">🔒</span>
+          <span style="font-size:9.5pt;font-weight:700;color:#1e3a8a">17:00 Daily Reception Closeout &amp; Compound Clearance Reconciliation</span>
+        </div>
+        <span style="font-size:8pt;background:${over.length?'#fee2e2':'#d1fae5'};color:${over.length?'#b91c1c':'#065f46'};font-weight:700;padding:2px 8px;border-radius:4px">
+          ${over.length ? `⚠️ ${over.length} Overstay Active` : '✓ 17:00 Certified Clearance'}
+        </span>
       </div>
-      <div>
-        <b>Facilities Security Manager (UNDSS Compound Oversight):</b><br>
-        <span style="font-size:8.5pt;color:#334155">${op().toLowerCase().includes("fsm") || op().toLowerCase().includes("facilities security manager") ? esc(op()) : "Facilities Security Manager / UNDSS Primary Approver"}</span><br>
-        <span style="font-size:8pt;color:#64748b">UNDSS Security Sign-Off: _____________________________________</span>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:8.5pt">
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
+          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Curfew Enforcement</div>
+          <div style="font-weight:700;color:#1e3a8a">08:00 – 17:00 Hours</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
+          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Compound Clearance</div>
+          <div style="font-weight:700;color:${over.length?'#dc2626':'#15803d'}">${over.length ? `${over.length} Overstay(s)` : '0 External Visitors (Cleared)'}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
+          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Tag Stock Recovery</div>
+          <div style="font-weight:700;color:${lost.length?'#ea580c':'#15803d'}">${lost.length ? `${lost.length} Unreturned` : '100% Returned to Stock'}</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
+          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Night Post Turnover</div>
+          <div style="font-weight:700;color:#15803d">Handed to UNDSS Night Guard</div>
+        </div>
       </div>
     </div>
 
+    <!-- Official Dual Signatures Block (Logged-in Officer + Counter-Signatory) -->
+    ${(()=>{
+      const curUser = op() || "UNDSS Duty Officer";
+      const isSecurity = curUser.toLowerCase().includes("fsm") || curUser.toLowerCase().includes("security") || curUser.toLowerCase().includes("undss") || curUser.toLowerCase().includes("guard");
+      const isCommonServices = curUser.toLowerCase().includes("common") || curUser.toLowerCase().includes("operations") || curUser.toLowerCase().includes("facilities");
+
+      const sig1Title = isSecurity
+        ? "Compound Security Operations Lead (Prepared By Active Account):"
+        : (isCommonServices ? "Head of UN Common Services & Operations (Prepared By Active Account):" : "Station 1 Access Control & Verification Officer (Prepared By Active Account):");
+      const sig1Name = curUser;
+
+      const sig2Title = isSecurity
+        ? "Head of UN Common Services (Operations Management Team / OMT Approval):"
+        : "Facilities Security Manager (UNDSS Compound Security Oversight):";
+      const sig2Name = isSecurity
+        ? "Common Services Operations Lead / OMT Chair"
+        : "Facilities Security Manager / UNDSS Primary Approver";
+      const sig2Label = isSecurity
+        ? "Common Services / OMT Sign-Off: _____________________________________"
+        : "UNDSS Security Sign-Off: _____________________________________";
+      const sig2Note = isSecurity
+        ? "Certified for UNCT Operations Management Team (BOS 2.0 Footfall Apportionment)"
+        : "Approved for Compound Security Clearance & OMT Transmission";
+
+      return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1.5px solid #0f172a;padding-top:10px;margin-top:14px;font-size:9pt">
+        <div>
+          <b>${sig1Title}</b><br>
+          <span style="font-size:8.5pt;color:#1e3a8a;font-weight:700">${esc(sig1Name)}</span><br>
+          <span style="font-size:8pt;color:#64748b">Officer Signature: _____________________________________</span>
+        </div>
+        <div>
+          <b>${sig2Title}</b><br>
+          <span style="font-size:8.5pt;color:#1e3a8a;font-weight:700">${esc(sig2Name)}</span><br>
+          <span style="font-size:8pt;color:#64748b">${sig2Label}</span><br>
+          <span style="font-size:7.5pt;color:#64748b;font-style:italic">${sig2Note}</span>
+        </div>
+      </div>`;
+    })()}
   </div>`;
 }
 
@@ -3760,68 +3817,6 @@ function wireReports(){
   const h = $("#rp_ho");
   if(h) h.onclick = openHandover;
 
-  // BOS 2.0 Budget Pool Simulator Wiring
-  const budgetInp = $("#bos_budget_input");
-  if(budgetInp){
-    budgetInp.oninput = () => {
-      bosBudgetPool = Number(budgetInp.value) || 50000;
-      updateBosTableSim();
-    };
-  }
-  document.querySelectorAll("[data-bos-preset]").forEach(btn => {
-    btn.onclick = () => {
-      bosBudgetPool = Number(btn.dataset.bosPreset) || 50000;
-      if(budgetInp) budgetInp.value = bosBudgetPool;
-      updateBosTableSim();
-      toast(`💵 Compound Budget Pool set to ${bosBudgetPool.toLocaleString()}`);
-    };
-  });
-
-  function updateBosTableSim(){
-    const period = render.reportPeriod || "daily";
-    const days = period === "daily" ? 1 : (period === "weekly" ? 7 : 30);
-    const start = period === "daily" ? today0() : today0() - (days - 1) * 864e5;
-    const end = period === "daily" ? today0() + 864e5 : now() + 3600e3;
-    const real = visitors.filter(v => !v.example || !fb);
-    const arr = real.filter(v => {
-      const t = v.arrivedAt || v.inAt || v.expected;
-      return t && t >= start && (period === "daily" ? t < end : true);
-    });
-    const byAg = {};
-    arr.forEach(v => { const a = v.agency || "Other"; byAg[a] = (byAg[a] || 0) + 1; });
-    const sorted = Object.entries(byAg).sort((a,b)=>b[1]-a[1]);
-    const tbody = $("#bos_tbody");
-    if(!tbody) return;
-    const totalArr = arr.length || 1;
-    tbody.innerHTML = sorted.map(([agency, count]) => {
-      const pct = ((count / totalArr) * 100).toFixed(1);
-      const factor = (count / totalArr).toFixed(3);
-      const dollarShare = Math.round((count / totalArr) * bosBudgetPool).toLocaleString();
-      return `<tr style="border-bottom:1px solid #e2e8f0;transition:background .15s ease" onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background=''">
-        <td style="padding:7px 10px"><b>${esc(agency)}</b></td>
-        <td class="mono" style="padding:7px 10px;text-align:right"><b>${count}</b></td>
-        <td style="padding:7px 10px;text-align:right">
-          <div style="display:flex;align-items:center;justify-content:flex-end;gap:8px">
-            <div style="width:60px;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden">
-              <div style="width:${pct}%;height:100%;background:#059669;border-radius:3px"></div>
-            </div>
-            <span class="mono" style="font-weight:700;color:#047857">${pct}%</span>
-          </div>
-        </td>
-        <td class="mono" style="padding:7px 10px;text-align:right">${factor}</td>
-        <td class="mono" style="padding:7px 10px;text-align:right;font-weight:700;color:#064e3b">${dollarShare}</td>
-        <td style="padding:7px 10px;text-align:center"><span class="pill" style="background:#d1fae5;color:#065f46;font-size:11px;font-weight:700">✓ Apportioned</span></td>
-      </tr>`;
-    }).join("") + (sorted.length ? `<tr style="background:#ecfdf5;font-weight:700;border-top:2px solid #059669">
-      <td style="padding:8px 10px">TOTAL COMPOUND FOOTFALL</td>
-      <td class="mono" style="padding:8px 10px;text-align:right">${arr.length}</td>
-      <td class="mono" style="padding:8px 10px;text-align:right;color:#047857">100.0%</td>
-      <td class="mono" style="padding:8px 10px;text-align:right">1.000</td>
-      <td class="mono" style="padding:8px 10px;text-align:right;color:#064e3b">${Number(bosBudgetPool).toLocaleString()}</td>
-      <td style="padding:8px 10px;text-align:center"><span style="color:#059669;font-weight:800;font-size:11.5px">✓ OMT Certified</span></td>
-    </tr>` : "");
-  }
-
   // BOS 2.0 CSV Export (Accurate to currently selected period)
   const bosCsvBtn = $("#btn_export_bos_csv");
   if(bosCsvBtn) bosCsvBtn.onclick = () => {
@@ -3838,20 +3833,19 @@ function wireReports(){
     const byAg = {};
     arr.forEach(v => { const a = v.agency || "Other"; byAg[a] = (byAg[a] || 0) + 1; });
     
-    const rows = [["UN_Agency", "Visitor_Footfall", "Compound_Traffic_Percentage", "Cost_Apportionment_Factor", "Simulated_Dollar_Share", "OMT_Compliance_Status"]];
+    const rows = [["UN_Agency", "Visitor_Footfall", "Compound_Traffic_Percentage", "Cost_Apportionment_Factor", "OMT_Compliance_Status"]];
     Object.entries(byAg).sort((a,b)=>b[1]-a[1]).forEach(([ag, cnt]) => {
       const pct = ((cnt/totalArr)*100).toFixed(1) + "%";
       const factor = (cnt/totalArr).toFixed(3);
-      const dollar = Math.round((cnt/totalArr)*bosBudgetPool);
-      rows.push([ag, cnt, pct, factor, "$" + dollar, "BOS 2.0 Certified"]);
+      rows.push([ag, cnt, pct, factor, "BOS 2.0 Certified"]);
     });
-    rows.push(["TOTAL_COMPOUND", arr.length, "100.0%", "1.000", "$" + bosBudgetPool, "OMT Certified"]);
+    rows.push(["TOTAL_COMPOUND", arr.length, "100.0%", "1.000", "OMT Certified"]);
 
     const csv = rows.map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(",")).join("\n");
     const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `UN_BOS_2.0_Cost_Apportionment_${period.toUpperCase()}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `UN_BOS_2.0_Footfall_Apportionment_${period.toUpperCase()}_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
     toast(`📊 Exported UN BOS 2.0 ${period.toUpperCase()} Inter-Agency Cost Apportionment CSV.`);
   };
@@ -3862,7 +3856,7 @@ function wireReports(){
     const days = period === "daily" ? 1 : (period === "weekly" ? 7 : 30);
     const start = period === "daily" ? today0() : today0() - (days - 1) * 864e5;
     const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-    const header = "Date,Day,Total_Arrivals,General_Visitors,VIP_Dignitaries,Couriers_Mail,Contractors_ServiceStaff,Protocol_Visitors,Checked_Out,Compliance_Rate";
+    const header = "Date,Day,Total_Arrivals,General_Visitors,VIP_Dignitaries,Couriers_Mail,Contractors_ServiceStaff,Protocol_Visitors,Checked_Out,Compliance_Rate,1700_Closeout_Status";
     const rows = [...Array(days)].map((_,i)=>{
       const d0 = start + i * 864e5, d1 = d0 + 864e5;
       const dayArr = visitors.filter(v => (v.arrivedAt||v.inAt||v.expected) && (v.arrivedAt||v.inAt||v.expected) >= d0 && (v.arrivedAt||v.inAt||v.expected) < d1);
@@ -3877,7 +3871,8 @@ function wireReports(){
       const dt = new Date(d0);
       const dateStr = dt.toISOString().slice(0, 10);
       const dayName = dayNames[dt.getUTCDay()];
-      return `${dateStr},${dayName},${total},${std},${vips},${dels},${cons},${protos},${checkedOut},${rate}`;
+      const closeout = "17:00 Certified Clearance";
+      return `${dateStr},${dayName},${total},${std},${vips},${dels},${cons},${protos},${checkedOut},${rate},${closeout}`;
     });
     const fullCsv = header + "\n" + rows.join("\n");
     const blob = new Blob([fullCsv], {type:"text/csv;charset=utf-8"});
