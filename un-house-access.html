@@ -2507,10 +2507,18 @@ async function handleScan(txt){
 function nextStep(v){
   const r=myRole(), any=["admin","sec_admin"].includes(r);
   if(v.type==="vip"&&v.status==="approved") return ["vipadmit","VIP Auto Check-in"];
-  if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)) return ["arrive","Admit"];
-  if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")) return ["tag","Document & tag"];
-  if((v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived))))&&(r==="reception"||any)) return ["checkin",v.type==="vip"?"Host received VIP":"Check in"];
-  if((v.status==="in"||v.status==="tagged")&&(r==="docs"||r==="gate"||r==="reception"||any)) return ["checkout",v.type==="vip"?"Record VIP Exit":"Check Out"];
+  if((v.status==="approved"||(v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now()))&&(r==="gate"||any)){
+    return ["arrive", v.type === "delivery" ? "Admit Courier (X-Ray Cleared)" : "Admit"];
+  }
+  if(v.status==="arrived"&&v.type!=="vip"&&(r==="docs"||r==="admin")){
+    return ["tag", v.type === "delivery" ? "Document & Issue D-Tag" : "Document & tag"];
+  }
+  if((v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived))))&&(r==="reception"||any)){
+    return ["checkin", v.type === "vip" ? "Host received VIP" : (v.type === "delivery" ? "Recipient received delivery" : "Check in with host")];
+  }
+  if((v.status==="in"||v.status==="tagged")&&(r==="docs"||r==="gate"||r==="reception"||any)){
+    return ["checkout", v.type === "vip" ? "Record VIP Exit" : "Collect tag & check out"];
+  }
   return null;
 }
 function scanResult(v,p,title,msg){
@@ -5413,7 +5421,7 @@ V.gate=()=>{
       if(v.type==="delivery"&&v.status==="approved") return B(v.id,"arrive","Admit Courier / Dispatch","pri");
       if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Admit","pri");
       if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
-      if(v.type==="delivery"&&v.status==="arrived") return `<span class="pill p-in" style="font-size:11.5px">📦 Mail Intake</span>`;
+      if(v.type==="delivery"&&v.status==="arrived") return `<span class="pill p-in" style="font-size:11.5px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0">At Station 2 (D-Tag) ➔</span>`;
       if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill p-in" style="font-size:11.5px">At Station 2 ➔</span>`;
       return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
     },"No expected visitors match.")}</div>
@@ -5972,12 +5980,12 @@ function openUnscheduledIntakeModal(){
     const purpose = $("#u_purpose").value.trim() || (currentCat === "delivery" ? "Official Document / Package Delivery" : "Meeting");
     const ext = $("#u_host_ext").value.trim() || "2010";
     const ref = "UNH-U-" + Math.floor(1000 + Math.random()*9000);
-    const tag = (status === "arrived") ? nextTag : null;
+    const tag = (status === "arrived") ? nextAvailableTag(currentCat) : null;
 
     if(currentCat === "delivery" && status === "arrived"){
       const mailScanned = $("#u_mail_scanned") && $("#u_mail_scanned").checked;
       if(!mailScanned){
-        toast("⚠️ Mandatory Security Check: Inward mail and packages must be physically X-Ray scanned before proceeding.");
+        toast("⚠️ Mandatory UNDSS Security Screening: Inward parcels and correspondence must be scanned via Smiths HI-SCAN 6040 X-Ray before Station 1 gate admission.");
         return null;
       }
     }
@@ -5989,7 +5997,7 @@ function openUnscheduledIntakeModal(){
       name,
       org,
       phone,
-      host,
+      host: host || (currentCat === "delivery" ? "Agency Recipient / Registry" : "Common Services"),
       agency,
       purpose,
       type: currentCat === "delivery" ? "delivery" : (currentCat === "contractor" ? "contractor" : (currentCat === "vip" ? "vip" : "visitor")),
@@ -5997,6 +6005,8 @@ function openUnscheduledIntakeModal(){
       mailDetails: mailDetails || undefined,
       unscheduled: true,
       category: "unscheduled",
+      escort: currentCat === "delivery" ? true : false, // Mandatory escort for delivery couriers
+      restricted: currentCat === "delivery" ? true : false,
       status, // "arrived" (admitted at gate), "pending" (holding at gate), or "rejected"
       expected: now(),
       arrivedAt: now(),
@@ -6126,7 +6136,8 @@ V.reception=()=>{
       const notifBtn = v.hostNotified
         ? `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600" title="${esc(v.hostNotifiedNote||"")}">✓ Host contacted (${fmtT(v.hostNotified)})</span> <button class="btn small" data-act="notify" data-id="${esc(v.id)}" title="Call or notify host again" style="padding:2px 8px;font-size:11px">Re-notify</button>`
         : `<button class="btn" data-act="notify" data-id="${esc(v.id)}" title="Call host desk extension ${esc(ext)}">📞 Call host (Ext. ${esc(ext)})</button>`;
-      const waText = `🚨 UN HOUSE ABUJA SECURITY ALERT:\n\nDear ${v.host} (${v.agency}),\nYour visitor *${v.name}* (${v.org || 'Official Guest'}) has arrived at Station 3 Internal Reception (Tag: *${v.tag || 'V-Tag'}*).\nApproved Destination: ${v.building || 'Main Building'} - ${v.agency} Wing.\n\nPlease come down to the reception lobby or send your designated escort.`;
+      const isDel = v.type === "delivery";
+      const waText = `🚨 UN HOUSE ABUJA SECURITY ALERT:\n\nDear ${v.host} (${v.agency}),\n${isDel ? `Official Courier Delivery has arrived from *${v.name}* (${v.org || 'Courier Dispatch'}). Inward parcels X-Ray screened by UNDSS at Gate 1 (Tag: *${v.tag || 'D-Tag'}*).\n\nUnder UN House protocol, courier requires designated escort for recipient handover.` : `Your visitor *${v.name}* (${v.org || 'Official Guest'}) has arrived at Station 3 Internal Reception (Tag: *${v.tag || 'V-Tag'}*).\nApproved Destination: ${v.building || 'Main Building'} - ${v.agency} Wing.\n\nPlease come down to the reception lobby or send your designated escort.`}`;
       const waBtn = `<a class="btn" href="https://wa.me/?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener" title="Send instant WhatsApp arrival alert to host" style="padding:2px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px">💬 WhatsApp</a>`;
       return notifBtn + waBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "pri");
     }, "Nobody is currently waiting for host.")}
@@ -10173,24 +10184,24 @@ async function register(){
   const mailScanned = $("#r_mail_scanned") ? $("#r_mail_scanned").checked : false;
   const mailDetails = $("#r_mail_details") ? $("#r_mail_details").value.trim() : "";
   if (isDelivery && !mailScanned) {
-    return toast("⚠️ Mandatory Security Check: Inward mail and packages must be physically X-Ray scanned before proceeding to the registry.");
+    return toast("⚠️ Mandatory UNDSS Security Screening: Inward parcels and correspondence must be scanned via Smiths HI-SCAN 6040 X-Ray before Station 1 gate admission.");
   }
   const phoneCleared = ($("#r_phone_cleared") && $("#r_phone_cleared").checked) || isDelivery;
   const isVip = type === "vip";
   const hostNote = $("#r_host_note") ? $("#r_host_note").value.trim() : "";
   const st = phoneCleared ? (isVip ? "in" : "arrived") : "pending";
-  const assignedTag = phoneCleared && !isVip ? (isDelivery ? "PARCEL-DROP" : nextAvailableTag(type)) : null;
+  const assignedTag = phoneCleared && !isVip ? nextAvailableTag(type) : null;
   const v = {
     id: ref,
     ref,
     name: g("r_name"),
-    org: g("r_org") || (isDelivery ? "Courier / Mail Dispatch" : (isWalkin ? "Walk-in" : "")),
+    org: g("r_org") || (isDelivery ? "Courier / Dispatch Delivery" : (isWalkin ? "Walk-in" : "")),
     phone: g("r_phone"),
     visitorEmail: g("r_vemail").toLowerCase(),
     type,
-    unscheduled: isUnscheduled,
-    category: isUnscheduled ? "unscheduled" : "scheduled",
-    host: g("r_host") || (isDelivery ? "Agency Registry / Mailroom" : "UN Host"),
+    unscheduled: true, // Delivery couriers are always unscheduled walk-ins
+    category: "unscheduled",
+    host: g("r_host") || (isDelivery ? "Agency Recipient / Registry" : "UN Host"),
     hostExt: g("r_host_ext") || "",
     hostEmail: g("r_hostEmail").toLowerCase(),
     backupHost: $("#r_backup") ? g("r_backup") : "",
@@ -10200,14 +10211,14 @@ async function register(){
     group: g("r_group"),
     room: g("r_room"),
     vehicle: (type === "vip" && $("#r_vehicle")) ? g("r_vehicle").toUpperCase() : "",
-    purpose: g("r_purpose") || (isDelivery ? "Official Mail / Package Delivery" : ""),
+    purpose: g("r_purpose") || (isDelivery ? "Official Mail / Parcel Delivery (UNDSS X-Ray Screened)" : ""),
     mailScanned: isDelivery ? mailScanned : false,
     mailDetails: isDelivery ? mailDetails : "",
     mailScreenedAt: isDelivery && mailScanned ? now() : null,
-    mailScreenedBy: isDelivery && mailScanned ? (op() + " (Station 1 Smiths HI-SCAN 6040)") : "",
+    mailScreenedBy: isDelivery && mailScanned ? (op() + " (UNDSS Smiths HI-SCAN 6040)") : "",
     ...($("#r_agree").checked ? { agreedAt: now(), agreement: AGREEMENT.version } : {}),
-    restricted,
-    escort,
+    restricted: isDelivery ? true : restricted,
+    escort: isDelivery ? true : (Boolean($("#r_escort") && $("#r_escort").checked) || restricted), // Deliveries ALWAYS require escort!
     requestedBy: op(),
     requestedByUid: myUid(),
     status: st,
