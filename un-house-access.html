@@ -262,9 +262,13 @@ textarea{min-height:70px;resize:vertical}
 .modal-x{all:unset;cursor:pointer;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:20px;line-height:1;color:var(--muted);background:var(--surface2);border:1px solid var(--line);flex:none;transition:background .15s,color .15s}
 .modal-x:hover{background:var(--bad-bg);color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,transparent)}
 @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.97)}}
-.appfoot{display:flex;justify-content:space-between;gap:8px 16px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.appfoot a{color:var(--muted)}
-.appfoot a:hover{color:var(--fg)}
+.appfoot{display:flex;justify-content:space-between;align-items:center;gap:16px 24px;flex-wrap:wrap;font-size:12px;color:var(--muted);border-top:1px solid var(--line);background:var(--surface);padding-block:16px;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+.appfoot-left{display:flex;flex-direction:column;gap:3px}
+.appfoot-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px}
+.appfoot-nav a{color:var(--blue);text-decoration:none;font-weight:600;transition:color .15s}
+.appfoot-nav a:hover{color:var(--navy);text-decoration:underline}
+.appfoot-right{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.appfoot .sep{color:var(--line);opacity:.8}
 #printArea{display:none}
 @media print{
   html, body {
@@ -430,15 +434,22 @@ body.print-badge {
 }
 .scan-band{border-radius:12px;padding:16px;font-size:20px;font-weight:700;text-align:center}
 .scan-band.ok{background:var(--ok-bg);color:var(--ok)} .scan-band.no{background:var(--warn-bg);color:var(--warn)} .scan-band.info{background:var(--info-bg);color:var(--accent)}
-.vpass{max-width:400px;width:100%;margin:12px auto;background:var(--surface);border-radius:20px;padding:22px;box-shadow:0 20px 50px -25px #0006;display:flex;flex-direction:column;gap:12px;border-top:6px solid var(--muted)}
-.vpass.ok{border-top-color:var(--ok)} .vpass.no{border-top-color:var(--warn)} .vpass.checked-out{border-top-color:#64748b}
+.vpass{max-width:420px;width:100%;margin:12px auto;background:var(--surface);border-radius:22px;overflow:hidden;box-shadow:0 22px 55px -20px rgba(0,0,0,.35);display:flex;flex-direction:column;border:2px solid var(--pass-border,var(--line));transition:border-color .2s,box-shadow .2s}
+.vpass.no{border-color:var(--warn)}
+.vpass.checked-out{border-color:#cbd5e1}
+.vpass-ribbon{height:16px;background:var(--pass-primary,#0875df);width:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.vpass-ribbon::before{content:"";position:absolute;top:-18px;width:34px;height:24px;border:3.5px solid var(--pass-primary,#0875df);border-bottom:0;border-radius:18px 18px 0 0;background:transparent}
+.vpass-ribbon::after{content:"";position:absolute;top:5px;width:26px;height:5px;border-radius:3px;background:rgba(255,255,255,.55)}
+.vpass-banner{padding:12px 18px;color:#fff;background:var(--pass-header,linear-gradient(135deg,#0284c7,#0875df));display:flex;justify-content:space-between;align-items:center;font-size:11.5px;font-weight:750;letter-spacing:.04em;text-transform:uppercase}
+.vpass-body{padding:20px;display:flex;flex-direction:column;gap:12px}
+.vpass-color-pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:750;background:var(--pass-pill-bg,#e0f2fe);color:var(--pass-pill-color,#0369a1);border:1px solid var(--pass-border,#bae6fd)}
 .vp-load{color:var(--muted);text-align:center;padding:30px 0}
 .vp-top{display:flex;justify-content:space-between;align-items:center;font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:600}
 .vp-kind{color:var(--muted)} .vpass.ok .vp-st{color:var(--ok)} .vpass.no .vp-st{color:var(--warn)} .vpass.checked-out .vp-st{color:#334155;background:#e2e8f0;padding:2px 8px;border-radius:6px;font-weight:700}
 .vp-name{font-size:26px;font-weight:700;line-height:1.15} .vp-org{color:var(--muted);margin-top:-8px}
 .vp-qr{background:#fff;border-radius:14px;padding:14px;align-self:center}.vp-qr img{width:220px;height:220px;display:block}
 .vp-clock{display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums}
-.vp-clock i{width:10px;height:10px;border-radius:50%;background:var(--ok);animation:vpPulse 1s infinite alternate}
+.vp-clock i{width:10px;height:10px;border-radius:50%;background:var(--pass-primary,var(--ok));animation:vpPulse 1s infinite alternate}
 @keyframes vpPulse{from{opacity:.25;transform:scale(.8)}to{opacity:1;transform:scale(1.1)}}
 .vp-msg{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:12px;font-weight:500;margin:0}
 .vp-dl{margin:0;display:grid;gap:6px}.vp-dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:6px;font-size:14px}
@@ -463,8 +474,35 @@ body.pass-mode .vpass{margin-top:0}
 .evac li label{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--surface2);cursor:pointer}
 .evac li.ok label{background:var(--ok-bg)} .evac input{width:22px;height:22px}
 .agree{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:13px}.agree summary{cursor:pointer;font-weight:600}.agree ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}
-.lang{display:flex;gap:4px;justify-content:center;margin:0 auto 12px;max-width:440px}.lang button{all:unset;cursor:pointer;padding:6px 12px;border-radius:999px;font-size:13px;color:var(--onnavy-muted,#b9c4d8)}.lang button.on{background:#ffffff22;color:#fff;font-weight:600}
-body:not(.pass-mode) .lang button{color:var(--muted)} body:not(.pass-mode) .lang button.on{background:var(--surface2);color:var(--fg)}
+.lang{display:flex;gap:6px;justify-content:center;align-items:center;margin:0 auto 14px;flex-wrap:wrap;transition:all .2s ease}
+.lang button{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12.5px;color:var(--onnavy-muted,#b9c4d8);font-weight:600;transition:all .18s ease}
+.lang button.on{background:#ffffff22;color:#fff;font-weight:700}
+body:not(.pass-mode) .lang button{color:var(--muted);background:var(--surface2)}
+body:not(.pass-mode) .lang button.on{background:var(--blue);color:#fff}
+.lang-cute-btn{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:750;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#0369a1!important;border:1px solid #bae6fd;box-shadow:0 2px 6px rgba(2,132,199,.15);transition:all .2s ease}
+.lang-cute-btn:hover{transform:translateY(-1px) scale(1.03);background:linear-gradient(135deg,#bae6fd,#bfdbfe);box-shadow:0 4px 10px rgba(2,132,199,.25)}
+.lang-cute-btn.open{background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff!important;border-color:#0369a1}
+.lang-un-extra{display:none;align-items:center;gap:5px;animation:cutePop .24s cubic-bezier(.34,1.56,.64,1);flex-wrap:wrap}
+.lang-un-extra.open{display:inline-flex}
+@keyframes cutePop{0%{opacity:0;transform:scale(.85)}100%{opacity:1;transform:scale(1)}}
+
+/* Visitor Rules & Guidelines Layout */
+.rules-wrap{max-width:780px;width:100%;margin:16px auto 36px;padding:0 12px}
+.rules-hero{background:var(--surface);border:1.5px solid var(--line);border-radius:20px;padding:32px 28px;box-shadow:var(--shadow);margin-bottom:20px}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:20px}
+.rule-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 18px;display:flex;gap:14px;align-items:flex-start;box-shadow:0 2px 8px rgba(0,0,0,.03);transition:transform .15s,box-shadow .15s}
+.rule-card:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(11,74,144,.08);border-color:#93c5fd}
+.rule-icon{width:40px;height:40px;border-radius:10px;background:#f0f7ff;color:var(--blue);display:grid;place-items:center;font-size:20px;flex-shrink:0}
+.rule-num{font-size:10px;font-weight:800;letter-spacing:.06em;color:var(--blue);text-transform:uppercase}
+.rule-title{font-size:14px;font-weight:750;color:var(--navy);margin:2px 0 4px}
+.rule-text{font-size:12.5px;color:var(--muted);line-height:1.45;margin:0}
+.info-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.ack-box{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:16px;padding:20px 22px;margin:20px 0}
+@media print{
+  header.top, nav#nav, .appfoot, .lang, #btnCuteUN, .lang-un-extra{display:none!important}
+  .rules-wrap{max-width:100%!important;padding:0!important;margin:0!important}
+  .rule-card{break-inside:avoid;border:1px solid #ccc!important}
+}
 .chart{width:100%;height:auto}.chart .bar{fill:var(--accent)}.chart .grid{stroke:var(--line);stroke-dasharray:3 3}.chart .axis{fill:var(--muted);font-size:10px;font-family:var(--mono)}
 #kiosk{position:fixed;inset:0;z-index:50;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;padding:24px;transition:background .3s}
 #kiosk.k-ok{background:#0f5c32} #kiosk.k-no{background:#7a4b00}
@@ -647,16 +685,30 @@ main{gap:20px}
   <main id="main"></main>
 </div>
 <footer class="appfoot">
-  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-    <span><b>UN House Visitor Management System</b></span>
-    <span>·</span>
-    <span><a href="index.html">🏠 Home</a></span>
-    <span>·</span>
-    <span style="color:var(--muted)">Enterprise Version 2.4.0 (Live Production)</span>
+  <div class="appfoot-left">
+    <div style="display:flex;align-items:center;gap:10px">
+      <img src="un-emblem.svg" alt="United Nations" style="height:26px;width:auto;display:block">
+      <b style="color:var(--fg);font-size:13px">United Nations House · Abuja</b>
+    </div>
+    <div class="small" style="color:var(--muted);margin-top:2px">
+      Common Services Operational Support · Serving 16 resident UN agencies in Nigeria
+    </div>
   </div>
-  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-    <span style="font-size:11.5px;color:var(--muted)"><b>Support &amp; ICT Helpdesk:</b> Ext. 2030 · Common Services Ext. 2010</span>
-    <span>© <span id="yr">2026</span> United Nations Common Services · UN House Abuja</span>
+  <div class="appfoot-nav">
+    <a href="index.html">🏠 Public Portal</a>
+    <span class="sep">·</span>
+    <a href="app.html?rules">📋 Visitor Guidelines &amp; Security</a>
+    <span class="sep">·</span>
+    <a href="app.html">Operations Console</a>
+    <span class="sep">·</span>
+    <span><b>UNDSS Security:</b> Ext. 2030</span>
+    <span class="sep">·</span>
+    <span><b>Helpdesk:</b> Ext. 2010</span>
+  </div>
+  <div class="appfoot-right">
+    <span>Plot 617/618 Diplomatic Drive, Central Area, Abuja</span>
+    <span class="sep">·</span>
+    <span>© <span id="yr">2026</span> United Nations Common Services</span>
   </div>
 </footer>
 <div id="toast" class="toast" hidden></div>
@@ -1896,42 +1948,131 @@ async function qrDataUrl(text,size){
   new QRCode(h,{text,width:size,height:size,correctLevel:QRCode.CorrectLevel.M}); await new Promise(r=>setTimeout(r,60));
   return (h.querySelector("canvas")&&h.querySelector("canvas").toDataURL())||(h.querySelector("img")&&h.querySelector("img").src);
 }
+function getPassColor(p){
+  if(!p) return "blue";
+  const type = (p.type || "").toLowerCase();
+  const cat = (p.category || "").toLowerCase();
+  const purpose = (p.purpose || "").toLowerCase();
+  
+  if (type === "vip") return "slate";
+  if (type === "contractor" || cat === "contractor") return "teal";
+  if (type === "delivery" || cat === "registry" || cat === "mail" || purpose.includes("courier") || purpose.includes("registry") || purpose.includes("pouch") || purpose.includes("mail")) return "green";
+  if (type === "protocol" || type === "group" || cat === "protocol" || purpose.includes("protocol") || purpose.includes("delegation") || purpose.includes("diplomatic")) return "purple";
+  return "blue";
+}
+
+function getPassColorMeta(colorKey){
+  const meta = {
+    blue: {
+      key: "blue",
+      name: "General Visitor",
+      passName: "Blue Pass",
+      primary: "#0875df",
+      headerBg: "linear-gradient(135deg, #0284c7 0%, #0875df 100%)",
+      lightBg: "#f0f7ff",
+      border: "#bae6fd",
+      pillBg: "#e0f2fe",
+      pillColor: "#0369a1",
+      lanyardBg: "#0875df"
+    },
+    green: {
+      key: "green",
+      name: "Registry Visitor",
+      passName: "Green Pass",
+      primary: "#059669",
+      headerBg: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+      lightBg: "#f0fdf4",
+      border: "#bbf7d0",
+      pillBg: "#dcfce7",
+      pillColor: "#15803d",
+      lanyardBg: "#059669"
+    },
+    teal: {
+      key: "teal",
+      name: "Contractor Pass",
+      passName: "Teal Pass",
+      primary: "#0d9488",
+      headerBg: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)",
+      lightBg: "#f0fdfa",
+      border: "#99f6e4",
+      pillBg: "#ccfbf1",
+      pillColor: "#115e59",
+      lanyardBg: "#0d9488"
+    },
+    purple: {
+      key: "purple",
+      name: "Protocol Visitor",
+      passName: "Purple Pass",
+      primary: "#7c3aed",
+      headerBg: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
+      lightBg: "#faf5ff",
+      border: "#e9d5ff",
+      pillBg: "#f3e8ff",
+      pillColor: "#6b21a8",
+      lanyardBg: "#7c3aed"
+    },
+    slate: {
+      key: "slate",
+      name: "VIP Protocol Pass",
+      passName: "Diplomatic Pass",
+      primary: "#d97706",
+      headerBg: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+      lightBg: "#f8fafc",
+      border: "#fde68a",
+      pillBg: "#fef3c7",
+      pillColor: "#92400e",
+      lanyardBg: "#0f172a"
+    }
+  };
+  return meta[colorKey] || meta.blue;
+}
+
 async function openPass(v){
   let p; try{p=await ensurePass(v)}catch(e){return toast("Could not create the pass: "+e.message)}
   const isOut=v.status==="out";
   const url=passUrl(p.id), img=(!isOut)?await qrDataUrl(PASS_PREFIX+p.id,180).catch(()=>null):null;
   const digits=String(v.phone||"").replace(/[^\d]/g,"").replace(/^0/,"234");
   const msg=`Hello ${v.name}, here is your visitor pass for UN House Abuja on ${new Date(v.expected||now()).toLocaleDateString()}. Show it at the gate with your photo ID: ${url}`;
+  const col=getPassColorMeta(getPassColor(v));
   const kind=v.type==="vip"?"VIP guest":v.type==="contractor"?"Contractor & Service Staff":"Visitor";
   const stLabel={pending:"Registered · Pending Clearance",in:"Checked in",tagged:"Documented",arrived:"Admitted at Station 1",approved:"Cleared · Expected",out:"Checked out"}[v.status]||(isOut?"Checked out":"Cleared");
   clearInterval(openPass.t);
   const m=$("#modal"); m.innerHTML=`<div class="modal" style="max-width:480px;padding:16px;gap:10px">
-    <div class="vpass ${isOut?"checked-out":"ok"}" style="margin:0;max-width:none;box-shadow:none;border:1px solid var(--line);border-top:5px solid ${isOut?"#64748b":"var(--ok)"};padding:12px 16px;gap:8px">
-      <div class="vp-top"><span class="vp-kind">${esc(kind)}</span><span style="display:inline-flex;align-items:center;gap:8px"><span class="vp-st">${esc(stLabel)}</span><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="width:24px;height:24px;font-size:16px">×</button></span></div>
-      <div><div class="vp-name" style="font-size:20px">${esc(v.name)}</div><div class="vp-org" style="margin-top:0;font-size:13px">${esc(v.org||"")}</div></div>
-      ${v.type==="vip"?`<div style="background:#e0ecff;color:#1e40af;border:1px solid #bfdbfe;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;margin-top:2px">⭐ Diplomatic Protocol · Auto Check-in active at all gates &amp; kiosks. Proceed directly without tagging queue.</div>`:""}
-      ${isOut ? `
-        <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:14px;text-align:center;margin:6px 0">
-          <div style="font-size:26px">🚪</div>
-          <div style="font-weight:800;color:#1e293b;font-size:15.5px;margin-top:2px">Checked out · Visit concluded</div>
-          <div class="small" style="color:#64748b;margin-top:2px">Photo ID returned &amp; lanyard tag restocked · Live timer stopped</div>
+    <div class="vpass ${isOut?"checked-out":"ok"}" style="margin:0;max-width:none;box-shadow:none;border:1.5px solid ${col.border};padding:0;gap:0;--pass-primary:${col.primary};--pass-border:${col.border}">
+      <div class="vpass-ribbon" style="background:${col.primary}"></div>
+      <div class="vpass-banner" style="background:${col.headerBg}">
+        <span style="display:inline-flex;align-items:center;gap:6px">🏷️ ${col.name} · ${col.passName}</span>
+        <span style="display:inline-flex;align-items:center;gap:8px"><span class="vp-st" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:750">${esc(stLabel)}</span><button class="modal-x" id="mX" type="button" title="Close (Esc)" aria-label="Close" style="width:22px;height:22px;font-size:15px;color:#fff;background:rgba(255,255,255,.2);border:none">×</button></span>
+      </div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div><div class="vp-name" style="font-size:20px">${esc(v.name)}</div><div class="vp-org" style="margin-top:0;font-size:13px">${esc(v.org||"")}</div></div>
+          <span class="vpass-color-pill" style="background:${col.pillBg};color:${col.pillColor};border-color:${col.border}">${col.passName}</span>
         </div>
-      ` : `
-        ${img?`<div class="vp-qr" style="padding:8px"><img src="${img}" alt="Pass QR code" style="width:132px;height:132px"></div>`:""}
-        <div class="vp-clock" style="font-size:19px"><i></i><span id="m_vpc"></span></div>
-      `}
-      <dl class="vp-dl" style="gap:4px">
-        <div style="padding-top:4px;font-size:13px"><dt>Host</dt><dd>${esc(v.host)}${v.agency?" · "+esc(v.agency):""}</dd></div>
-        ${v.room?`<div style="padding-top:4px;font-size:13px"><dt>Room</dt><dd>${esc(v.room)}</dd></div>`:""}
-        ${v.type==="vip"&&v.vehicle?`<div style="padding-top:4px;font-size:13px"><dt>VIP Motorcade</dt><dd class="mono">${esc(v.vehicle)}</dd></div>`:""}
-        ${(v.tag||v.assignedTag)?`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="font-weight:700;color:${isOut?"#64748b":"#0284c7"}">🏷️ ${esc(v.tag||v.assignedTag)}${isOut?" (Returned)":""}</dd></div>`:`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="color:var(--muted)">Assigned upon Station 1 Approval</dd></div>`}
-        ${isOut&&v.outAt?`<div style="padding-top:4px;font-size:13px"><dt>Departed</dt><dd class="mono">${fmtT(v.outAt)}</dd></div>`:""}
-        <div style="padding-top:4px;font-size:13px"><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div>
-        <div style="padding-top:4px;font-size:13px"><dt>Reference</dt><dd class="mono">${esc(v.ref)}</dd></div>
-      </dl>
+        ${v.type==="vip"?`<div style="background:#e0ecff;color:#1e40af;border:1px solid #bfdbfe;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;margin-top:2px">⭐ Diplomatic Protocol · Auto Check-in active at all gates &amp; kiosks. Proceed directly without tagging queue.</div>`:""}
+        ${isOut ? `
+          <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:10px;padding:14px;text-align:center;margin:6px 0">
+            <div style="font-size:26px">🚪</div>
+            <div style="font-weight:800;color:#1e293b;font-size:15.5px;margin-top:2px">Checked out · Visit concluded</div>
+            <div class="small" style="color:#64748b;margin-top:2px">Photo ID returned &amp; lanyard tag restocked · Live timer stopped</div>
+          </div>
+        ` : `
+          ${img?`<div class="vp-qr" style="padding:8px;border:1.5px solid ${col.border}"><img src="${img}" alt="Pass QR code" style="width:132px;height:132px"></div>`:""}
+          <div class="vp-clock" style="font-size:19px"><i style="background:${col.primary}"></i><span id="m_vpc"></span></div>
+        `}
+        <dl class="vp-dl" style="gap:4px">
+          <div style="padding-top:4px;font-size:13px"><dt>Host</dt><dd>${esc(v.host)}${v.agency?" · "+esc(v.agency):""}</dd></div>
+          ${v.room?`<div style="padding-top:4px;font-size:13px"><dt>Room</dt><dd>${esc(v.room)}</dd></div>`:""}
+          ${v.type==="vip"&&v.vehicle?`<div style="padding-top:4px;font-size:13px"><dt>VIP Motorcade</dt><dd class="mono">${esc(v.vehicle)}</dd></div>`:""}
+          ${(v.tag||v.assignedTag)?`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="font-weight:700;color:${col.primary}">🏷️ ${esc(v.tag||v.assignedTag)}${isOut?" (Returned)":""}</dd></div>`:`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="color:var(--muted)">Assigned upon Station 1 Approval</dd></div>`}
+          ${isOut&&v.outAt?`<div style="padding-top:4px;font-size:13px"><dt>Departed</dt><dd class="mono">${fmtT(v.outAt)}</dd></div>`:""}
+          <div style="padding-top:4px;font-size:13px"><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div>
+          <div style="padding-top:4px;font-size:13px"><dt>Reference</dt><dd class="mono">${esc(v.ref)}</dd></div>
+        </dl>
+      </div>
     </div>
     <input id="m_plink" value="${esc(url)}" readonly aria-label="Pass link" style="font-size:12px;padding:6px 10px">
-    <div class="acts" style="flex-wrap:nowrap;gap:6px"><a class="btn pri" style="padding:7px 10px;font-size:12.5px;flex:1;justify-content:center" href="${esc(url)}" target="_blank" rel="noopener">Open pass ↗</a>
+    <div class="acts" style="flex-wrap:nowrap;gap:6px"><a class="btn pri" style="padding:7px 10px;font-size:12.5px;flex:1;justify-content:center;background:${col.primary}" href="${esc(url)}" target="_blank" rel="noopener">Open pass ↗</a>
       <button class="btn" style="padding:7px 10px;font-size:12.5px" id="m_pcopy">Copy link</button>
       <a class="btn" style="padding:7px 10px;font-size:12.5px" href="https://wa.me/${digits.length>=10?digits:""}?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">WhatsApp</a>
       ${v.visitorEmail?`<a class="btn" style="padding:7px 10px;font-size:12.5px" href="mailto:${esc(v.visitorEmail)}?subject=${encodeURIComponent("Your UN House visitor pass")}&body=${encodeURIComponent(msg)}">Email</a>`:""}
@@ -2352,10 +2493,75 @@ async function kioskScan(txt){
 
 /* ---------- 5. Visitor agreements ---------- */
 const AGREEMENT={version:"UNH-2026-11",
-  en:["I will wear my color-coded visitor lanyard/tag visibly at all times and return the tag upon departure (VIP delegations exempt).","Floor Restriction: Access is strictly limited to the authorized destination floor and host office. Unescorted movement to other floors is prohibited.","I will stay with my host or designated escort in approved areas.","I will follow security staff instructions, including in an emergency.","I will not take photos or recordings inside without permission.","Privacy: UN House records my name, organisation, contact details, host and visit times to manage access and safety. Records are kept for a limited period and are not shared outside the UN, except where the law requires."],
-  fr:["Je porterai mon badge visiteur ou présenterai mon laissez-passer en permanence et rendrai le badge en partant.","Je resterai avec mon hôte ou dans les zones autorisées.","Je suivrai les consignes du personnel de sécurité, y compris en cas d'urgence.","Je ne prendrai ni photos ni enregistrements à l'intérieur sans autorisation.","Confidentialité : UN House enregistre mon nom, mon organisation, mes coordonnées, mon hôte et mes heures de visite pour gérer l'accès et la sécurité. Ces données sont conservées pour une durée limitée et ne sont pas partagées en dehors de l'ONU, sauf obligation légale."]};
-function agreementBlock(lang,id){return `<details class="agree"><summary>${lang==="fr"?"Règles de visite et confidentialité":"Visitor rules and privacy notice"}</summary><ul>${AGREEMENT[lang].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
-  <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="${id}" style="width:auto;margin-top:2px" required> <span>${lang==="fr"?"J'ai lu et j'accepte les règles de visite et l'avis de confidentialité.":"I have read and accept the visitor rules and privacy notice."}</span></label>`}
+  en:[
+    "Visitor Identification: Wear the assigned colour-coded lanyard or badge visibly at all times and return it upon departure (VIP delegations exempt).",
+    "Authorized Access: Access is strictly limited to designated floors, wings, and host offices. Unescorted movement to other floors is prohibited.",
+    "Host and Escort: Visitors must remain with their designated host or official escort in approved areas.",
+    "Security Instructions: Visitors must comply with instructions from the UN House Security Team (UNDSS), including emergency evacuation procedures.",
+    "Photography and Recording: Unauthorized photography, filming, and audio recording inside the compound and offices are strictly prohibited.",
+    "Privacy Notice: Visitor information (name, organisation, contact details, host and visit times) is collected and processed responsibly for compound security, access management, and emergency accountability."
+  ],
+  fr:[
+    "Identification du visiteur : Portez votre badge ou cordon couleur de manière visible en permanence et restituez-le au départ (délégations VIP exemptées).",
+    "Accès autorisé : L'accès est strictement limité aux étages et bureaux de l'hôte autorisés. La circulation sans escorte est interdite.",
+    "Hôte et escorte : Les visiteurs doivent rester accompagnés de leur hôte ou de l'escorte officielle désignée.",
+    "Consignes de sécurité : Respectez scrupuleusement les consignes de sécurité de l'équipe UNDSS, y compris en cas d'évacuation d'urgence.",
+    "Photographies et enregistrements : Toute prise de vue ou enregistrement audio sans autorisation préalable est strictement interdite.",
+    "Avis de confidentialité : Les données personnelles des visiteurs sont recueillies et traitées de manière responsable pour la sécurité du complexe."
+  ],
+  es:[
+    "Identificación del visitante: Lleve la credencial o cordón asignado visible en todo momento y devuélvalo al salir (delegaciones VIP exentas).",
+    "Acceso autorizado: El acceso está estrictamente limitado a los pisos y oficinas del anfitrión autorizados. Prohibido circular sin escolta.",
+    "Anfitrión y escolta: Los visitantes deben permanecer acompañados por su anfitrión o escolta oficial designado.",
+    "Instrucciones de seguridad: Cumpla todas las instrucciones del personal de seguridad de la Casa de la ONU (UNDSS) y protocolos de evacuación.",
+    "Fotografía y grabación: Queda terminantemente prohibida la fotografía, filmación o grabación no autorizada dentro del recinto.",
+    "Aviso de privacidad: Los datos de los visitantes se recopilan de manera responsable para la seguridad del complejo y el control de acceso."
+  ],
+  ar:[
+    "بطاقة تعريف الزائر: يجب ارتداء شارة الزائر أو الشريط الملون بوضوح طوال فترة الزيارة وإعادتها عند المغادرة (تُستثنى وفود كبار الشخصيات).",
+    "الوصول المصرح به: يقتصر الدخول حصرياً على الطوابق والمكاتب المعتمدة والمضيف المعين. يُمنع التجول الفردي دون مرافقة.",
+    "المضيف والمرافقة: يجب البقاء بصحبة المضيف أو المرافق الرسمي المعتمد داخل المناطق المخصصة للزيارة.",
+    "تعليمات الأمن والسلامة: الامتثال التام لتوجيهات فريق أمن مبنى الأمم المتحدة (UNDSS) وإجراءات الإخلاء في حالات الطوارئ.",
+    "التصوير والتسجيل: يُحظر تماماً التقاط الصور أو مقاطع الفيديو أو التسجيلات الصوتية دون تصريح رسمي مسبق.",
+    "إشعار الخصوصية: تُجمع بيانات الزوار وتُعالج بمسؤولية لضمان أمن المجمع وإدارة الدخول والسلامة وحالات الطوارئ."
+  ],
+  zh:[
+    "访客身份识别：全程佩戴指定的彩色挂绳或访客证件，离场时请将证件归还（贵宾代表团除外）。",
+    "授权区域通行：出入权限严格限定于授权楼层及接待人员办公室，禁止私自前往非授权楼层。",
+    "接待与陪同：访客在指定区域内必须全程由指定接待人员或联合国官方陪同人员带领。",
+    "安全守则指令：必须服从联合国大楼安全团队（UNDSS）的所有安保指示及突发应急疏散指令。",
+    "严禁摄影录音：严禁在联合国办公区及安保防线内部未经授权进行任何拍照、摄像或录音。",
+    "隐私与数据说明：收集访客信息仅用于大楼安保、通行核验及应急人员清点，并严格遵循数据保护原则。"
+  ],
+  ru:[
+    "Идентификация посетителя: Постоянно носите выданный бейдж или ленту на видном месте и верните при выходе (делегации VIP освобождаются).",
+    "Санкционированный доступ: Доступ строго ограничен указанным этажом и офисом принимающей стороны. Передвижение без сопровождения запрещено.",
+    "Сопровождение: Посетители должны постоянно находиться в сопровождении принимающего сотрудника или назначенного эскорта.",
+    "Инструкции по безопасности: Выполняйте все указания службы безопасности ООН (UNDSS), в том числе при учебных и экстренных эвакуациях.",
+    "Фото- и видеосъемка: Несанкционированная фото-, видео- и аудиозапись на территории комплекса строго запрещена.",
+    "Защита персональных данных: Сведения о посетителях обрабатываются исключительно в целях обеспечения безопасности и контроля доступа."
+  ]
+};
+function agreementBlock(lang,id){
+  const l=AGREEMENT[lang]?lang:"en";
+  const label={
+    en:"Visitor rules and privacy notice",
+    fr:"Règles de visite et confidentialité",
+    es:"Pautas de visita y aviso de privacidad",
+    ar:"قواعد الزيارة وإشعار الخصوصية",
+    zh:"访客守则与隐私声明",
+    ru:"Правила посещения и политика конфиденциальности"
+  }[l]||"Visitor rules and privacy notice";
+  const chkLabel={
+    en:"I have read and accept the visitor rules and privacy notice.",
+    fr:"J'ai lu et j'accepte les règles de visite et l'avis de confidentialité.",
+    es:"He leído y acepto las pautas de visita y el aviso de privacidad.",
+    ar:"قرأت وأوافق على قواعد الزيارة وإشعار الخصوصية.",
+    zh:"我已阅读并接受访客守则与隐私声明。",
+    ru:"Я прочитал(а) и принимаю правила посещения и политику конфиденциальности."
+  }[l]||"I have read and accept the visitor rules and privacy notice.";
+  return `<details class="agree"><summary>${label}</summary><ul>${AGREEMENT[l].map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>
+  <label class="small" style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="${id}" style="width:auto;margin-top:2px" required> <span>${chkLabel}</span></label>`}
 
 /* ---------- 6. Repeat-visitor recognition ---------- */
 function previousVisits(name){return visitors.filter(x=>namesMatch(x.name,name)).sort((a,b)=>(b.expected||0)-(a.expected||0))}
@@ -2983,10 +3189,41 @@ const TX={en:{passFor:"Visitor",group:"Delegation",vip:"VIP guest",contractor:"C
   privacy:"Vos informations servent uniquement à gérer votre visite. Apportez une pièce d'identité avec photo.",thanks:n=>`Merci, ${n}`,thanksSub:(h,w)=>`${h} a reçu vos informations. Apportez une pièce d'identité avec photo à l'entrée de UN House le ${w}.`,received:"Merci",receivedSub:"Vos informations ont été reçues. Apportez une pièce d'identité avec photo à l'entrée de UN House.",
   linkNF:"Lien introuvable",linkNFSub:"Vérifiez que vous avez copié le lien complet, ou demandez-en un nouveau à votre hôte.",linkExp:"Ce lien a expiré",linkExpSub:h=>`Demandez à ${h} de vous en envoyer un nouveau.`,sendErr:"Vos informations n'ont pas pu être envoyées. Le lien a peut-être expiré. Demandez-en un nouveau à votre hôte.",mustAgree:"Veuillez accepter les règles de visite pour continuer.",opening:"Ouverture de votre invitation…"}};
 let LANG=(()=>{try{return localStorage.getItem("lang")||((navigator.language||"").startsWith("fr")?"fr":"en")}catch(e){return "en"}})();
-const tx=()=>TX[LANG];
-function langSwitch(onChange){return `<div class="lang"><button class="${LANG==="en"?"on":""}" data-lang="en">English</button><button class="${LANG==="fr"?"on":""}" data-lang="fr">Français</button></div>`}
-function wireLang(redraw){document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{LANG=b.dataset.lang;try{localStorage.setItem("lang",LANG)}catch(e){}redraw()})}
-const dateLoc=()=>LANG==="fr"?"fr-FR":undefined;
+const tx=()=>TX[LANG]||TX.en;
+let UN_LANGS_OPEN = false;
+function langSwitch(onChange){
+  const isExtra = ["es","ar","zh","ru"].includes(LANG);
+  const open = UN_LANGS_OPEN || isExtra;
+  return `<div class="lang">
+    <button type="button" class="${LANG==="en"?"on":""}" data-lang="en">English</button>
+    <button type="button" class="${LANG==="fr"?"on":""}" data-lang="fr">Français</button>
+    <button type="button" class="lang-cute-btn ${open?"open":""}" id="btnCuteUN" title="Release official UN languages (Español, العربية, 中文, Русский)">
+      <span>✨ 4 more UN languages</span> <span class="cute-arrow">${open?"▴":"▾"}</span>
+    </button>
+    <span class="lang-un-extra ${open?"open":""}" id="boxCuteUN">
+      <button type="button" class="${LANG==="es"?"on":""}" data-lang="es">Español</button>
+      <button type="button" class="${LANG==="ar"?"on":""}" data-lang="ar" dir="rtl">العربية</button>
+      <button type="button" class="${LANG==="zh"?"on":""}" data-lang="zh">中文</button>
+      <button type="button" class="${LANG==="ru"?"on":""}" data-lang="ru">Русский</button>
+    </span>
+  </div>`;
+}
+function wireLang(redraw){
+  document.querySelectorAll("[data-lang]").forEach(b=>b.onclick=()=>{
+    LANG=b.dataset.lang;
+    try{localStorage.setItem("lang",LANG)}catch(e){}
+    redraw();
+  });
+  const cuteBtn = $("#btnCuteUN");
+  if(cuteBtn){
+    cuteBtn.onclick = e => {
+      e.preventDefault();
+      UN_LANGS_OPEN = !UN_LANGS_OPEN;
+      redraw();
+    };
+  }
+}
+const dateLoc=()=>LANG==="fr"?"fr-FR":LANG==="es"?"es-ES":LANG==="ar"?"ar-EG":LANG==="zh"?"zh-CN":LANG==="ru"?"ru-RU":undefined;
 function downloadIcs(p){
   const dt=ms=>new Date(ms).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
   const s=p.expected||now(), e=s+60*60e3;
@@ -3024,31 +3261,47 @@ function showPass(code){
     const ok=!expired&&!done&&!bad;
     const label=done?T.st.out:expired?T.st.expired:p.status==="pending"?T.st.pending:bad?T.st.bad:(T.st[p.status]||T.st.approved);
     const kind=p.type==="group"?T.group:p.type==="vip"?T.vip:p.type==="contractor"?T.contractor:T.passFor;
-    main.innerHTML=`${langSwitch()}<div class="vpass ${ok?"ok":done?"checked-out":"no"}">
-      <div class="vp-top"><span class="vp-kind">${esc(kind)}</span><span class="vp-st">${esc(label)}</span></div>
-      <div class="vp-name">${esc(p.name)}</div><div class="vp-org">${p.members?`${T.groupPass} · ${p.members.length} ${T.people}`:esc(p.org)}</div>
-      ${ok?`<div class="vp-qr"><img id="vpq" alt="QR"></div><div class="vp-clock"><i></i><span id="vpc"></span></div>`:done?`
-        <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:20px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;margin:8px 0">
-          <div style="width:52px;height:52px;border-radius:50%;background:#e2e8f0;display:grid;place-items:center;font-size:26px">🚪</div>
-          <div style="font-size:20px;font-weight:800;color:#1e293b;letter-spacing:.2px">${esc(T.st.out)}</div>
-          <div class="small" style="color:#64748b;line-height:1.4">Visit to UN House concluded${p.outAt?` at <b>${new Date(p.outAt).toLocaleTimeString(dateLoc(),{hour:'2-digit',minute:'2-digit'})}</b>`:""}.</div>
-          <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#475569;margin-top:2px">
-            🏷️ Lanyard tag returned &amp; physical ID retrieved
-          </div>
-          <div class="small mono" style="color:#94a3b8;font-size:11.5px;margin-top:4px">⏹️ Live timer stopped · Pass inactive</div>
+    const col=getPassColorMeta(getPassColor(p));
+    main.innerHTML=`${langSwitch()}<div class="vpass ${ok?"ok":done?"checked-out":"no"}" style="--pass-primary:${col.primary};--pass-header:${col.headerBg};--pass-border:${col.border};--pass-pill-bg:${col.pillBg};--pass-pill-color:${col.pillColor}">
+      <div class="vpass-ribbon" title="Official Lanyard: ${col.name}"></div>
+      <div class="vpass-banner">
+        <div style="display:flex;align-items:center;gap:8px">
+          <img src="un-emblem.svg" alt="UN" style="height:20px;width:auto;filter:brightness(0) invert(1)">
+          <span>${col.name} · ${col.passName}</span>
         </div>
-      `:`<div class="vp-msg">${expired?T.expMsg:T.badMsg}</div>`}
-      ${p.members?`<div class="vp-dl">${p.members.map(x=>`<div><span>${esc(x.name)}</span><span class="small">${esc((T.st[x.status])||x.status)}${x.tag?" · "+esc(x.tag):""}</span></div>`).join("")}</div>`:""}
-      <dl class="vp-dl"><div><dt>${T.host}</dt><dd>${esc(p.host)}${p.agency?" · "+esc(p.agency):""}</dd></div>
-      <div><dt>${T.date}</dt><dd>${new Date(p.expected).toLocaleDateString(dateLoc(), {weekday:"short",day:"numeric",month:"short"})} · ${new Date(p.expected).toLocaleTimeString(dateLoc(), {hour:"2-digit",minute:"2-digit"})}</dd></div>
-      ${p.room?`<div><dt>${T.room}</dt><dd>${esc(p.room)}</dd></div>`:""}${p.type==="vip"&&p.vehicle?`<div><dt>VIP Motorcade</dt><dd class="mono">${esc(p.vehicle)}</dd></div>`:""}${p.tag?`<div><dt>${T.tag}</dt><dd class="mono">${esc(p.tag)}${done?" (Returned)":""}</dd></div>`:""}
-      ${done&&p.outAt?`<div><dt>Departed</dt><dd class="mono">${new Date(p.outAt).toLocaleTimeString(dateLoc(),{hour:'2-digit',minute:'2-digit'})}</dd></div>`:""}
-      <div><dt>${T.until}</dt><dd>${new Date(p.validUntil).toLocaleString(dateLoc(), {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</dd></div><div><dt>${T.ref}</dt><dd class="mono">${esc(p.ref)}</dd></div></dl>
-      ${!done?`<div class="acts" style="justify-content:center;margin:12px 0 6px"><button class="btn" id="vp_cal" type="button">📅 ${T.addCal}</button><a class="btn" href="https://www.google.com/maps/search/?api=1&query=UN+House+Diplomatic+Drive+Abuja" target="_blank" rel="noopener">📍 ${T.directions}</a></div>
-      <p class="small" style="margin:6px 0">${T.arriveNote}</p>
-      <p class="vp-foot">${T.foot}</p>`:`
-      <p class="vp-foot" style="text-align:center;color:#64748b;margin-top:10px">This digital pass has ended. For future visits, request a new invitation from your UN host.</p>
-      `}
+        <span class="vp-st" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:3px 10px;border-radius:12px;font-size:10.5px;font-weight:750">${esc(label)}</span>
+      </div>
+      <div class="vpass-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div>
+            <div class="vp-name">${esc(p.name)}</div>
+            <div class="vp-org" style="margin-top:2px">${p.members?`${T.groupPass} · ${p.members.length} ${T.people}`:esc(p.org)}</div>
+          </div>
+          <span class="vpass-color-pill">🏷️ ${col.passName}</span>
+        </div>
+        ${ok?`<div class="vp-qr" style="border:2px solid ${col.border};box-shadow:0 6px 18px ${col.primary}22"><img id="vpq" alt="QR"></div><div class="vp-clock"><i style="background:${col.primary}"></i><span id="vpc"></span></div>`:done?`
+          <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:20px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;margin:8px 0">
+            <div style="width:52px;height:52px;border-radius:50%;background:#e2e8f0;display:grid;place-items:center;font-size:26px">🚪</div>
+            <div style="font-size:20px;font-weight:800;color:#1e293b;letter-spacing:.2px">${esc(T.st.out)}</div>
+            <div class="small" style="color:#64748b;line-height:1.4">Visit to UN House concluded${p.outAt?` at <b>${new Date(p.outAt).toLocaleTimeString(dateLoc(),{hour:'2-digit',minute:'2-digit'})}</b>`:""}.</div>
+            <div style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;color:#475569;margin-top:2px">
+              🏷️ Lanyard tag returned &amp; physical ID retrieved
+            </div>
+            <div class="small mono" style="color:#94a3b8;font-size:11.5px;margin-top:4px">⏹️ Live timer stopped · Pass inactive</div>
+          </div>
+        `:`<div class="vp-msg">${expired?T.expMsg:T.badMsg}</div>`}
+        ${p.members?`<div class="vp-dl">${p.members.map(x=>`<div><span>${esc(x.name)}</span><span class="small">${esc((T.st[x.status])||x.status)}${x.tag?" · "+esc(x.tag):""}</span></div>`).join("")}</div>`:""}
+        <dl class="vp-dl"><div><dt>${T.host}</dt><dd>${esc(p.host)}${p.agency?" · "+esc(p.agency):""}</dd></div>
+        <div><dt>${T.date}</dt><dd>${new Date(p.expected).toLocaleDateString(dateLoc(), {weekday:"short",day:"numeric",month:"short"})} · ${new Date(p.expected).toLocaleTimeString(dateLoc(), {hour:"2-digit",minute:"2-digit"})}</dd></div>
+        ${p.room?`<div><dt>${T.room}</dt><dd>${esc(p.room)}</dd></div>`:""}${p.type==="vip"&&p.vehicle?`<div><dt>VIP Motorcade</dt><dd class="mono">${esc(p.vehicle)}</dd></div>`:""}${p.tag?`<div><dt>${T.tag}</dt><dd class="mono" style="font-weight:700;color:${col.primary}">🏷️ ${esc(p.tag)}${done?" (Returned)":""}</dd></div>`:""}
+        ${done&&p.outAt?`<div><dt>Departed</dt><dd class="mono">${new Date(p.outAt).toLocaleTimeString(dateLoc(),{hour:'2-digit',minute:'2-digit'})}</dd></div>`:""}
+        <div><dt>${T.until}</dt><dd>${new Date(p.validUntil).toLocaleString(dateLoc(), {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</dd></div><div><dt>${T.ref}</dt><dd class="mono">${esc(p.ref)}</dd></div></dl>
+        ${!done?`<div class="acts" style="justify-content:center;margin:12px 0 6px"><button class="btn" id="vp_cal" type="button">📅 ${T.addCal}</button><a class="btn" href="https://www.google.com/maps/search/?api=1&query=UN+House+Diplomatic+Drive+Abuja" target="_blank" rel="noopener">📍 ${T.directions}</a></div>
+        <p class="small" style="margin:6px 0">${T.arriveNote}</p>
+        <p class="vp-foot">${T.foot}</p>`:`
+        <p class="vp-foot" style="text-align:center;color:#64748b;margin-top:10px">This digital pass has ended. For future visits, request a new invitation from your UN host.</p>
+        `}
+      </div>
     </div>`;
     wireLang(()=>draw(last));
     const calB=$("#vp_cal"); if(calB) calB.onclick=()=>downloadIcs(p);
@@ -3308,10 +3561,263 @@ function wireSettings(){
 }
 
 /* ---------- Public visitor rules page: app.html?rules ---------- */
+const RULES_I18N = {
+  en: {
+    eyebrow: "UNITED NATIONS COMMON SERVICES · ABUJA",
+    title: "Visitor Information & Security Guidelines",
+    lead: "Welcome to UN House. Please review the following guidelines to ensure a safe, secure and orderly visit.",
+    badge: "Visitor Security & Information",
+    currency: "Policy Currency: November 2026 · Rev. UNH-2026-11",
+    printBtn: "🖨️ Print Guidelines",
+    rules: [
+      { num: "01", icon: "🏷️", title: "Visitor Identification", text: "Wear the assigned colour-coded lanyard or badge visibly at all times and return it upon departure (VIP delegations exempt)." },
+      { num: "02", icon: "🚪", title: "Authorized Access", text: "Access is strictly limited to designated floors, wings, and host offices. Unescorted movement to other floors is prohibited." },
+      { num: "03", icon: "👥", title: "Host and Escort", text: "Visitors must remain with their designated host or official escort in approved common areas." },
+      { num: "04", icon: "🛡️", title: "Security Instructions", text: "Visitors must comply with instructions from the UN House Security Team (UNDSS), including emergency evacuation procedures." },
+      { num: "05", icon: "📷", title: "Photography and Recording", text: "Unauthorized photography, filming, and audio recording inside the compound and offices are strictly prohibited." },
+      { num: "06", icon: "🔒", title: "Data Protection & Privacy", text: "Visitor information is collected and processed responsibly for compound security, access management, and emergency accountability." }
+    ],
+    emTitle: "🚨 Emergency Procedures & Evacuation",
+    emText: "In the event of an alarm or evacuation directive, remain calm and follow your host officer or UNDSS Floor Warden to the designated <b>Compound Assembly Area</b> on the main lawn. Do not use elevators. Remain at the assembly point until muster roll call is completed.",
+    accTitle: "♿ Accessibility & Special Assistance",
+    accText: "UN House compound is committed to an accessible diplomatic environment. Visitors requiring mobility assistance, step-free access, or special accommodations should notify Station 1 Security at the gate or contact Common Services at Ext. 2010.",
+    privTitle: "📋 Data Handling & Privacy Notice",
+    privText: "• <b>Data Recorded:</b> Full name, organisation, Government photo ID type (inspected, not copied), host name, and arrival/departure timestamps.<br>• <b>Purpose:</b> Compound perimeter security, physical access control, and mandatory UNDSS evacuation headcounts.<br>• <b>Access & Retention:</b> Information is restricted to authorized security personnel via role-based authentication and retained only for a limited operational audit period. Records are not shared externally.",
+    ackTitle: "Visitor Onboarding Acknowledgement",
+    ackSub: "I confirm that I have reviewed and understand the UN House Visitor Guidelines, Emergency Procedures, and Privacy Notice.",
+    ackDone: "✓ Acknowledged & recorded for your visit to UN House Abuja",
+    returnBtn: "← Return to UN House Portal"
+  },
+  fr: {
+    eyebrow: "SERVICES COMMUNS DES NATIONS UNIES · ABUJA",
+    title: "Directives de sécurité et information des visiteurs",
+    lead: "Bienvenue à UN House. Veuillez prendre connaissance des directives suivantes pour un séjour sûr et sécurisé.",
+    badge: "Sécurité & Information des Visiteurs",
+    currency: "Validité de la politique : Novembre 2026 · Version UNH-2026-11",
+    printBtn: "🖨️ Imprimer les directives",
+    rules: [
+      { num: "01", icon: "🏷️", title: "Identification du visiteur", text: "Portez votre badge ou cordon couleur de manière visible en permanence et restituez-le au départ." },
+      { num: "02", icon: "🚪", title: "Accès autorisé", text: "L'accès est strictement limité aux étages et bureaux autorisés. La circulation sans escorte est interdite." },
+      { num: "03", icon: "👥", title: "Hôte et escorte", text: "Les visiteurs doivent rester accompagnés de leur hôte ou de l'escorte officielle désignée." },
+      { num: "04", icon: "🛡️", title: "Consignes de sécurité", text: "Respectez scrupuleusement les consignes de sécurité de l'équipe UNDSS et les consignes d'évacuation." },
+      { num: "05", icon: "📷", title: "Photographies et enregistrements", text: "Toute prise de vue ou enregistrement audio sans autorisation préalable est strictement interdite." },
+      { num: "06", icon: "🔒", title: "Protection des données", text: "Les données des visiteurs sont recueillies et traitées de manière responsable pour la sécurité du complexe." }
+    ],
+    emTitle: "🚨 Procédures d'urgence et évacuation",
+    emText: "En cas d'alarme ou d'ordre d'évacuation, restez calme et suivez votre hôte ou le responsable d'étage UNDSS vers le <b>Point de rassemblement</b> sur la pelouse principale. N'utilisez pas les ascenseurs.",
+    accTitle: "♿ Accessibilité et assistance",
+    accText: "UN House s'engage à offrir un cadre accessible. Les visiteurs ayant besoin d'assistance peuvent s'adresser au poste de garde ou au poste 2010.",
+    privTitle: "📋 Traitement des données et confidentialité",
+    privText: "• <b>Données enregistrées :</b> Nom complet, organisation, type de pièce d'identité officielle, hôte et heures de visite.<br>• <b>Finalité :</b> Sécurité du périmètre, gestion des accès et appel d'évacuation UNDSS.<br>• <b>Conservation :</b> Données conservées pour une durée opérationnelle limitée et protégées par des accès stricts.",
+    ackTitle: "Confirmation de prise de connaissance",
+    ackSub: "Je confirme avoir lu et compris les consignes aux visiteurs, les procédures d'urgence et l'avis de confidentialité.",
+    ackDone: "✓ Prise de connaissance enregistrée pour votre visite à UN House Abuja",
+    returnBtn: "← Retour au portail UN House"
+  },
+  es: {
+    eyebrow: "SERVICIOS COMUNES DE LAS NACIONES UNIDAS · ABUYA",
+    title: "Pautas de seguridad e información para visitantes",
+    lead: "Bienvenido a UN House. Revise las siguientes pautas para garantizar una visita segura, ordenada y protegida.",
+    badge: "Seguridad e Información para Visitantes",
+    currency: "Vigencia: Noviembre de 2026 · Versión UNH-2026-11",
+    printBtn: "🖨️ Imprimir pautas",
+    rules: [
+      { num: "01", icon: "🏷️", title: "Identificación del visitante", text: "Lleve la credencial o cordón asignado visible en todo momento y devuélvalo al salir." },
+      { num: "02", icon: "🚪", title: "Acceso autorizado", text: "El acceso está estrictamente limitado a los pisos y oficinas autorizados. Prohibido circular sin escolta." },
+      { num: "03", icon: "👥", title: "Anfitrión y escolta", text: "Los visitantes deben permanecer acompañados por su anfitrión o escolta oficial." },
+      { num: "04", icon: "🛡️", title: "Instrucciones de seguridad", text: "Cumpla todas las instrucciones del personal de seguridad de la Casa de la ONU (UNDSS)." },
+      { num: "05", icon: "📷", title: "Fotografía y grabación", text: "Queda terminantemente prohibida la fotografía o grabación no autorizada dentro del recinto." },
+      { num: "06", icon: "🔒", title: "Protección de datos", text: "Los datos de los visitantes se recopilan de manera responsable para la seguridad y control de acceso." }
+    ],
+    emTitle: "🚨 Procedimientos de emergencia y evacuación",
+    emText: "En caso de alarma, mantenga la calma y siga a su anfitrión o encargado de piso UNDSS hacia el <b>Punto de reunión del complejo</b> en el jardín principal. No utilice ascensores.",
+    accTitle: "♿ Accesibilidad y asistencia especial",
+    accText: "UN House está comprometida con la accesibilidad. Notifique en la entrada o llame a la extensión 2010 para asistencia.",
+    privTitle: "📋 Aviso de privacidad y datos",
+    privText: "• <b>Datos registrados:</b> Nombre completo, entidad, tipo de documento de identidad oficial, anfitrión y horarios.<br>• <b>Propósito:</b> Seguridad perimetral, control de accesos y pase de lista de evacuación.<br>• <b>Retención:</b> Acceso restringido a personal autorizado y retención operacional limitada.",
+    ackTitle: "Confirmación del visitante",
+    ackSub: "Confirmo que he revisado y comprendido las pautas de visitantes, emergencias y aviso de privacidad.",
+    ackDone: "✓ Confirmación registrada para su visita a UN House Abuya",
+    returnBtn: "← Volver al portal UN House"
+  },
+  ar: {
+    eyebrow: "الخدمات المشتركة للأمم المتحدة · أبوجا",
+    title: "إرشادات أمن ومعلومات الزوار",
+    lead: "مرحباً بكم في مبنى الأمم المتحدة. يُرجى مراجعة الإرشادات التالية لضمان زيارة آمنة ونظامية.",
+    badge: "أمن ومعلومات الزوار",
+    currency: "تاريخ السياسة: نوفمبر 2026 · الإصدار UNH-2026-11",
+    printBtn: "🖨️ طباعة الإرشادات",
+    rules: [
+      { num: "01", icon: "🏷️", title: "بطاقة تعريف الزائر", text: "ارتداء شارة الزائر أو الشريط الملون بوضوح طوال فترة الزيارة وإعادتها عند المغادرة." },
+      { num: "02", icon: "🚪", title: "الوصول المصرح به", text: "يقتصر الدخول حصرياً على الطوابق والمكاتب المعتمدة والمضيف المعين." },
+      { num: "03", icon: "👥", title: "المضيف والمرافقة", text: "يجب البقاء بصحبة المضيف أو المرافق المعتمد داخل المناطق المخصصة." },
+      { num: "04", icon: "🛡️", title: "تعليمات الأمن والسلامة", text: "الامتثال التام لتوجيهات فريق أمن مبنى الأمم المتحدة (UNDSS) وإجراءات الطوارئ." },
+      { num: "05", icon: "📷", title: "التصوير والتسجيل", text: "يُحظر تماماً التقاط الصور أو مقاطع الفيديو دون إذن رسمي مسبق." },
+      { num: "06", icon: "🔒", title: "حماية البيانات والخصوصية", text: "تُجمع بيانات الزوار وتُعالج بمسؤولية لضمان أمن المجمع وإدارة الدخول وحالات الطوارئ." }
+    ],
+    emTitle: "🚨 إجراءات الطوارئ والإخلاء",
+    emText: "في حال إطلاق إنذار الطوارئ، التزم بالهدوء واتبع مضيفك أو مشرف الطابق إلى <b>نقطة التجمع المحددة</b> في الحديقة الرئيسية. لا تستخدم المصاعد.",
+    accTitle: "♿ سهولة الوصول والمساعدة الخاصة",
+    accText: "يلتزم مبنى الأمم المتحدة بتوفير بيئة ميسرة لجميع الزوار. يرجى إبلاغ أمن البوابة أو الاتصال بالتحويلة 2010.",
+    privTitle: "📋 إشعار الخصوصية ومعالجة البيانات",
+    privText: "• <b>البيانات المسجلة:</b> الاسم الكامل، المؤسسة، نوع الهوية الرسمية، اسم المضيف وتوقيت الزيارة.<br>• <b>الهدف:</b> أمن المجمع والتحكم بالدخول وحصر الزوار في الطوارئ.<br>• <b>الحفظ:</b> تقتصر الصلاحية على مسؤولي الأمن ولا تتم مشاركتها خارج المنظومة.",
+    ackTitle: "إقرار الزائر والاطلاع",
+    ackSub: "أؤكد أنني اطلعت وفهمت إرشادات الزوار وإجراءات الطوارئ وإشعار الخصوصية بمبنى الأمم المتحدة.",
+    ackDone: "✓ تم تسجيل الإقرار لزيارتكم إلى مبنى الأمم المتحدة بأبوجا",
+    returnBtn: "← العودة إلى بوابة مبنى الأمم المتحدة"
+  },
+  zh: {
+    eyebrow: "联合国驻阿布贾共同服务处",
+    title: "访客须知与安全指引",
+    lead: "欢迎莅临联合国大楼。请审阅以下安全指引，确保您的访问安全、有序与顺利。",
+    badge: "访客安全与须知指引",
+    currency: "政策版本：2026年11月 · 内部核定版 UNH-2026-11",
+    printBtn: "🖨️ 打印指引",
+    rules: [
+      { num: "01", icon: "🏷️", title: "访客身份识别", text: "全程佩戴指定的彩色挂绳或访客证件，离场时请将证件归还（贵宾代表团除外）。" },
+      { num: "02", icon: "🚪", title: "授权区域通行", text: "出入权限严格限定于授权楼层及接待人员办公室，禁止私自前往非授权楼层。" },
+      { num: "03", icon: "👥", title: "接待与陪同", text: "访客在指定区域内必须全程由指定接待人员或联合国官方陪同人员带领。" },
+      { num: "04", icon: "🛡️", title: "安全守则指令", text: "必须服从联合国大楼安全团队（UNDSS）的所有安保指示及突发应急疏散指令。" },
+      { num: "05", icon: "📷", title: "严禁摄影录音", text: "严禁在联合国办公区及安保防线内部未经授权进行任何拍照、摄像或录音。" },
+      { num: "06", icon: "🔒", title: "数据保护与隐私", text: "收集访客信息仅用于大楼安保、通行核验及应急人员清点，并严格遵循数据保护原则。" }
+    ],
+    emTitle: "🚨 应急疏散与处置程序",
+    emText: "若遇紧急警报或疏散通知，请保持冷静，听从接待人员或UNDSS楼层安全协调员指引，前往主草坪上的<b>指定安全集结点</b>。切勿使用电梯。",
+    accTitle: "♿ 无障碍通道与特别协助",
+    accText: "联合国大楼致力于营造无障碍便利环境。如需轮椅无障碍通行或特别协助，请在1号门告知安保人员或致电分机 2010。",
+    privTitle: "📋 数据处理与隐私说明",
+    privText: "• <b>登记信息：</b> 访客全名、所属机构、政府有效身份证件类型、接待人姓名及出入时间戳。<br>• <b>使用目的：</b> 园区安保防卫、物理门禁核验与应急突发事件点名核查。<br>• <b>访问与保存：</b> 严格实行分级授权访问，仅在有限运营期内归档，严禁对外共享。",
+    ackTitle: "访客已知悉确认",
+    ackSub: "我已阅读并理解联合国阿布贾大楼访客安全指引、紧急处置程序与数据保护通知。",
+    ackDone: "✓ 已完成确认并记录于您的阿布贾联合国大楼访问档案中",
+    returnBtn: "← 返回联合国大楼门户"
+  },
+  ru: {
+    eyebrow: "ОБЩИЕ СЛУЖБЫ ОРГАНИЗАЦИИ ОБЪЕДИНЕННЫХ НАЦИЙ · АБУДЖА",
+    title: "Правила безопасности и информация для посетителей",
+    lead: "Добро пожаловать в Дом ООН. Ознакомьтесь с правилами безопасности для обеспечения безопасного и организованного визита.",
+    badge: "Безопасность и информация для посетителей",
+    currency: "Редакция регламента: ноябрь 2026 г. · Версия UNH-2026-11",
+    printBtn: "🖨️ Распечатать правила",
+    rules: [
+      { num: "01", icon: "🏷️", title: "Идентификация посетителя", text: "Постоянно носите выданный бейдж или ленту на видном месте и верните при выходе." },
+      { num: "02", icon: "🚪", title: "Санкционированный доступ", text: "Доступ строго ограничен указанным этажом и офисом принимающей стороны." },
+      { num: "03", icon: "👥", title: "Сопровождение", text: "Посетители должны постоянно находиться в сопровождении принимающего сотрудника." },
+      { num: "04", icon: "🛡️", title: "Инструкции по безопасности", text: "Выполняйте все указания службы безопасности ООН (UNDSS) и инструкции при эвакуации." },
+      { num: "05", icon: "📷", title: "Фото- и видеосъемка", text: "Несанкционированная фото-, видео- и аудиозапись на территории строго запрещена." },
+      { num: "06", icon: "🔒", title: "Защита персональных данных", text: "Сведения о посетителях обрабатываются исключительно в целях обеспечения безопасности." }
+    ],
+    emTitle: "🚨 Действия при чрезвычайных ситуациях",
+    emText: "При сигнале тревоги сохраняйте спокойствие и следуйте за сопровождающим сотрудником к <b>Главному пункту сбора</b> на газоне. Не пользуйтесь лифтами.",
+    accTitle: "♿ Доступная среда и помощь",
+    accText: "Дом ООН обеспечивает безбарьерную среду. Для получения помощи обратитесь на пост 1 или по добавочному номеру 2010.",
+    privTitle: "📋 Обработка данных и конфиденциальность",
+    privText: "• <b>Регистрируемые данные:</b> ФИО, организация, тип удостоверения, принимающее лицо и отметки времени.<br>• <b>Цель:</b> Безопасность периметра, контроль доступа и поименная перекличка при ЧС.<br>• <b>Хранение:</b> Доступ строго разграничен, срок хранения ограничен операционным аудитом.",
+    ackTitle: "Подтверждение ознакомления",
+    ackSub: "Подтверждаю ознакомление с правилами посещения, действиями при ЧС и политикой конфиденциальности.",
+    ackDone: "✓ Ознакомление зарегистрировано для вашего визита в Дом ООН в Абудже",
+    returnBtn: "← Вернуться на главный портал"
+  }
+};
+
 function showRules(){
-  const draw=()=>{$("#main").innerHTML=`${langSwitch()}<div class="panel" style="max-width:620px;width:100%;margin:12px auto"><h1>${LANG==="fr"?"Règles de visite et confidentialité":"Visitor rules and privacy notice"}</h1>
-    <p class="sub">${esc(siteOf(currentSite).name)} · ${LANG==="fr"?"version":"version"} <span class="mono">${esc(AGREEMENT.version)}</span></p>
-    <ol style="line-height:1.6;margin:14px 0 0;padding-left:20px;display:grid;gap:8px">${AGREEMENT[LANG].map(x=>`<li>${esc(x)}</li>`).join("")}</ol></div>`; wireLang(draw);};
+  const draw=()=>{
+    const info = RULES_I18N[LANG] || RULES_I18N.en;
+    const isAck = (()=>{try{return localStorage.getItem("un_rules_acknowledged")==="1"}catch(e){return false}})();
+    const isRtl = LANG==="ar";
+
+    $("#main").innerHTML = `${langSwitch()}
+    <div class="rules-wrap" ${isRtl?'dir="rtl"':''}>
+      <div class="rules-hero">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap">
+          <div>
+            <span class="eyebrow" style="margin-bottom:10px">${esc(info.eyebrow)}</span>
+            <h1 style="font-size:clamp(24px,3.5vw,34px);line-height:1.15;margin:10px 0 8px;color:var(--navy);letter-spacing:-.5px">${esc(info.title)}</h1>
+            <p class="lead" style="margin:0 0 14px;color:var(--muted);font-size:15px;line-height:1.55">${esc(info.lead)}</p>
+          </div>
+          <button type="button" class="btn" onclick="window.print()" style="font-size:12.5px;padding:8px 16px;border:1px solid var(--line);background:var(--surface2);display:inline-flex;align-items:center;gap:6px">
+            ${esc(info.printBtn)}
+          </button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap">
+          <span class="pill" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;font-weight:700;font-size:11px">${esc(info.badge)}</span>
+          <span class="small mono" style="color:var(--muted);font-size:11.5px">${esc(info.currency)}</span>
+        </div>
+      </div>
+
+      <!-- 6 Rule Cards -->
+      <div class="rules-grid">
+        ${info.rules.map(r=>`
+          <article class="rule-card">
+            <div class="rule-icon">${r.icon}</div>
+            <div>
+              <div class="rule-num">${esc(r.num)}</div>
+              <div class="rule-title">${esc(r.title)}</div>
+              <p class="rule-text">${esc(r.text)}</p>
+            </div>
+          </article>
+        `).join("")}
+      </div>
+
+      <!-- Emergency Procedures Card -->
+      <div class="info-box" style="border-left:4px solid #ef4444;background:var(--surface)">
+        <div style="display:flex;align-items:center;gap:10px;font-weight:750;font-size:14.5px;color:var(--navy);margin-bottom:6px">
+          <span>${info.emTitle}</span>
+        </div>
+        <div class="small" style="color:var(--muted);line-height:1.55">${info.emText}</div>
+      </div>
+
+      <!-- Accessibility Card -->
+      <div class="info-box" style="border-left:4px solid #0284c7;background:var(--surface)">
+        <div style="display:flex;align-items:center;gap:10px;font-weight:750;font-size:14.5px;color:var(--navy);margin-bottom:6px">
+          <span>${info.accTitle}</span>
+        </div>
+        <div class="small" style="color:var(--muted);line-height:1.55">${info.accText}</div>
+      </div>
+
+      <!-- Separate Privacy & Data Handling Card -->
+      <div class="info-box" style="border-left:4px solid #10b981;background:var(--surface)">
+        <div style="display:flex;align-items:center;gap:10px;font-weight:750;font-size:14.5px;color:var(--navy);margin-bottom:8px">
+          <span>${info.privTitle}</span>
+        </div>
+        <div class="small" style="color:var(--muted);line-height:1.6">${info.privText}</div>
+      </div>
+
+      <!-- Visitor Onboarding Acknowledgement Box -->
+      <div class="ack-box">
+        <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer">
+          <input type="checkbox" id="chkRulesAck" style="width:20px;height:20px;margin-top:2px;cursor:pointer" ${isAck?"checked":""}>
+          <div>
+            <div style="font-weight:750;font-size:14px;color:#14532d">${esc(info.ackTitle)}</div>
+            <div class="small" style="color:#166534;margin-top:3px;line-height:1.45">${esc(info.ackSub)}</div>
+          </div>
+        </label>
+        <div id="ackNotice" style="margin-top:10px;font-size:12.5px;color:#15803d;font-weight:700;display:${isAck?"block":"none"}">
+          ${esc(info.ackDone)}
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;gap:12px">
+        <a href="index.html" class="btn" style="border:1.5px solid var(--line);background:var(--surface);font-size:13px;padding:9px 18px;color:var(--blue);font-weight:700;text-decoration:none">
+          ${esc(info.returnBtn)}
+        </a>
+        <span class="small mono" style="color:var(--muted)">UN House Diplomatic Compound · Abuja</span>
+      </div>
+    </div>`;
+
+    wireLang(draw);
+
+    const chk = $("#chkRulesAck");
+    if(chk){
+      chk.onchange = () => {
+        try{localStorage.setItem("un_rules_acknowledged", chk.checked ? "1" : "0")}catch(e){}
+        const n = $("#ackNotice");
+        if(n) n.style.display = chk.checked ? "block" : "none";
+        if(chk.checked) toast("Guidelines acknowledged. Thank you for ensuring compound safety.");
+      };
+    }
+  };
   draw();
 }
 

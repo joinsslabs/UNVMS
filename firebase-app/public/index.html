@@ -81,14 +81,19 @@ section{padding:78px 0}
 .commit-list h3{margin:0 0 16px;font-size:17px;letter-spacing:.01em}
 .commit-list li{list-style:none;margin:12px 0;color:#e5efff;font-size:13.5px;display:flex;align-items:flex-start;gap:10px;line-height:1.45}
 .commit-list li svg{flex-shrink:0;margin-top:2px;color:#4ade80}
-footer{background:white;border-top:1px solid var(--line);padding:28px 0}
-.footer-row{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
-.footer-brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--navy);font-size:14px}
-.footer-brand img{height:32px;width:auto;display:block}
+footer{background:white;border-top:1px solid var(--line);padding:48px 0 24px}
+.footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:36px;margin-bottom:32px}
+.footer-col h4{font-size:13px;font-weight:800;color:var(--navy);margin:0 0 14px;letter-spacing:.04em;text-transform:uppercase}
+.footer-col ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.footer-col li{font-size:13px}
+.footer-col a{color:var(--muted);text-decoration:none;transition:color .15s ease}
+.footer-col a:hover{color:var(--blue);text-decoration:underline}
+.footer-brand{display:flex;align-items:center;gap:12px;font-weight:800;color:var(--navy);font-size:15px}
+.footer-brand img{height:36px;width:auto;display:block}
 .footer-brand small{display:block;color:var(--muted);font-weight:500;font-size:11.5px;margin-top:2px}
-.footer-links{display:flex;gap:22px;font-size:13px;color:var(--muted);font-weight:600}
-.footer-links a{transition:color .15s ease}.footer-links a:hover{color:var(--blue)}
-.tagline{font-size:12.5px;font-weight:750;color:var(--blue);letter-spacing:.02em}
+.footer-bottom{border-top:1px solid var(--line);padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.tagline{font-size:12px;font-weight:750;color:var(--blue);letter-spacing:.02em}
+@media(max-width:768px){.footer-grid{grid-template-columns:1fr;gap:24px}}
 
 @media(max-width:960px){
   .navlinks{display:none}
@@ -409,22 +414,48 @@ footer{background:white;border-top:1px solid var(--line);padding:28px 0}
 </main>
 
 <footer>
-  <div class="container footer-row">
-    <div class="footer-brand">
-      <img src="un-emblem.svg" alt="United Nations">
-      <div>
-        <span>UN House Abuja</span>
-        <small>Common Services · Security · Inter-Agency Coordination</small>
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-col-main">
+        <div class="footer-brand">
+          <img src="un-emblem.svg" alt="United Nations">
+          <div>
+            <span>UN House Abuja</span>
+            <small>Common Services · Security · Inter-Agency Coordination</small>
+          </div>
+        </div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.55;margin:12px 0 14px;max-width:380px">
+          Multi-agency visitor registration, access control and emergency accountability for the United Nations diplomatic compound in Abuja, Nigeria.
+        </p>
+        <div style="font-size:12px;color:var(--navy);font-weight:600">
+          📍 Plot 617/618 Diplomatic Drive, Central Business District, Abuja
+        </div>
+      </div>
+      <div class="footer-col">
+        <h4>Compound Access</h4>
+        <ul>
+          <li><a href="app.html">Operations Console</a></li>
+          <li><a href="app.html?view=gate">Station 1 · Gate Reception</a></li>
+          <li><a href="app.html?view=tagging">Station 2 · Documentation &amp; ID</a></li>
+          <li><a href="app.html?view=reception">Station 3 · Main Reception</a></li>
+          <li><a href="app.html?view=vip">Station 4 · VIP Diplomatic Gate</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Security &amp; Guidelines</h4>
+        <ul>
+          <li><a href="app.html?rules">Visitor Information &amp; Guidelines</a></li>
+          <li><a href="app.html?demo">Guided Protocol Demo</a></li>
+          <li><a href="login.html">Staff &amp; Officer Sign-In</a></li>
+          <li><span style="color:var(--muted)">UNDSS Control Desk: Ext. 2030</span></li>
+          <li><span style="color:var(--muted)">Common Services: Ext. 2010</span></li>
+        </ul>
       </div>
     </div>
-    <nav class="footer-links">
-      <a href="app.html">Operations Console</a>
-      <a href="app.html?demo">Guided Protocol Demo</a>
-      <a href="app.html?rules">Security Rules</a>
-      <a href="#how">How It Works</a>
-      <a href="mailto:unhouse-security@un.org">ICT &amp; Security Helpdesk</a>
-    </nav>
-    <div class="tagline">Together for a safer UN House</div>
+    <div class="footer-bottom">
+      <div>© 2026 United Nations Common Services · UN House Abuja. Supporting 16 resident UN agencies in Nigeria.</div>
+      <div class="tagline">Built with Security and Data Protection Principles in Mind</div>
+    </div>
   </div>
 </footer>
 </body>
