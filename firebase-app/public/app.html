@@ -6169,9 +6169,10 @@ function promptHostCall(v){
     <div style="background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px;margin:12px 0;display:grid;gap:6px;font-size:13px">
       <div><b>Host:</b> ${esc(v.host)} (${esc(v.agency)})</div>
       <div><b>Office / Room:</b> ${esc(v.room||"Main UN House Building")}</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-top:4px">
+      <div style="display:flex;align-items:center;gap:10px;margin-top:4px;flex-wrap:wrap">
         <span><b>UN House Desk Phone:</b></span>
-        <b class="mono" style="font-size:20px;color:#0284c7;background:#e0f2fe;padding:2px 10px;border-radius:6px;border:1px solid #bae6fd">Ext. ${esc(ext)}</b>
+        <b class="mono" style="font-size:18px;color:#0284c7;background:#e0f2fe;padding:2px 10px;border-radius:6px;border:1px solid #bae6fd">Ext. ${esc(ext)}</b>
+        ${hostPhone ? `<span style="margin-left:8px;font-size:13px;color:#475569"><b>Mobile / WhatsApp:</b> <a href="tel:${esc(hostPhone.replace(/\s/g,''))}" style="color:#0284c7;font-weight:700;text-decoration:none">${esc(hostPhone)}</a></span>` : ''}
       </div>
     </div>
     <p class="small" style="color:var(--text)">Pick up the Station 3 reception desk phone and dial <b>${esc(ext)}</b>. Because email notifications might not be answered immediately, phone contact ensures the host comes down to receive their visitor.</p>
@@ -6521,17 +6522,18 @@ V.reception=()=>{
       const isDel = v.type === "delivery";
       const waText = `🚨 UN HOUSE ABUJA SECURITY ALERT:\n\nDear ${v.host} (${v.agency}),\n${isDel ? `Official Courier Delivery has arrived from *${v.name}* (${v.org || 'Courier Dispatch'}). Inward parcels X-Ray screened by UNDSS at Gate 1 (Tag: *${v.tag || 'D-Tag'}*).\n\nUnder UN House protocol, courier requires designated escort for recipient handover.` : `Your visitor *${v.name}* (${v.org || 'Official Guest'}) has arrived at Station 3 Internal Reception (Tag: *${v.tag || 'V-Tag'}*).\nApproved Destination: ${v.building || 'Main Building'} - ${v.room || (v.agency + ' Wing')}.\n\nPlease come down to the reception lobby or send your designated escort.`}`;
       const cleanWaPhone = hostPhone ? hostPhone.replace(/[^0-9]/g, "") : "";
-      const waBtn = `<a class="btn" href="https://wa.me/${cleanWaPhone}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener" title="WhatsApp alert to ${hostPhone}" style="padding:2px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px">💬 WhatsApp</a>`;
-      const extChip = `<span class="mono" style="background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700;border:1px solid #bae6fd" title="Desk Intercom Extension">Ext. ${esc(ext)}</span>`;
+      const waBtn = `<a class="btn" href="https://wa.me/${cleanWaPhone}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener" title="WhatsApp alert to ${hostPhone}" style="height:28px;padding:0 9px;font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:4px;white-space:nowrap;background:#f0fdf4;border:1px solid #86efac;color:#166534">💬 WhatsApp</a>`;
+      const extChip = `<span class="mono" style="background:#f1f5f9;color:#0369a1;padding:0 7px;height:26px;border-radius:5px;font-size:11px;font-weight:700;border:1px solid #cbd5e1;display:inline-flex;align-items:center;white-space:nowrap" title="Host Desk Intercom">Ext. ${esc(ext)}</span>`;
       
-      let notifBtn = "";
+      let notifEl = "";
       if(v.hostNotified){
         const isAuto = v.hostAutoNotified;
-        notifBtn = `<span class="pill" style="background:#ecfdf5;color:#065f46;font-weight:700;font-size:11px;border:1px solid #a7f3d0" title="${esc(v.hostNotifiedNote||'Host notified via ' + (v.hostNotifiedVia||'automated alert'))}">✓ ${isAuto?'Auto-Notified':'Host Contacted'} (${fmtT(v.hostNotified)})</span> ${extChip} <button class="btn small" data-act="notify" data-id="${esc(v.id)}" title="Manual intercom/phone call to host" style="padding:2px 7px;font-size:10.5px">📞 Call</button>`;
+        notifEl = `<span class="pill" style="background:#ecfdf5;color:#065f46;font-weight:700;font-size:11px;border:1px solid #a7f3d0;height:26px;display:inline-flex;align-items:center;padding:0 8px;white-space:nowrap" title="${esc(v.hostNotifiedNote||'Host notified via ' + (v.hostNotifiedVia||'automated alert'))}">✓ Notified ${isAuto?'(Auto)':''}</span>`;
       } else {
-        notifBtn = `<button class="btn pri" data-act="notify" data-id="${esc(v.id)}" style="background:#dc2626;border-color:#dc2626;font-weight:700;padding:2px 9px;font-size:11.5px" title="Host not automatically notified. Receptionist must call host manually.">📞 Call Host (${esc(hostPhone || 'Ext ' + ext)})</button> ${extChip}`;
+        notifEl = `<button class="btn" data-act="notify" data-id="${esc(v.id)}" style="--ic:none;height:28px;padding:0 10px;font-size:11.5px;font-weight:600;background:#f8fafc;border:1px solid #94a3b8;color:#1e3a8a;border-radius:6px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap" title="Call host ${esc(v.host)}: ${esc(hostPhone)} · Intercom Ext. ${esc(ext)}">📞 Notify Host</button>`;
       }
-      return notifBtn + waBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "pri");
+      const checkinBtn = B(v.id, "checkin", v.type === "vip" ? "Receive VIP" : "Check in", "pri");
+      return `<div style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex-wrap:nowrap;justify-content:flex-end">${extChip}${notifEl}${waBtn}${checkinBtn}</div>`;
     }, "Nobody is currently waiting for host.")}
     </div>
   </div>
