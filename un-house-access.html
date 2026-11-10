@@ -971,7 +971,7 @@ main{gap:20px}
       <option value="S2">Station 2 · Documentation &amp; ID (Computer 2)</option>
       <option value="S3">Station 3 · Main Reception (Computer 3)</option>
       <option value="S4">Station 4 · VIP Gate (Tablet 1)</option>
-      <option value="REG">Mail Room / UN Registry (Station R)</option>
+      
     </select></div>
   <div class="f" style="gap:2px"><label for="operator">Operator</label>
     <select id="operator">
@@ -980,7 +980,7 @@ main{gap:20px}
       <option>Station 2 Documentation Officer C. Okonkwo</option>
       <option>Station 3 Receptionist N. Okafor</option>
       <option>VIP Protocol Officer</option>
-      <option>Mail Room Officer</option>
+      
     </select></div>
   </div>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
@@ -1049,21 +1049,19 @@ const ROLES={
   docs:"Station 2 · Documentation & ID",
   reception:"Station 3 · Main Reception",
   vip:"Station 4 · VIP Diplomatic Gate",
-  registry:"Mail Room Officer (UN Registry)",
   host:"UN Staff Host / Agency Officer",
   pending:"Awaiting role"
 };
 const ROLE_STATION={gate:"S1",sec_admin:"S1",sec_deputy:"S1",docs:"S2",reception:"S3",vip:"S4",registry:"REG",host:"S3"};
 const ROLE_VIEWS={
-  admin:["dashboard","clearance","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  sec_admin:["clearance","dashboard","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  sec_deputy:["clearance","dashboard","muster","gate","tagging","reception","vip","registry","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
-  gate:["gate","registry","contractors","register","watch","history"],
-  docs:["tagging","registry","contractors","register","history"],
-  reception:["reception","registry","kiosk","register","history"],
+  admin:["dashboard","clearance","muster","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_admin:["clearance","dashboard","muster","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  sec_deputy:["clearance","dashboard","muster","gate","tagging","reception","vip","contractors","assets","kiosk","register","watch","reports","history","assistant","settings","staff"],
+  gate:["gate","contractors","register","watch","history"],
+  docs:["tagging","contractors","register","history"],
+  reception:["reception","kiosk","register","history"],
   vip:["vip","register","history"],
-  registry:["registry","dashboard","history"],
-  host:["register","registry","dashboard","history"]
+  host:["register","dashboard","history"]
 };
 const ACT_ROLES={
   reply:["admin","sec_admin","sec_deputy"],
@@ -1675,7 +1673,6 @@ const VIEWS=[
   ["tagging","Station 2 · Documentation","Stations",'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/>'],
   ["reception","Station 3 · Reception","Stations",'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/>'],
   ["vip","Station 4 · VIP Gate","Stations",'<polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/>'],
-  ["registry","UN Registry & Mail","Stations",'<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>'],
   ["assets","Material Gate Pass","Stations",'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>'],
   ["kiosk","Kiosk","Stations",'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>'],
   ["register","Register & Invite","Access & Guests",'<path d="M12 5v14M5 12h14"/>'],
@@ -1701,7 +1698,6 @@ function renderNav(){
   };
   c.staff=staffList.filter(s=>s.role==="pending").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
-  c.registry=(deliveries||[]).filter(d=>d.status!=="delivered"||d.securityStatus==="pending").length;
   c.muster=visitors.filter(v=>["in","tagged"].includes(v.status)||(v.type==="vip"&&["arrived","in"].includes(v.status))).length;
   let lastSec="";
   $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
@@ -5874,7 +5870,31 @@ function regForm(walkin){
    <div class="f"><label for="r_org">Organisation</label><input id="r_org"></div>
    <div class="f"><label for="r_vemail">Visitor email (for their digital pass)</label><input id="r_vemail" type="email"></div>
    <div class="f"><label for="r_phone">Phone</label><input id="r_phone" inputmode="tel"></div>
-   <div class="f"><label for="r_type">Visitor type</label><select id="r_type"><option value="visitor">Visitor (Official Meeting / Guest)</option><option value="delivery">📦 Courier / Mail &amp; Dispatch Delivery</option><option value="vip">VIP</option><option value="contractor">Contractor &amp; Service Staff</option></select></div>
+   <div class="f"><label for="r_type">Visitor type</label><select id="r_type">
+     <option value="visitor">Visitor (Meeting / Delegation / Guest)</option>
+     <option value="delivery">📦 Courier / Mail &amp; Package Delivery (Unscheduled)</option>
+     <option value="vip">VIP Delegation</option>
+     <option value="contractor">Contractor &amp; Facilities Staff</option>
+   </select></div>
+   <!-- Mandatory Mail / Package Security Screening Box -->
+   <div id="f_mail_screening" style="grid-column:1/-1;background:#f0fdf4;border:1.5px solid #86efac;padding:14px 16px;border-radius:10px;margin-top:6px;display:none">
+     <div style="display:flex;align-items:center;gap:8px;font-weight:750;color:#166534;font-size:13.5px">
+       📦 Mandatory Inward Mail / Package Security Screening (Station 1)
+     </div>
+     <p class="small" style="margin:4px 0 10px;color:#14532d;line-height:1.45">
+       <b>Security Protocol:</b> Inward letters, diplomatic pouches, and parcels carried by couriers or dispatch riders <b>must be physically X-Ray scanned and security cleared (Smiths Detection HI-SCAN 6040)</b> before proceeding to the Registry or recipient agency.
+     </p>
+     <div style="display:flex;align-items:center;gap:10px">
+       <input id="r_mail_scanned" type="checkbox" style="width:auto;transform:scale(1.25);cursor:pointer">
+       <label for="r_mail_scanned" style="margin:0;font-weight:700;color:#15803d;cursor:pointer">
+         ✓ Inward mail / parcel has been X-Ray scanned &amp; security cleared before registry handover
+       </label>
+     </div>
+     <div class="f" style="margin-top:10px">
+       <label for="r_mail_details" class="small" style="font-weight:600;color:#14532d">Mail / Parcel Details &amp; Target Registry / Agency</label>
+       <input id="r_mail_details" placeholder="e.g. 1 sealed envelope / DHL Express carton for UN Registry" style="background:#fff">
+     </div>
+   </div>
    <div class="f"><label for="r_host">Host (staff member)</label><input id="r_host" required></div>
    <div class="f"><label for="r_host_ext">Host desk extension (optional)</label><input id="r_host_ext" placeholder="e.g. 5100 or 2104"></div>
    <div class="f"><label for="r_hostEmail">Host email (for arrival alerts)</label><input id="r_hostEmail" type="email" value="${esc(fb&&me&&me.role==="host"?me.email:"")}"></div>
@@ -8109,6 +8129,21 @@ function wire(){
   if(btnDocsExit) btnDocsExit.onclick = doDocsExit;
 
   const f=$("#reg"); if(f) f.onsubmit=e=>{e.preventDefault();register()};
+  const rTypeEl=$("#r_type");
+  if(rTypeEl){
+    const syncDelBox=()=>{
+      const isD = rTypeEl.value === "delivery";
+      const scrBox = $("#f_mail_screening");
+      if(scrBox) scrBox.style.display = isD ? "block" : "none";
+      if(isD){
+        if($("#r_purpose") && !$("#r_purpose").value) $("#r_purpose").value = "Official Mail / Package Delivery to Registry";
+        if($("#r_org") && !$("#r_org").value) $("#r_org").value = "Courier / Dispatch Delivery";
+        if($("#r_host") && !$("#r_host").value) $("#r_host").value = "Central Registry / Mailroom";
+      }
+    };
+    rTypeEl.onchange = syncDelBox;
+    syncDelBox();
+  }
   const c=$("#csv"); if(c){ c.onchange=bulk; renderBulk(); }
   const ce=$("#clearEx"); if(ce) ce.onclick=clearExamples;
   const le=$("#loadEx"); if(le) le.onclick=()=>loadExamples(false);
@@ -8325,6 +8360,11 @@ async function register(){
   const isWalkin = Boolean($("#r_phone_cleared"));
   const isDelivery = type === "delivery";
   const isUnscheduled = isWalkin || isDelivery;
+  const mailScanned = $("#r_mail_scanned") ? $("#r_mail_scanned").checked : false;
+  const mailDetails = $("#r_mail_details") ? $("#r_mail_details").value.trim() : "";
+  if (isDelivery && !mailScanned) {
+    return toast("⚠️ Mandatory Security Check: Inward mail and packages must be physically X-Ray scanned before proceeding to the registry.");
+  }
   const phoneCleared = ($("#r_phone_cleared") && $("#r_phone_cleared").checked) || isDelivery;
   const isVip = type === "vip";
   const hostNote = $("#r_host_note") ? $("#r_host_note").value.trim() : "";
@@ -8351,6 +8391,10 @@ async function register(){
     room: g("r_room"),
     vehicle: (type === "vip" && $("#r_vehicle")) ? g("r_vehicle").toUpperCase() : "",
     purpose: g("r_purpose") || (isDelivery ? "Official Mail / Package Delivery" : ""),
+    mailScanned: isDelivery ? mailScanned : false,
+    mailDetails: isDelivery ? mailDetails : "",
+    mailScreenedAt: isDelivery && mailScanned ? now() : null,
+    mailScreenedBy: isDelivery && mailScanned ? (op() + " (Station 1 Smiths HI-SCAN 6040)") : "",
     ...($("#r_agree").checked ? { agreedAt: now(), agreement: AGREEMENT.version } : {}),
     restricted,
     escort,
