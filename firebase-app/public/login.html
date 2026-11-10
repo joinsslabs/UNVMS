@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Staff Login · UN House Visitor Management System · Abuja</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta name="theme-color" content="#0056a8">
+<style>
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#0f172a;background:#ffffff;min-height:100vh}
+
+.login-layout{
+  display:flex;
+  min-height:100vh;
+  width:100%;
+}
+
+.un-hero {
+    flex: 1;
+    min-height: 100vh;
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    padding: 70px 8%;
+
+    color: white;
+
+    background: linear-gradient(
+        135deg,
+        #0056a8 0%,
+        #008ed6 50%,
+        #00a6e3 100%
+    );
+
+    background-size: cover;
+    background-position: center;
+}
+
+.un-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 20% 20%,rgba(255,255,255,0.15),transparent 60%),
+             radial-gradient(circle at 80% 80%,rgba(0,0,0,0.12),transparent 60%);
+  pointer-events:none;
+}
+
+.un-hero-content{
+  position:relative;
+  z-index:2;
+  max-width:540px;
+}
+
+.un-hero-brand{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin-bottom:28px;
+}
+
+.un-hero-brand img{
+  height:54px;
+  width:auto;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.18));
+}
+
+.un-hero-brand-text{
+  font-size:12px;
+  font-weight:750;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,0.9);
+  line-height:1.35;
+}
+
+.un-hero h1{
+  font-size:clamp(30px,3.4vw,42px);
+  font-weight:800;
+  line-height:1.12;
+  margin:0 0 16px;
+  letter-spacing:-.8px;
+  color:#ffffff;
+}
+
+.un-hero p.lead{
+  font-size:16px;
+  line-height:1.6;
+  color:rgba(255,255,255,0.92);
+  margin:0 0 32px;
+}
+
+.un-hero-highlights{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-bottom:36px;
+}
+
+.un-hero-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:13.5px;
+  font-weight:600;
+  color:rgba(255,255,255,0.95);
+}
+
+.un-hero-item span.icon{
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.18);
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+  font-size:15px;
+  backdrop-filter:blur(4px);
+}
+
+.un-hero-foot{
+  font-size:12px;
+  color:rgba(255,255,255,0.75);
+  margin-top:auto;
+  padding-top:28px;
+  border-top:1px solid rgba(255,255,255,0.22);
+}
+
+/* Right Side: Form Panel */
+.login-panel{
+  flex:1;
+  max-width:540px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  padding:48px 32px;
+  background:#f8fafc;
+  position:relative;
+}
+
+.login-card{
+  width:100%;
+  max-width:420px;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+  padding:32px 28px;
+  box-shadow:0 12px 32px -6px rgba(15,23,42,0.08);
+}
+
+.login-header{
+  margin-bottom:20px;
+}
+
+.login-pill{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11px;
+  font-weight:750;
+  color:#0369a1;
+  background:#e0f2fe;
+  padding:4px 10px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+
+.login-header h2{
+  font-size:22px;
+  font-weight:800;
+  color:#0f172a;
+  margin:0 0 6px;
+  letter-spacing:-.4px;
+}
+
+.login-header p{
+  font-size:13.5px;
+  color:#64748b;
+  margin:0;
+  line-height:1.5;
+}
+
+/* Tab Switcher */
+.auth-tabs{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  background:#f1f5f9;
+  padding:4px;
+  border-radius:10px;
+  margin-bottom:22px;
+}
+
+.auth-tab{
+  height:34px;
+  font-size:12.5px;
+  font-weight:700;
+  border:none;
+  background:transparent;
+  color:#475569;
+  border-radius:7px;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+
+.auth-tab.active{
+  background:#0284c7;
+  color:#ffffff;
+  box-shadow:0 2px 6px rgba(2,132,199,0.25);
+}
+
+.f-group{
+  margin-bottom:16px;
+}
+
+.f-group label{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  color:#1e293b;
+  margin-bottom:6px;
+}
+
+.f-group input{
+  width:100%;
+  height:42px;
+  padding:0 14px;
+  font-size:14px;
+  border:1.5px solid #cbd5e1;
+  border-radius:9px;
+  outline:none;
+  transition:border-color .15s ease,box-shadow .15s ease;
+  font-family:inherit;
+}
+
+.f-group input:focus{
+  border-color:#0284c7;
+  box-shadow:0 0 0 3px rgba(2,132,199,0.18);
+}
+
+.btn-submit{
+  width:100%;
+  height:44px;
+  border:none;
+  border-radius:9px;
+  background:linear-gradient(135deg,#0056a8 0%,#0284c7 100%);
+  color:#ffffff;
+  font-size:14px;
+  font-weight:750;
+  cursor:pointer;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+  box-shadow:0 4px 14px rgba(2,132,199,0.3);
+  margin-top:6px;
+}
+
+.btn-submit:hover{
+  transform:translateY(-1px);
+  box-shadow:0 6px 18px rgba(2,132,199,0.4);
+}
+
+.btn-submit:disabled{
+  opacity:0.6;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.auth-err{
+  color:#dc2626;
+  font-size:12px;
+  font-weight:600;
+  margin-top:8px;
+  min-height:16px;
+}
+
+.auth-return{
+  margin-top:22px;
+  padding-top:16px;
+  border-top:1px solid #e2e8f0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:12.5px;
+}
+
+.auth-return a{
+  color:#0284c7;
+  text-decoration:none;
+  font-weight:650;
+}
+
+.auth-return a:hover{
+  text-decoration:underline;
+}
+
+@media(max-width:960px){
+  .login-layout{
+    flex-direction:column;
+  }
+  .un-hero{
+    min-height:auto;
+    padding:48px 24px 40px;
+  }
+  .login-panel{
+    max-width:100%;
+    min-height:auto;
+    padding:36px 20px 48px;
+  }
+}
+</style>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="firebase-config.js"></script>
+</head>
+<body>
+
+<div class="login-layout">
+  <!-- Left Side: .un-hero -->
+  <aside class="un-hero">
+    <div class="un-hero-content">
+      <div class="un-hero-brand">
+        <img src="un-emblem.svg" alt="United Nations">
+        <div class="un-hero-brand-text">
+          United Nations Common Services · Abuja<br>
+          Department of Safety and Security
+        </div>
+      </div>
+
+      <h1>UN House Visitor<br>Management System</h1>
+      <p class="lead">
+        Authorized staff portal for compound access verification, physical ID custody, diplomatic protocol clearance, and live station operations.
+      </p>
+
+      <div class="un-hero-highlights">
+        <div class="un-hero-item">
+          <span class="icon">🛡️</span>
+          <span>UNDSS Security Level 2 · Authorized Staff &amp; Officers</span>
+        </div>
+        <div class="un-hero-item">
+          <span class="icon">🏛️</span>
+          <span>Plot 617/618 Diplomatic Drive, Central Area, Abuja</span>
+        </div>
+        <div class="un-hero-item">
+          <span class="icon">📋</span>
+          <span>4-Station Physical ID &amp; Visual Pass Architecture</span>
+        </div>
+        <div class="un-hero-item">
+          <span class="icon">⚡</span>
+          <span>Real-Time Host Notifications &amp; Evacuation Muster</span>
+        </div>
+      </div>
+
+      <div class="un-hero-foot">
+        UN BOS 2.0 Framework · In-Person Inspection · ST/SGB/2004/15 Compliant
+      </div>
+    </div>
+  </aside>
+
+  <!-- Right Side: Form Panel -->
+  <main class="login-panel">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-pill">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Staff &amp; Station Authentication
+        </div>
+        <h2 id="login_title">Passwordless Sign-In</h2>
+        <p id="login_sub">Enter your official UN email address to receive a secure instant authentication link.</p>
+      </div>
+
+      <!-- Auth Mode Switcher -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tab_ml">✉️ Magic Link</button>
+        <button type="button" class="auth-tab" id="tab_pw">🔑 Password</button>
+      </div>
+
+      <!-- Magic Link Form -->
+      <form id="form_ml">
+        <div class="f-group">
+          <label for="ml_email">Work Email Address *</label>
+          <input type="email" id="ml_email" required autocomplete="username" placeholder="name@un.org / name@undp.org" autofocus>
+        </div>
+        <div class="f-group">
+          <label for="ml_name">Official Full Name <span style="font-weight:400;color:#64748b">(first-time registration)</span></label>
+          <input type="text" id="ml_name" autocomplete="name" placeholder="e.g. Dr. Amina Bello">
+        </div>
+        <div class="auth-err" id="ml_err"></div>
+        <button type="submit" class="btn-submit" id="ml_submit">✉️ Send Secure Sign-In Link</button>
+      </form>
+
+      <!-- Password Form (Initially Hidden) -->
+      <form id="form_pw" style="display:none">
+        <div class="f-group" id="pw_name_group" style="display:none">
+          <label for="pw_name">Official Full Name *</label>
+          <input type="text" id="pw_name" autocomplete="name" placeholder="e.g. Tunde Balogun">
+        </div>
+        <div class="f-group">
+          <label for="pw_email">Work Email Address *</label>
+          <input type="email" id="pw_email" required autocomplete="username" placeholder="name@un.org">
+        </div>
+        <div class="f-group">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+            <label for="pw_pass" style="margin:0">Password *</label>
+            <a href="#" id="pw_reset" style="font-size:11.5px;color:#0284c7;text-decoration:none;font-weight:600">Forgot password?</a>
+          </div>
+          <input type="password" id="pw_pass" required minlength="8" autocomplete="current-password" placeholder="Minimum 8 characters">
+        </div>
+        <div class="auth-err" id="pw_err"></div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button type="submit" class="btn-submit" id="pw_submit" style="flex:1">Sign In to Station</button>
+          <button type="button" id="pw_toggle_mode" style="height:44px;padding:0 14px;border:1.5px solid #cbd5e1;border-radius:9px;background:#f8fafc;color:#334155;font-weight:650;font-size:12.5px;cursor:pointer">Register</button>
+        </div>
+      </form>
+
+      <!-- Return Footer -->
+      <div class="auth-return">
+        <a href="index.html">← Return to Public Portal</a>
+        <a href="app.html?demo" style="color:#64748b;font-weight:600">Guided Demo</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function(){
+  // Initialize Firebase
+  if (typeof firebase !== 'undefined' && window.FIREBASE_CONFIG && !firebase.apps.length) {
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+  }
+
+  const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
+
+  // If already authenticated, redirect to app.html
+  if (auth) {
+    auth.onAuthStateChanged(function(u){
+      if (u) {
+        var dest = "app.html" + location.search;
+        location.replace(dest);
+      }
+    });
+
+    // Check for email link sign-in
+    if (auth.isSignInWithEmailLink(location.href)) {
+      var savedEmail = window.localStorage.getItem('emailForSignIn') || window.sessionStorage.getItem('linkEmail');
+      if (!savedEmail) {
+        savedEmail = window.prompt('Please provide your UN work email address for confirmation:');
+      }
+      if (savedEmail) {
+        auth.signInWithEmailLink(savedEmail, location.href)
+          .then(function(){
+            window.localStorage.removeItem('emailForSignIn');
+            location.replace("app.html" + location.search);
+          })
+          .catch(function(err){
+            document.getElementById('ml_err').textContent = err.message || "Sign-in link expired or invalid.";
+          });
+      }
+    }
+  }
+
+  // Tab Switching
+  var tabMl = document.getElementById('tab_ml');
+  var tabPw = document.getElementById('tab_pw');
+  var formMl = document.getElementById('form_ml');
+  var formPw = document.getElementById('form_pw');
+  var title = document.getElementById('login_title');
+  var sub = document.getElementById('login_sub');
+  var isRegisterMode = false;
+
+  tabMl.addEventListener('click', function(){
+    tabMl.classList.add('active');
+    tabPw.classList.remove('active');
+    formMl.style.display = 'block';
+    formPw.style.display = 'none';
+    title.textContent = 'Passwordless Sign-In';
+    sub.textContent = 'Enter your official UN email address to receive a secure instant authentication link.';
+  });
+
+  tabPw.addEventListener('click', function(){
+    tabPw.classList.add('active');
+    tabMl.classList.remove('active');
+    formMl.style.display = 'none';
+    formPw.style.display = 'block';
+    updatePwMode();
+  });
+
+  var toggleBtn = document.getElementById('pw_toggle_mode');
+  toggleBtn.addEventListener('click', function(){
+    isRegisterMode = !isRegisterMode;
+    updatePwMode();
+  });
+
+  function updatePwMode(){
+    var nameGroup = document.getElementById('pw_name_group');
+    var pwSubmit = document.getElementById('pw_submit');
+    var pwPass = document.getElementById('pw_pass');
+    if (isRegisterMode) {
+      nameGroup.style.display = 'block';
+      title.textContent = 'Create Staff Account';
+      sub.textContent = 'Register with your UN work credentials. Station roles must be confirmed by Security Administration.';
+      pwSubmit.textContent = 'Create Account';
+      toggleBtn.textContent = 'Have Account';
+      pwPass.setAttribute('autocomplete', 'new-password');
+    } else {
+      nameGroup.style.display = 'none';
+      title.textContent = 'Staff Password Sign-In';
+      sub.textContent = 'Enter your registered staff credentials to access your designated station.';
+      pwSubmit.textContent = 'Sign In to Station';
+      toggleBtn.textContent = 'Register';
+      pwPass.setAttribute('autocomplete', 'current-password');
+    }
+  }
+
+  // Magic Link Submit
+  formMl.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = document.getElementById('ml_email').value.trim();
+    var name = document.getElementById('ml_name').value.trim();
+    var errEl = document.getElementById('ml_err');
+    var btn = document.getElementById('ml_submit');
+    errEl.textContent = '';
+    btn.disabled = true;
+
+    if (!auth) {
+      errEl.textContent = 'Authentication service initializing. Please refresh.';
+      btn.disabled = false;
+      return;
+    }
+
+    var actionCodeSettings = {
+      url: location.origin + '/login.html',
+      handleCodeInApp: true
+    };
+
+    auth.sendSignInLinkToEmail(email, actionCodeSettings)
+      .then(function(){
+        window.localStorage.setItem('emailForSignIn', email);
+        if (name) window.localStorage.setItem('pendingName', name);
+        formMl.innerHTML = '<div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:16px;border-radius:10px;color:#166534;font-size:13.5px;line-height:1.5;margin:12px 0">' +
+          '<strong>✉️ Check your inbox!</strong><br>' +
+          'A secure one-time authentication link has been dispatched to <b>' + email + '</b>.<br>' +
+          '<small style="color:#15803d;display:block;margin-top:8px">Valid for 15 minutes. Check your junk folder if it does not appear promptly.</small>' +
+          '</div>' +
+          '<div style="text-align:center;margin-top:14px"><a href="login.html" style="font-size:12.5px;color:#0284c7;font-weight:700;text-decoration:none">← Send another link</a></div>';
+      })
+      .catch(function(err){
+        btn.disabled = false;
+        errEl.textContent = err.message || 'Error sending link. Please try again.';
+      });
+  });
+
+  // Password Submit
+  formPw.addEventListener('submit', function(e){
+    e.preventDefault();
+    var email = document.getElementById('pw_email').value.trim();
+    var pass = document.getElementById('pw_pass').value;
+    var name = document.getElementById('pw_name').value.trim();
+    var errEl = document.getElementById('pw_err');
+    var btn = document.getElementById('pw_submit');
+    errEl.textContent = '';
+    btn.disabled = true;
+
+    if (!auth) {
+      errEl.textContent = 'Authentication service initializing.';
+      btn.disabled = false;
+      return;
+    }
+
+    if (isRegisterMode) {
+      auth.createUserWithEmailAndPassword(email, pass)
+        .then(function(cred){
+          if (name && cred.user) {
+            return cred.user.updateProfile({ displayName: name });
+          }
+        })
+        .then(function(){
+          location.replace("app.html" + location.search);
+        })
+        .catch(function(err){
+          btn.disabled = false;
+          errEl.textContent = err.message || 'Error registering account.';
+        });
+    } else {
+      auth.signInWithEmailAndPassword(email, pass)
+        .then(function(){
+          location.replace("app.html" + location.search);
+        })
+        .catch(function(err){
+          btn.disabled = false;
+          errEl.textContent = err.message || 'Invalid email or password.';
+        });
+    }
+  });
+
+  // Password Reset
+  document.getElementById('pw_reset').addEventListener('click', function(e){
+    e.preventDefault();
+    var email = document.getElementById('pw_email').value.trim() || window.prompt('Enter your registered UN email address:');
+    if (email && auth) {
+      auth.sendPasswordResetEmail(email)
+        .then(function(){
+          alert('Password reset link sent to ' + email + '. Check your inbox.');
+        })
+        .catch(function(err){
+          alert(err.message || 'Error sending password reset email.');
+        });
+    }
+  });
+})();
+</script>
+</body>
+</html>
