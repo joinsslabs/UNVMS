@@ -1008,8 +1008,7 @@ main{gap:20px}
   </div>
   <div class="sync"><span class="dot" id="dot"></span><span id="syncTxt">Connecting…</span></div>
   <button class="tbtn" id="soundBtn" type="button" title="Toggle sound &amp; notification alerts" aria-label="Toggle sound alerts"></button>
-  <button class="tbtn" id="themeBtn" type="button" title="Toggle light or dark theme" aria-label="Toggle theme"></button>
-</header>
+  </header>
 <div class="wrap">
   <nav id="nav"></nav>
   <main id="main"></main>
@@ -1615,10 +1614,12 @@ const contractorExpiring=v=>v.type==="contractor"&&v.accessTo&&!contractorExpire
 const notArrived=v=>v.status==="approved"&&v.expected&&(now()>v.expected)&&!v.arrivedAt;
 const late=v=>notArrived(v);
 
-/* ---------- Station 1 Available Tag Stock Management ---------- */
+/* ---------- Station 1 Available Tag Stock Management (5 Categories) ---------- */
 const DEFAULT_GATE_TAGS = [
   ...Array.from({length:50}, (_,i)=>`V-${String(i+1).padStart(3,"0")}`),
-  ...Array.from({length:20}, (_,i)=>`C-${String(i+1).padStart(3,"0")}`)
+  ...Array.from({length:20}, (_,i)=>`D-${String(i+1).padStart(3,"0")}`),
+  ...Array.from({length:20}, (_,i)=>`C-${String(i+1).padStart(3,"0")}`),
+  ...Array.from({length:15}, (_,i)=>`P-${String(i+1).padStart(3,"0")}`)
 ];
 function loadGateTagStock(){
   try{
@@ -1632,8 +1633,29 @@ function saveGateTagStock(stock){
 }
 let gateTagStock = loadGateTagStock();
 
-function getAvailableTags(type="visitor"){
-  const pre = type==="contractor"?"C":"V";
+function tagPrefixFor(vOrType){
+  if(!vOrType) return "V";
+  if(typeof vOrType === "object"){
+    const t = (vOrType.type || "").toLowerCase();
+    const c = (vOrType.category || "").toLowerCase();
+    const p = (vOrType.purpose || "").toLowerCase();
+    if(t === "vip") return "VIP";
+    if(t === "contractor" || c === "contractor") return "C";
+    if(t === "delivery" || c === "delivery" || c === "registry" || c === "mail" || p.includes("courier") || p.includes("delivery") || p.includes("registry") || p.includes("pouch") || p.includes("mail")) return "D";
+    if(t === "protocol" || t === "group" || c === "protocol" || p.includes("protocol") || p.includes("delegation") || p.includes("diplomatic")) return "P";
+    return "V";
+  }
+  const s = String(vOrType).toLowerCase();
+  if(s === "c" || s.startsWith("contract")) return "C";
+  if(s === "d" || s.startsWith("deliver") || s.startsWith("courier") || s.startsWith("regist") || s.startsWith("mail")) return "D";
+  if(s === "p" || s.startsWith("protocol")) return "P";
+  if(s === "vip") return "VIP";
+  return "V";
+}
+
+function getAvailableTags(vOrType="visitor"){
+  const pre = tagPrefixFor(vOrType);
+  if(pre === "VIP") return ["VIP-PASS"];
   const used = new Set(
     visitors
       .filter(x => (x.tag || x.assignedTag) && ["arrived", "tagged", "in"].includes(x.status))
@@ -1642,10 +1664,11 @@ function getAvailableTags(type="visitor"){
   return gateTagStock.filter(t => t.startsWith(pre + "-") && !used.has(t));
 }
 
-function nextAvailableTag(type="visitor"){
-  const avail = getAvailableTags(type);
+function nextAvailableTag(vOrType="visitor"){
+  const pre = tagPrefixFor(vOrType);
+  if(pre === "VIP") return "VIP-PASS";
+  const avail = getAvailableTags(vOrType);
   if (avail.length > 0) return avail[0];
-  const pre = type==="contractor"?"C":"V";
   const used = new Set(
     visitors
       .filter(x => (x.tag || x.assignedTag) && ["arrived", "tagged", "in"].includes(x.status))
@@ -2281,7 +2304,7 @@ function getPassColor(p){
   
   if (type === "vip") return "slate";
   if (type === "contractor" || cat === "contractor") return "teal";
-  if (type === "delivery" || cat === "registry" || cat === "mail" || purpose.includes("courier") || purpose.includes("registry") || purpose.includes("pouch") || purpose.includes("mail")) return "green";
+  if (type === "delivery" || cat === "delivery" || cat === "registry" || cat === "mail" || purpose.includes("courier") || purpose.includes("delivery") || purpose.includes("registry") || purpose.includes("pouch") || purpose.includes("mail")) return "green";
   if (type === "protocol" || type === "group" || cat === "protocol" || purpose.includes("protocol") || purpose.includes("delegation") || purpose.includes("diplomatic")) return "purple";
   return "blue";
 }
@@ -2292,61 +2315,96 @@ function getPassColorMeta(colorKey){
       key: "blue",
       name: "General Visitor",
       passName: "Blue Pass",
+      lanyardText: "VISITOR",
+      badgeCategory: "General Visitor",
+      scope: "Access limited strictly to approved floor, wing & conference room.",
       primary: "#0875df",
-      headerBg: "linear-gradient(135deg, #0284c7 0%, #0875df 100%)",
+      headerBg: "linear-gradient(135deg, #1681ee 0%, #0875df 100%)",
       lightBg: "#f0f7ff",
       border: "#bae6fd",
-      pillBg: "#e0f2fe",
-      pillColor: "#0369a1",
-      lanyardBg: "#0875df"
+      pillBg: "#dbeafe",
+      pillColor: "#1e40af",
+      lanyardBg: "#0875df",
+      tagPrefix: "V",
+      tagBg: "#dbeafe",
+      tagColor: "#1e40af",
+      tagBorder: "#bfdbfe"
     },
     green: {
       key: "green",
-      name: "Registry Visitor",
+      name: "Courier & Delivery",
       passName: "Green Pass",
+      lanyardText: "DELIVERY",
+      badgeCategory: "Courier & Delivery",
+      scope: "Official correspondence & parcels. X-Ray screened at gate intake before recipient handover.",
       primary: "#059669",
       headerBg: "linear-gradient(135deg, #059669 0%, #047857 100%)",
       lightBg: "#f0fdf4",
       border: "#bbf7d0",
       pillBg: "#dcfce7",
-      pillColor: "#15803d",
-      lanyardBg: "#059669"
+      pillColor: "#166534",
+      lanyardBg: "#059669",
+      tagPrefix: "D",
+      tagBg: "#dcfce7",
+      tagColor: "#166534",
+      tagBorder: "#bbf7d0"
     },
     teal: {
       key: "teal",
-      name: "Contractor Pass",
+      name: "Contractor",
       passName: "Teal Pass",
+      lanyardText: "CONTRACTOR",
+      badgeCategory: "Contractor",
+      scope: "Facilities & IT vendors. Work-order restricted with escort bounds.",
       primary: "#0d9488",
-      headerBg: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)",
+      headerBg: "linear-gradient(135deg, #0f766e 0%, #0d9488 100%)",
       lightBg: "#f0fdfa",
       border: "#99f6e4",
       pillBg: "#ccfbf1",
-      pillColor: "#115e59",
-      lanyardBg: "#0d9488"
+      pillColor: "#0f766e",
+      lanyardBg: "#0d9488",
+      tagPrefix: "C",
+      tagBg: "#ccfbf1",
+      tagColor: "#0f766e",
+      tagBorder: "#99f6e4"
     },
     purple: {
       key: "purple",
       name: "Protocol Visitor",
       passName: "Purple Pass",
+      lanyardText: "PROTOCOL",
+      badgeCategory: "Protocol Visitor",
+      scope: "Official diplomatic engagements handled via designated protocol escort.",
       primary: "#7c3aed",
       headerBg: "linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)",
       lightBg: "#faf5ff",
       border: "#e9d5ff",
       pillBg: "#f3e8ff",
       pillColor: "#6b21a8",
-      lanyardBg: "#7c3aed"
+      lanyardBg: "#7c3aed",
+      tagPrefix: "P",
+      tagBg: "#f3e8ff",
+      tagColor: "#6b21a8",
+      tagBorder: "#e9d5ff"
     },
     slate: {
       key: "slate",
       name: "VIP Protocol Pass",
-      passName: "Diplomatic Pass",
-      primary: "#d97706",
-      headerBg: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+      passName: "VIP Protocol Pass",
+      lanyardText: "VIP PASS",
+      badgeCategory: "VIP Protocol Pass",
+      scope: "Ambassadors & Heads of Mission. Discreet credentials with protocol escort.",
+      primary: "#1e3a8a",
+      headerBg: "linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%)",
       lightBg: "#f8fafc",
-      border: "#fde68a",
-      pillBg: "#fef3c7",
-      pillColor: "#92400e",
-      lanyardBg: "#0f172a"
+      border: "#cbd5e1",
+      pillBg: "#e0e7ff",
+      pillColor: "#1e3a8a",
+      lanyardBg: "#1e3a8a",
+      tagPrefix: "VIP",
+      tagBg: "#e0e7ff",
+      tagColor: "#1e3a8a",
+      tagBorder: "#c7d2fe"
     }
   };
   return meta[colorKey] || meta.blue;
@@ -2372,7 +2430,17 @@ async function openPass(v){
       <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
           <div><div class="vp-name" style="font-size:20px">${esc(v.name)}</div><div class="vp-org" style="margin-top:0;font-size:13px">${esc(v.org||"")}</div></div>
-          <span class="vpass-color-pill" style="background:${col.pillBg};color:${col.pillColor};border-color:${col.border}">${col.passName}</span>
+          <span class="vpass-color-pill" style="background:${col.pillBg};color:${col.pillColor};border-color:${col.border};font-weight:800">${col.lanyardText}</span>
+        </div>
+        <!-- Category & Lanyard Security Scope -->
+        <div style="background:${col.lightBg};border:1.5px solid ${col.border};border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px">
+          <div style="background:${col.primary};color:#ffffff;font-size:11px;font-weight:900;letter-spacing:0.04em;padding:4px 10px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 4px ${col.primary}33">
+            ${col.lanyardText}
+          </div>
+          <div style="line-height:1.35">
+            <div style="font-size:11.5px;font-weight:800;color:${col.primary}">${col.name}</div>
+            <div style="font-size:11px;color:var(--navy)">${col.scope}</div>
+          </div>
         </div>
         ${v.type==="vip"?`<div style="background:#e0ecff;color:#1e40af;border:1px solid #bfdbfe;border-radius:8px;padding:6px 10px;font-size:11.5px;font-weight:600;margin-top:2px">⭐ Diplomatic Protocol · Auto Check-in active at all gates &amp; kiosks. Proceed directly without tagging queue.</div>`:""}
         ${isOut ? `
@@ -2389,7 +2457,15 @@ async function openPass(v){
           <div style="padding-top:4px;font-size:13px"><dt>Host</dt><dd>${esc(v.host)}${v.agency?" · "+esc(v.agency):""}</dd></div>
           ${v.room?`<div style="padding-top:4px;font-size:13px"><dt>Room</dt><dd>${esc(v.room)}</dd></div>`:""}
           ${v.type==="vip"&&v.vehicle?`<div style="padding-top:4px;font-size:13px"><dt>VIP Motorcade</dt><dd class="mono">${esc(v.vehicle)}</dd></div>`:""}
-          ${(v.tag||v.assignedTag)?`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="font-weight:700;color:${col.primary}">🏷️ ${esc(v.tag||v.assignedTag)}${isOut?" (Returned)":""}</dd></div>`:`<div style="padding-top:4px;font-size:13px"><dt>Tag</dt><dd class="mono" style="color:var(--muted)">Assigned upon Station 1 Approval</dd></div>`}
+          ${(v.tag||v.assignedTag||v.type==="vip") ? `
+            <div style="padding-top:4px;font-size:13px">
+              <dt>Physical Tag</dt>
+              <dd>
+                ${v.type==="vip"?`<span class="mono" style="font-weight:800;background:#e0e7ff;color:#1e3a8a;border:1px solid #c7d2fe;padding:2px 8px;border-radius:6px;display:inline-block">⭐ VIP PASS (Protocol Escort)</span>`:
+                `<span class="mono" style="font-weight:800;background:${col.tagBg};color:${col.tagColor};border:1px solid ${col.tagBorder};padding:2px 8px;border-radius:6px;display:inline-block">🏷️ ${esc(v.tag||v.assignedTag)}${isOut?" (Returned)":""}</span> <span style="font-size:11px;font-weight:700;color:${col.primary}">[${col.lanyardText} Lanyard]</span>`}
+              </dd>
+            </div>
+          ` : `<div style="padding-top:4px;font-size:13px"><dt>Physical Tag</dt><dd class="mono" style="color:var(--muted)">Assigned upon Station 1 Entry (${col.tagPrefix}-Series · ${col.lanyardText})</dd></div>`}
           ${isOut&&v.outAt?`<div style="padding-top:4px;font-size:13px"><dt>Departed</dt><dd class="mono">${fmtT(v.outAt)}</dd></div>`:""}
           <div style="padding-top:4px;font-size:13px"><dt>Valid until</dt><dd>${fmtD(p.validUntil)}</dd></div>
           <div style="padding-top:4px;font-size:13px"><dt>Reference</dt><dd class="mono">${esc(v.ref)}</dd></div>
@@ -2526,8 +2602,31 @@ async function printTagSheet(){
   const pre=$("#ts_pre").value, from=Math.max(1,+$("#ts_from").value||1), to=Math.min(from+199,+$("#ts_to").value||from);
   if(to<from) return toast("The last number must be the same as or after the first.");
   try{await loadScript(QRLIB)}catch(e){return toast("Could not load the QR code tool.")}
-  const kind={V:"Visitor",C:"Contractor",P:"VIP"}[pre], cards=[];
-  for(let n=from;n<=to;n++){const t=`${pre}-${String(n).padStart(3,"0")}`;cards.push(`<div class="tcard"><div class="tc-h"><span>UN House Abuja</span><span>${kind}</span></div><div class="tc-b"><div class="tc-n">${t}</div><img src="${await qrDataUrl("UNHTAG:"+t,140)}" alt=""></div><div style="font-size:7.5px;font-weight:700;letter-spacing:.03em;color:#0369a1;background:#f0f9ff;border-radius:3px;padding:2px 4px;margin:2px 0;text-align:center">AUTHORIZED DESTINATION ONLY · ACCESS TO OTHER FLOORS PROHIBITED</div><div class="tc-f">Ref: ${t} · UN Common Services · Return on exit</div></div>`)}
+  const kindMeta = {
+    V: { name: "General Visitor", lanyard: "VISITOR", color: "#0875df", bg: "#f0f7ff", border: "#bae6fd", scope: "ACCESS LIMITED STRICTLY TO APPROVED FLOOR, WING & CONFERENCE ROOM" },
+    D: { name: "Courier & Delivery", lanyard: "DELIVERY", color: "#059669", bg: "#f0fdf4", border: "#bbf7d0", scope: "OFFICIAL CORRESPONDENCE & PARCELS · X-RAY SCREENED AT GATE INTAKE" },
+    C: { name: "Contractor", lanyard: "CONTRACTOR", color: "#0d9488", bg: "#f0fdfa", border: "#99f6e4", scope: "FACILITIES & IT VENDORS · WORK-ORDER RESTRICTED WITH ESCORT BOUNDS" },
+    P: { name: "Protocol Visitor", lanyard: "PROTOCOL", color: "#7c3aed", bg: "#faf5ff", border: "#e9d5ff", scope: "OFFICIAL DIPLOMATIC ENGAGEMENTS · DESIGNATED PROTOCOL ESCORT" }
+  };
+  const km = kindMeta[pre] || kindMeta.V;
+  const cards=[];
+  for(let n=from;n<=to;n++){
+    const t=`${pre}-${String(n).padStart(3,"0")}`;
+    cards.push(`<div class="tcard" style="border-top:6px solid ${km.color}">
+      <div class="tc-h">
+        <span>UN House Abuja</span>
+        <span style="font-weight:800;color:${km.color}">${km.lanyard}</span>
+      </div>
+      <div class="tc-b">
+        <div class="tc-n" style="color:${km.color}">${t}</div>
+        <img src="${await qrDataUrl("UNHTAG:"+t,140)}" alt="">
+      </div>
+      <div style="font-size:7.5px;font-weight:800;letter-spacing:.02em;color:${km.color};background:${km.bg};border:1px solid ${km.border};border-radius:3px;padding:3px 4px;margin:2px 0;text-align:center">
+        ${km.scope}
+      </div>
+      <div class="tc-f">Ref: ${t} · ${km.name} · Return on exit</div>
+    </div>`);
+  }
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   p.innerHTML=`<div class="tsheet">${cards.join("")}</div>`;
   document.body.classList.add("print-sheet"); setTimeout(()=>{window.print();setTimeout(()=>document.body.classList.remove("print-sheet"),500)},120);
@@ -2538,7 +2637,14 @@ function tagSheetPanel(){return `<details class="panel" style="padding:14px 20px
   </summary>
   <p class="small" style="margin:8px 0 0">Print a sheet of numbered tags to cut out and laminate. Each tag has a QR code: scanning it finds who is holding that tag.</p>
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
-   <div class="f"><label for="ts_pre" class="small"><b>Type</b></label><select id="ts_pre"><option value="V">Visitor (V-)</option><option value="C">Contractor (C-)</option><option value="P">VIP (P-)</option></select></div>
+   <div class="f"><label for="ts_pre" class="small"><b>Category &amp; Lanyard Type</b></label>
+     <select id="ts_pre">
+       <option value="V">🟦 General Visitor (V- · Lanyard: VISITOR)</option>
+       <option value="D">🟩 Courier &amp; Delivery (D- · Lanyard: DELIVERY)</option>
+       <option value="C">🩵 Contractor (C- · Lanyard: CONTRACTOR)</option>
+       <option value="P">🟪 Protocol Visitor (P- · Lanyard: PROTOCOL)</option>
+     </select>
+   </div>
    <div class="f"><label for="ts_from" class="small"><b>From #</b></label><input id="ts_from" type="number" min="1" value="1" style="width:110px"></div>
    <div class="f"><label for="ts_to" class="small"><b>To #</b></label><input id="ts_to" type="number" min="1" value="50" style="width:110px"></div>
    <button class="btn pri" id="ts_go">Print tag sheet</button></div></details>`}
@@ -3602,7 +3708,18 @@ function showPass(code){
             <div class="vp-name">${esc(p.name)}</div>
             <div class="vp-org" style="margin-top:2px">${p.members?`${T.groupPass} · ${p.members.length} ${T.people}`:esc(p.org)}</div>
           </div>
-          <span class="vpass-color-pill">🏷️ ${col.passName}</span>
+          <span class="vpass-color-pill">🏷️ ${col.lanyardText}</span>
+        </div>
+
+        <!-- Official Category Badge & Scope -->
+        <div style="background:${col.lightBg};border:1.5px solid ${col.border};border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px;margin:8px 0">
+          <div style="background:${col.primary};color:#ffffff;font-size:11.5px;font-weight:900;letter-spacing:0.06em;padding:5px 12px;border-radius:6px;box-shadow:0 2px 6px ${col.primary}33;text-align:center;white-space:nowrap">
+            ${col.lanyardText}
+          </div>
+          <div style="line-height:1.35">
+            <div style="font-size:12.5px;font-weight:800;color:${col.primary};letter-spacing:0.02em">${col.name}</div>
+            <div style="font-size:11.5px;color:var(--navy);margin-top:2px">${col.scope}</div>
+          </div>
         </div>
         ${ok?`<div class="vp-qr" style="border:2px solid ${col.border};box-shadow:0 6px 18px ${col.primary}22"><img id="vpq" alt="QR"></div><div class="vp-clock"><i style="background:${col.primary}"></i><span id="vpc"></span></div>`:done?`
           <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:20px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;margin:8px 0">
@@ -3618,7 +3735,21 @@ function showPass(code){
         ${p.members?`<div class="vp-dl">${p.members.map(x=>`<div><span>${esc(x.name)}</span><span class="small">${esc((T.st[x.status])||x.status)}${x.tag?" · "+esc(x.tag):""}</span></div>`).join("")}</div>`:""}
         <dl class="vp-dl"><div><dt>${T.host}</dt><dd>${esc(p.host)}${p.agency?" · "+esc(p.agency):""}</dd></div>
         <div><dt>${T.date}</dt><dd>${new Date(p.expected).toLocaleDateString(dateLoc(), {weekday:"short",day:"numeric",month:"short"})} · ${new Date(p.expected).toLocaleTimeString(dateLoc(), {hour:"2-digit",minute:"2-digit"})}</dd></div>
-        ${p.room?`<div><dt>${T.room}</dt><dd>${esc(p.room)}</dd></div>`:""}${p.type==="vip"&&p.vehicle?`<div><dt>VIP Motorcade</dt><dd class="mono">${esc(p.vehicle)}</dd></div>`:""}${p.tag?`<div><dt>${T.tag}</dt><dd class="mono" style="font-weight:700;color:${col.primary}">🏷️ ${esc(p.tag)}${done?" (Returned)":""}</dd></div>`:""}
+        ${p.room?`<div><dt>${T.room}</dt><dd>${esc(p.room)}</dd></div>`:""}${p.type==="vip"&&p.vehicle?`<div><dt>VIP Motorcade</dt><dd class="mono">${esc(p.vehicle)}</dd></div>`:""}
+        ${(p.tag||p.type==="vip") ? `
+          <div>
+            <dt>${T.tag}</dt>
+            <dd>
+              ${p.type==="vip"?`<span class="mono" style="font-weight:800;background:#e0e7ff;color:#1e3a8a;border:1px solid #c7d2fe;padding:2px 8px;border-radius:6px;display:inline-block">⭐ VIP PASS (Protocol Escort)</span>`:
+              `<span class="mono" style="font-weight:800;background:${col.tagBg};color:${col.tagColor};border:1px solid ${col.tagBorder};padding:2px 8px;border-radius:6px;display:inline-block">🏷️ ${esc(p.tag)}${done?" (Returned)":""}</span> <span style="font-size:11px;font-weight:700;color:${col.primary}">[${col.lanyardText} Lanyard]</span>`}
+            </dd>
+          </div>
+        ` : `
+          <div>
+            <dt>${T.tag}</dt>
+            <dd class="mono" style="color:var(--muted);font-size:12px">Assigned at Station 1 Gate Entry (${col.tagPrefix}-Series · ${col.lanyardText})</dd>
+          </div>
+        `}
         ${done&&p.outAt?`<div><dt>Departed</dt><dd class="mono">${new Date(p.outAt).toLocaleTimeString(dateLoc(),{hour:'2-digit',minute:'2-digit'})}</dd></div>`:""}
         <div><dt>${T.until}</dt><dd>${new Date(p.validUntil).toLocaleString(dateLoc(), {day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</dd></div><div><dt>${T.ref}</dt><dd class="mono">${esc(p.ref)}</dd></div></dl>
         ${!done?`<div class="acts" style="justify-content:center;margin:12px 0 6px"><button class="btn" id="vp_cal" type="button">📅 ${T.addCal}</button><a class="btn" href="https://www.google.com/maps/search/?api=1&query=UN+House+Diplomatic+Drive+Abuja" target="_blank" rel="noopener">📍 ${T.directions}</a></div>
@@ -4353,7 +4484,9 @@ function demoData(){
   for(let k=0;k<6;k++) v.push(mk({status:"approved",expected:t9+k*30*60e3,visitorEmail:"guest"+k+"@example.org",requestedByUid:k<2?ME:"x",}));
   v.push(mk({name:"H.E. Ambassador L. Haugen",org:"Royal Norwegian Embassy",type:"vip",host:"Resident Coordinator",agency:"Common Services",status:"in",decidedBy:"Supervisor F. Adeyemi",decidedAt:y9+6*h,expected:t9+1*h,arrivedAt:t9+1.05*h,inAt:t9+1.05*h,purpose:"Courtesy call",room:"RC Office",vehicle:"CD-29-01"}));
   v.push(mk({name:"H.E. High Commissioner A. Touré",org:"ECOWAS Diplomatic Mission",type:"vip",host:"Resident Coordinator",agency:"Common Services",status:"approved",decidedBy:"Supervisor F. Adeyemi",decidedAt:y9+6.5*h,expected:t9+2.5*h,purpose:"Bilateral security briefing",room:"RC Office",vehicle:"CD-14-08"}));
-  v.push(mk({name:"Chidi Eze",org:"Julius Facilities Ltd",type:"contractor",host:"Facilities Unit",agency:"Common Services",status:"in",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-3*864e5+11*h,expected:t9,arrivedAt:t9+2*60e3,inAt:t9+8*60e3,tag:"C-003",escort:true,accessFrom:t0-3*864e5,accessTo:t0+864e5,building:"Annex A",room:"HVAC Plant Room 2",purpose:"Air conditioning compressor replacement",items:[{d:"Toolbox",out:false},{d:"Drill, Bosch",out:false}]}));
+  v.push(mk({name:"Chidi Eze",org:"Julius Facilities Ltd",type:"contractor",host:"Facilities Unit",agency:"Common Services",status:"in",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-3*864e5+11*h,expected:t9,arrivedAt:t9+2*60e3,inAt:t9+8*60e3,tag:"C-003",assignedTag:"C-003",escort:true,accessFrom:t0-3*864e5,accessTo:t0+864e5,building:"Annex A",room:"HVAC Plant Room 2",purpose:"Air conditioning compressor replacement",items:[{d:"Toolbox",out:false},{d:"Drill, Bosch",out:false}]}));
+  v.push(mk({name:"Malam Aliyu Garba",org:"DHL Express Nigeria",type:"delivery",host:"Agency Registry / Mailroom",agency:"Common Services",status:"tagged",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-1*864e5+12*h,expected:t9+1.2*h,arrivedAt:t9+1.3*h,taggedAt:t9+1.35*h,tag:"D-001",assignedTag:"D-001",documentationCompleted:true,purpose:"Courier & Diplomatic Pouch Intake",room:"Registry Intake Counter"}));
+  v.push(mk({name:"Hon. Dr. Aminu Waziri",org:"Federal Ministry of Foreign Affairs",type:"protocol",host:"Resident Coordinator",agency:"Common Services",status:"approved",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-2*864e5+15*h,expected:t9+2.8*h,assignedTag:"P-001",purpose:"Official Bilateral Diplomatic Engagement",room:"RC Suite"}));
   v.push(mk({name:"Engr. Sunday Alabi",org:"Schneider Electric Nigeria",type:"contractor",host:"ICT & Facilities",agency:"Common Services",status:"approved",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-6*864e5+14*h,expected:t9+2*h,escort:true,accessFrom:t0-6*864e5,accessTo:t0+36*3600e3,building:"Main Building",room:"Data Center UPS & Substation",purpose:"Bi-annual UPS battery bank maintenance & diagnostic testing",items:[{d:"Fluke Power Analyzer",out:false},{d:"Insulated Toolset",out:false}]}));
   v.push(mk({name:"Umar Farouk",org:"Otis Elevator Ltd",type:"contractor",host:"Common Services Admin",agency:"Common Services",status:"out",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-14*864e5+10*h,expected:t9-24*h,escort:true,accessFrom:t0-14*864e5,accessTo:t0-864e5,building:"Main Building",room:"Lift Shaft B",purpose:"Passenger elevator hydraulic seal servicing",items:[{d:"Hydraulic Pressure Gauge",out:true},{d:"Rigging Kit",out:true}]}));
   v.push(mk({name:"Emmanuel Okeke",org:"CleanCo Environmental Services",type:"contractor",host:"Logistics Office",agency:"Common Services",status:"suspended",decidedBy:"Supervisor F. Adeyemi",decidedAt:t0-10*864e5+9*h,expected:t9+1*h,escort:false,accessFrom:t0-10*864e5,accessTo:t0+15*864e5,building:"Compound Perimeter",room:"Perimeter & Waste Yard",purpose:"Deep landscaping & chemical fumigation (Permit suspended by UNDSS due to safety non-compliance)",items:[]}));
@@ -4638,7 +4771,37 @@ function pill(v){
   return `<span class="pill p-${v.status}"${tip?` title="${esc(tip)}"`:""}>${STATUS[v.status]}</span>${v.verbalApproval?` <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:10px;padding:2px 6px" title="${esc(v.verbalApprovalNote||"Host verbal clearance on phone")}">📞 Phone Clearance</span>`:""}`;
 }
 
-function tpill(v){return (v.unscheduled?`<span class="pill p-unsch" title="Unscheduled walk-in visitor - Station 1 must confirm with host">🚶 Walk-in</span> `:v.type==="vip"?`<span class="pill t-vip">VIP</span>`:v.type==="contractor"?`<span class="pill t-contractor">Contractor &amp; Service Staff</span>`:"")+((v.escort||v.restricted)&&["tagged","in","arrived"].includes(v.status)?` <span class="pill p-pending" title="Requires staff escort while inside">Escort</span>`:"")}
+function renderTagBadge(v){
+  if(!v) return "";
+  const col = getPassColorMeta(getPassColor(v));
+  if(v.type === "vip"){
+    return `<span class="tagchip tagchip-vip" style="background:${col.tagBg};color:${col.tagColor};border:1px solid ${col.tagBorder};font-weight:800;letter-spacing:0.02em" title="VIP Protocol Pass · Lanyard: VIP PASS">⭐ VIP PASS</span>`;
+  }
+  const tagStr = v.tag || v.assignedTag;
+  if(!tagStr) return "";
+  return `<span class="tagchip" style="background:${col.tagBg};color:${col.tagColor};border:1px solid ${col.tagBorder};font-weight:750" title="${col.name} · Lanyard: ${col.lanyardText}">🏷️ ${esc(tagStr)}</span>`;
+}
+
+function tpill(v){
+  if(!v) return "";
+  const col = getPassColorMeta(getPassColor(v));
+  let badgeHtml = "";
+  if(v.type === "vip"){
+    badgeHtml = `<span class="pill" style="background:${col.pillBg};color:${col.pillColor};border:1px solid ${col.border};font-weight:750" title="VIP Protocol Pass · Lanyard: VIP PASS">⭐ VIP PASS</span>`;
+  } else if(v.type === "contractor" || (v.category||"").toLowerCase() === "contractor"){
+    badgeHtml = `<span class="pill" style="background:${col.pillBg};color:${col.pillColor};border:1px solid ${col.border};font-weight:750" title="Contractor · Lanyard: CONTRACTOR">CONTRACTOR</span>`;
+  } else if(v.type === "delivery" || (v.purpose||"").toLowerCase().includes("courier") || (v.purpose||"").toLowerCase().includes("delivery")){
+    badgeHtml = `<span class="pill" style="background:${col.pillBg};color:${col.pillColor};border:1px solid ${col.border};font-weight:750" title="Courier & Delivery · Lanyard: DELIVERY">DELIVERY</span>`;
+  } else if(v.type === "protocol" || v.type === "group" || (v.purpose||"").toLowerCase().includes("protocol") || (v.purpose||"").toLowerCase().includes("delegation")){
+    badgeHtml = `<span class="pill" style="background:${col.pillBg};color:${col.pillColor};border:1px solid ${col.border};font-weight:750" title="Protocol Visitor · Lanyard: PROTOCOL">PROTOCOL</span>`;
+  } else {
+    badgeHtml = `<span class="pill" style="background:${col.pillBg};color:${col.pillColor};border:1px solid ${col.border};font-weight:750" title="General Visitor · Lanyard: VISITOR">VISITOR</span>`;
+  }
+  
+  const unsch = v.unscheduled ? `<span class="pill p-unsch" title="Unscheduled visitor - verified at Station 1">🚶 Walk-in</span> ` : "";
+  const escort = ((v.escort || v.restricted) && ["tagged", "in", "arrived"].includes(v.status)) ? ` <span class="pill p-pending" title="Requires designated escort while inside">Escort</span>` : "";
+  return unsch + badgeHtml + escort;
+}
 // Expected time, plus the actual arrival, check-in and check-out times once they happen.
 function times(v){
   const r=[`<span title="Expected">${fmtT(v.expected)}</span>`];
@@ -4704,7 +4867,7 @@ function row(v,actions,isTight=false){
   return `<tr><td><div class="vis"><span class="av" style="--h:${hue(v.name)}">${esc(initials(v.name))}</span><div class="vis-t"><div class="vn">${esc(v.name)} ${tpill(v)}${watchPill(v)}</div><div class="vs">${esc(v.org||"")}${v.org?" · ":""}<span class="ref">${esc(v.ref)}</span>${v.type==="vip"&&v.vehicle?` · <span class="mono" title="VIP Diplomatic Motorcade">🚗 ${esc(v.vehicle)}</span>`:""}</div></div></div></td>
   <td><div class="vn2">${esc(v.host)}</div><div class="vs">${esc(v.agency)}${v.room?" · "+esc(v.room):""}${v.backupHost&&v.status==="tagged"?` · <span title="Backup / delegate contact">Alt: ${esc(v.backupHost)}</span>`:""}${v.hostReply?' · <b style="color:var(--ok)">Coming '+fmtT(v.hostReplyAt)+'</b>':""}</div></td>
   <td>${timeline(v)}</td>
-  <td><div class="st">${pill(v)}${v.tag?`<span class="tagchip">${esc(v.tag)}</span>`:v.type==="vip"?`<span class="tagchip" style="background:#e0ecff;color:#1e40af;border-color:#bfdbfe">VIP Protocol Pass</span>`:""}</div>${authBy(v)}</td>
+  <td><div class="st">${pill(v)}${renderTagBadge(v)}</div>${authBy(v)}</td>
   <td><div class="row-acts"><div class="ra-main">${acts}</div>${extra}</div></td></tr>`}
 function table(list,actions,empty,cls=""){
   if(!list.length) return `<div class="empty">${empty}</div>`;
@@ -4962,7 +5125,9 @@ V.gate=()=>{
   const done=visitors.filter(v=>v.decidedBy).sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
 
   const availV = getAvailableTags("visitor");
+  const availD = getAvailableTags("delivery");
   const availC = getAvailableTags("contractor");
+  const availP = getAvailableTags("protocol");
   const usedTags = visitors.filter(x=>(x.tag||x.assignedTag)&&["arrived","tagged","in"].includes(x.status)).map(x=>x.tag||x.assignedTag);
 
   return head("Station 1 · Gate Reception & Compound Access","Station 1. Verify expected & cleared visitors, manage physical tag inventory rack, and admit cleared visitors through Station 1 to Station 2.")+
@@ -4979,68 +5144,101 @@ V.gate=()=>{
         </p>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn" id="btn_feed_default" title="Load standard UN House starter tags (V-001 to V-050, C-001 to C-020)">✨ Standard Preset (70 Tags)</button>
+        <button class="btn" id="btn_feed_default" title="Load standard UN House starter tags (V, D, C, P)">✨ Standard Preset (105 Tags)</button>
         <button class="btn" id="btn_restock_returned" title="Restock all checked-out tags into available pool">🔄 Restock Returned</button>
         <button class="btn bad" id="btn_clear_tags" title="Clear all unissued tags from the tray">🗑️ Clear Unissued</button>
       </div>
     </div>
 
-    <!-- Live Physical Tray Rack Status Cards -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:16px">
-      <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:12px 14px;border-radius:10px">
+    <!-- Live Physical Tray Rack Status Cards (5 Tiers) -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:16px">
+      <!-- Blue: General Visitor -->
+      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;font-weight:600;color:#0369a1">Visitor Tags in Tray</span>
-          <span style="font-size:10px;font-weight:700;background:#0284c7;color:#fff;padding:1px 6px;border-radius:4px">BLUE</span>
+          <span style="font-size:12px;font-weight:700;color:#0369a1">Visitor [VISITOR]</span>
+          <span style="font-size:9.5px;font-weight:800;background:#0875df;color:#fff;padding:1px 6px;border-radius:4px">BLUE</span>
         </div>
-        <div style="font-size:24px;font-weight:700;color:#0369a1;margin-top:4px">
-          ${availV.length} <span style="font-size:12px;font-weight:500;color:#0284c7">ready to issue</span>
+        <div style="font-size:22px;font-weight:800;color:#0369a1;margin-top:4px">
+          ${availV.length} <span style="font-size:11px;font-weight:500;color:#0284c7">ready</span>
         </div>
-        <div class="small" style="color:#0369a1;margin-top:2px">Next up: <b>${availV[0]||'Empty'}</b></div>
+        <div class="small" style="color:#0369a1;margin-top:2px">Next: <b>${availV[0]||'Empty'}</b></div>
       </div>
 
-      <div style="background:#fefce8;border:1px solid #fef08a;padding:12px 14px;border-radius:10px">
+      <!-- Green: Courier & Delivery -->
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;font-weight:600;color:#854d0e">Contractor Tags in Tray</span>
-          <span style="font-size:10px;font-weight:700;background:#0d9488;color:#fff;padding:1px 6px;border-radius:4px">TEAL</span>
+          <span style="font-size:12px;font-weight:700;color:#166534">Courier [DELIVERY]</span>
+          <span style="font-size:9.5px;font-weight:800;background:#059669;color:#fff;padding:1px 6px;border-radius:4px">GREEN</span>
         </div>
-        <div style="font-size:24px;font-weight:700;color:#854d0e;margin-top:4px">
-          ${availC.length} <span style="font-size:12px;font-weight:500;color:#a16207">ready to issue</span>
+        <div style="font-size:22px;font-weight:800;color:#166534;margin-top:4px">
+          ${availD.length} <span style="font-size:11px;font-weight:500;color:#15803d">ready</span>
         </div>
-        <div class="small" style="color:#854d0e;margin-top:2px">Next up: <b>${availC[0]||'Empty'}</b></div>
+        <div class="small" style="color:#166534;margin-top:2px">Next: <b>${availD[0]||'Empty'}</b></div>
       </div>
 
-      <div style="background:#f8fafc;border:1px solid #cbd5e1;padding:12px 14px;border-radius:10px">
+      <!-- Teal: Contractor -->
+      <div style="background:#f0fdfa;border:1.5px solid #99f6e4;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;font-weight:600;color:var(--navy)">Tags with Visitors Inside</span>
-          <span style="font-size:10px;font-weight:700;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">CIRCULATING</span>
+          <span style="font-size:12px;font-weight:700;color:#0f766e">Contractor [CONTRACTOR]</span>
+          <span style="font-size:9.5px;font-weight:800;background:#0d9488;color:#fff;padding:1px 6px;border-radius:4px">TEAL</span>
         </div>
-        <div style="font-size:24px;font-weight:700;color:var(--navy);margin-top:4px">
-          ${usedTags.length} <span style="font-size:12px;font-weight:500;color:var(--muted)">in compound</span>
+        <div style="font-size:22px;font-weight:800;color:#0f766e;margin-top:4px">
+          ${availC.length} <span style="font-size:11px;font-weight:500;color:#0f766e">ready</span>
         </div>
-        <div class="small" style="color:var(--muted);margin-top:2px">Collect at compound exit</div>
+        <div class="small" style="color:#0f766e;margin-top:2px">Next: <b>${availC[0]||'Empty'}</b></div>
       </div>
 
-      <div style="background:var(--surface2);border:1px solid var(--line);padding:12px 14px;border-radius:10px">
+      <!-- Purple: Protocol -->
+      <div style="background:#faf5ff;border:1.5px solid #e9d5ff;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:12px;font-weight:600;color:var(--muted)">Total Managed Fleet</span>
-          <span style="font-size:10px;font-weight:700;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">FLEET</span>
+          <span style="font-size:12px;font-weight:700;color:#6b21a8">Protocol [PROTOCOL]</span>
+          <span style="font-size:9.5px;font-weight:800;background:#7c3aed;color:#fff;padding:1px 6px;border-radius:4px">PURPLE</span>
         </div>
-        <div style="font-size:24px;font-weight:700;color:var(--navy);margin-top:4px">
-          ${gateTagStock.length} <span style="font-size:12px;font-weight:500;color:var(--muted)">total tags</span>
+        <div style="font-size:22px;font-weight:800;color:#6b21a8;margin-top:4px">
+          ${availP.length} <span style="font-size:11px;font-weight:500;color:#7c3aed">ready</span>
         </div>
-        <div class="small" style="color:var(--muted);margin-top:2px">Station 1 inventory pool</div>
+        <div class="small" style="color:#6b21a8;margin-top:2px">Next: <b>${availP[0]||'Empty'}</b></div>
+      </div>
+
+      <!-- In Compound -->
+      <div style="background:#f8fafc;border:1.5px solid #cbd5e1;padding:12px 14px;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:700;color:var(--navy)">Circulating</span>
+          <span style="font-size:9.5px;font-weight:800;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">ACTIVE</span>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--navy);margin-top:4px">
+          ${usedTags.length} <span style="font-size:11px;font-weight:500;color:var(--muted)">inside</span>
+        </div>
+        <div class="small" style="color:var(--muted);margin-top:2px">Collect at exit</div>
+      </div>
+
+      <!-- Fleet -->
+      <div style="background:var(--surface2);border:1.5px solid var(--line);padding:12px 14px;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:12px;font-weight:700;color:var(--muted)">Total Fleet</span>
+          <span style="font-size:9.5px;font-weight:800;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">TOTAL</span>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--navy);margin-top:4px">
+          ${gateTagStock.length} <span style="font-size:11px;font-weight:500;color:var(--muted)">tags</span>
+        </div>
+        <div class="small" style="color:var(--muted);margin-top:2px">All categories</div>
       </div>
     </div>
 
     <!-- Feed Controls -->
     <div style="margin-top:14px;padding:12px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--line);display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
       <div class="f" style="flex:1;min-width:200px">
-        <label for="tag_feed_batch" class="small"><b>Scan Barcode or Type Tag Numbers</b> (e.g. V-001, V-002 or 1, 2, 3)</label>
+        <label for="tag_feed_batch" class="small"><b>Scan Barcode or Type Tag Numbers</b> (e.g. V-001, D-001, C-001, P-001)</label>
         <input id="tag_feed_batch" placeholder="Scan tag barcode or enter comma-separated numbers">
       </div>
-      <div class="f" style="width:120px">
-        <label for="tag_feed_pre" class="small"><b>Tag Type</b></label>
-        <select id="tag_feed_pre"><option value="V">Visitor (V-)</option><option value="C">Contractor (C-)</option></select>
+      <div class="f" style="width:200px">
+        <label for="tag_feed_pre" class="small"><b>Category &amp; Tag Type</b></label>
+        <select id="tag_feed_pre">
+          <option value="V">🟦 General Visitor (V- · VISITOR)</option>
+          <option value="D">🟩 Courier &amp; Delivery (D- · DELIVERY)</option>
+          <option value="C">🩵 Contractor (C- · CONTRACTOR)</option>
+          <option value="P">🟪 Protocol Visitor (P- · PROTOCOL)</option>
+        </select>
       </div>
       <div class="f" style="width:85px">
         <label for="tag_feed_from" class="small"><b>From #</b></label>
@@ -5062,12 +5260,12 @@ V.gate=()=>{
         <span class="small" style="font-weight:600;color:var(--fg)">Physical Tags Currently Resting in Station 1 Tray (Ready to Issue):</span>
         <span class="small" style="color:var(--muted)">Tip: Click a tag chip to decommission damaged or lost tags</span>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;max-height:110px;overflow-y:auto;padding:6px;background:var(--surface);border:1px dashed var(--line);border-radius:8px">
-        ${availV.slice(0,35).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
-        ${availV.length>35?`<span class="small" style="align-self:center;color:var(--muted);padding:0 4px">+ ${availV.length-35} more visitor tags</span>`:""}
-        ${availC.slice(0,20).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:6px;border:1px solid #fde68a;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
-        ${availC.length>20?`<span class="small" style="align-self:center;color:var(--muted);padding:0 4px">+ ${availC.length-20} more contractor tags</span>`:""}
-        ${!availV.length && !availC.length ? `<span class="small" style="color:var(--warn);padding:4px">Tray is currently empty. Click "Standard Preset" or feed a range above to populate available tags.</span>` : ""}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;max-height:120px;overflow-y:auto;padding:6px;background:var(--surface);border:1px dashed var(--line);border-radius:8px">
+        ${availV.slice(0,25).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:6px;border:1px solid #bae6fd;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
+        ${availD.slice(0,15).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#dcfce7;color:#166534;padding:2px 8px;border-radius:6px;border:1px solid #bbf7d0;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
+        ${availC.slice(0,15).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#ccfbf1;color:#0f766e;padding:2px 8px;border-radius:6px;border:1px solid #99f6e4;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
+        ${availP.slice(0,12).map(t=>`<button class="btn mono tag-chip-btn" data-remove-tag="${esc(t)}" title="Click to remove tag ${esc(t)} from tray" style="font-size:11px;background:#f3e8ff;color:#6b21a8;padding:2px 8px;border-radius:6px;border:1px solid #e9d5ff;cursor:pointer;height:24px;line-height:22px">${esc(t)} &times;</button>`).join("")}
+        ${!availV.length && !availD.length && !availC.length && !availP.length ? `<span class="small" style="color:var(--warn);padding:4px">Tray is currently empty. Click "Standard Preset" or feed a range above to populate available tags.</span>` : ""}
       </div>
     </div>
   </div>`+
@@ -5129,18 +5327,19 @@ V.tagging=()=>{
         🏷️ UN House Visual Lanyard Colour-Code System:
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <span class="pill" style="background:#dbeafe;color:#1e40af;font-size:11.5px;font-weight:700;border:1px solid #bfdbfe" title="Issue Blue Lanyard for official meetings, interviews, conferences">🟦 Blue: General Visitor</span>
-        <span class="pill" style="background:#dcfce7;color:#166534;font-size:11.5px;font-weight:700;border:1px solid #bbf7d0" title="Issue Green Lanyard for courier, postal delivery, and official documents">🟩 Green: Courier &amp; Mail Delivery</span>
-        <span class="pill" style="background:#f0fdfa;color:#0f766e;font-size:11.5px;font-weight:700;border:1px solid #99f6e4" title="Issue Teal Lanyard for contractors, maintenance, IT service vendors">🟧 Amber: Contractor</span>
-        <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11.5px;font-weight:700;border:1px solid #e9d5ff" title="Issue Purple Lanyard for official protocol visits">🟪 Purple: Protocol</span>
-        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11.5px;font-weight:800;border:1px solid #bae6fd" title="Diplomatic courtesy: VIP guests do not wear lanyards">⭐ VIP: Protocol Pass</span>
+        <span class="pill" style="background:#dbeafe;color:#1e40af;font-size:11.5px;font-weight:700;border:1px solid #bfdbfe" title="General Visitor: Access limited strictly to approved floor, wing &amp; conference room.">🟦 Blue: General Visitor [VISITOR]</span>
+        <span class="pill" style="background:#dcfce7;color:#166534;font-size:11.5px;font-weight:700;border:1px solid #bbf7d0" title="Courier &amp; Delivery: Official correspondence &amp; parcels. X-Ray screened at gate intake.">🟩 Green: Courier &amp; Delivery [DELIVERY]</span>
+        <span class="pill" style="background:#ccfbf1;color:#0f766e;font-size:11.5px;font-weight:700;border:1px solid #99f6e4" title="Contractor: Facilities &amp; IT vendors. Work-order restricted with escort bounds.">🩵 Teal: Contractor [CONTRACTOR]</span>
+        <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11.5px;font-weight:700;border:1px solid #e9d5ff" title="Protocol Visitor: Official diplomatic engagements handled via designated protocol escort.">🟪 Purple: Protocol Visitor [PROTOCOL]</span>
+        <span class="pill" style="background:#e0e7ff;color:#1e3a8a;font-size:11.5px;font-weight:800;border:1px solid #c7d2fe" title="VIP Protocol Pass: Ambassadors &amp; Heads of Mission. Discreet credentials with protocol escort.">⭐ VIP: Protocol Pass [VIP PASS]</span>
       </div>
     </div>
   </div>
 
   <div class="panel"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px"><h2 style="margin:0">Visitors Waiting for Documentation &amp; Physical Tag Exchange <span class="cnt ${list.length?'hot':''}">${list.length}</span></h2></div><p class="small">These visitors have been admitted through Station 1. Verify their Government agency or photo ID, log any equipment brought in, and exchange their ID for a physical lanyard tag.</p>${searchBox()}<div style="margin-top:12px">${table(list,v=>{
-    const tag = v.assignedTag || v.tag || nextAvailableTag(v.type);
-    return `<button class="btn pri btn-tag-exchange" data-id="${esc(v.id)}" data-act="tag" title="Exchange verified physical photo ID for lanyard tag ${esc(tag)}"><span class="tag-lbl">🏷️ ${esc(tag)}</span><span class="tag-act">Exchange ID <span class="arr">→</span></span></button>`;
+    const tag = v.assignedTag || v.tag || nextAvailableTag(v);
+    const col = getPassColorMeta(getPassColor(v));
+    return `<button class="btn pri btn-tag-exchange" data-id="${esc(v.id)}" data-act="tag" style="border-color:${col.primary};background:${col.primary}" title="Exchange verified physical photo ID for ${col.name} tag ${esc(tag)} (${col.lanyardText})"><span class="tag-lbl" style="background:${col.lightBg};color:${col.primary};border-right:1px solid ${col.border}">🏷️ ${esc(tag)}</span><span class="tag-act" style="background:${col.primary}">Exchange ID [${col.lanyardText}] <span class="arr">→</span></span></button>`;
   },"No visitors are waiting for documentation.")}</div></div>
   ${tagSheetPanel()}
 
@@ -5765,14 +5964,14 @@ V.reception=()=>{
           📋 Access &amp; Floor Rules
         </button>
       </div>
-      <!-- Lanyard Color Code Legend for Receptionist Floor Verification -->
+      <!-- Lanyard Color Code Legend for Receptionist Floor Verification (5 Tiers) -->
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
         <span class="small" style="font-weight:700;color:var(--muted);margin-right:2px">Lanyards:</span>
-        <span class="pill" style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:600" title="General Visitor: Approved meetings & conferences">🟦 Blue (General)</span>
-        <span class="pill" style="background:#dcfce7;color:#166534;font-size:11px;font-weight:600" title="Registry Visitor: Controlled administrative visit">🟩 Green (Registry)</span>
-        <span class="pill" style="background:#f0fdfa;color:#0f766e;font-size:11px;font-weight:600" title="Contractor: Work-order restricted">🟧 Amber (Contractor)</span>
-        <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11px;font-weight:600" title="Protocol Visitor: Handled via official protocol">🟪 Purple (Protocol)</span>
-        <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700" title="VIP Guest: Diplomatic courtesy, lanyard-exempt">⭐ VIP (Protocol Pass)</span>
+        <span class="pill" style="background:#dbeafe;color:#1e40af;font-size:11px;font-weight:700;border:1px solid #bfdbfe" title="General Visitor: Access limited strictly to approved floor, wing &amp; conference room">🟦 Blue: VISITOR</span>
+        <span class="pill" style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;border:1px solid #bbf7d0" title="Courier &amp; Delivery: Official correspondence &amp; parcels. X-Ray screened">🟩 Green: DELIVERY</span>
+        <span class="pill" style="background:#ccfbf1;color:#0f766e;font-size:11px;font-weight:700;border:1px solid #99f6e4" title="Contractor: Facilities &amp; IT vendors. Work-order restricted">🩵 Teal: CONTRACTOR</span>
+        <span class="pill" style="background:#f3e8ff;color:#6b21a8;font-size:11px;font-weight:700;border:1px solid #e9d5ff" title="Protocol Visitor: Handled via designated protocol escort">🟪 Purple: PROTOCOL</span>
+        <span class="pill" style="background:#e0e7ff;color:#1e3a8a;font-size:11px;font-weight:800;border:1px solid #c7d2fe" title="VIP Protocol Pass: Ambassadors &amp; Heads of Mission. Discreet credentials">⭐ VIP PASS</span>
       </div>
     </div>
   </div>
@@ -9509,7 +9708,7 @@ function wire(){
     const tags = raw.split(/[,\s]+/).map(t => t.trim().toUpperCase()).filter(Boolean);
     let added = 0;
     for(const t of tags){
-      const formatted = /^[VC]-\d+$/i.test(t) ? t : (/^\d+$/.test(t) ? "V-" + t.padStart(3,"0") : t);
+      const formatted = /^[VCDP]-\d+$/i.test(t) ? t : (/^\d+$/.test(t) ? "V-" + t.padStart(3,"0") : t);
       if(!gateTagStock.includes(formatted)){
         gateTagStock.push(formatted);
         added++;
@@ -10309,28 +10508,30 @@ function doAct(a,v){
     if(v.status!=="arrived"){
       return toast("Sequential access violation: Visitor must be admitted through Station 1 first before documentation.");
     }
-    const assigned = v.assignedTag || v.tag || nextAvailableTag(v.type);
+    const assigned = v.assignedTag || v.tag || nextAvailableTag(v);
+    const col = getPassColorMeta(getPassColor(v));
     const used = new Set(visitors.filter(x=>x.id!==v.id && x.tag && ["tagged","in"].includes(x.status)).map(x=>x.tag));
-    modal(`<h2>Documentation Desk · Exchange ID for Tag ${esc(assigned)}</h2>
-      <div class="note" style="background:linear-gradient(180deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;color:#0369a1;margin:6px 0 14px;padding:12px 16px;border-radius:12px">
+    modal(`<h2>Documentation Desk · Exchange ID for ${col.name} Tag ${esc(assigned)}</h2>
+      <div class="note" style="background:${col.lightBg};border:1.5px solid ${col.border};color:${col.pillColor};margin:6px 0 14px;padding:12px 16px;border-radius:12px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;color:#0284c7">Pre-assigned by Station 1</span>
-          <span style="font-size:11px;font-weight:700;background:#bae6fd;color:#0369a1;padding:1px 8px;border-radius:999px">Physical Tag</span>
+          <span style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;font-weight:800;color:${col.primary}">Pre-assigned by Station 1 · ${col.name}</span>
+          <span style="font-size:11px;font-weight:800;background:${col.primary};color:#fff;padding:2px 8px;border-radius:6px">${col.lanyardText} LANYARD</span>
         </div>
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:nowrap">
-          <div style="white-space:nowrap;flex:none;background:#ffffff;border:1.5px solid #0284c7;color:#0284c7;padding:6px 14px;border-radius:8px;font-size:22px;font-weight:800;font-family:var(--mono);display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(2,132,199,0.12)">
+          <div style="white-space:nowrap;flex:none;background:#ffffff;border:2px solid ${col.primary};color:${col.primary};padding:6px 14px;border-radius:8px;font-size:22px;font-weight:800;font-family:var(--mono);display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(0,0,0,0.06)">
             <span style="font-size:18px">🏷️</span><span style="white-space:nowrap">${esc(assigned)}</span>
           </div>
           <div style="font-size:13px;line-height:1.4;color:#0f172a">
-            Pick physical lanyard badge <b class="mono" style="color:#0284c7;white-space:nowrap">${esc(assigned)}</b> from your tray/rack and exchange it for <b>${esc(v.name)}</b>'s physical ID.
+            Pick physical <b>${col.lanyardText}</b> lanyard tag <b class="mono" style="color:${col.primary};white-space:nowrap">${esc(assigned)}</b> from tray and exchange it for <b>${esc(v.name)}</b>'s physical ID.
+            <div class="small" style="color:${col.primary};font-weight:600;margin-top:2px">${col.scope}</div>
           </div>
         </div>
       </div>
       <div class="f"><label for="m_id">Government / Photo ID document presented *</label><select id="m_id"><option>Government agency ID</option><option>National ID (NIN)</option><option>International passport</option><option>Driver's licence</option><option>Diplomatic ID</option><option>Staff / agency ID</option><option>Other valid photo ID</option></select></div>
       <div class="f"><label for="m_tag">Physical tag number to exchange &amp; issue</label><input id="m_tag" value="${esc(assigned)}" class="mono" style="font-weight:700;font-size:15px;white-space:nowrap"></div>
-      <div class="f" style="flex-direction:row;gap:10px;align-items:center;background:#f0f9ff;border:1px solid #bae6fd;padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:18px;height:18px;accent-color:#0284c7"><label for="m_exchange_done" style="margin:0;font-weight:600;color:#0369a1;font-size:13px">Exchange their ID with available tag <span class="mono" style="background:#e0f2fe;padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap">${esc(assigned)}</span> and documentation is completed</label></div>
+      <div class="f" style="flex-direction:row;gap:10px;align-items:center;background:${col.lightBg};border:1px solid ${col.border};padding:10px 14px;border-radius:10px"><input type="checkbox" id="m_exchange_done" checked required style="width:18px;height:18px;accent-color:${col.primary}"><label for="m_exchange_done" style="margin:0;font-weight:600;color:${col.primary};font-size:13px">Exchange ID with available ${col.lanyardText} tag <span class="mono" style="background:${col.pillBg};padding:2px 6px;border-radius:4px;font-weight:700;white-space:nowrap">${esc(assigned)}</span> and documentation is completed</label></div>
       <div class="f"><label for="m_items">Items brought in (one per line, e.g. "Laptop, Dell, serial 5CD12")</label><textarea id="m_items" style="min-height:56px"></textarea></div>
-      <div class="badge"><div class="hd">UN House Abuja · ${v.type==="vip"?"VIP":v.type==="contractor"?"Contractor & Service Staff":"Visitor"}</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono" style="white-space:nowrap">${esc(assigned)}</b></div></div>`,
+      <div class="badge" style="border-top:6px solid ${col.primary}"><div class="hd" style="color:${col.primary};font-weight:800">UN House Abuja · ${col.name} [${col.lanyardText}]</div><b>${esc(v.name)}</b><div class="small">${esc(v.org)}</div><div class="small">Host: ${esc(v.host)} · ${esc(v.building)}</div><div class="ref" style="margin-top:6px">${esc(v.ref)} · Tag: <b class="mono" style="white-space:nowrap">${esc(assigned)}</b></div></div>`,
       ()=>{
         const tag=$("#m_tag").value.trim(), t=opNow(v,4);
         if(!tag) return false;
@@ -10477,14 +10678,11 @@ async function ask(q){
   render();
 }
 $("#yr").textContent=new Date().getFullYear();
-(function initTheme(){
-  const root=document.documentElement, btn=$("#themeBtn"), sBtn=$("#soundBtn");
-  const isDark=()=>root.dataset.theme?root.dataset.theme==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
-  const syncBtn=()=>{if(!btn)return;const d=isDark();btn.innerHTML=d?'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>':'<svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';btn.title=d?"Switch to light mode":"Switch to dark mode"};
+(function initSoundAlerts(){
+  const sBtn=$("#soundBtn");
   const syncSound=()=>{if(!sBtn)return;const on=!!soundOn;sBtn.innerHTML=on?'<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>':'<svg viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>';sBtn.title=on?"Station sound & desktop alerts: ON (click to mute)":"Station sound & desktop alerts: OFF (click to enable)"};
-  try{const saved=localStorage.getItem("theme");if(saved==="dark"||saved==="light")root.dataset.theme=saved}catch(e){}
-  syncBtn(); syncSound();
-  if(btn) btn.onclick=()=>{const next=isDark()?"light":"dark";root.dataset.theme=next;try{localStorage.setItem("theme",next)}catch(e){}syncBtn()};
+  try{localStorage.removeItem("theme");document.documentElement.removeAttribute("data-theme")}catch(e){}
+  syncSound();
   if(sBtn) sBtn.onclick=()=>{soundOn=!soundOn;try{localStorage.setItem("soundAlerts",soundOn?"1":"0")}catch(e){}syncSound();if(soundOn){playChime();try{if("Notification" in window&&Notification.permission==="default")Notification.requestPermission()}catch(e){}toast("Station sound & desktop alerts enabled.")}else toast("Station sound alerts muted.")};
 })();
 document.addEventListener("keydown",e=>{
