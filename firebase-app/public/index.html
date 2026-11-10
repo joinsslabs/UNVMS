@@ -24,7 +24,11 @@ header{position:sticky;top:0;z-index:10;background:#091e3a;border-bottom:1px sol
 .login{padding:10px 18px;border-radius:30px;background:#0284c7;color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:background .15s ease,transform .15s ease;box-shadow:0 4px 14px rgba(2,132,199,0.35)}
 .login:hover{background:#0369a1;transform:translateY(-1px)}
 .hero{position:relative;overflow:hidden;background:linear-gradient(105deg,#f7fbff 0%,#eaf4ff 47%,#d9ecff 100%);min-height:510px;display:flex;align-items:center}
-.hero:after{content:"";position:absolute;right:-7%;top:-15%;width:65%;height:130%;background:linear-gradient(135deg,rgba(24,121,225,.05),rgba(24,121,225,.22));transform:skewX(-19deg);pointer-events:none}
+.hero:after{content:"";position:absolute;right:-7%;top:-15%;width:65%;height:130%;background:linear-gradient(135deg,rgba(24,121,225,.05),rgba(24,121,225,.22));transform:skewX(-19deg) translate3d(0,var(--p-skew,0px),0);pointer-events:none;will-change:transform}
+.hero-parallax-layer{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:0}
+.parallax-orb{position:absolute;border-radius:50%;filter:blur(55px);opacity:0.35;will-change:transform}
+.parallax-orb-1{top:-60px;right:18%;width:380px;height:380px;background:radial-gradient(circle,#0284c7 0%,rgba(14,165,233,0) 70%);transform:translate3d(0,var(--p-orb1,0px),0)}
+.parallax-orb-2{bottom:-50px;left:5%;width:320px;height:320px;background:radial-gradient(circle,#38bdf8 0%,rgba(56,189,248,0) 70%);transform:translate3d(0,var(--p-orb2,0px),0)}
 .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center;padding:58px 0 74px;position:relative;z-index:1}
 .eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--blue);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;background:#e2f0ff;border:1px solid #c7e2ff;border-radius:30px;padding:7px 13px}
 .eyebrow-dot{width:7px;height:7px;border-radius:50%;background:#0875df;box-shadow:0 0 0 3px rgba(8,117,223,.25);display:inline-block}
@@ -35,10 +39,17 @@ h1{font-size:clamp(36px,4.8vw,56px);line-height:1.06;letter-spacing:-1.8px;margi
 .btn-outline{border-color:#8abfff;color:var(--navy);background:#ffffffcc}.btn-outline:hover{background:white;transform:translateY(-1px);border-color:#0875df}
 .secret-dot{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;opacity:0.75;transition:opacity .15s ease,transform .15s ease;margin-left:4px}.secret-dot:hover{opacity:1;transform:scale(1.25)}
 .secret-dot span{width:7px;height:7px;border-radius:50%;background:#0875df;box-shadow:0 0 0 3px rgba(8,117,223,.3);display:inline-block}
-.hero-photo{height:370px;border-radius:24px;position:relative;overflow:hidden;background:linear-gradient(145deg,#a9d6ff,#477fba);box-shadow:0 20px 45px rgba(23,62,115,.22);border:1px solid rgba(255,255,255,0.8)}
-.hero-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.hero-photo-wrap{position:relative;perspective:1000px}
+.hero-photo{height:370px;border-radius:24px;position:relative;overflow:hidden;background:linear-gradient(145deg,#a9d6ff,#477fba);box-shadow:0 24px 50px rgba(9,38,83,.20),0 10px 20px rgba(9,38,83,.10);border:1px solid rgba(255,255,255,0.85);transform:translate3d(0,var(--p-photo,0px),0) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg));transition:transform .12s cubic-bezier(0.2,0,0,1),box-shadow .25s ease;will-change:transform}
+.hero-photo img{width:100%;height:116%;object-fit:cover;display:block;transform:translate3d(0,calc(var(--p-photo,0px) * -0.4),0) scale(1.05);will-change:transform;transition:transform .1s ease-out}
+.floating-badge{position:absolute;top:-14px;right:-12px;z-index:3;display:inline-flex;align-items:center;gap:9px;background:#ffffff;border:1.5px solid #bfdbfe;border-radius:999px;padding:8px 16px;box-shadow:0 12px 30px rgba(9,38,83,0.18);font-size:12px;font-weight:750;color:var(--navy);transform:translate3d(0,var(--p-badge,0px),0);will-change:transform;pointer-events:none}
+.floating-badge i{width:9px;height:9px;border-radius:50%;background:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,.25);display:inline-block}
 .photo-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,38,83,.20),transparent 50%),linear-gradient(0deg,rgba(9,38,83,.40),transparent 65%)}
 .photo-caption{position:absolute;left:20px;bottom:16px;z-index:2;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:.02em;background:rgba(9,38,83,.65);backdrop-filter:blur(6px);padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2)}
+.commit-card:after{transform:translate3d(0,var(--p-commit,0px),0);will-change:transform}
+@media(prefers-reduced-motion:reduce){
+  .hero-photo,.hero-photo img,.floating-badge,.parallax-orb,.commit-card:after,.hero:after{transform:none!important;transition:none!important}
+}
 .quicklinks{position:relative;margin-top:-38px;z-index:2}
 .quick-grid{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
 .quick{padding:22px 20px;display:flex;gap:14px;align-items:center;border-right:1px solid var(--line);transition:background .15s ease,transform .15s ease}.quick:hover{background:#f8fbff}.quick:last-child{border:0}
@@ -154,6 +165,10 @@ footer{background:white;border-top:1px solid var(--line);padding:48px 0 24px}
 
 <main>
 <section class="hero">
+  <div class="hero-parallax-layer" aria-hidden="true">
+    <div class="parallax-orb parallax-orb-1"></div>
+    <div class="parallax-orb parallax-orb-2"></div>
+  </div>
   <div class="container hero-grid">
     <div>
       <span class="eyebrow"><i class="eyebrow-dot"></i>UN House Abuja · Visitor Services</span>
@@ -169,10 +184,15 @@ footer{background:white;border-top:1px solid var(--line);padding:48px 0 24px}
         </a>
       </div>
     </div>
-    <div class="hero-photo">
-      <img src="un-house-hero.jpg" alt="UN House Abuja Building with UN Flag, Nigerian Flag, Wall Logo and Manicured Grounds" style="object-position:center center">
-      <div class="photo-overlay"></div>
-      <div class="photo-caption">United Nations House · Abuja</div>
+    <div class="hero-photo-wrap">
+      <div class="floating-badge">
+        <i></i> 20+ UN Resident Agencies
+      </div>
+      <div class="hero-photo">
+        <img src="un-house-hero.jpg" alt="UN House Abuja Building with UN Flag, Nigerian Flag, Wall Logo and Manicured Grounds" style="object-position:center center">
+        <div class="photo-overlay"></div>
+        <div class="photo-caption">United Nations House · Abuja</div>
+      </div>
     </div>
   </div>
 </section>
@@ -453,5 +473,68 @@ footer{background:white;border-top:1px solid var(--line);padding:48px 0 24px}
     </div>
   </div>
 </footer>
+<script>
+(function(){
+  const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(prefersReduced) return;
+
+  const root = document.documentElement;
+  const photoWrap = document.querySelector('.hero-photo-wrap');
+  const commitCard = document.querySelector('.commit-card');
+
+  let ticking = false;
+  let lastScrollY = window.pageYOffset || 0;
+
+  function onScroll(){
+    lastScrollY = window.pageYOffset || 0;
+    if(!ticking){
+      window.requestAnimationFrame(updateParallax);
+      ticking = true;
+    }
+  }
+
+  function updateParallax(){
+    const y = lastScrollY;
+    root.style.setProperty('--p-photo', (y * -0.14).toFixed(1) + 'px');
+    root.style.setProperty('--p-badge', (y * -0.28).toFixed(1) + 'px');
+    root.style.setProperty('--p-orb1', (y * 0.20).toFixed(1) + 'px');
+    root.style.setProperty('--p-orb2', (y * -0.16).toFixed(1) + 'px');
+    root.style.setProperty('--p-skew', (y * 0.10).toFixed(1) + 'px');
+
+    if(commitCard){
+      const rect = commitCard.getBoundingClientRect();
+      const offset = (window.innerHeight - rect.top) * 0.08;
+      root.style.setProperty('--p-commit', (offset - 30).toFixed(1) + 'px');
+    }
+
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  updateParallax();
+
+  // Desktop subtle 3D tilt on hero photo
+  if(photoWrap && window.matchMedia('(hover: hover) and (min-width: 960px)').matches){
+    let bounds = null;
+    photoWrap.addEventListener('mouseenter', () => {
+      bounds = photoWrap.getBoundingClientRect();
+    });
+    photoWrap.addEventListener('mousemove', e => {
+      if(!bounds) bounds = photoWrap.getBoundingClientRect();
+      const mouseX = e.clientX - bounds.left;
+      const mouseY = e.clientY - bounds.top;
+      const xPct = (mouseX / bounds.width - 0.5) * 2;
+      const yPct = (mouseY / bounds.height - 0.5) * 2;
+      root.style.setProperty('--tilt-x', (-yPct * 6).toFixed(2) + 'deg');
+      root.style.setProperty('--tilt-y', (xPct * 6).toFixed(2) + 'deg');
+    });
+    photoWrap.addEventListener('mouseleave', () => {
+      root.style.setProperty('--tilt-x', '0deg');
+      root.style.setProperty('--tilt-y', '0deg');
+      bounds = null;
+    });
+  }
+})();
+</script>
 </body>
 </html>

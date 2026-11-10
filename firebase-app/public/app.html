@@ -134,6 +134,7 @@ tr:last-child td{border-bottom:0}
 /* Small leading icons for the common actions */
 .btn[data-act]::before,.btn#qscan::before,.btn[data-print]::before,.btn#ts_go::before,.btn#invNew::before{content:"";width:13.5px;height:13.5px;flex:none;background:currentColor;
   -webkit-mask:var(--ic) center/contain no-repeat;mask:var(--ic) center/contain no-repeat}
+.btn[style*="--ic:none"]::before,.btn.no-ic::before{display:none!important}
 .btn[data-act="arrive"],.btn[data-act="vipadmit"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 17l5-5-5-5M15 12H3M15 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4'/%3E%3C/svg%3E")}
 .id-safe-badge{
   display:inline-flex;
@@ -204,7 +205,7 @@ tr:last-child td{border-bottom:0}
 .btn[data-act="checkin"],.btn[data-act="approve"],.btn[data-act="reply"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")}
 .btn[data-act="reject"],.btn[data-act="suspend"],.btn[data-act="cancel"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M6 18L18 6'/%3E%3C/svg%3E")}
 .btn[data-act="tag"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z'/%3E%3Ccircle cx='7.5' cy='7.5' r='1.5'/%3E%3C/svg%3E")}
-.btn[data-act="notify"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6h16v12H4z'/%3E%3Cpath d='M4 7l8 6 8-6'/%3E%3C/svg%3E")}
+.btn[data-act="notify"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E")}
 .btn[data-act="pass"],.btn#qscan{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z'/%3E%3Cpath d='M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2'/%3E%3C/svg%3E")}
 .btn[data-act="grouppass"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5'/%3E%3Ccircle cx='17' cy='9' r='2.5'/%3E%3Cpath d='M16.5 14.6c2.6.2 4.4 2 5 4.9'/%3E%3C/svg%3E")}
 .btn[data-act="detail"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5M12 8v.5'/%3E%3C/svg%3E")}
@@ -2064,10 +2065,25 @@ function showCreatedInviteModal(invDoc, url){
   };
 }
 
+function agencyForHost(hostName, role=""){
+  const str = String((hostName||"") + " " + (role||"")).toLowerCase();
+  if(str.includes("fsm") || str.includes("facilities security") || str.includes("deputy security") || str.includes("undss") || str.includes("gate 1") || str.includes("bello") || str.includes("adeyemi")) return "UNDSS";
+  if(str.includes("ibrahim") || str.includes("who") || str.includes("polio") || str.includes("health")) return "WHO";
+  if(str.includes("garba") || str.includes("undp")) return "UNDP";
+  if(str.includes("obi") || str.includes("unhcr") || str.includes("refugee")) return "UNHCR";
+  if(str.includes("lawal") || str.includes("wfp") || str.includes("food")) return "WFP";
+  if(str.includes("musa") || str.includes("unicef") || str.includes("children")) return "UNICEF";
+  if(str.includes("bassey") || str.includes("unfpa") || str.includes("population")) return "UNFPA";
+  if(str.includes("women") || str.includes("comms")) return "UN Women";
+  if(str.includes("resident coordinator") || str.includes("rc office") || str.includes("facilities unit") || str.includes("common services") || str.includes("okafor") || str.includes("reception") || str.includes("admin")) return "Common Services";
+  return (me && me.agency) || "UNDSS";
+}
+
 function openInviteDialog(){
   const m=$("#modal");
   const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
-  const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
+  const defaultAgency = (me && me.agency) || agencyForHost(hostVal, me?.role);
+  const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:getHostEmail(hostVal, defaultAgency);
   m.innerHTML=`<div class="modal" style="max-width:520px;padding:22px;display:flex;flex-direction:column;gap:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px">
       <div style="display:flex;align-items:center;gap:10px">
@@ -2101,7 +2117,7 @@ function openInviteDialog(){
         <div class="f">
           <label for="dlg_agency" style="font-weight:700">Host Agency *</label>
           <select id="dlg_agency" style="font-size:13.5px">
-            ${AGENCIES.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}
+            ${AGENCIES.map(a=>`<option value="${esc(a)}" ${a===defaultAgency?"selected":""}>${esc(a)}</option>`).join("")}
           </select>
         </div>
         <div class="f">
@@ -2113,7 +2129,7 @@ function openInviteDialog(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="f">
           <label for="dlg_email" style="font-weight:700">Host Work Email</label>
-          <input id="dlg_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org" style="font-size:13.5px">
+          <input id="dlg_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@un.org" style="font-size:13.5px">
         </div>
         <div class="f">
           <label for="dlg_host_phone" style="font-weight:700">Host Mobile / WhatsApp *</label>
@@ -2155,21 +2171,24 @@ function openInviteDialog(){
     "Resident Coordinator":"Common Services"
   };
   if(hInput&&agSelect){
-    hInput.oninput=()=>{
-      const trimmed=hInput.value.trim();
-      if(hostAgencyMap[trimmed]){
-        agSelect.value=hostAgencyMap[trimmed];
-        if($("#dlg_host_phone") && !$("#dlg_host_phone").value.trim()){
-          $("#dlg_host_phone").value = getHostPhone(trimmed, hostAgencyMap[trimmed]);
+    const syncAgency = () => {
+      const trimmed = hInput.value.trim();
+      const matched = hostAgencyMap[trimmed] || agencyForHost(trimmed);
+      if(matched){
+        agSelect.value = matched;
+        if($("#dlg_host_phone") && (!$("#dlg_host_phone").value.trim() || $("#dlg_host_phone").value.includes("0102"))){
+          $("#dlg_host_phone").value = getHostPhone(trimmed, matched);
         }
         if($("#dlg_email") && (!$("#dlg_email").value.trim() || $("#dlg_email").value.includes("undp.org"))){
-          $("#dlg_email").value = getHostEmail(trimmed, hostAgencyMap[trimmed]);
+          $("#dlg_email").value = getHostEmail(trimmed, matched);
         }
-        if($("#dlg_host_ext") && !$("#dlg_host_ext").value.trim()){
-          $("#dlg_host_ext").value = getHostExt(trimmed, hostAgencyMap[trimmed]);
+        if($("#dlg_host_ext") && (!$("#dlg_host_ext").value.trim() || $("#dlg_host_ext").value === "2101")){
+          $("#dlg_host_ext").value = getHostExt(trimmed, matched);
         }
       }
     };
+    hInput.oninput = syncAgency;
+    if(hostVal) syncAgency();
   }
   $("#dlg_inv_f").onsubmit=async e=>{
     e.preventDefault();
@@ -4308,7 +4327,10 @@ async function showInvite(tok){
     if(/Station \d|Reception Officer|Approver/i.test(hostName)){
       hostName = i.agency ? `${i.agency} Host / Reception` : "UN Host";
     }
-    const agencyName = i.agency || "UN Common Services";
+    let agencyName = i.agency || "UNDSS";
+    if(/FSM|Facilities Security|Deputy Security|Gate 1|Security Officer|Adeyemi|Bello/i.test(hostName) && (agencyName === "UNDP" || agencyName === "UN Common Services")){
+      agencyName = "UNDSS";
+    }
 
     box(`<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:14px;border-bottom:1.5px solid var(--line);flex-wrap:wrap">
       <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
@@ -5242,16 +5264,16 @@ function demoData(){
     dobs:[{id:"dob1",at:t9-1.2*h,severity:"routine",category:"Power / Utilities",title:"Main Grid to Generator Switchover",detail:"FCT public power failure; automatic switch to 500kVA generator completed normally with zero disruption.",station:"S1",officer:"A. Bello"}],
     parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Canopy Bay #1 (Ambassadorial)",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}],
     staff:[
-      {uid:"demo-fsm",name:"FSM · Facilities Security Manager",email:"fsm@un.org",role:"sec_admin",active:true,notes:"UNDSS Primary Security Clearance Authority",createdAt:t0-30*864e5},
-      {uid:"demo-admin",name:"Common Services Administrator",email:"admin@un.org",role:"admin",active:true,notes:"UN House System Governance & Administration",createdAt:t0-60*864e5},
-      {uid:"demo-deputy",name:"Deputy Security Officer",email:"deputy.sec@un.org",role:"sec_deputy",active:true,notes:"UNDSS Alternate Clearance Authority",createdAt:t0-20*864e5},
-      {uid:"demo-gate1",name:"Supervisor F. Adeyemi",email:"f.adeyemi@undss.un.org",role:"gate",active:true,notes:"Station 1 Gate Lead & Initial Clearance Approver",createdAt:t0-15*864e5},
-      {uid:"demo-gate2",name:"Security Officer A. Bello",email:"a.bello@undss.un.org",role:"gate",active:true,notes:"Station 1 Gate Reception & Vehicle Access",createdAt:t0-14*864e5},
-      {uid:"demo-docs",name:"Documentation Officer S. Garba",email:"s.garba@undss.un.org",role:"docs",active:true,notes:"Station 2 Documentation Reception & Tag Custodian",createdAt:t0-10*864e5},
-      {uid:"demo-rec",name:"Receptionist N. Okafor",email:"n.okafor@un.org",role:"reception",active:true,notes:"Station 3 Main Internal Reception Check-in",createdAt:t0-10*864e5},
-      {uid:"demo-vip",name:"VIP Protocol Officer T. Musa",email:"t.musa@un.org",role:"vip",active:true,notes:"Station 4 VIP Diplomatic Gate Access",createdAt:t0-10*864e5},
-      {uid:"demo-host",name:"Dr. K. Ibrahim",email:"k.ibrahim@who.int",role:"host",active:true,notes:"WHO Staff Host & Programme Coordinator",createdAt:t0-5*864e5},
-      {uid:"demo-pending",name:"Halima Danjuma",email:"h.danjuma@un.org",role:"pending",active:true,notes:"Newly registered account awaiting station assignment",createdAt:t0-1*864e5}
+      {uid:"demo-fsm",name:"FSM · Facilities Security Manager",email:"fsm@un.org",role:"sec_admin",agency:"UNDSS",active:true,notes:"UNDSS Primary Security Clearance Authority",createdAt:t0-30*864e5},
+      {uid:"demo-admin",name:"Common Services Administrator",email:"admin@un.org",role:"admin",agency:"Common Services",active:true,notes:"UN House System Governance & Administration",createdAt:t0-60*864e5},
+      {uid:"demo-deputy",name:"Deputy Security Officer",email:"deputy.sec@un.org",role:"sec_deputy",agency:"UNDSS",active:true,notes:"UNDSS Alternate Clearance Authority",createdAt:t0-20*864e5},
+      {uid:"demo-gate1",name:"Supervisor F. Adeyemi",email:"f.adeyemi@undss.un.org",role:"gate",agency:"UNDSS",active:true,notes:"Station 1 Gate Lead & Initial Clearance Approver",createdAt:t0-15*864e5},
+      {uid:"demo-gate2",name:"Security Officer A. Bello",email:"a.bello@undss.un.org",role:"gate",agency:"UNDSS",active:true,notes:"Station 1 Gate Reception & Vehicle Access",createdAt:t0-14*864e5},
+      {uid:"demo-docs",name:"Documentation Officer S. Garba",email:"s.garba@undss.un.org",role:"docs",agency:"UNDSS",active:true,notes:"Station 2 Documentation Reception & Tag Custodian",createdAt:t0-10*864e5},
+      {uid:"demo-rec",name:"Receptionist N. Okafor",email:"n.okafor@un.org",role:"reception",agency:"Common Services",active:true,notes:"Station 3 Main Internal Reception Check-in",createdAt:t0-10*864e5},
+      {uid:"demo-vip",name:"VIP Protocol Officer T. Musa",email:"t.musa@un.org",role:"vip",agency:"Common Services",active:true,notes:"Station 4 VIP Diplomatic Gate Access",createdAt:t0-10*864e5},
+      {uid:"demo-host",name:"Dr. K. Ibrahim",email:"k.ibrahim@who.int",role:"host",agency:"WHO",active:true,notes:"WHO Staff Host & Programme Coordinator",createdAt:t0-5*864e5},
+      {uid:"demo-pending",name:"Halima Danjuma",email:"h.danjuma@un.org",role:"pending",agency:"UN Women",active:true,notes:"Newly registered account awaiting station assignment",createdAt:t0-1*864e5}
     ]};
 }
 const TOUR=[
@@ -5467,7 +5489,7 @@ window.addEventListener("storage",e=>{
 });
 function startDemo(){
   DEMO=true; fb={demo:true}; db=demoDb();
-  me={uid:"demo-fsm",name:"FSM (demo)",role:"sec_admin",email:"fsm@un.org",active:true};
+  me={uid:"demo-fsm",name:"FSM (demo)",role:"sec_admin",email:"fsm@un.org",agency:"UNDSS",active:true};
   const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[]; handovers=d.handovers||[];
   events=d.events||(demoData().events||[]); assetPasses=d.assetPasses||d.assets||(demoData().assets||[]); dobs=d.dobs||(demoData().dobs||[]); parkings=d.parkings||(demoData().parkings||[]);
   staffList=d.staff||(demoData().staff||[]);
@@ -6755,7 +6777,7 @@ V.reception=()=>{
         const isAuto = v.hostAutoNotified;
         notifEl = `<span class="pill" style="background:#ecfdf5;color:#065f46;font-weight:700;font-size:11px;border:1px solid #a7f3d0;height:26px;display:inline-flex;align-items:center;padding:0 8px;white-space:nowrap" title="${esc(v.hostNotifiedNote||'Host notified via ' + (v.hostNotifiedVia||'automated alert'))}">✓ Notified ${isAuto?'(Auto)':''}</span>`;
       } else {
-        notifEl = `<button class="btn" data-act="notify" data-id="${esc(v.id)}" style="--ic:none;height:28px;padding:0 10px;font-size:11.5px;font-weight:600;background:#f8fafc;border:1px solid #94a3b8;color:#1e3a8a;border-radius:6px;display:inline-flex;align-items:center;gap:4px;white-space:nowrap" title="Call host ${esc(v.host)}: ${esc(hostPhone)} · Intercom Ext. ${esc(ext)}">📞 Notify Host</button>`;
+        notifEl = `<button class="btn" data-act="notify" data-id="${esc(v.id)}" style="height:28px;padding:0 10px;font-size:11.5px;font-weight:600;background:#f8fafc;border:1px solid #94a3b8;color:#1e3a8a;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap" title="Call host ${esc(v.host)}: ${esc(hostPhone)} · Intercom Ext. ${esc(ext)}">Notify Host</button>`;
       }
       const checkinBtn = B(v.id, "checkin", v.type === "vip" ? "Receive VIP" : "Check in", "pri");
       return `<div style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex-wrap:nowrap;justify-content:flex-end">${extChip}${notifEl}${waBtn}${checkinBtn}</div>`;
