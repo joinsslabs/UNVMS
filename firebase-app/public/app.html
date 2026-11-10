@@ -205,7 +205,8 @@ tr:last-child td{border-bottom:0}
 .btn[data-act="checkin"],.btn[data-act="approve"],.btn[data-act="reply"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E")}
 .btn[data-act="reject"],.btn[data-act="suspend"],.btn[data-act="cancel"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M6 18L18 6'/%3E%3C/svg%3E")}
 .btn[data-act="tag"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z'/%3E%3Ccircle cx='7.5' cy='7.5' r='1.5'/%3E%3C/svg%3E")}
-.btn[data-act="notify"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E")}
+.btn[data-act="notify"]{background:#f0f9ff;border-color:#7dd3fc;color:#0284c7;--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z'/%3E%3C/svg%3E")}
+.btn[data-act="notify"]:hover{background:#e0f2fe;border-color:#38bdf8;color:#0369a1}
 .btn[data-act="pass"],.btn#qscan{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z'/%3E%3Cpath d='M14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2'/%3E%3C/svg%3E")}
 .btn[data-act="grouppass"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='9' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20c.6-3.6 3.3-5.5 6.5-5.5s5.9 1.9 6.5 5.5'/%3E%3Ccircle cx='17' cy='9' r='2.5'/%3E%3Cpath d='M16.5 14.6c2.6.2 4.4 2 5 4.9'/%3E%3C/svg%3E")}
 .btn[data-act="detail"]{--ic:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 11v5M12 8v.5'/%3E%3C/svg%3E")}
@@ -1294,7 +1295,9 @@ async function ensureStaff(u){
   if(!s.exists){
     const name=(u.displayName||sessionStorageGet("pendingName")||u.email.split("@")[0]).trim();
     const setup=await db.collection("config").doc("setup").get().catch(()=>({exists:true}));
-    const base={uid:u.uid,email:u.email,name,active:true,createdAt:now()};
+    const role = (!setup.exists) ? "admin" : "pending";
+    const agency = getStaffAgency(name, role, u.email);
+    const base={uid:u.uid,email:u.email,name,agency,active:true,createdAt:now()};
     if(!setup.exists){
       const b=db.batch();
       b.set(db.collection("config").doc("setup"),{adminUid:u.uid,createdAt:now()});
@@ -1303,7 +1306,9 @@ async function ensureStaff(u){
     } else await ref.set({...base,role:"pending"});
     s=await ref.get();
   }
-  return {...s.data(),uid:u.uid};
+  const sData = s.data() || {};
+  const agency = sData.agency || getStaffAgency(sData.name || u.displayName, sData.role, u.email);
+  return {...sData, agency, uid:u.uid};
 }
 function sessionStorageGet(k){try{return localStorage.getItem(k)||sessionStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
@@ -2065,24 +2070,98 @@ function showCreatedInviteModal(invDoc, url){
   };
 }
 
-function agencyForHost(hostName, role=""){
-  const str = String((hostName||"") + " " + (role||"")).toLowerCase();
-  if(str.includes("fsm") || str.includes("facilities security") || str.includes("deputy security") || str.includes("undss") || str.includes("gate 1") || str.includes("bello") || str.includes("adeyemi")) return "UNDSS";
+function getStaffAgency(staff, role="", email=""){
+  if(staff && typeof staff === "object"){
+    if(staff.agency && String(staff.agency).trim()) return String(staff.agency).trim();
+    role = role || staff.role || "";
+    email = email || staff.email || "";
+    staff = staff.name || "";
+  }
+  const em = String(email || (me && me.email) || "").toLowerCase().trim();
+  if(em.includes("@who.int")) return "WHO";
+  if(em.includes("@undp.org")) return "UNDP";
+  if(em.includes("@unicef.org")) return "UNICEF";
+  if(em.includes("@unhcr.org")) return "UNHCR";
+  if(em.includes("@wfp.org")) return "WFP";
+  if(em.includes("@unfpa.org")) return "UNFPA";
+  if(em.includes("@unwomen.org")) return "UN Women";
+  if(em.includes("@undss.un.org") || em.includes("@undss.org")) return "UNDSS";
+  if(em.includes("@ilo.org")) return "ILO";
+  if(em.includes("@unesco.org")) return "UNESCO";
+  if(em.includes("@fao.org")) return "FAO";
+  if(em.includes("@unodc.org")) return "UNODC";
+  if(em.includes("@iom.int")) return "IOM";
+
+  if(Array.isArray(staffList) && staffList.length){
+    const sFound = staffList.find(s => 
+      (s.uid && me && s.uid === me.uid) ||
+      (em && s.email && s.email.toLowerCase() === em) ||
+      (staff && s.name && s.name.toLowerCase().trim() === String(staff).toLowerCase().trim())
+    );
+    if(sFound && sFound.agency) return sFound.agency;
+  }
+
+  const str = String((staff||"") + " " + (role||"") + " " + em).toLowerCase();
+  if(str.includes("fsm") || str.includes("facilities security") || str.includes("deputy security") || str.includes("undss") || str.includes("gate") || str.includes("bello") || str.includes("adeyemi")) return "UNDSS";
   if(str.includes("ibrahim") || str.includes("who") || str.includes("polio") || str.includes("health")) return "WHO";
   if(str.includes("garba") || str.includes("undp")) return "UNDP";
   if(str.includes("obi") || str.includes("unhcr") || str.includes("refugee")) return "UNHCR";
   if(str.includes("lawal") || str.includes("wfp") || str.includes("food")) return "WFP";
   if(str.includes("musa") || str.includes("unicef") || str.includes("children")) return "UNICEF";
   if(str.includes("bassey") || str.includes("unfpa") || str.includes("population")) return "UNFPA";
-  if(str.includes("women") || str.includes("comms")) return "UN Women";
+  if(str.includes("women") || str.includes("danjuma") || str.includes("comms")) return "UN Women";
   if(str.includes("resident coordinator") || str.includes("rc office") || str.includes("facilities unit") || str.includes("common services") || str.includes("okafor") || str.includes("reception") || str.includes("admin")) return "Common Services";
-  return (me && me.agency) || "UNDSS";
+
+  if(me && me.agency) return me.agency;
+  return "Common Services";
+}
+
+function agencyForHost(hostName, role=""){
+  return getStaffAgency(hostName, role);
+}
+
+function hostDatalistOptions(){
+  const seen = new Set();
+  const opts = [];
+  if(me && me.name && !/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name)){
+    const ag = getStaffAgency(me, me.role, me.email);
+    opts.push(`<option value="${esc(me.name)}">${esc(me.name)} (${esc(ag)} · You)</option>`);
+    seen.add(me.name.toLowerCase().trim());
+  }
+  if(Array.isArray(staffList)){
+    staffList.forEach(s => {
+      if(s && s.name && !seen.has(s.name.toLowerCase().trim()) && !/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(s.name)){
+        const ag = s.agency || getStaffAgency(s.name, s.role, s.email);
+        opts.push(`<option value="${esc(s.name)}">${esc(s.name)} (${esc(ag)})</option>`);
+        seen.add(s.name.toLowerCase().trim());
+      }
+    });
+  }
+  const defaultHosts = [
+    { name: "Dr. K. Ibrahim", desc: "WHO · Medical Services" },
+    { name: "S. Garba", desc: "UNDP · Operations" },
+    { name: "P. Obi", desc: "UNHCR · Protection" },
+    { name: "A. Lawal", desc: "WFP · Supply Chain" },
+    { name: "T. Musa", desc: "UNICEF · Programme Unit" },
+    { name: "R. Bassey", desc: "UNFPA · Health" },
+    { name: "Comms Office", desc: "UN Women · Communications" },
+    { name: "Facilities Unit", desc: "Common Services · Facilities" },
+    { name: "Resident Coordinator", desc: "Common Services · RC Office" }
+  ];
+  defaultHosts.forEach(h => {
+    if(!seen.has(h.name.toLowerCase().trim())){
+      opts.push(`<option value="${esc(h.name)}">${esc(h.desc)}</option>`);
+      seen.add(h.name.toLowerCase().trim());
+    }
+  });
+  return opts.join("");
 }
 
 function openInviteDialog(){
   const m=$("#modal");
   const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
-  const defaultAgency = (me && me.agency) || agencyForHost(hostVal, me?.role);
+  const senderAgency = getStaffAgency(me, me?.role, me?.email);
+  const defaultAgency = hostVal ? (agencyForHost(hostVal, me?.role) || senderAgency) : senderAgency;
   const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:getHostEmail(hostVal, defaultAgency);
   m.innerHTML=`<div class="modal" style="max-width:520px;padding:22px;display:flex;flex-direction:column;gap:14px">
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px">
@@ -2101,15 +2180,7 @@ function openInviteDialog(){
         <label for="dlg_host" style="font-weight:700">Host (UN Staff Member Name) *</label>
         <input id="dlg_host" required list="hostStaffList" value="${esc(hostVal)}" placeholder="e.g. Dr. K. Ibrahim, S. Garba, or enter your name" style="font-size:13.5px">
         <datalist id="hostStaffList">
-          <option value="Dr. K. Ibrahim">WHO · Medical Services</option>
-          <option value="S. Garba">UNDP · Operations</option>
-          <option value="P. Obi">UNHCR · Protection</option>
-          <option value="A. Lawal">WFP · Supply Chain</option>
-          <option value="T. Musa">UNICEF · Programme Unit</option>
-          <option value="R. Bassey">UNFPA · Health</option>
-          <option value="Comms Office">UN Women · Communications</option>
-          <option value="Facilities Unit">Common Services · Facilities</option>
-          <option value="Resident Coordinator">Common Services · RC Office</option>
+          ${hostDatalistOptions()}
         </datalist>
       </div>
 
@@ -2159,27 +2230,22 @@ function openInviteDialog(){
   m.hidden=false;
   $("#mNo").onclick=$("#mX").onclick=()=>{m.hidden=true};
   const hInput=$("#dlg_host"), agSelect=$("#dlg_agency");
-  const hostAgencyMap={
-    "Dr. K. Ibrahim":"WHO",
-    "S. Garba":"UNDP",
-    "P. Obi":"UNHCR",
-    "A. Lawal":"WFP",
-    "T. Musa":"UNICEF",
-    "R. Bassey":"UNFPA",
-    "Comms Office":"UN Women",
-    "Facilities Unit":"Common Services",
-    "Resident Coordinator":"Common Services"
-  };
+  if(agSelect) agSelect.value = defaultAgency;
   if(hInput&&agSelect){
     const syncAgency = () => {
       const trimmed = hInput.value.trim();
-      const matched = hostAgencyMap[trimmed] || agencyForHost(trimmed);
-      if(matched){
+      let matched = "";
+      if(!trimmed || (me && me.name && trimmed.toLowerCase().includes(me.name.toLowerCase()))){
+        matched = senderAgency;
+      } else {
+        matched = agencyForHost(trimmed);
+      }
+      if(matched && AGENCIES.includes(matched)){
         agSelect.value = matched;
         if($("#dlg_host_phone") && (!$("#dlg_host_phone").value.trim() || $("#dlg_host_phone").value.includes("0102"))){
           $("#dlg_host_phone").value = getHostPhone(trimmed, matched);
         }
-        if($("#dlg_email") && (!$("#dlg_email").value.trim() || $("#dlg_email").value.includes("undp.org"))){
+        if($("#dlg_email") && (!$("#dlg_email").value.trim() || $("#dlg_email").value.includes("undp.org") || $("#dlg_email").value.includes("un.org"))){
           $("#dlg_email").value = getHostEmail(trimmed, matched);
         }
         if($("#dlg_host_ext") && (!$("#dlg_host_ext").value.trim() || $("#dlg_host_ext").value === "2101")){
@@ -2188,7 +2254,8 @@ function openInviteDialog(){
       }
     };
     hInput.oninput = syncAgency;
-    if(hostVal) syncAgency();
+    hInput.onchange = syncAgency;
+    syncAgency();
   }
   $("#dlg_inv_f").onsubmit=async e=>{
     e.preventDefault();
@@ -2235,7 +2302,9 @@ function inviteView(){
   });
   const open=invites.filter(i=>i.status==="open"&&i.expires>now());
   const hostVal=(me&&me.name&&!/Station \d|Reception Officer|Documentation Officer|VIP Gate/i.test(me.name))?me.name:"";
-  const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:"";
+  const senderAgency = getStaffAgency(me, me?.role, me?.email);
+  const defaultAgency = hostVal ? (agencyForHost(hostVal, me?.role) || senderAgency) : senderAgency;
+  const emailVal=(me&&me.email&&!/@unhouse\.local/i.test(me.email))?me.email:getHostEmail(hostVal, defaultAgency);
   return `<div class="panel">
     <h2 style="margin:0;display:flex;align-items:center;gap:8px">✉️ Invite a Visitor <span class="cnt hot">For Any UN Staff Host</span></h2>
     <p class="small" style="margin:4px 0 0;color:var(--muted)">Generate a personalized pre-registration link for your visitor. Visitors fill in their own name, phone, organisation and arrival time without needing an account. The request routes to the <b>Facilities Security Manager (FSM)</b> for UNDSS clearance before being scheduled at Station 1.</p>
@@ -2245,25 +2314,17 @@ function inviteView(){
         <label for="inv_host" style="font-weight:700">Host (UN Staff Member Name) *</label>
         <input id="inv_host" list="hostStaffList" value="${esc(hostVal)}" placeholder="e.g. Dr. K. Ibrahim, S. Garba, or enter your name">
         <datalist id="hostStaffList">
-          <option value="Dr. K. Ibrahim">WHO · Medical Services</option>
-          <option value="S. Garba">UNDP · Operations</option>
-          <option value="P. Obi">UNHCR · Protection</option>
-          <option value="A. Lawal">WFP · Supply Chain</option>
-          <option value="T. Musa">UNICEF · Programme Unit</option>
-          <option value="R. Bassey">UNFPA · Health</option>
-          <option value="Comms Office">UN Women · Communications</option>
-          <option value="Facilities Unit">Common Services · Facilities</option>
-          <option value="Resident Coordinator">Common Services · RC Office</option>
+          ${hostDatalistOptions()}
         </datalist>
       </div>
       <div class="f">
         <label for="inv_agency" style="font-weight:700">Host Agency *</label>
-        <select id="inv_agency">${AGENCIES.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}</select>
+        <select id="inv_agency">${AGENCIES.map(a=>`<option value="${esc(a)}" ${a===defaultAgency?"selected":""}>${esc(a)}</option>`).join("")}</select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="f">
           <label for="inv_email" style="font-weight:700">Host Work Email</label>
-          <input id="inv_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org">
+          <input id="inv_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@un.org">
         </div>
         <div class="f">
           <label for="inv_host_phone" style="font-weight:700">Host Phone / WhatsApp *</label>
@@ -2313,7 +2374,8 @@ function inviteView(){
 async function createInvite(){
   const hostInput=$("#inv_host")?$("#inv_host").value.trim():"";
   const host=hostInput||(me&&me.name&&!/Station \d|Reception Officer/i.test(me.name)?me.name:"UN Host");
-  const agency=($("#inv_agency")&&$("#inv_agency").value)||"UNDP";
+  const senderAgency = getStaffAgency(me, me?.role, me?.email);
+  const agency=($("#inv_agency")&&$("#inv_agency").value)||senderAgency||"Common Services";
   const hostEmail=($("#inv_email")?$("#inv_email").value.trim().toLowerCase():"")||(me?me.email:"")||getHostEmail(host, agency);
   const hostPhone=($("#inv_host_phone")?$("#inv_host_phone").value.trim():"")||getHostPhone(host, agency);
   const hostExt=($("#inv_host_ext")?$("#inv_host_ext").value.trim():"")||getHostExt(host, agency);
@@ -5495,14 +5557,14 @@ function startDemo(){
   staffList=d.staff||(demoData().staff||[]);
   if(d.features) features=d.features;
   const demoRoles=["sec_admin","gate","docs","reception","vip"];
-  if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role&&demoRoles.includes(saved.role)){me.role=saved.role;me.name=ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
+  if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role&&demoRoles.includes(saved.role)){me.role=saved.role;me.name=ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";me.agency=getStaffAgency(me.name, me.role, me.email);} }
   loadDemoGuests();
   loadDemoInvites();
   $("#demoSel").style.display="none";
   setSync(false,"Demo · sample data · nothing is saved");
   $("#who").hidden=false;
   $("#who").innerHTML=`<label class="small" for="demoRole" style="opacity:.8">View as</label><select id="demoRole" class="sitepick">${demoRoles.map(r=>`<option value="${r}">${esc(ROLES[r])}</option>`).join("")}</select>`;
-  $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
+  $("#demoRole").onchange=e=>{me.role=e.target.value;me.name=ROLES[me.role].replace(/ \(.+\)/,"")+" (demo)";me.agency=getStaffAgency(me.name, me.role, me.email);goView(defaultView());toast("Now viewing as "+ROLES[me.role]+". The menu shows only what this role can do.")};
   const open=document.createElement("button");open.id="tourOpen";open.className="btn pri";open.textContent="Guided demo";open.hidden=true;document.body.appendChild(open);
   open.onclick=()=>{open.hidden=true;$("#tour").hidden=false};
   const startView=location.hash.slice(1)||(saved&&saved.view)||defaultView();
@@ -6777,7 +6839,7 @@ V.reception=()=>{
         const isAuto = v.hostAutoNotified;
         notifEl = `<span class="pill" style="background:#ecfdf5;color:#065f46;font-weight:700;font-size:11px;border:1px solid #a7f3d0;height:26px;display:inline-flex;align-items:center;padding:0 8px;white-space:nowrap" title="${esc(v.hostNotifiedNote||'Host notified via ' + (v.hostNotifiedVia||'automated alert'))}">✓ Notified ${isAuto?'(Auto)':''}</span>`;
       } else {
-        notifEl = `<button class="btn" data-act="notify" data-id="${esc(v.id)}" style="height:28px;padding:0 10px;font-size:11.5px;font-weight:600;background:#f8fafc;border:1px solid #94a3b8;color:#1e3a8a;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap" title="Call host ${esc(v.host)}: ${esc(hostPhone)} · Intercom Ext. ${esc(ext)}">Notify Host</button>`;
+        notifEl = `<button class="btn" data-act="notify" data-id="${esc(v.id)}" style="height:28px;padding:0 10px;font-size:11.5px;font-weight:600;background:#f0f9ff;border:1px solid #7dd3fc;color:#0284c7;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap" title="Call host ${esc(v.host)}: ${esc(hostPhone)} · Intercom Ext. ${esc(ext)}">Notify Host</button>`;
       }
       const checkinBtn = B(v.id, "checkin", v.type === "vip" ? "Receive VIP" : "Check in", "pri");
       return `<div style="display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex-wrap:nowrap;justify-content:flex-end">${extChip}${notifEl}${waBtn}${checkinBtn}</div>`;
@@ -10320,22 +10382,32 @@ function wire(){
   const gib=$("#gate_inv_btn"); if(gib) gib.onclick=openInviteDialog;
   const invH=$("#inv_host"), invAg=$("#inv_agency");
   if(invH&&invAg){
-    const hostAgencyMap={"Dr. K. Ibrahim":"WHO","S. Garba":"UNDP","P. Obi":"UNHCR","A. Lawal":"WFP","T. Musa":"UNICEF","R. Bassey":"UNFPA","Comms Office":"UN Women","Facilities Unit":"Common Services","Resident Coordinator":"Common Services"};
-    invH.oninput=()=>{
-      const val=invH.value.trim();
-      if(hostAgencyMap[val]){
-        invAg.value=hostAgencyMap[val];
+    const senderAg = getStaffAgency(me, me?.role, me?.email);
+    if(!invAg.value || invAg.value === "UNDP") invAg.value = senderAg;
+    const syncInvAgency = () => {
+      const val = invH.value.trim();
+      let matched = "";
+      if(!val || (me && me.name && val.toLowerCase().includes(me.name.toLowerCase()))){
+        matched = senderAg;
+      } else {
+        matched = agencyForHost(val);
+      }
+      if(matched && AGENCIES.includes(matched)){
+        invAg.value = matched;
         if($("#inv_host_phone") && !$("#inv_host_phone").value.trim()){
-          $("#inv_host_phone").value = getHostPhone(val, hostAgencyMap[val]);
+          $("#inv_host_phone").value = getHostPhone(val, matched);
         }
-        if($("#inv_email") && (!$("#inv_email").value.trim() || $("#inv_email").value.includes("undp.org"))){
-          $("#inv_email").value = getHostEmail(val, hostAgencyMap[val]);
+        if($("#inv_email") && (!$("#inv_email").value.trim() || $("#inv_email").value.includes("undp.org") || $("#inv_email").value.includes("un.org"))){
+          $("#inv_email").value = getHostEmail(val, matched);
         }
         if($("#inv_host_ext") && !$("#inv_host_ext").value.trim()){
-          $("#inv_host_ext").value = getHostExt(val, hostAgencyMap[val]);
+          $("#inv_host_ext").value = getHostExt(val, matched);
         }
       }
     };
+    invH.oninput = syncInvAgency;
+    invH.onchange = syncInvAgency;
+    syncInvAgency();
   }
   const tsg=$("#ts_go"); if(tsg) tsg.onclick=printTagSheet;
   const rRest=$("#r_restricted"), rType=$("#r_type"), rEsc=$("#r_escort");
