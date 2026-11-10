@@ -1,633 +1,424 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>UN House Visitor Management System</title>
-<meta name="description" content="Access and visitor management for United Nations House, Abuja: registration, approvals, tagging, reception and VIP access across four stations.">
-<link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="icon.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UN House Abuja | Visitor Management System</title>
+<link rel="icon" href="un-emblem.svg" type="image/svg+xml" />
 <style>
-/* Layout: navy masthead band with sign-in, then a station strip, capabilities grid, security notes, footer */
-:root{
-  --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --fg:#0f172a; --muted:#526077; --line:#e2e8f0;
-  --navy:#0f1a30; --navy2:#080e1c; --accent:#0284c7; --accent-fg:#ffffff; --onnavy:#ffffff; --onnavy-muted:#94a3b8;
-  --ok:#0284c7; --ok-bg:#e0f2fe;
-  --shadow:0 1px 3px rgba(15,23,42,.04),0 10px 25px -5px rgba(15,23,42,.08);
-  --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+:root{--navy:#092653;--blue:#0875df;--sky:#eaf4ff;--ink:#10264b;--muted:#5c6f8e;--line:#d5e4f7;--white:#fff;--shadow:0 12px 30px rgba(14,68,137,.10)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--ink);background:#f5f9ff}a{text-decoration:none;color:inherit}
+.container{width:min(1180px,92%);margin:auto}
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);border-bottom:1px solid #e4edf8}
+.nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;color:var(--navy)}.brand img{height:44px;width:auto;display:block;flex-shrink:0}.brand small{display:block;font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+.navlinks{display:flex;align-items:center;gap:25px;font-size:13px;font-weight:650}.navlinks a{transition:color .15s ease}.navlinks a:hover{color:var(--blue)}
+.login-wrap{display:flex;align-items:center;gap:10px}
+.pilot-pill{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:5px 12px;border-radius:999px;white-space:nowrap}
+.login{padding:10px 18px;border-radius:30px;background:var(--blue);color:#fff;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:background .15s ease,transform .15s ease}.login:hover{background:#0565c4;transform:translateY(-1px)}
+.hero{position:relative;overflow:hidden;background:linear-gradient(105deg,#f7fbff 0%,#eaf4ff 47%,#d9ecff 100%);min-height:510px;display:flex;align-items:center}
+.hero:after{content:"";position:absolute;right:-7%;top:-15%;width:65%;height:130%;background:linear-gradient(135deg,rgba(24,121,225,.05),rgba(24,121,225,.22));transform:skewX(-19deg);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:36px;align-items:center;padding:58px 0 74px;position:relative;z-index:1}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;color:var(--blue);font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;background:#e2f0ff;border:1px solid #c7e2ff;border-radius:30px;padding:7px 13px}
+.eyebrow-dot{width:7px;height:7px;border-radius:50%;background:#0875df;box-shadow:0 0 0 3px rgba(8,117,223,.25);display:inline-block}
+h1{font-size:clamp(36px,4.8vw,56px);line-height:1.06;letter-spacing:-1.8px;margin:16px 0;color:var(--navy)}h1 span{color:var(--blue)}.lead{font-size:16.5px;line-height:1.65;color:#405678;max-width:530px;margin:0 0 24px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:13px 22px;border-radius:30px;font-weight:750;font-size:14px;border:1px solid transparent;transition:.18s ease;cursor:pointer}
+.btn-primary{background:var(--blue);color:white;box-shadow:0 8px 18px rgba(8,117,223,.28)}.btn-primary:hover{transform:translateY(-2px);background:#0565c4;box-shadow:0 12px 24px rgba(8,117,223,.35)}
+.btn-outline{border-color:#8abfff;color:var(--navy);background:#ffffffcc}.btn-outline:hover{background:white;transform:translateY(-1px);border-color:#0875df}
+.secret-dot{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;opacity:0.75;transition:opacity .15s ease,transform .15s ease;margin-left:4px}.secret-dot:hover{opacity:1;transform:scale(1.25)}
+.secret-dot span{width:7px;height:7px;border-radius:50%;background:#0875df;box-shadow:0 0 0 3px rgba(8,117,223,.3);display:inline-block}
+.hero-photo{height:370px;border-radius:24px;position:relative;overflow:hidden;background:linear-gradient(145deg,#a9d6ff,#477fba);box-shadow:0 20px 45px rgba(23,62,115,.22);border:1px solid rgba(255,255,255,0.8)}
+.hero-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(9,38,83,.20),transparent 50%),linear-gradient(0deg,rgba(9,38,83,.40),transparent 65%)}
+.photo-caption{position:absolute;left:20px;bottom:16px;z-index:2;color:#ffffff;font-size:12px;font-weight:600;letter-spacing:.02em;background:rgba(9,38,83,.65);backdrop-filter:blur(6px);padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.2)}
+.quicklinks{position:relative;margin-top:-38px;z-index:2}
+.quick-grid{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);overflow:hidden}
+.quick{padding:22px 20px;display:flex;gap:14px;align-items:center;border-right:1px solid var(--line);transition:background .15s ease,transform .15s ease}.quick:hover{background:#f8fbff}.quick:last-child{border:0}
+.quick .ico{width:46px;height:46px;border-radius:13px;background:#eaf4ff;color:var(--blue);display:grid;place-items:center;flex-shrink:0}
+.quick h3{margin:0 0 4px;font-size:14.5px;color:var(--navy);font-weight:750}.quick p{margin:0;color:var(--muted);font-size:12px;line-height:1.45}
+section{padding:78px 0}
+.section-head{text-align:center;max-width:720px;margin:0 auto 38px}
+.section-head .eyebrow{margin-bottom:12px}
+.section-head h2{font-size:clamp(28px,3vw,36px);margin:0 0 10px;color:var(--navy);letter-spacing:-1px}
+.section-head p{margin:0;color:var(--muted);line-height:1.6;font-size:15px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.step{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:26px 20px;text-align:center;box-shadow:0 8px 20px rgba(11,74,144,.06);position:relative;transition:transform .18s ease,box-shadow .18s ease;display:flex;flex-direction:column;align-items:center}.step:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(11,74,144,.12);border-color:#93c5fd}
+.step-num{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;margin:0 auto 12px;background:var(--blue);color:#fff;font-weight:800;font-size:13px}
+.step-icon{width:48px;height:48px;border-radius:12px;background:#f0f7ff;color:var(--blue);display:grid;place-items:center;margin-bottom:12px}
+.step h3{font-size:16px;margin:0 0 6px;color:var(--navy);font-weight:800}
+.step-loc{font-size:11.5px;font-weight:700;color:var(--blue);margin-bottom:8px;white-space:nowrap}
+.step p{font-size:13px;line-height:1.5;color:var(--muted);margin:0}
+.categories{background:#edf5ff}
+.category-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.category{background:white;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 8px 18px rgba(11,74,144,.05);display:flex;flex-direction:column}
+.category-top{padding:12px 10px;text-align:center;color:white;font-weight:800;font-size:12.5px;letter-spacing:.02em}
+.category-body{padding:18px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;flex:1}
+.lanyard{width:62px;height:70px;margin:0 auto 12px;position:relative;border:4px solid currentColor;border-radius:13px 13px 9px 9px;display:grid;place-items:center;font-size:10.5px;font-weight:900;background:#fff;letter-spacing:.04em}
+.lanyard:before{content:"";position:absolute;top:-26px;width:27px;height:25px;border:4px solid currentColor;border-bottom:0;border-radius:20px 20px 0 0}
+.category-body p{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
+.blue{color:#0875df}.green{color:#059669}.amber{color:#d97706}.purple{color:#7c3aed}.slate{color:#1e3a8a}
+.blue .category-top{background:#1681ee}.green .category-top{background:#059669}.amber .category-top{background:#d97706}.purple .category-top{background:#7c3aed}.slate .category-top{background:#1e3a8a}
+.benefits{padding:36px 0}
+.benefit-row{display:grid;grid-template-columns:repeat(5,1fr);background:#dceeff;border:1px solid #c1ddff;border-radius:16px;padding:16px 14px;gap:8px}
+.benefit{display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:750;color:#064b9b}
+.benefit span{width:34px;height:34px;border-radius:50%;background:#fff;display:grid;place-items:center;color:var(--blue);flex-shrink:0;box-shadow:0 2px 6px rgba(6,75,155,.08)}
+.commitment{padding:0 0 75px}
+.commit-card{background:linear-gradient(120deg,#0b2f67,#071c3d);border-radius:23px;padding:40px;color:#fff;display:grid;grid-template-columns:1.15fr .85fr;gap:35px;align-items:center;overflow:hidden;position:relative}
+.commit-card:after{content:"✦";position:absolute;right:2%;bottom:-70px;font-size:260px;color:rgba(255,255,255,0.04);pointer-events:none}
+.commit-card .eyebrow{background:#123e78;border-color:#285a9b;color:#9ed0ff}
+.commit-card h2{font-size:32px;line-height:1.15;margin:14px 0;letter-spacing:-.5px}
+.commit-card p{color:#c7d8f2;line-height:1.65;max-width:520px;font-size:14.5px;margin:0 0 20px}
+.commit-list{border-left:1px solid #42608b;padding-left:28px}
+.commit-list h3{margin:0 0 16px;font-size:17px;letter-spacing:.01em}
+.commit-list li{list-style:none;margin:12px 0;color:#e5efff;font-size:13.5px;display:flex;align-items:flex-start;gap:10px;line-height:1.45}
+.commit-list li svg{flex-shrink:0;margin-top:2px;color:#4ade80}
+footer{background:white;border-top:1px solid var(--line);padding:28px 0}
+.footer-row{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.footer-brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--navy);font-size:14px}
+.footer-brand img{height:32px;width:auto;display:block}
+.footer-brand small{display:block;color:var(--muted);font-weight:500;font-size:11.5px;margin-top:2px}
+.footer-links{display:flex;gap:22px;font-size:13px;color:var(--muted);font-weight:600}
+.footer-links a{transition:color .15s ease}.footer-links a:hover{color:var(--blue)}
+.tagline{font-size:12.5px;font-weight:750;color:var(--blue);letter-spacing:.02em}
+
+@media(max-width:960px){
+  .navlinks{display:none}
+  .hero-grid{grid-template-columns:1fr;gap:24px}
+  .hero-photo{height:280px}
+  .quick-grid{grid-template-columns:repeat(2,1fr)}
+  .quick:nth-child(2){border-right:0}
+  .quick:nth-child(-n+2){border-bottom:1px solid var(--line)}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .category-grid{grid-template-columns:repeat(3,1fr)}
+  .benefit-row{grid-template-columns:repeat(2,1fr)}
+  .commit-card{grid-template-columns:1fr;padding:30px}
+  .commit-list{border-left:0;border-top:1px solid #42608b;padding:22px 0 0}
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
-  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
-  --ok:#38bdf8; --ok-bg:#0c2d48; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0b111e; --surface:#131c2e; --surface2:#1b263b; --fg:#e6edf7; --muted:#94a3b8; --line:#26344d;
-  --navy:#090f1c; --navy2:#060a13; --accent:#38bdf8; --accent-fg:#08101f;
-  --ok:#38bdf8; --ok-bg:#0c2d48; --shadow:0 4px 18px rgba(0,0,0,.35); color-scheme:dark}
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
-.band{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
-.in{max-width:1100px;margin:0 auto}
-header.band{background:radial-gradient(900px 420px at 85% 20%,rgba(29,108,224,.28),transparent 70%),linear-gradient(180deg,var(--navy),var(--navy2));color:var(--onnavy);position:relative;overflow:hidden}
-.top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:18px;flex-wrap:wrap;border-bottom:1px solid #ffffff14}
-.mark{display:flex;align-items:center;gap:12px}
-.logo{height:50px;width:auto;display:block;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.22)}
-.logo-slot{height:50px;width:37px;border:1px solid #ffffff38;background:#0468B1;border-radius:6px;display:grid;place-items:center;color:#fff;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.22)}
-.logo-slot svg{width:100%;height:100%;display:block}
-.mark b{display:block;font-size:16px;letter-spacing:.01em}
-.mark span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--onnavy-muted)}
-.top-acts{display:flex;align-items:center;gap:10px}
-.ctas{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.btn{display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 20px;border-radius:999px;font-weight:600;font-size:13.5px;text-decoration:none;border:1px solid transparent;transition:all .18s cubic-bezier(0.16, 1, 0.3, 1);white-space:nowrap;letter-spacing:-0.01em}
-.btn.pri{background:linear-gradient(180deg,#0284c7 0%,#0369a1 100%);color:#ffffff;border:1px solid rgba(255,255,255,0.22);box-shadow:inset 0 1px 0 rgba(255,255,255,0.28), 0 4px 14px -2px rgba(2,132,199,0.5)}
-.btn.pri:hover{background:linear-gradient(180deg,#0369a1 0%,#0284c7 100%);transform:translateY(-1.5px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.35), 0 8px 22px -3px rgba(2,132,199,0.7)}
-.btn.pri .btn-arrow{transition:transform .18s ease}
-.btn.pri:hover .btn-arrow{transform:translateX(3px)}
-.btn.ghost{border:1px solid rgba(255,255,255,0.18);background:rgba(255,255,255,0.08);color:#ffffff;backdrop-filter:blur(10px);box-shadow:inset 0 1px 0 rgba(255,255,255,0.08)}
-.btn.ghost:hover{background:rgba(255,255,255,0.14);border-color:rgba(255,255,255,0.32);color:#ffffff;transform:translateY(-1.5px);box-shadow:0 6px 18px -4px rgba(0,0,0,0.35)}
-.btn:active{transform:translateY(0)}
-.btn:focus-visible{outline:2px solid var(--onnavy);outline-offset:3px}
-.hero{padding-block:54px 64px;display:grid;grid-template-columns:1.2fr .8fr;gap:44px;align-items:center}
-.eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--onnavy-muted);background:#ffffff12;border:1px solid #ffffff22;padding:4px 12px;border-radius:999px}
-.eyebrow i{width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.25)}
-h1{font-size:clamp(30px,4.5vw,46px);line-height:1.12;margin:14px 0 16px;text-wrap:balance;font-weight:700;letter-spacing:-.02em}
-.lead{font-size:17px;color:var(--onnavy-muted);max-width:56ch;margin:0 0 24px;line-height:1.55}
-.ctas{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.pass{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:18px;padding:0;overflow:hidden;box-shadow:0 24px 50px -12px rgba(0,0,0,.45);max-width:350px;justify-self:end;width:100%;border-top:4px solid var(--accent)}
-.pass .ph{background:var(--navy2);color:var(--onnavy);padding:11px 18px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center;font-weight:600}
-.pass .ph .st-ok{color:#38bdf8;display:inline-flex;align-items:center;gap:5px}
-.pass .ph .st-ok::before{content:"";width:6px;height:6px;border-radius:50%;background:#38bdf8}
-.pass .pb{padding:20px 18px;display:grid;gap:11px}
-.pass .top-r{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.pass .nm{font-size:21px;font-weight:700;line-height:1.2}
-.pass .ref{font-family:var(--mono);color:var(--accent);font-size:12.5px;margin-top:2px}
-.pass .tag{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:.05em;background:var(--surface2);border:1px dashed var(--line);padding:4px 10px;border-radius:8px}
-.pass .row{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:9px}
-.pass .row b{color:var(--fg);font-weight:600}
-main .sec{padding-block:56px}
-h2{font-size:26px;font-weight:700;letter-spacing:-.015em;margin:0 0 8px;text-wrap:balance}
-.sub{color:var(--muted);margin:0 0 28px;max-width:62ch}
-.flow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
-.flow li{padding:24px 20px;border:1px solid #cbd5e1;border-top:4px solid var(--accent);border-radius:14px;background:var(--surface);box-shadow:0 2px 8px rgba(15,23,42,.04);position:relative;min-width:0;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;display:flex;flex-direction:column}
-.flow li:hover{transform:translateY(-3px);box-shadow:0 12px 28px -8px rgba(15,23,42,.12);border-color:#94a3b8}
-.flow li:nth-child(1){border-top-color:#0284c7}
-.flow li:nth-child(2){border-top-color:#0284c7}
-.flow li:nth-child(3){border-top-color:#059669}
-.flow li:nth-child(4){border-top-color:#7c3aed}
-.flow .no{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--accent);letter-spacing:.08em;background:#f0f9ff;border:1px solid #bae6fd;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;margin-bottom:12px;width:fit-content;text-transform:uppercase}
-.flow li:nth-child(3) .no{color:#059669;background:#ecfdf5;border-color:#a7f3d0}
-.flow li:nth-child(4) .no{color:#7c3aed;background:#f5f3ff;border-color:#ddd6fe}
-.flow h3{font-size:17px;font-weight:700;color:var(--fg);margin:0 0 4px;letter-spacing:-.01em}
-.flow .where{font-size:11.5px;color:#0284c7;text-transform:uppercase;letter-spacing:.06em;font-weight:700;display:flex;align-items:center;gap:4px;margin-bottom:8px}
-.flow p{font-size:13.5px;color:#334155;margin:0;line-height:1.5;flex:1}
-
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.grid>div{background:var(--surface);border:1px solid #cbd5e1;border-radius:14px;padding:22px;box-shadow:0 2px 6px rgba(15,23,42,.03);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;display:flex;flex-direction:column;gap:8px}
-.grid>div:hover{transform:translateY(-2px);box-shadow:0 10px 24px -6px rgba(15,23,42,.08);border-color:#94a3b8}
-.grid-ic{width:38px;height:38px;border-radius:9px;background:#f0f9ff;border:1px solid #bae6fd;color:#0284c7;display:grid;place-items:center;font-size:18px;margin-bottom:4px}
-.grid h3{font-size:16px;font-weight:700;color:var(--fg);margin:0;display:flex;align-items:center;gap:6px}
-.grid p{font-size:13.5px;color:#334155;margin:0;line-height:1.5}
-
-.secure{background:var(--surface);border-top:1px solid #cbd5e1;border-bottom:1px solid #cbd5e1}
-.two{display:grid;grid-template-columns:1fr 1.2fr;gap:40px;align-items:start}
-.trust-badges{display:flex;flex-direction:column;gap:8px;margin-top:20px}
-.trust-pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#0f172a;background:#f1f5f9;border:1px solid #cbd5e1;padding:6px 12px;border-radius:8px;width:fit-content}
-.two ul{margin:0;padding:0;list-style:none;display:grid;gap:12px}
-.two ul li{background:#f8fafc;border:1px solid #cbd5e1;border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(15,23,42,.03);transition:border-color .15s}
-.two ul li:hover{border-color:#94a3b8}
-.two ul b{color:#0f172a;font-weight:700;display:block;margin-bottom:4px;font-size:14px}
-.two ul span{color:#334155;font-size:13.5px;line-height:1.5;display:block}
-
-footer.band{background:var(--navy);color:var(--onnavy-muted);font-size:14px;padding-block:48px 30px}
-.fcols{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.3fr;gap:28px}
-.fcols>div{display:flex;flex-direction:column;gap:8px;min-width:0}
-.fcols p{margin:0;max-width:34ch;line-height:1.5}
-.fh{color:#ffffff;font-weight:700;font-size:15px;letter-spacing:-.01em}
-.fl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#38bdf8;font-weight:700;margin-bottom:4px}
-.fcols a{color:var(--onnavy-muted);text-decoration:none;width:fit-content;font-size:13.5px;transition:color .14s ease}
-.fcols a:hover{color:#ffffff}
-.fcols span{font-size:13px;line-height:1.45}
-.fbase{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:36px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.14);font-size:13px;color:var(--onnavy-muted)}
-
-@media (max-width:960px){.hero{grid-template-columns:1fr}.pass{justify-self:start}.flow{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}.fcols{grid-template-columns:1fr 1fr}}
-@media (max-width:540px){.flow{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.fcols{grid-template-columns:1fr}}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+@media(max-width:580px){
+  .nav{height:66px}
+  .brand small{display:none}
+  .pilot-pill{display:none}
+  .hero-grid{padding:36px 0 54px}
+  .hero-photo{height:210px}
+  h1{letter-spacing:-1px;font-size:32px}
+  .lead{font-size:14.5px}
+  .quick-grid{grid-template-columns:1fr}
+  .quick{border-right:0!important;border-bottom:1px solid var(--line)!important}
+  .quick:last-child{border-bottom:0!important}
+  .steps{grid-template-columns:1fr}
+  .category-grid{grid-template-columns:repeat(2,1fr)}
+  .benefit-row{grid-template-columns:1fr}
+  .commit-card h2{font-size:24px}
+  .footer-links{flex-wrap:wrap;gap:14px}
+}
 </style>
 </head>
 <body>
-<header class="band">
-  <div class="in top">
-    <div class="mark">
-      <img src="un-emblem.svg" alt="United Nations" style="height:48px;width:auto;display:block;flex-shrink:0">
-      <div><b>UN House Visitor Management System</b><span>United Nations Common Services · Abuja</span></div>
-    </div>
-    <div class="top-acts">
-      <span class="pill" style="background:rgba(255,255,255,0.12);color:#bae6fd;border:1px solid rgba(255,255,255,0.22);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:5px 12px;border-radius:999px">Pilot Demonstration</span>
-      <a class="btn ghost" href="app.html">Staff sign-in</a>
-    </div>
-  </div>
-  <div class="in hero">
-    <div>
-      <div class="eyebrow"><a href="app.html?demo" style="display:inline-flex;align-items:center;text-decoration:none" title="Quick Demo Access" aria-label="Demo Access"><i style="cursor:pointer" title="Direct System Access"></i></a>United Nations House, Abuja</div>
-      <h1>Every visitor registered, approved, tagged and accounted for.</h1>
-      <p class="lead">One shared visitor record for the gate, documentation, internal reception and the VIP entrance. It replaces logbooks and spreadsheets with live, role-based access control.</p>
-      <div class="ctas">
-        <a class="btn pri" href="app.html">
-          <span>Open system</span>
-          <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </a>
-        <a class="btn ghost" href="#how">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.75"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-          <span>How it works</span>
-        </a>
-        <a href="app.html?demo" title="Direct System Access (Demo)" aria-label="Demo Access" style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;text-decoration:none;margin-left:2px;opacity:0.8;transition:opacity .15s ease,transform .15s ease"><span style="width:7px;height:7px;border-radius:50%;background:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.35);display:inline-block"></span></a>
-      </div>
-      <div class="metrics-bar" style="margin-top:22px;padding:9px 18px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.06);backdrop-filter:blur(12px);border-radius:999px;display:inline-flex;gap:18px;align-items:center;box-shadow:0 6px 20px -6px rgba(0,0,0,0.3);flex-wrap:wrap">
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex:none" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <div style="display:flex;flex-direction:column;line-height:1.15">
-            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">Fast-Track</span>
-            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Pre-Cleared Intake</span>
-          </div>
-        </div>
-        <div style="width:1px;height:18px;background:rgba(255,255,255,0.16);flex:none"></div>
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none" aria-hidden="true"><path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2L2 7h20L12 2z"/></svg>
-          <div style="display:flex;flex-direction:column;line-height:1.15">
-            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">16 Agencies</span>
-            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Unified Compound</span>
-          </div>
-        </div>
-        <div style="width:1px;height:18px;background:rgba(255,255,255,0.16);flex:none"></div>
-        <div style="display:flex;align-items:center;gap:7px">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-          <div style="display:flex;flex-direction:column;line-height:1.15">
-            <span style="font-size:14.5px;font-weight:700;color:#fff;font-family:var(--mono);letter-spacing:-0.01em;white-space:nowrap">4 Stations</span>
-            <span style="font-size:9.5px;font-weight:600;color:var(--onnavy-muted);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap">Sequential Flow</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="pass" aria-label="Example visitor pass">
-      <div class="ph"><span>Visitor pass</span><span class="st-ok">Checked in</span></div>
-      <div class="pb">
-        <div class="top-r">
-          <div><div class="nm">Amaka Nwosu</div><div class="ref">UNH-261107-K4TZ</div></div>
-          <div class="tag">V-014</div>
-        </div>
-        <div class="row"><span>Organisation</span><b>Federal Ministry of Health</b></div>
-        <div class="row"><span>Host</span><b>Dr. K. Ibrahim · WHO</b></div>
-        <div class="row"><span>Building</span><b>Main UN House Building</b></div>
-        <div class="row"><span>Time</span><b>Admitted 09:12 · In 09:18</b></div>
-      </div>
+<header>
+  <div class="container nav">
+    <a class="brand" href="index.html">
+      <img src="un-emblem.svg" alt="United Nations Emblem">
+      <span>UN House <small>Abuja · Visitor Management System</small></span>
+    </a>
+    <nav class="navlinks" aria-label="Main navigation">
+      <a href="#">Home</a>
+      <a href="#how">How It Works</a>
+      <a href="#categories">Visitor Info</a>
+      <a href="#security">Security</a>
+      <a href="#reports">Reports</a>
+    </nav>
+    <div class="login-wrap">
+      <span class="pilot-pill">Pilot Demonstration</span>
+      <a class="login" href="app.html">
+        <span>↪ Staff Login</span>
+      </a>
     </div>
   </div>
 </header>
 
 <main>
-  <!-- 1. Four Stations, One Record -->
-  <section class="band sec" id="how">
-    <div class="in">
-      <div style="text-align:center;max-width:800px;margin:0 auto 36px">
-        <div style="font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0284c7;margin-bottom:6px">Operational Architecture · Four Stations, One Record</div>
-        <h2 style="font-size:28px;font-weight:800;color:var(--navy);margin:0 0 10px;letter-spacing:-0.02em">A Seamless, Sequential Physical Intake Pipeline</h2>
-        <p class="sub" style="font-size:15px;color:#475569;margin:0;line-height:1.55">
-          A visitor moves through each physical station in turn. Every officer sees the exact same real-time perimeter record, with server-enforced permissions strictly partitioned to their assigned post.
-        </p>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px">
-        <!-- Station 1 -->
-        <div style="background:var(--surface);border:1.5px solid #cbd5e1;border-top:5px solid #0284c7;border-radius:16px;padding:24px 22px;box-shadow:0 4px 16px -4px rgba(15,23,42,0.06);display:flex;flex-direction:column;justify-content:space-between">
-          <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <span class="mono" style="font-size:11px;font-weight:800;letter-spacing:.08em;background:#e0f2fe;color:#0369a1;padding:3px 9px;border-radius:6px;border:1px solid #bae6fd">STATION 1 · COMPUTER 1</span>
-              <div style="width:34px;height:34px;border-radius:8px;background:#f0f9ff;border:1px solid #bae6fd;display:grid;place-items:center;color:#0284c7">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              </div>
-            </div>
-            <h3 style="font-size:19px;font-weight:800;color:var(--navy);margin:0 0 4px">Gate Reception</h3>
-            <div style="font-size:11.5px;color:#0284c7;font-weight:700;display:flex;align-items:center;gap:5px;margin-bottom:12px;white-space:nowrap">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Access Control Building
-            </div>
-            <p style="font-size:13px;color:#334155;line-height:1.5;margin:0">
-              Confirm visitor advance approval, verify against the live UNDSS watchlist, and admit cleared guests through the perimeter turnstiles. Register unscheduled walk-ins.
-            </p>
-          </div>
-
-        </div>
-
-        <!-- Station 2 -->
-        <div style="background:var(--surface);border:1.5px solid #cbd5e1;border-top:5px solid #0369a1;border-radius:16px;padding:24px 22px;box-shadow:0 4px 16px -4px rgba(15,23,42,0.06);display:flex;flex-direction:column;justify-content:space-between">
-          <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <span class="mono" style="font-size:11px;font-weight:800;letter-spacing:.08em;background:#e0f2fe;color:#0369a1;padding:3px 9px;border-radius:6px;border:1px solid #bae6fd">STATION 2 · COMPUTER 2</span>
-              <div style="width:34px;height:34px;border-radius:8px;background:#f0f9ff;border:1px solid #bae6fd;display:grid;place-items:center;color:#0284c7">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
-              </div>
-            </div>
-            <h3 style="font-size:19px;font-weight:800;color:var(--navy);margin:0 0 4px">Documentation &amp; Tags</h3>
-            <div style="font-size:11.5px;color:#0284c7;font-weight:700;display:flex;align-items:center;gap:5px;margin-bottom:12px;white-space:nowrap">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Main Access Control Desk
-            </div>
-            <p style="font-size:13px;color:#334155;line-height:1.5;margin:0">
-              Verify Government photo ID in person, document credentials, log declared equipment, and issue a numbered colour-coded physical lanyard tag (zero cloud biometric or photocopy storage).
-            </p>
-          </div>
-
-        </div>
-
-        <!-- Station 3 -->
-        <div style="background:var(--surface);border:1.5px solid #cbd5e1;border-top:5px solid #1e3a8a;border-radius:16px;padding:24px 22px;box-shadow:0 4px 16px -4px rgba(15,23,42,0.06);display:flex;flex-direction:column;justify-content:space-between">
-          <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <span class="mono" style="font-size:11px;font-weight:800;letter-spacing:.08em;background:#e0f2fe;color:#0369a1;padding:3px 9px;border-radius:6px;border:1px solid #bae6fd">STATION 3 · COMPUTER 3</span>
-              <div style="width:34px;height:34px;border-radius:8px;background:#f0f9ff;border:1px solid #bae6fd;display:grid;place-items:center;color:#0284c7">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 18h16M6 14v4M18 14v4M12 3v15M8 7h8M8 11h8"/></svg>
-              </div>
-            </div>
-            <h3 style="font-size:19px;font-weight:800;color:var(--navy);margin:0 0 4px">Internal Reception</h3>
-            <div style="font-size:11.5px;color:#0284c7;font-weight:700;display:flex;align-items:center;gap:5px;margin-bottom:12px;white-space:nowrap">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Main UN House Building
-            </div>
-            <p style="font-size:13px;color:#334155;line-height:1.5;margin:0">
-              Receive documented visitors, contact host on desk phone (Ext. 1000) or WhatsApp, check them in upon host arrival, and collect physical tags on exit.
-            </p>
-          </div>
-
-        </div>
-
-        <!-- Station 4 -->
-        <div style="background:var(--surface);border:1.5px solid #cbd5e1;border-top:5px solid #7e22ce;border-radius:16px;padding:24px 22px;box-shadow:0 4px 16px -4px rgba(15,23,42,0.06);display:flex;flex-direction:column;justify-content:space-between">
-          <div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <span class="mono" style="font-size:11px;font-weight:800;letter-spacing:.08em;background:#f3e8ff;color:#7e22ce;padding:3px 9px;border-radius:6px;border:1px solid #e9d5ff">STATION 4 · TABLET 1</span>
-              <div style="width:34px;height:34px;border-radius:8px;background:#faf5ff;border:1px solid #e9d5ff;display:grid;place-items:center;color:#7e22ce">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-              </div>
-            </div>
-            <h3 style="font-size:19px;font-weight:800;color:var(--navy);margin:0 0 4px">VIP Diplomatic Gate</h3>
-            <div style="font-size:11.5px;color:#7e22ce;font-weight:700;display:flex;align-items:center;gap:5px;margin-bottom:12px;white-space:nowrap">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#7e22ce" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              VIP Diplomatic Canopy
-            </div>
-            <p style="font-size:13px;color:#334155;line-height:1.5;margin:0">
-              Verify accredited Ambassadorial delegations, Ministers, and Heads of Mission against expected lists. Fast-track with direct Protocol Officer alert and designated protocol credential.
-            </p>
-          </div>
-
-        </div>
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow"><i class="eyebrow-dot"></i>UN House Abuja · Visitor Services</span>
+      <h1>UN House<br>Visitor Management<br><span>System</span></h1>
+      <h2 style="font-size:20px;margin:0 0 12px;color:#19365e;font-weight:700">Secure. Seamless. Accountable.</h2>
+      <p class="lead">A modern, efficient and secure way to manage compound visitors, ensure authorized floor access, and support a welcoming diplomatic environment at UN House, Abuja.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="app.html">
+          <span>➜ Open Operations Console</span>
+        </a>
+        <a class="btn btn-outline" href="app.html?demo">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0875df" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          <span>Guided Demo</span>
+        </a>
+        <a href="app.html?demo" class="secret-dot" title="Quick Demo System Access" aria-label="Demo Access">
+          <span></span>
+        </a>
       </div>
     </div>
-  </section>
-
-  <!-- 2. Access Control Architecture · Floor Restrictions & Colour-Coded Identification -->
-  <section class="band sec" style="padding-top:0">
-    <div class="in">
-      <div style="background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);border:1.5px solid #cbd5e1;border-radius:18px;padding:32px 30px;box-shadow:0 6px 24px -6px rgba(15,23,42,0.06)">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:20px">
-          <div>
-            <div style="font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0284c7;margin-bottom:6px">Access Control Architecture · UN House Standard</div>
-            <h3 style="font-size:24px;font-weight:800;color:var(--navy);margin:0;letter-spacing:-0.01em">Floor Restrictions &amp; 5-Tier Colour-Coded System</h3>
-            <p style="font-size:14px;color:#475569;margin:8px 0 0;max-width:840px;line-height:1.55">
-              UN House combines pre-registration, security-controlled floor access, explicit destination-only clearance, and visual lanyard identification. Access to unauthorized floors or unescorted movement across agency wings is strictly prohibited.
-            </p>
-          </div>
-          <span style="font-size:11.5px;font-weight:700;color:#0369a1;background:#e0f2fe;border:1.5px solid #bae6fd;padding:6px 16px;border-radius:999px;white-space:nowrap">
-            UNDSS Security Standard
-          </span>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px">
-          <!-- Blue -->
-          <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span style="width:14px;height:14px;border-radius:50%;background:#0284c7;display:inline-block;box-shadow:0 0 0 3px #bae6fd"></span>
-                <b style="font-size:14px;color:#0369a1">BLUE · General Visitor</b>
-              </div>
-              <div style="font-size:11px;font-weight:700;color:#0284c7;text-transform:uppercase;margin-bottom:6px">Host-Authorized Meeting</div>
-              <p style="font-size:12.5px;color:#334155;margin:0;line-height:1.45">Visitors attending meetings, interviews, or conferences. Access strictly limited to approved floor &amp; office.</p>
-            </div>
-            <div style="margin-top:12px;font-size:11px;font-weight:600;color:#0369a1">Re-usable Tag: V-001 – V-200</div>
-          </div>
-
-          <!-- Green -->
-          <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span style="width:14px;height:14px;border-radius:50%;background:#16a34a;display:inline-block;box-shadow:0 0 0 3px #bbf7d0"></span>
-                <b style="font-size:14px;color:#15803d">GREEN · Registry &amp; Mail</b>
-              </div>
-              <div style="font-size:11px;font-weight:700;color:#16a34a;text-transform:uppercase;margin-bottom:6px">Administrative Dispatch</div>
-              <p style="font-size:12.5px;color:#334155;margin:0;line-height:1.45">Official correspondence, diplomatic pouch, and courier deliveries. Controlled access to ground floor Registry only.</p>
-            </div>
-            <div style="margin-top:12px;font-size:11px;font-weight:600;color:#15803d">Tracking: REG-Barcoded</div>
-          </div>
-
-          <!-- Amber -->
-          <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span style="width:14px;height:14px;border-radius:50%;background:#d97706;display:inline-block;box-shadow:0 0 0 3px #fde68a"></span>
-                <b style="font-size:14px;color:#b45309">AMBER · Contractor</b>
-              </div>
-              <div style="font-size:11px;font-weight:700;color:#d97706;text-transform:uppercase;margin-bottom:6px">Work-Order Restricted</div>
-              <p style="font-size:12.5px;color:#334155;margin:0;line-height:1.45">Maintenance, facilities, IT vendors. Work-order restricted with mandatory escort and specified work hours.</p>
-            </div>
-            <div style="margin-top:12px;font-size:11px;font-weight:600;color:#b45309">Re-usable Tag: C-001 – C-100</div>
-          </div>
-
-          <!-- Purple -->
-          <div style="background:#faf5ff;border:1.5px solid #e9d5ff;border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span style="width:14px;height:14px;border-radius:50%;background:#9333ea;display:inline-block;box-shadow:0 0 0 3px #e9d5ff"></span>
-                <b style="font-size:14px;color:#7e22ce">PURPLE · Official Protocol</b>
-              </div>
-              <div style="font-size:11px;font-weight:700;color:#9333ea;text-transform:uppercase;margin-bottom:6px">State Delegation</div>
-              <p style="font-size:12.5px;color:#334155;margin:0;line-height:1.45">Official diplomatic engagements and government delegations handled through established protocol arrangements.</p>
-            </div>
-            <div style="margin-top:12px;font-size:11px;font-weight:600;color:#7e22ce">Protocol Clearance Pass</div>
-          </div>
-
-          <!-- VIP -->
-          <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:18px 16px;display:flex;flex-direction:column;justify-content:space-between">
-            <div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-                <span style="width:14px;height:14px;border-radius:50%;background:#475569;display:inline-block;box-shadow:0 0 0 3px #cbd5e1"></span>
-                <b style="font-size:14px;color:#1e293b">⭐ VIP · Protocol Pass</b>
-              </div>
-              <div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:6px">Diplomatic Courtesy</div>
-              <p style="font-size:12.5px;color:#334155;margin:0;line-height:1.45">Ambassadors, Ministers &amp; Heads of Mission received at VIP canopy. Pre-cleared with protocol escort and issued discreet diplomatic credentials for compound accountability.</p>
-            </div>
-            <div style="margin-top:12px;font-size:11px;font-weight:700;color:#0f172a">Discreet Protocol Credential</div>
-          </div>
-        </div>
-
-        <!-- Institutional Badge Notice Banner -->
-        <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:10px">
-          <span style="font-size:18px">🛡️</span>
-          <span style="font-size:12.5px;font-weight:700;color:#0f172a;letter-spacing:.02em">
-            AUTHORIZED DESTINATION ONLY — ACCESS TO OTHER FLOORS OR AGENCIES IS STRICTLY PROHIBITED
-          </span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 3. What It Handles (Capabilities Grid) -->
-  <section class="band sec" style="padding-top:0">
-    <div class="in">
-      <div style="text-align:center;max-width:760px;margin:0 auto 36px">
-        <div style="font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0284c7;margin-bottom:6px">System Capabilities · Built for 16 Agencies</div>
-        <h2 style="font-size:28px;font-weight:800;color:var(--navy);margin:0 0 10px;letter-spacing:-0.02em">Everything Required for Secure Compound Governance</h2>
-        <p class="sub" style="font-size:15px;color:#475569;margin:0;line-height:1.55">
-          Engineered to UN Common Services requirements for visitor, contractor, courier, and VIP access across all 16 resident UN agencies in Abuja.
-        </p>
-      </div>
-
-      <div class="grid">
-        <!-- Registration -->
-        <div>
-          <div class="grid-ic">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-          </div>
-          <h3>Registration &amp; Intake</h3>
-          <p>Single visitors, official delegations, walk-ins, bulk upload by CSV or photo scan, and advance self-registration by staff hosts.</p>
-        </div>
-
-        <!-- Approvals -->
-        <div>
-          <div class="grid-ic">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-          </div>
-          <h3>Two-Person Approvals</h3>
-          <p>Every visitor, VIP, and contractor request goes to an authorized approver before becoming expected at the gate. Zero self-approvals permitted.</p>
-        </div>
-
-        <!-- Tags and Badges (🏷️ Tag icon preserved) -->
-        <div>
-          <div class="grid-ic" style="font-size:20px">🏷️</div>
-          <h3>Tags, Badges &amp; Verification</h3>
-          <p>Unique sequential references, color-coded lanyard assignment, digital phone passes, and in-person physical document inspection without cloud photocopy storage.</p>
-        </div>
-
-        <!-- Contractors -->
-        <div>
-          <div class="grid-ic">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-          </div>
-          <h3>Contractor Governance</h3>
-          <p>Access limited by building, work-order date bounds, automatic expiry warnings, multi-day re-entry, and immediate security suspension.</p>
-        </div>
-
-        <!-- Live Dashboard -->
-        <div>
-          <div class="grid-ic">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          </div>
-          <h3>Live Telemetry Dashboard</h3>
-          <p>Expected arrivals, who is currently inside the perimeter, occupancy by building and agency wing, overstays, and security exceptions.</p>
-        </div>
-
-        <!-- Reports -->
-        <div>
-          <div class="grid-ic">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <h3>Reports, Evacuation &amp; Audit</h3>
-          <p>Searchable historical logs, monthly counts, UNDSS Emergency Evacuation Muster Rolls, and CSV exports for executive management review.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4. UN Reform & Operations Management (BOS 2.0) -->
-  <section class="band sec" style="padding-top:0">
-    <div class="in">
-      <div style="background:linear-gradient(135deg,#090f1d 0%,#13223f 50%,#0f1a30 100%);border:1px solid rgba(255,255,255,0.14);border-radius:20px;padding:36px 32px;color:#fff;box-shadow:0 16px 40px -8px rgba(15,23,42,.4)">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:28px">
-          <div>
-            <div style="font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#38bdf8;margin-bottom:6px">UN Reform &amp; Operations Management Framework</div>
-            <h3 style="font-size:24px;font-weight:800;color:#ffffff;margin:0;letter-spacing:-0.01em">Built for UN Inter-Agency Common Services (BOS 2.0)</h3>
-            <p style="font-size:14.5px;color:#94a3b8;margin:8px 0 0;max-width:840px;line-height:1.55">
-              Engineered to meet the exact mandates of the UN Country Team Operations Management Team (OMT), Designated Officials, and Chief Security Advisers across multi-agency compounds.
-            </p>
-          </div>
-          <span class="pill" style="font-size:11.5px;font-weight:700;background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.3);padding:6px 16px;border-radius:999px">
-            Aligned with UN BOS 2.0 Framework
-          </span>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px">
-          <!-- BOS 2.0 Cost-Sharing -->
-          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px">
-            <div style="width:38px;height:38px;border-radius:9px;background:rgba(56,189,248,0.15);display:grid;place-items:center;color:#38bdf8;margin-bottom:14px">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </div>
-            <h4 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#ffffff">BOS 2.0 Inter-Agency Cost Apportionment</h4>
-            <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.5">Automated compound visitor footfall tracking and percentage cost apportionment across all 16 resident agencies under the Common Services Agreement.</p>
-          </div>
-
-          <!-- UNDSS Muster Roll -->
-          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px">
-            <div style="width:38px;height:38px;border-radius:9px;background:rgba(239,68,68,0.15);display:grid;place-items:center;color:#f87171;margin-bottom:14px">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </div>
-            <h4 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#ffffff">UNDSS Emergency Evacuation Muster Roll</h4>
-            <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.5">Instant one-tap perimeter roll call. Identifies exactly who is inside, which floor/wing they occupy, and their responsible host for emergency evacuation.</p>
-          </div>
-
-          <!-- Calendar & WhatsApp Sync -->
-          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px">
-            <div style="width:38px;height:38px;border-radius:9px;background:rgba(34,197,94,0.15);display:grid;place-items:center;color:#4ade80;margin-bottom:14px">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-            </div>
-            <h4 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#ffffff">Outlook, Calendar &amp; WhatsApp Alerts</h4>
-            <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.5">Frictionless staff invitations via Outlook 365 / Google Calendar .ICS sync, with privacy-conscious arrival notifications ("Your guest has arrived at Gate 1") to host officers.</p>
-          </div>
-
-          <!-- Diplomatic VIP & Privacy -->
-          <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:22px">
-            <div style="width:38px;height:38px;border-radius:9px;background:rgba(168,85,247,0.15);display:grid;place-items:center;color:#c084fc;margin-bottom:14px">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-            </div>
-            <h4 style="margin:0 0 8px;font-size:16px;font-weight:700;color:#ffffff">Diplomatic Protocol &amp; Data Privacy</h4>
-            <p style="margin:0;font-size:13px;color:#94a3b8;line-height:1.5">Protocol-guided VIP diplomatic intake with discreet credentials, zero biometric storage, and zero cloud ID scans, honoring UN privileges, immunities, and privacy laws.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 5. Security and Accountability -->
-  <section class="band sec secure">
-    <div class="in two">
-      <div>
-        <div style="font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#0284c7;margin-bottom:6px">Institutional Trust &amp; Governance</div>
-        <h2 style="font-size:26px;font-weight:800;color:var(--navy);margin:0 0 10px;letter-spacing:-0.01em">Security &amp; Accountability</h2>
-        <p class="sub" style="margin:0 0 20px;font-size:14.5px;line-height:1.5">
-          Access control rules are server-enforced on every read and write, not merely obscured in client browser screens.
-        </p>
-        <div class="trust-badges" style="display:flex;flex-direction:column;gap:10px">
-          <div class="trust-pill" style="width:100%;justify-content:flex-start">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-            <span>Proposed Adherence with UNDSS Guidelines</span>
-          </div>
-          <div class="trust-pill" style="width:100%;justify-content:flex-start">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
-            <span>Aligned with Nigeria Data Protection Act (NDPA 2023)</span>
-          </div>
-          <div class="trust-pill" style="width:100%;justify-content:flex-start">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span>UN HLCM Data Privacy Framework</span>
-          </div>
-          <div class="trust-pill" style="width:100%;justify-content:flex-start">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
-            <span>UN Security Council Sanctions Resolution 1267 Checked</span>
-          </div>
-        </div>
-      </div>
-
-      <ul style="display:flex;flex-direction:column;gap:14px;margin:0;padding:0;list-style:none">
-        <li style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:18px 20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <b style="color:var(--navy);font-size:15px">Role-Based Access Control (RBAC)</b>
-            <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700">Server-Partitioned</span>
-          </div>
-          <span style="font-size:13px;color:#334155;line-height:1.5">Gate, documentation, reception, VIP, host, approver, and administrator roles. Each terminal strictly restricted to its physical operational post.</span>
-        </li>
-        <li style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:18px 20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <b style="color:var(--navy);font-size:15px">Server-Enforced Audit Trail (/audit)</b>
-            <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700">Append-Only</span>
-          </div>
-          <span style="font-size:13px;color:#334155;line-height:1.5">Every registration, clearance, physical tag handover, check-in, and check-out is committed to an immutable server log. Client browsers possess zero deletion privileges.</span>
-        </li>
-        <li style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:18px 20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <b style="color:var(--navy);font-size:15px">Data Minimisation &amp; Document Inspection</b>
-            <span class="pill" style="background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700">Zero Cloud IDs</span>
-          </div>
-          <span style="font-size:13px;color:#334155;line-height:1.5">Zero physical ID scans, photocopies, or biometrics uploaded or stored. Government IDs are inspected in person and retained by the visitor upon entry clearance.</span>
-        </li>
-        <li style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:18px 20px">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-            <b style="color:var(--navy);font-size:15px">Staff Governance &amp; Quorum</b>
-            <span class="pill" style="background:#e0f2fe;color:#0369a1;font-size:11px;font-weight:700">Quorum of 3</span>
-          </div>
-          <span style="font-size:13px;color:#334155;line-height:1.5">Staff sign in with their authenticated UN email. System Administrator roles are capped at 3 with mutual peer oversight and automated access review logs.</span>
-        </li>
-      </ul>
-    </div>
-  </section>
-</main>
-
-<!-- 6. Institutional Footer -->
-<footer class="band">
-  <div class="in">
-    <div class="fcols">
-      <div>
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <img src="un-emblem.svg" alt="United Nations" style="height:38px;width:auto">
-          <div class="fh" style="font-size:15px;font-weight:800;letter-spacing:.02em">UN House Visitor Management System</div>
-        </div>
-        <p style="font-size:13.5px;color:var(--onnavy-muted);line-height:1.5;margin:0">
-          Official access and visitor management for United Nations Common Services, UN House Abuja, Nigeria. Supporting 16 resident agencies under the BOS 2.0 framework.
-        </p>
-        <p style="margin-top:14px;font-size:12.5px;color:var(--onnavy-muted)">
-          <b>Support &amp; ICT Helpdesk:</b> Ext. 2030 / <b>Common Services:</b> Ext. 2010
-        </p>
-      </div>
-
-      <div>
-        <div class="fl" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:12px">System</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <a href="app.html" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Open Operations Console</a>
-          <a href="app.html" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Staff Sign-In</a>
-          <a href="#how" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">How It Works</a>
-          <a href="app.html?demo" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Guided Protocol Demo</a>
-          <a href="app.html?rules" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Visitor Security Rules</a>
-        </div>
-      </div>
-
-      <div>
-        <div class="fl" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:12px">Stations</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <a href="app.html?view=gate" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Station 1 · Gate Reception</a>
-          <a href="app.html?view=tagging" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Station 2 · Documentation &amp; Tags</a>
-          <a href="app.html?view=reception" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Station 3 · Internal Reception</a>
-          <a href="app.html?view=vip" style="color:var(--onnavy-muted);text-decoration:none;font-size:13.5px">Station 4 · VIP Diplomatic Gate</a>
-        </div>
-      </div>
-
-      <div>
-        <div class="fl" style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#fff;margin-bottom:12px">Privacy &amp; Compliance</div>
-        <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--onnavy-muted)">
-          <span>• Zero ID scans, photos or biometrics stored.</span>
-          <span>• In-person physical ID inspection · Zero cloud biometrics.</span>
-          <span>• Aligned with Nigeria NDPA 2023 &amp; UN HLCM.</span>
-          <span>• Dual-View X-Ray Screening Compatibility.</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="fbase" style="margin-top:28px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.12);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;font-size:12.5px;color:var(--onnavy-muted)">
-      <span>© <span id="yr">2026</span> United Nations Common Services · UN House Abuja, Nigeria</span>
-      <span class="mono" style="background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:6px;color:#94a3b8">Enterprise Version 2.4.0 (Live Production)</span>
+    <div class="hero-photo">
+      <img src="un-house-building.jpg" alt="United Nations House Abuja Compound" onerror="this.src='https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85'">
+      <div class="photo-overlay"></div>
+      <div class="photo-caption">United Nations House · Diplomatic Zone, Abuja</div>
     </div>
   </div>
+</section>
+
+<div class="container quicklinks">
+  <div class="quick-grid">
+    <!-- Visitors -->
+    <a class="quick" href="app.html">
+      <div class="ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </div>
+      <div>
+        <h3>For Visitors</h3>
+        <p>Register, receive your pass, and reach your authorized room</p>
+      </div>
+    </a>
+
+    <!-- Staff & Hosts -->
+    <a class="quick" href="app.html?view=host">
+      <div class="ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+      </div>
+      <div>
+        <h3>For Staff &amp; Hosts</h3>
+        <p>Pre-approve visits and get instant arrival notifications</p>
+      </div>
+    </a>
+
+    <!-- Contractors -->
+    <a class="quick" href="app.html?view=contractors">
+      <div class="ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div>
+        <h3>For Contractors</h3>
+        <p>Work-order access with building &amp; time bounds</p>
+      </div>
+    </a>
+
+    <!-- Administrators -->
+    <a class="quick" href="app.html?view=admin">
+      <div class="ico">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+      </div>
+      <div>
+        <h3>For Administrators</h3>
+        <p>BOS 2.0 cost-sharing, UNDSS muster rolls, and audit logs</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- How It Works: 4 Sequential Physical Stations -->
+<section id="how">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Simple 4-Station Process</span>
+      <h2>How It Works</h2>
+      <p>From perimeter arrival to compound departure, every step is managed with transparency, security, and institutional accountability.</p>
+    </div>
+    <div class="steps">
+      <!-- Station 1 -->
+      <a class="step" href="app.html?view=gate">
+        <div class="step-num">1</div>
+        <div class="step-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Gate Reception</h3>
+        <div class="step-loc">Access Control Building</div>
+        <p>Confirm pre-approval, verify against the live UNDSS watchlist, and admit cleared visitors.</p>
+      </a>
+
+      <!-- Station 2 -->
+      <a class="step" href="app.html?view=tagging">
+        <div class="step-num">2</div>
+        <div class="step-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><line x1="15" y1="8" x2="17" y2="8"/><line x1="15" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="17" y2="16"/></svg>
+        </div>
+        <h3>Documentation &amp; Tags</h3>
+        <div class="step-loc">Main Access Control Desk</div>
+        <p>Inspect physical Government photo ID in person and issue a numbered colour-coded tag.</p>
+      </a>
+
+      <!-- Station 3 -->
+      <a class="step" href="app.html?view=reception">
+        <div class="step-num">3</div>
+        <div class="step-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M4 18h16M6 14v4M18 14v4M12 3v15M8 7h8M8 11h8"/></svg>
+        </div>
+        <h3>Internal Reception</h3>
+        <div class="step-loc">Main UN House Building</div>
+        <p>Receive documented guests, alert host officer, complete check-in, and collect tags on departure.</p>
+      </a>
+
+      <!-- Station 4 -->
+      <a class="step" href="app.html?view=vip">
+        <div class="step-num">4</div>
+        <div class="step-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <h3>VIP Diplomatic Gate</h3>
+        <div class="step-loc">VIP Diplomatic Canopy</div>
+        <p>Ambassadors and Ministers fast-tracked with diplomatic courtesy and protocol officer escort.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Visitor Categories & Access Controls -->
+<section class="categories" id="categories">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Visitor Categories &amp; Access Controls</span>
+      <h2>Know Your Visitor Pass</h2>
+      <p>UN House standard 5-tier colour-coded identification. Access is strictly limited to authorized floors and destinations.</p>
+    </div>
+    <div class="category-grid">
+      <!-- Blue -->
+      <article class="category blue">
+        <div class="category-top">General Visitor</div>
+        <div class="category-body">
+          <div class="lanyard">VISITOR</div>
+          <p>Access limited strictly to approved floor, wing &amp; conference room.</p>
+        </div>
+      </article>
+
+      <!-- Green -->
+      <article class="category green">
+        <div class="category-top">Registry Visitor</div>
+        <div class="category-body">
+          <div class="lanyard">REGISTRY</div>
+          <p>Official correspondence &amp; pouch dispatch. Ground floor Registry only.</p>
+        </div>
+      </article>
+
+      <!-- Amber -->
+      <article class="category amber">
+        <div class="category-top">Contractor</div>
+        <div class="category-body">
+          <div class="lanyard">CONTRACTOR</div>
+          <p>Facilities &amp; IT vendors. Work-order restricted with escort bounds.</p>
+        </div>
+      </article>
+
+      <!-- Purple -->
+      <article class="category purple">
+        <div class="category-top">Protocol Visitor</div>
+        <div class="category-body">
+          <div class="lanyard">PROTOCOL</div>
+          <p>Official diplomatic engagements handled via designated protocol escort.</p>
+        </div>
+      </article>
+
+      <!-- Slate / VIP -->
+      <article class="category slate">
+        <div class="category-top">VIP Protocol Pass</div>
+        <div class="category-body">
+          <div class="lanyard">VIP PASS</div>
+          <p>Ambassadors &amp; Heads of Mission. Discreet credentials with protocol escort.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- Institutional Benefits -->
+<section class="benefits" id="security">
+  <div class="container">
+    <div class="benefit-row">
+      <div class="benefit">
+        <span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
+        Enhanced Security
+      </div>
+      <div class="benefit">
+        <span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><polyline points="17 11 19 13 23 9"/></svg>
+        </span>
+        Clear Accountability
+      </div>
+      <div class="benefit">
+        <span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        </span>
+        Fast-Track Intake
+      </div>
+      <div class="benefit">
+        <span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        </span>
+        BOS 2.0 Analytics
+      </div>
+      <div class="benefit">
+        <span>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </span>
+        UNDSS Muster Ready
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Commitment & Highlights -->
+<section class="commitment" id="reports">
+  <div class="container">
+    <div class="commit-card">
+      <div>
+        <span class="eyebrow">Our Commitment</span>
+        <h2>A Safe, Accountable and Welcoming UN House</h2>
+        <p>Working together for a secure, efficient compound serving 16 resident UN agencies in Abuja. Visitor access is governed by server-enforced role permissions and immutable audit records.</p>
+        <a class="btn btn-outline" href="app.html?rules" style="color:white;border-color:#8dbbff">Visitor Security Rules →</a>
+      </div>
+      <div class="commit-list">
+        <h3>System Highlights</h3>
+        <ul style="padding:0;margin:0">
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Host approval &amp; explicit destination clearance
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            In-person physical ID inspection (zero cloud scans)
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            BOS 2.0 inter-agency cost apportionment reports
+          </li>
+          <li>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            1-tap UNDSS Emergency Evacuation Muster Roll
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container footer-row">
+    <div class="footer-brand">
+      <img src="un-emblem.svg" alt="United Nations">
+      <div>
+        <span>UN House Abuja</span>
+        <small>Common Services · Security · Inter-Agency Coordination</small>
+      </div>
+    </div>
+    <nav class="footer-links">
+      <a href="app.html">Operations Console</a>
+      <a href="app.html?demo">Guided Protocol Demo</a>
+      <a href="app.html?rules">Security Rules</a>
+      <a href="#how">How It Works</a>
+      <a href="mailto:unhouse-security@un.org">ICT &amp; Security Helpdesk</a>
+    </nav>
+    <div class="tagline">Together for a safer UN House</div>
+  </div>
 </footer>
-<script>
-document.getElementById("yr").textContent=new Date().getFullYear();
-</script>
 </body>
 </html>
