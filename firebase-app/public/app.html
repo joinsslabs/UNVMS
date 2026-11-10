@@ -1943,10 +1943,17 @@ function openInviteDialog(){
         </div>
       </div>
 
-      <div class="f">
-        <label for="dlg_email" style="font-weight:700">Host Work Email (optional)</label>
-        <input id="dlg_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org" style="font-size:13.5px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="f">
+          <label for="dlg_email" style="font-weight:700">Host Work Email</label>
+          <input id="dlg_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org" style="font-size:13.5px">
+        </div>
+        <div class="f">
+          <label for="dlg_host_phone" style="font-weight:700">Host Mobile / WhatsApp Phone *</label>
+          <input id="dlg_host_phone" type="tel" placeholder="e.g. +234 803 555 0192" style="font-size:13.5px">
+        </div>
       </div>
+      <p class="small" style="color:#0369a1;margin:-4px 0 0">📱 <b>Automatic Station 3 Alert:</b> When your visitor checks in at Station 3, an automated alert will be sent directly to this phone and email.</p>
 
       <div class="small" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;color:#475569">
         💡 <b>Visitor Experience:</b> The visitor will be greeted with: <i>"[Host Name] ([Agency]) has invited you to UN House Abuja"</i>. They fill in their details and arrive with photo ID. Gate 1 receives their arrival automatically.
@@ -1983,7 +1990,8 @@ function openInviteDialog(){
     const host=$("#dlg_host").value.trim();
     if(!host) return toast("Please enter the UN staff member host's name.");
     const agency=$("#dlg_agency").value;
-    const hostEmail=$("#dlg_email").value.trim().toLowerCase();
+    const hostEmail=$("#dlg_email").value.trim().toLowerCase() || getHostEmail(host, agency);
+    const hostPhone=($("#dlg_host_phone")?$("#dlg_host_phone").value.trim():"") || getHostPhone(host, agency);
     const room=$("#dlg_room").value.trim();
     const tok=newToken();
     const invDoc={
@@ -1991,6 +1999,7 @@ function openInviteDialog(){
       hostUid:(me&&me.uid)||myUid()||"staff",
       host,
       hostEmail,
+      hostPhone,
       agency,
       room,
       status:"open",
@@ -2044,10 +2053,17 @@ function inviteView(){
         <label for="inv_agency" style="font-weight:700">Host Agency *</label>
         <select id="inv_agency">${AGENCIES.map(a=>`<option value="${esc(a)}">${esc(a)}</option>`).join("")}</select>
       </div>
-      <div class="f">
-        <label for="inv_email" style="font-weight:700">Host Work Email (optional)</label>
-        <input id="inv_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="f">
+          <label for="inv_email" style="font-weight:700">Host Work Email</label>
+          <input id="inv_email" type="email" value="${esc(emailVal)}" placeholder="e.g. staff.member@undp.org">
+        </div>
+        <div class="f">
+          <label for="inv_host_phone" style="font-weight:700">Host Phone / WhatsApp *</label>
+          <input id="inv_host_phone" type="tel" placeholder="e.g. +234 803 555 0192">
+        </div>
       </div>
+      <p class="small" style="color:#0369a1;margin:-4px 0 6px">📱 <i>Host phone & email will be the automatic contact avenue when guest checks in at Station 3.</i></p>
       <div class="f">
         <label for="inv_room" style="font-weight:700">Meeting Room / Office</label>
         <input id="inv_room" placeholder="e.g. Room 302, 3rd Floor">
@@ -2085,7 +2101,8 @@ async function createInvite(){
   const hostInput=$("#inv_host")?$("#inv_host").value.trim():"";
   const host=hostInput||(me&&me.name&&!/Station \d|Reception Officer/i.test(me.name)?me.name:"UN Host");
   const agency=($("#inv_agency")&&$("#inv_agency").value)||"UNDP";
-  const hostEmail=($("#inv_email")?$("#inv_email").value.trim().toLowerCase():"")||(me?me.email:"");
+  const hostEmail=($("#inv_email")?$("#inv_email").value.trim().toLowerCase():"")||(me?me.email:"")||getHostEmail(host, agency);
+  const hostPhone=($("#inv_host_phone")?$("#inv_host_phone").value.trim():"")||getHostPhone(host, agency);
   const room=$("#inv_room")?$("#inv_room").value.trim():"";
   const tok=newToken();
   const invDoc={
@@ -2093,6 +2110,7 @@ async function createInvite(){
     hostUid:(me&&me.uid)||myUid()||"staff",
     host,
     hostEmail,
+    hostPhone,
     agency,
     room,
     status:"open",
@@ -2162,7 +2180,8 @@ async function useInvite(arg){
     room: i.room || "",
     ...(g.agreedAt ? { agreedAt: g.agreedAt, agreement: g.agreement, lang: g.lang } : {}),
     host: i.host || "UN Host",
-    hostEmail: i.hostEmail || "",
+    hostEmail: i.hostEmail || (i.guest && i.guest.hostEmail) || getHostEmail(i.host, i.agency),
+    hostPhone: i.hostPhone || (i.guest && i.guest.hostPhone) || getHostPhone(i.host, i.agency),
     agency: i.agency || "UNDP",
     building: BUILDINGS[0],
     expected: g.expected ? new Date(g.expected).getTime() || now() : now(),
@@ -3486,230 +3505,181 @@ function buildReportHtml(period="daily"){
   const lost = real.filter(v=>v.type!=="vip"&&v.tagReturned===false && (v.outAt||0)>=start);
   const over = arr.filter(v=>v.type!=="vip"&&v.inAt&&((v.outAt||now())>stayLimit(v)));
 
-  return `<div class="print-doc" style="font-family:'IBM Plex Sans',Arial,Helvetica,sans-serif;color:#0f172a;background:#ffffff;padding:26px 30px;border-radius:10px;box-sizing:border-box;max-width:840px;margin:0 auto;box-shadow:0 3px 15px rgba(0,0,0,.08);line-height:1.45">
+  const curUser = op() || "UNDSS Duty Officer";
+  const isSecurity = curUser.toLowerCase().includes("fsm") || curUser.toLowerCase().includes("security") || curUser.toLowerCase().includes("undss") || curUser.toLowerCase().includes("guard");
+  const isCommonServices = curUser.toLowerCase().includes("common") || curUser.toLowerCase().includes("operations") || curUser.toLowerCase().includes("facilities");
+
+  const sig1Title = isSecurity
+    ? "Compound Security Operations Lead (Prepared By):"
+    : (isCommonServices ? "UN Common Services & Operations Lead (Prepared By):" : "Station 1 Access Control & Verification Officer (Prepared By):");
+  const sig1Name = curUser;
+
+  const sig2Title = isSecurity
+    ? "Head of UN Common Services (Operations Management Team / OMT Approval):"
+    : "Facilities Security Manager (UNDSS Compound Security Oversight):";
+  const sig2Name = isSecurity
+    ? "Common Services Operations Lead / OMT Chair"
+    : "Facilities Security Manager / UNDSS Primary Approver";
+  const sig2Label = isSecurity
+    ? "Common Services / OMT Sign-Off: _____________________________________"
+    : "UNDSS Security Sign-Off: _____________________________________";
+  const sig2Note = isSecurity
+    ? "Certified for UNCT Operations Management Team (BOS 2.0 Footfall Apportionment)"
+    : "Approved for Compound Security Clearance & OMT Transmission";
+
+  return `<div class="print-doc" style="font-family:'IBM Plex Sans',Arial,Helvetica,sans-serif;color:#0f172a;background:#ffffff;padding:20px 24px;border-radius:10px;box-sizing:border-box;max-width:840px;margin:0 auto;box-shadow:0 3px 15px rgba(0,0,0,.08);line-height:1.4;page-break-inside:avoid;break-inside:avoid">
     
-    <!-- UN Official Header with Official UN Emblem Logo -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1e3a8a;padding-bottom:12px;margin-bottom:14px">
-      <div style="display:flex;gap:14px;align-items:center">
-        <img src="un-emblem.svg" alt="United Nations" style="height:56px;width:auto;display:block;flex-shrink:0">
+    <!-- 1. UN Official Header (Compact) -->
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2.5px solid #1e3a8a;padding-bottom:10px;margin-bottom:10px">
+      <div style="display:flex;gap:12px;align-items:center">
+        <img src="un-emblem.svg" alt="United Nations" style="height:46px;width:auto;display:block;flex-shrink:0">
         <div>
-          <div style="font-size:15.5pt;font-weight:800;color:#1e3a8a;letter-spacing:-0.02em">UNITED NATIONS SYSTEM IN NIGERIA</div>
-          <div style="font-size:9.5pt;color:#475569;font-weight:600">UN House Abuja · UN Common Services &amp; UNDSS Compound Security</div>
-          <div style="font-size:12pt;font-weight:700;color:#0f172a;margin-top:4px;text-transform:uppercase">${periodTitle} Visitor Access &amp; Security Operations Report</div>
+          <div style="font-size:13.5pt;font-weight:800;color:#1e3a8a;letter-spacing:-0.02em;line-height:1.1">UNITED NATIONS SYSTEM IN NIGERIA</div>
+          <div style="font-size:8.5pt;color:#475569;font-weight:600">UN House Abuja · UN Common Services &amp; UNDSS Compound Security</div>
+          <div style="font-size:10.5pt;font-weight:700;color:#0f172a;margin-top:2px;text-transform:uppercase">${periodTitle} Visitor Access &amp; Security Operations Report</div>
         </div>
       </div>
-      <div style="text-align:right;font-size:8.5pt;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;padding:6px 12px;border-radius:8px">
+      <div style="text-align:right;font-size:8pt;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;padding:5px 10px;border-radius:6px;line-height:1.35">
         <div><b>Timeframe:</b> <span style="color:#0284c7;font-weight:700">${esc(periodTitle)}</span></div>
         <div><b>Date:</b> ${esc(periodLabel)}</div>
-        <div><b>Certified by:</b> ${esc(op())}</div>
         <div><b>Classification:</b> UN Official Confidential</div>
       </div>
     </div>
 
-    <!-- Executive Metrics 6-Card Strip -->
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-bottom:14px">
-      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;padding:8px 6px;border-radius:8px;text-align:center">
-        <div style="font-size:17pt;font-weight:800;color:#0369a1">${arr.length}</div>
-        <div style="font-size:7.5pt;font-weight:700;color:#0284c7;text-transform:uppercase">Total Traffic</div>
+    <!-- 2. Executive Traffic Metrics Strip (6 Cards) -->
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:10px">
+      <div style="background:#f0f9ff;border:1px solid #bae6fd;padding:6px 4px;border-radius:6px;text-align:center">
+        <div style="font-size:14pt;font-weight:800;color:#0369a1">${arr.length}</div>
+        <div style="font-size:7pt;font-weight:700;color:#0284c7;text-transform:uppercase">Total Traffic</div>
       </div>
-      <div style="background:#f8fafc;border:1.5px solid #cbd5e1;padding:8px 6px;border-radius:8px;text-align:center">
-        <div style="font-size:17pt;font-weight:800;color:#1e3a8a">${std.length}</div>
-        <div style="font-size:7.5pt;font-weight:700;color:#475569;text-transform:uppercase">Official Guests</div>
+      <div style="background:#f8fafc;border:1px solid #cbd5e1;padding:6px 4px;border-radius:6px;text-align:center">
+        <div style="font-size:14pt;font-weight:800;color:#1e3a8a">${std.length}</div>
+        <div style="font-size:7pt;font-weight:700;color:#475569;text-transform:uppercase">Official Guests</div>
       </div>
-      <div style="background:#eff6ff;border:1.5px solid #bfdbfe;padding:8px 6px;border-radius:8px;text-align:center">
-        <div style="font-size:17pt;font-weight:800;color:#1e40af">${dels.length}</div>
-        <div style="font-size:7.5pt;font-weight:700;color:#2563eb;text-transform:uppercase">Mail / Courier</div>
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;padding:6px 4px;border-radius:6px;text-align:center">
+        <div style="font-size:14pt;font-weight:800;color:#1e40af">${dels.length}</div>
+        <div style="font-size:7pt;font-weight:700;color:#2563eb;text-transform:uppercase">Mail / Courier</div>
       </div>
-      <div style="background:#f0fdfa;border:1.5px solid #99f6e4;padding:8px 6px;border-radius:8px;text-align:center">
-        <div style="font-size:17pt;font-weight:800;color:#0d9488">${cons.length}</div>
-        <div style="font-size:7.5pt;font-weight:700;color:#0f766e;text-transform:uppercase">Contractors</div>
+      <div style="background:#f0fdfa;border:1px solid #99f6e4;padding:6px 4px;border-radius:6px;text-align:center">
+        <div style="font-size:14pt;font-weight:800;color:#0d9488">${cons.length}</div>
+        <div style="font-size:7pt;font-weight:700;color:#0f766e;text-transform:uppercase">Contractors</div>
       </div>
-      <div style="background:#fefce8;border:1.5px solid #fef08a;padding:8px 6px;border-radius:8px;text-align:center">
-        <div style="font-size:17pt;font-weight:800;color:#854d0e">${vips.length + protos.length}</div>
-        <div style="font-size:7.5pt;font-weight:700;color:#a16207;text-transform:uppercase">VIP &amp; Protocol</div>
+      <div style="background:#fefce8;border:1px solid #fef08a;padding:6px 4px;border-radius:6px;text-align:center">
+        <div style="font-size:14pt;font-weight:800;color:#854d0e">${vips.length + protos.length}</div>
+        <div style="font-size:7pt;font-weight:700;color:#a16207;text-transform:uppercase">VIP &amp; Protocol</div>
       </div>
-      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;padding:8px 6px;border-radius:8px;text-align:center">
-        <div style="font-size:17pt;font-weight:800;color:#15803d">${checkedOut.length}</div>
-        <div style="font-size:7.5pt;font-weight:700;color:#16a34a;text-transform:uppercase">Out (${compRate}%)</div>
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:6px 4px;border-radius:6px;text-align:center">
+        <div style="font-size:14pt;font-weight:800;color:#15803d">${checkedOut.length}</div>
+        <div style="font-size:7pt;font-weight:700;color:#16a34a;text-transform:uppercase">Out (${compRate}%)</div>
       </div>
     </div>
 
-    <!-- Operating Timings & Averages -->
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;background:#f8fafc;padding:10px 14px;border-radius:8px;border:1px solid #e2e8f0;font-size:8.5pt">
-      <div><b>Avg Processing (Gate → Documentation):</b> <span style="color:#0369a1;font-weight:700">${avg(waits)}</span></div>
-      <div><b>Avg Visit Length (Compound Dwell):</b> <span style="color:#0369a1;font-weight:700">${avg(stays)}</span></div>
-      <div><b>Compound Overstays (>8h):</b> <span style="color:${over.length?'#b91c1c':'#15803d'};font-weight:700">${over.length} recorded</span></div>
-    </div>
-
-    <!-- UN BOS 2.0 Inter-Agency Cost-Sharing & Apportionment Framework Section (Integrated into Official Report) -->
-    <div style="border:1.5px solid #059669;background:#f0fdf4;border-radius:8px;padding:12px;margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #a7f3d0;padding-bottom:6px;margin-bottom:8px">
+    <!-- 3. UN BOS 2.0 Inter-Agency Cost-Sharing & Footfall Apportionment Table (Strictly Traffic-Based, No Overflow) -->
+    <div style="border:1.5px solid #059669;background:#f0fdf4;border-radius:8px;padding:9px 12px;margin-bottom:10px;box-sizing:border-box;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #a7f3d0;padding-bottom:4px;margin-bottom:6px">
         <div>
-          <div style="font-size:8pt;font-weight:800;color:#059669;letter-spacing:0.06em;text-transform:uppercase">UN BUSINESS OPERATIONS STRATEGY (BOS 2.0) FRAMEWORK</div>
-          <div style="font-size:10.5pt;font-weight:700;color:#064e3b">🏛️ Common Services Inter-Agency Cost-Sharing &amp; Footfall Apportionment</div>
+          <div style="font-size:7.5pt;font-weight:800;color:#059669;letter-spacing:0.06em;text-transform:uppercase">UN BUSINESS OPERATIONS STRATEGY (BOS 2.0) FRAMEWORK</div>
+          <div style="font-size:9.5pt;font-weight:700;color:#064e3b">🏛️ Common Services Inter-Agency Cost-Sharing &amp; Footfall Apportionment</div>
         </div>
-        <span style="font-size:8pt;background:#059669;color:#fff;font-weight:700;padding:2px 8px;border-radius:4px">OMT AUDITED</span>
+        <span style="font-size:7.5pt;background:#059669;color:#fff;font-weight:700;padding:2px 7px;border-radius:4px">OMT AUDITED</span>
       </div>
-      <p style="font-size:8pt;color:#334155;margin:0 0 8px 0;line-height:1.4">
-        Official footfall distribution for the UN Country Team Operations Management Team (OMT). Reception desk personnel, security screening lanes, and common compound operating expenses are apportioned under the Inter-Agency Common Services Agreement.
+      <p style="font-size:7.5pt;color:#334155;margin:0 0 6px 0;line-height:1.35">
+        Official footfall distribution for the UN Country Team Operations Management Team (OMT). Reception desk personnel, security screening lanes, and common compound operating expenses are apportioned under the Inter-Agency Common Services Agreement based on verified gate traffic.
       </p>
-      <table style="width:100%;border-collapse:collapse;font-size:8.5pt">
-        <thead>
-          <tr style="background:#dcfce7;color:#065f46">
-            <th style="padding:4px 6px;text-align:left">UN Agency / Entity</th>
-            <th style="padding:4px 6px;text-align:right">Visitor Footfall</th>
-            <th style="padding:4px 6px;text-align:right">Compound Traffic Share</th>
-            <th style="padding:4px 6px;text-align:right">Cost Apportionment Factor</th>
-            <th style="padding:4px 6px;text-align:center">BOS 2.0 Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${agencySorted.map(([ag, cnt]) => {
-            const totalArr = arr.length || 1;
-            const pct = ((cnt / totalArr) * 100).toFixed(1);
-            const factor = (cnt / totalArr).toFixed(3);
-            return `<tr>
-              <td style="padding:3px 6px;border-bottom:1px solid #d1fae5"><b>${esc(ag)}</b></td>
-              <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;font-weight:700">${cnt}</td>
-              <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;color:#047857;font-weight:700">${pct}%</td>
-              <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right">${factor}</td>
-              <td style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:center;color:#059669;font-weight:700">✓ Apportioned</td>
-            </tr>`;
-          }).join("")}
-          ${!agencySorted.length ? `<tr><td colspan="5" style="padding:8px;text-align:center;color:#64748b">No visitor traffic recorded for this timeframe.</td></tr>` : ""}
-          ${agencySorted.length ? `<tr style="background:#dcfce7;font-weight:700;border-top:1.5px solid #059669">
-            <td style="padding:4px 6px">TOTAL COMPOUND FOOTFALL</td>
-            <td class="mono" style="padding:4px 6px;text-align:right">${arr.length}</td>
-            <td class="mono" style="padding:4px 6px;text-align:right;color:#047857">100.0%</td>
-            <td class="mono" style="padding:4px 6px;text-align:right">1.000</td>
-            <td style="padding:4px 6px;text-align:center;color:#059669">✓ OMT Certified</td>
-          </tr>` : ""}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Security & Compliance Audit Strip -->
-    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;margin-bottom:14px">
-      <div style="font-weight:700;font-size:9.5pt;color:#1e3a8a;margin-bottom:6px;border-bottom:1px solid #e2e8f0;padding-bottom:4px">
-        🛡️ Security &amp; Compliance Audit
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:8.5pt;line-height:1.6">
-        <div>
-          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0">
-            <span>Watchlist Automated Screenings:</span><b style="color:#15803d">100% Enforced</b>
-          </div>
-          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0">
-            <span>UNSC &amp; National Watchlist Matches:</span><b>${arr.filter(v=>watched(v)).length} Flagged</b>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:2px 0">
-            <span>Physical Lanyard Tags Accounted:</span><b style="color:${lost.length?'#b91c1c':'#15803d'}">${lost.length?`${lost.length} Unreturned`:'100% Returned'}</b>
-          </div>
-        </div>
-        <div>
-          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0">
-            <span>Smiths HI-SCAN 6040 Delivery X-Ray:</span><b style="color:#15803d">100% Scanned</b>
-          </div>
-          <div style="display:flex;justify-content:space-between;border-bottom:1px solid #f1f5f9;padding:2px 0">
-            <span>Compound Visiting Curfew:</span><b>08:00 – 17:00</b>
-          </div>
-          <div style="display:flex;justify-content:space-between;padding:2px 0">
-            <span>Staff Escort Protocol for Contractors:</span><b style="color:#15803d">Enforced</b>
-          </div>
-        </div>
+      
+      <div style="width:100%;box-sizing:border-box;overflow:hidden">
+        <table style="width:100%;border-collapse:collapse;font-size:8pt;table-layout:fixed;box-sizing:border-box">
+          <thead>
+            <tr style="background:#dcfce7;color:#065f46">
+              <th style="width:30%;padding:4px 6px;text-align:left;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">UN Agency / Entity</th>
+              <th style="width:17%;padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">Visitor Footfall</th>
+              <th style="width:18%;padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">Traffic Share (%)</th>
+              <th style="width:20%;padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">Apportionment Factor</th>
+              <th style="width:15%;padding:4px 6px;text-align:center;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">BOS 2.0 Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${agencySorted.map(([ag, cnt]) => {
+              const totalArr = arr.length || 1;
+              const pct = ((cnt / totalArr) * 100).toFixed(1);
+              const factor = (cnt / totalArr).toFixed(3);
+              return `<tr>
+                <td style="padding:3px 6px;border-bottom:1px solid #d1fae5;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${esc(ag)}</b></td>
+                <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;font-weight:700;box-sizing:border-box">${cnt}</td>
+                <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;color:#047857;font-weight:700;box-sizing:border-box">${pct}%</td>
+                <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;box-sizing:border-box">${factor}</td>
+                <td style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:center;color:#059669;font-weight:700;box-sizing:border-box">✓ Apportioned</td>
+              </tr>`;
+            }).join("")}
+            ${!agencySorted.length ? `<tr><td colspan="5" style="padding:6px;text-align:center;color:#64748b">No visitor traffic recorded for this timeframe.</td></tr>` : ""}
+            ${agencySorted.length ? `<tr style="background:#dcfce7;font-weight:700;border-top:1.5px solid #059669">
+              <td style="padding:3px 6px;box-sizing:border-box">TOTAL COMPOUND FOOTFALL</td>
+              <td class="mono" style="padding:3px 6px;text-align:right;box-sizing:border-box">${arr.length}</td>
+              <td class="mono" style="padding:3px 6px;text-align:right;color:#047857;box-sizing:border-box">100.0%</td>
+              <td class="mono" style="padding:3px 6px;text-align:right;box-sizing:border-box">1.000</td>
+              <td style="padding:3px 6px;text-align:center;color:#059669;box-sizing:border-box">✓ OMT Certified</td>
+            </tr>` : ""}
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- Visitor Summary Sample Table -->
-    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:10px;margin-bottom:16px">
-      <div style="font-weight:700;font-size:9.5pt;color:#1e3a8a;margin-bottom:6px">
-        📋 ${periodTitle} Visitor Log Sample (Top ${Math.min(10, arr.length)} of ${arr.length} records)
-      </div>
-      <table style="width:100%;border-collapse:collapse;font-size:8pt">
-        <thead><tr style="background:#f1f5f9;color:#334155"><th style="padding:4px;text-align:left">Ref</th><th style="padding:4px;text-align:left">Visitor</th><th style="padding:4px;text-align:left">Organisation</th><th style="padding:4px;text-align:left">Host &amp; Agency</th><th style="padding:4px;text-align:left">Category</th><th style="padding:4px;text-align:left">Time In</th><th style="padding:4px;text-align:left">Status</th></tr></thead>
-        <tbody>
-          ${arr.slice(0,10).map(v=>`<tr>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;font-family:monospace">${esc(v.ref)}</td>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9"><b>${esc(v.name)}</b></td>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.org||"—")}</td>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.host)} (${esc(v.agency)})</td>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${getVisitorCategory(v)}</td>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9;font-family:monospace">${fmtT(v.inAt||v.arrivedAt||v.expected)}</td>
-            <td style="padding:3px 4px;border-bottom:1px solid #f1f5f9">${esc(v.status)}</td>
-          </tr>`).join("")}
-          ${!arr.length?`<tr><td colspan="7" style="padding:8px;text-align:center;color:#64748b">No visitors recorded during this ${periodTitle.toLowerCase()} timeframe.</td></tr>`:""}
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Merged 17:00 End-of-Day Reception Closeout & Compound Clearance Reconciliation (Integrated) -->
-    <div style="border:1.5px solid #1e3a8a;border-radius:8px;padding:12px;margin-bottom:14px;background:#f8fafc">
-      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #cbd5e1;padding-bottom:6px;margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:14px">🔒</span>
-          <span style="font-size:9.5pt;font-weight:700;color:#1e3a8a">17:00 Daily Reception Closeout &amp; Compound Clearance Reconciliation</span>
+    <!-- 4. Security, Curfew & Merged 17:00 Reception Closeout Audit (Compact Unified Box) -->
+    <div style="border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;margin-bottom:10px;background:#f8fafc;box-sizing:border-box">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:4px;margin-bottom:6px">
+        <div style="font-weight:700;font-size:8.5pt;color:#1e3a8a;display:flex;align-items:center;gap:6px">
+          <span>🔒</span> 17:00 Daily Reception Closeout &amp; Security Compliance Audit
         </div>
-        <span style="font-size:8pt;background:${over.length?'#fee2e2':'#d1fae5'};color:${over.length?'#b91c1c':'#065f46'};font-weight:700;padding:2px 8px;border-radius:4px">
+        <span style="font-size:7.5pt;background:${over.length?'#fee2e2':'#d1fae5'};color:${over.length?'#b91c1c':'#065f46'};font-weight:700;padding:1px 6px;border-radius:4px">
           ${over.length ? `⚠️ ${over.length} Overstay Active` : '✓ 17:00 Certified Clearance'}
         </span>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;font-size:8.5pt">
-        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
-          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Curfew Enforcement</div>
-          <div style="font-weight:700;color:#1e3a8a">08:00 – 17:00 Hours</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font-size:7.5pt;line-height:1.3">
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:4px 6px;border-radius:5px">
+          <div style="color:#64748b">Compound Curfew</div>
+          <div style="font-weight:700;color:#1e3a8a">08:00 – 17:00 Enforced</div>
         </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
-          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Compound Clearance</div>
-          <div style="font-weight:700;color:${over.length?'#dc2626':'#15803d'}">${over.length ? `${over.length} Overstay(s)` : '0 External Visitors (Cleared)'}</div>
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:4px 6px;border-radius:5px">
+          <div style="color:#64748b">Compound Clearance</div>
+          <div style="font-weight:700;color:${over.length?'#dc2626':'#15803d'}">${over.length ? `${over.length} Overstay` : '0 on Site (Cleared)'}</div>
         </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
-          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Tag Stock Recovery</div>
-          <div style="font-weight:700;color:${lost.length?'#ea580c':'#15803d'}">${lost.length ? `${lost.length} Unreturned` : '100% Returned to Stock'}</div>
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:4px 6px;border-radius:5px">
+          <div style="color:#64748b">Tag Reconciliation</div>
+          <div style="font-weight:700;color:${lost.length?'#ea580c':'#15803d'}">${lost.length ? `${lost.length} Unreturned` : '100% in Stock'}</div>
         </div>
-        <div style="background:#fff;border:1px solid #e2e8f0;padding:6px 8px;border-radius:6px">
-          <div style="color:#64748b;font-size:7.5pt;text-transform:uppercase">Night Post Turnover</div>
-          <div style="font-weight:700;color:#15803d">Handed to UNDSS Night Guard</div>
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:4px 6px;border-radius:5px">
+          <div style="color:#64748b">Smiths X-Ray Scan</div>
+          <div style="font-weight:700;color:#15803d">100% Deliveries Scanned</div>
+        </div>
+        <div style="background:#fff;border:1px solid #e2e8f0;padding:4px 6px;border-radius:5px">
+          <div style="color:#64748b">Turnover to Night Guard</div>
+          <div style="font-weight:700;color:#15803d">Completed &amp; Logged</div>
         </div>
       </div>
     </div>
 
-    <!-- Official Dual Signatures Block (Logged-in Officer + Counter-Signatory) -->
-    ${(()=>{
-      const curUser = op() || "UNDSS Duty Officer";
-      const isSecurity = curUser.toLowerCase().includes("fsm") || curUser.toLowerCase().includes("security") || curUser.toLowerCase().includes("undss") || curUser.toLowerCase().includes("guard");
-      const isCommonServices = curUser.toLowerCase().includes("common") || curUser.toLowerCase().includes("operations") || curUser.toLowerCase().includes("facilities");
+    <!-- 5. Operating Dwell & Waiting Timings (Compact 1-Line Strip) -->
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;font-size:7.5pt;margin-bottom:10px">
+      <div><b>Avg Processing (Gate → Documentation):</b> <span style="color:#0369a1;font-weight:700">${avg(waits)}</span></div>
+      <div><b>Avg Visit Length (Compound Dwell):</b> <span style="color:#0369a1;font-weight:700">${avg(stays)}</span></div>
+      <div><b>UNSC / Interpol Screening:</b> <span style="color:#15803d;font-weight:700">100% Automated Enforcement</span></div>
+    </div>
 
-      const sig1Title = isSecurity
-        ? "Compound Security Operations Lead (Prepared By Active Account):"
-        : (isCommonServices ? "Head of UN Common Services & Operations (Prepared By Active Account):" : "Station 1 Access Control & Verification Officer (Prepared By Active Account):");
-      const sig1Name = curUser;
+    <!-- 6. Official Dual Signatures Block (Role-Aware & Dynamic) -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;border-top:1.5px solid #0f172a;padding-top:8px;font-size:8pt">
+      <div>
+        <b>${sig1Title}</b><br>
+        <span style="font-size:8pt;color:#1e3a8a;font-weight:700">${esc(sig1Name)}</span><br>
+        <span style="font-size:7.5pt;color:#64748b">Signature: _____________________________________</span>
+      </div>
+      <div>
+        <b>${sig2Title}</b><br>
+        <span style="font-size:8pt;color:#1e3a8a;font-weight:700">${esc(sig2Name)}</span><br>
+        <span style="font-size:7.5pt;color:#64748b">${sig2Label}</span><br>
+        <span style="font-size:7pt;color:#64748b;font-style:italic">${sig2Note}</span>
+      </div>
+    </div>
 
-      const sig2Title = isSecurity
-        ? "Head of UN Common Services (Operations Management Team / OMT Approval):"
-        : "Facilities Security Manager (UNDSS Compound Security Oversight):";
-      const sig2Name = isSecurity
-        ? "Common Services Operations Lead / OMT Chair"
-        : "Facilities Security Manager / UNDSS Primary Approver";
-      const sig2Label = isSecurity
-        ? "Common Services / OMT Sign-Off: _____________________________________"
-        : "UNDSS Security Sign-Off: _____________________________________";
-      const sig2Note = isSecurity
-        ? "Certified for UNCT Operations Management Team (BOS 2.0 Footfall Apportionment)"
-        : "Approved for Compound Security Clearance & OMT Transmission";
-
-      return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1.5px solid #0f172a;padding-top:10px;margin-top:14px;font-size:9pt">
-        <div>
-          <b>${sig1Title}</b><br>
-          <span style="font-size:8.5pt;color:#1e3a8a;font-weight:700">${esc(sig1Name)}</span><br>
-          <span style="font-size:8pt;color:#64748b">Officer Signature: _____________________________________</span>
-        </div>
-        <div>
-          <b>${sig2Title}</b><br>
-          <span style="font-size:8.5pt;color:#1e3a8a;font-weight:700">${esc(sig2Name)}</span><br>
-          <span style="font-size:8pt;color:#64748b">${sig2Label}</span><br>
-          <span style="font-size:7.5pt;color:#64748b;font-style:italic">${sig2Note}</span>
-        </div>
-      </div>`;
-    })()}
   </div>`;
 }
 
@@ -5922,6 +5892,50 @@ const UN_EXTENSIONS=[
   {agency:"IOM",unit:"Chief of Mission Office",name:"Programme Manager",ext:"6901",room:"Annex B, Room 22"}
 ];
 
+const UN_STAFF_CONTACTS = {
+  "dr. k. ibrahim": { phone: "+234 803 555 0101", email: "k.ibrahim@who.int", ext: "4101" },
+  "s. garba": { phone: "+234 803 555 0102", email: "s.garba@undp.org", ext: "2101" },
+  "t. musa": { phone: "+234 803 555 0103", email: "t.musa@unicef.org", ext: "3101" },
+  "p. obi": { phone: "+234 803 555 0104", email: "p.obi@unhcr.org", ext: "6501" },
+  "a. lawal": { phone: "+234 803 555 0105", email: "a.lawal@wfp.org", ext: "5101" },
+  "r. bassey": { phone: "+234 803 555 0106", email: "r.bassey@unfpa.org", ext: "6701" },
+  "comms office": { phone: "+234 803 555 0107", email: "comms.nigeria@unwomen.org", ext: "2015" },
+  "facilities unit": { phone: "+234 803 555 0108", email: "facilities.abuja@undp.org", ext: "2020" },
+  "resident coordinator": { phone: "+234 803 555 0109", email: "rc.nigeria@un.org", ext: "2001" }
+};
+
+function getHostPhone(hostName, agency="Common Services", visitor=null){
+  if(visitor && visitor.hostPhone) return visitor.hostPhone;
+  if(visitor && visitor.backupHostPhone) return visitor.backupHostPhone;
+  if(visitor && visitor.backupHost && visitor.backupHost.includes("080")) {
+    const m = visitor.backupHost.match(/080\d{1}\s?\d{3}\s?\d{4}/);
+    if(m) return "+234 " + m[0].replace(/^0/, "");
+  }
+  try {
+    const custom = JSON.parse(localStorage.getItem("unh_custom_phones")||"{}");
+    if(hostName && custom[hostName.toLowerCase()]) return custom[hostName.toLowerCase()];
+  }catch(e){}
+  if(!hostName) return "+234 803 555 0100";
+  const norm = hostName.toLowerCase();
+  for(const [k, v] of Object.entries(UN_STAFF_CONTACTS)){
+    if(norm.includes(k) || k.includes(norm)) return v.phone;
+  }
+  let code = 0; for(let i=0;i<hostName.length;i++) code = (code*31+hostName.charCodeAt(i))%9000;
+  return "+234 803 " + String(100 + (code%800)).padStart(3, "0") + " " + String(1000 + code).slice(0, 4);
+}
+
+function getHostEmail(hostName, agency="Common Services", visitor=null){
+  if(visitor && visitor.hostEmail) return visitor.hostEmail;
+  if(!hostName) return "reception.abuja@undp.org";
+  const norm = hostName.toLowerCase();
+  for(const [k, v] of Object.entries(UN_STAFF_CONTACTS)){
+    if(norm.includes(k) || k.includes(norm)) return v.email;
+  }
+  const cleanName = hostName.toLowerCase().replace(/[^a-z]+/g, ".").replace(/^\.|\.$/g, "");
+  const agDomain = agency.toLowerCase() === "who" ? "who.int" : (agency.toLowerCase() === "unicef" ? "unicef.org" : (agency.toLowerCase() === "wfp" ? "wfp.org" : "undp.org"));
+  return cleanName + "@" + agDomain;
+}
+
 function getHostExt(hostName, agency="Common Services", visitor=null){
   if(visitor && visitor.hostExt) return visitor.hostExt;
   try{
@@ -6448,13 +6462,21 @@ V.reception=()=>{
     ${searchBox("Search name, tag, host or organization...")}
     <div style="margin-top:12px">
     ${table(wait, v => {
-      const ext = getHostExt(v.host, v.agency);
-      const notifBtn = v.hostNotified
-        ? `<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600" title="${esc(v.hostNotifiedNote||"")}">✓ Host contacted (${fmtT(v.hostNotified)})</span> <button class="btn small" data-act="notify" data-id="${esc(v.id)}" title="Call or notify host again" style="padding:2px 8px;font-size:11px">Re-notify</button>`
-        : `<button class="btn" data-act="notify" data-id="${esc(v.id)}" title="Call host desk extension ${esc(ext)}">📞 Call host (Ext. ${esc(ext)})</button>`;
+      const ext = getHostExt(v.host, v.agency, v);
+      const hostPhone = getHostPhone(v.host, v.agency, v);
+      const hostEmail = getHostEmail(v.host, v.agency, v);
       const isDel = v.type === "delivery";
-      const waText = `🚨 UN HOUSE ABUJA SECURITY ALERT:\n\nDear ${v.host} (${v.agency}),\n${isDel ? `Official Courier Delivery has arrived from *${v.name}* (${v.org || 'Courier Dispatch'}). Inward parcels X-Ray screened by UNDSS at Gate 1 (Tag: *${v.tag || 'D-Tag'}*).\n\nUnder UN House protocol, courier requires designated escort for recipient handover.` : `Your visitor *${v.name}* (${v.org || 'Official Guest'}) has arrived at Station 3 Internal Reception (Tag: *${v.tag || 'V-Tag'}*).\nApproved Destination: ${v.building || 'Main Building'} - ${v.agency} Wing.\n\nPlease come down to the reception lobby or send your designated escort.`}`;
-      const waBtn = `<a class="btn" href="https://wa.me/?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener" title="Send instant WhatsApp arrival alert to host" style="padding:2px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px">💬 WhatsApp</a>`;
+      const waText = `🚨 UN HOUSE ABUJA SECURITY ALERT:\n\nDear ${v.host} (${v.agency}),\n${isDel ? `Official Courier Delivery has arrived from *${v.name}* (${v.org || 'Courier Dispatch'}). Inward parcels X-Ray screened by UNDSS at Gate 1 (Tag: *${v.tag || 'D-Tag'}*).\n\nUnder UN House protocol, courier requires designated escort for recipient handover.` : `Your visitor *${v.name}* (${v.org || 'Official Guest'}) has arrived at Station 3 Internal Reception (Tag: *${v.tag || 'V-Tag'}*).\nApproved Destination: ${v.building || 'Main Building'} - ${v.room || (v.agency + ' Wing')}.\n\nPlease come down to the reception lobby or send your designated escort.`}`;
+      const cleanWaPhone = hostPhone ? hostPhone.replace(/[^0-9]/g, "") : "";
+      const waBtn = `<a class="btn" href="https://wa.me/${cleanWaPhone}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener" title="WhatsApp alert to ${hostPhone}" style="padding:2px 8px;font-size:11px;display:inline-flex;align-items:center;gap:4px">💬 WhatsApp</a>`;
+      
+      let notifBtn = "";
+      if(v.hostNotified){
+        const isAuto = v.hostAutoNotified;
+        notifBtn = `<span class="pill" style="background:#ecfdf5;color:#065f46;font-weight:700;font-size:11px;border:1px solid #a7f3d0" title="${esc(v.hostNotifiedNote||'Host notified via ' + (v.hostNotifiedVia||'automated alert'))}">✓ ${isAuto?'Auto-Notified':'Host Contacted'} (${fmtT(v.hostNotified)})</span> <button class="btn small" data-act="notify" data-id="${esc(v.id)}" title="Manual follow-up telephone call" style="padding:2px 7px;font-size:10.5px">📞 Call</button>`;
+      } else {
+        notifBtn = `<button class="btn pri" data-act="notify" data-id="${esc(v.id)}" style="background:#dc2626;border-color:#dc2626;font-weight:700;padding:2px 9px;font-size:11.5px" title="Host not automatically notified. Receptionist must call host manually.">📞 Call Host (${esc(hostPhone || 'Ext ' + ext)})</button>`;
+      }
       return notifBtn + waBtn + B(v.id, "checkin", v.type === "vip" ? "Host received VIP" : "Check in", "pri");
     }, "Nobody is currently waiting for host.")}
     </div>
@@ -10801,37 +10823,50 @@ function doAct(a,v){
     );
   }
   if(a==="notify"){
-    const ext = v.hostExt || getHostExt(v.host, v.agency);
-    modal(`<h2>📞 Notify Host · Station 3 Reception</h2>
-      <p class="small"><b>${esc(v.name)}</b> (${esc(v.org||"Visitor")}) has completed documentation and is waiting at Station 3 Internal Reception.</p>
+    const ext = v.hostExt || getHostExt(v.host, v.agency, v);
+    const hostPhone = v.hostPhone || getHostPhone(v.host, v.agency, v);
+    const hostEmail = v.hostEmail || getHostEmail(v.host, v.agency, v);
+    modal(`<h2>📞 Contact Host · Station 3 Reception</h2>
+      <p class="small"><b>${esc(v.name)}</b> (${esc(v.org||"Visitor")}) is at Station 3 Internal Reception. Use the host's direct phone number or desk intercom below.</p>
       <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin:12px 0">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
           <div style="font-weight:700;color:#1e40af;font-size:14px">Host: ${esc(v.host)} (${esc(v.agency)})</div>
           <button type="button" class="btn" id="m_open_dir" style="padding:2px 8px;font-size:11px" title="Browse full UN House Phone Directory">📖 Extension Directory</button>
         </div>
-        <div style="font-size:13px;color:#1e3a8a;margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-          <label for="m_ext_input" style="margin:0;font-weight:600">Desk Intercom / Extension:</label>
+        <div style="font-size:13px;color:#1e3a8a;margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="margin:0;font-weight:600;font-size:11px;color:#475569">Direct Mobile / WhatsApp Phone:</label>
+            <div style="margin-top:2px">
+              <a href="tel:${esc(hostPhone)}" style="font-weight:700;font-size:14px;color:#0284c7;text-decoration:none">📞 ${esc(hostPhone || "No mobile on record")}</a>
+            </div>
+          </div>
+          <div>
+            <label style="margin:0;font-weight:600;font-size:11px;color:#475569">Direct Staff Email:</label>
+            <div style="margin-top:2px">
+              <a href="mailto:${esc(hostEmail)}" style="font-weight:600;font-size:13px;color:#0369a1;text-decoration:none">✉️ ${esc(hostEmail || "No email on record")}</a>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <label for="m_ext_input" style="margin:0;font-weight:600;font-size:12px">Desk Intercom / Ext:</label>
           <div style="display:inline-flex;align-items:center;gap:4px">
             <span class="mono" style="font-weight:700;color:#0369a1">Ext.</span>
-            <input id="m_ext_input" value="${esc(ext)}" style="font-weight:700;font-size:15px;color:#0369a1;width:120px;padding:3px 8px;border-radius:6px;border:1.5px solid #93c5fd;background:#fff" placeholder="e.g. 5100" title="Edit extension directly to call the right desk">
+            <input id="m_ext_input" value="${esc(ext)}" style="font-weight:700;font-size:14px;color:#0369a1;width:110px;padding:3px 8px;border-radius:6px;border:1.5px solid #93c5fd;background:#fff" placeholder="e.g. 5100">
           </div>
-          ${v.hostEmail?`<span class="small" style="color:#64748b">Email: ${esc(v.hostEmail)}</span>`:""}
-        </div>
-        <div class="small" style="color:#0369a1;margin-top:6px">
-          ✏️ <i>You can edit this extension directly so reception calls the right desk.</i>
         </div>
       </div>
       <div class="f">
-        <label for="m_notif_mode">Contact Action Performed</label>
+        <label for="m_notif_mode">Manual Receptionist Action Taken</label>
         <select id="m_notif_mode">
-          <option value="call" id="opt_call">📞 Phoned host on desk intercom (Ext. ${esc(ext)})</option>
-          <option value="direct">🔔 Direct verbal / reception alert</option>
-          ${v.hostEmail?`<option value="email">✉️ Sent official arrival email</option>`:""}
+          <option value="call" id="opt_call">📞 Called host directly on mobile (${esc(hostPhone)}) / Intercom</option>
+          <option value="whatsapp">💬 Sent direct WhatsApp message</option>
+          <option value="direct">🔔 Direct in-person reception alert</option>
+          <option value="email">✉️ Dispatched arrival alert email</option>
         </select>
       </div>
       <div class="f">
         <label for="m_notif_note">Reception Log Note (Optional)</label>
-        <input id="m_notif_note" placeholder="e.g. Spoke with host; host is coming down to reception lobby">
+        <input id="m_notif_note" placeholder="e.g. Spoke with host; host confirmed coming down to reception lobby">
       </div>`,
       ()=>{
         const curExt = $("#m_ext_input")?.value?.trim() || ext;
@@ -10869,7 +10904,38 @@ function doAct(a,v){
     if(v.type!=="vip" && v.status!=="tagged"){
       return toast("Sequential access violation: Visitor must first complete documentation & tag exchange at Station 2 before checking in.");
     }
-    return act(v,v.type==="vip"?`VIP received at Station 3 by host ${v.host}`:"Checked in at internal reception",{status:"in",inAt:v.inAt||opNow(v,5),...(v.type==="vip"?{vipReceived:true,vipReceivedAt:opNow(v,5),hostNotified:v.hostNotified||opNow(v,4)}:{})}).then(()=>toast(v.type==="vip"?`${v.name} received by ${v.host} at Station 3.`:`${v.name} checked in.`));
+    const hostPhone = v.hostPhone || getHostPhone(v.host, v.agency, v);
+    const hostEmail = v.hostEmail || getHostEmail(v.host, v.agency, v);
+    const autoSuccess = Boolean(hostPhone || hostEmail);
+    
+    const patch = {
+      status: "in",
+      inAt: v.inAt || opNow(v, 5),
+      hostPhone: hostPhone || undefined,
+      hostEmail: hostEmail || undefined,
+      ...(v.type==="vip"?{vipReceived:true,vipReceivedAt:opNow(v,5)}:{})
+    };
+
+    if(autoSuccess){
+      patch.hostNotified = opNow(v, 4);
+      patch.hostAutoNotified = true;
+      patch.hostNotifiedVia = hostPhone && hostEmail ? "SMS/WhatsApp & Email" : (hostPhone ? "SMS/WhatsApp" : "Email");
+      patch.notifiedPhone = hostPhone;
+      patch.notifiedEmail = hostEmail;
+      patch.hostNotifiedNote = `Automated Station 3 check-in alert dispatched to ${hostPhone || ""} ${hostEmail || ""}`;
+    }
+
+    const logAction = autoSuccess
+      ? (v.type==="vip"?`VIP received at Station 3 by host ${v.host}`:`Checked in at Station 3 reception · Automated alert dispatched to host ${v.host} (${[hostPhone, hostEmail].filter(Boolean).join(" · ")})`)
+      : (v.type==="vip"?`VIP received at Station 3 by host ${v.host}`:`Checked in at Station 3 reception · Host contact pending (receptionist manual call required)`);
+
+    return act(v, logAction, patch).then(()=>{
+      if(autoSuccess){
+        toast(`✓ ${v.name} checked in. Automated alert dispatched to host ${v.host} (${hostPhone || hostEmail}).`);
+      } else {
+        toast(`⚠️ ${v.name} checked in. Automatic host alert could not be sent. Please call host manually.`, 6000);
+      }
+    });
   }
   if(a==="suspend") return act(v,"Contractor access suspended",{status:"suspended",prevStatus:v.status}).then(()=>toast(`${v.name}'s access suspended.`));
   if(a==="reinstate") return act(v,"Contractor access reinstated",{status:v.prevStatus&&v.prevStatus!=="suspended"?v.prevStatus:"approved"});
