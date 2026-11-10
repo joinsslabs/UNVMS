@@ -12,7 +12,7 @@ service cloud.firestore {
         && me().active == true && me().role != 'pending';
     }
     function hasRole(roles) { return isStaff() && me().role in roles; }
-    function isAdmin() { return hasRole(['admin']); }
+    function isAdmin() { return hasRole(['admin', 'sec_admin']); }
 
     // Records who the first administrator is. Written once, never changed.
     match /config/setup {
@@ -52,7 +52,7 @@ service cloud.firestore {
       // Only admins assign roles. An admin cannot demote or deactivate themselves.
       allow update: if isAdmin()
         && (uid != request.auth.uid
-            || (request.resource.data.role == 'admin' && request.resource.data.active == true))
+            || (request.resource.data.role in ['admin', 'sec_admin'] && request.resource.data.active == true))
         && request.resource.data.email == resource.data.email;
       allow delete: if false;
     }
@@ -80,14 +80,14 @@ service cloud.firestore {
           && d().log[0:n] == o().log && entryOk(d().log[n]);
       }
 
-      allow read: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip'])
+      allow read: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip'])
         || (hasRole(['host']) && (resource.data.requestedByUid == request.auth.uid
             || resource.data.get('hostEmail', '') == request.auth.token.email
             || resource.data.get('example', false) == true));
 
       allow create: if (isStaff() && d().get('example', false) == true)
         || (isAdmin() && d().log is list && d().log.size() == 1 && entryOk(d().log[0]) && d().status == 'pending')
-        || (hasRole(['approver', 'gate', 'reception', 'host'])
+        || (hasRole(['sec_admin', 'sec_deputy', 'approver', 'gate', 'reception', 'host'])
             && d().log is list && d().log.size() == 1 && entryOk(d().log[0])
             && d().requestedByUid == request.auth.uid
             && d().status == 'pending');
@@ -95,28 +95,28 @@ service cloud.firestore {
       allow update: if (isStaff() && o().get('example', false) == true && d().get('example', false) == true)
         || (isStaff() && fixedFields() && logAppended() && (
         // Approvals: approver or admin, never on their own request.
-        (decision() && hasRole(['admin', 'approver'])
+        (decision() && hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate'])
           && o().requestedByUid != request.auth.uid
           && d().decidedByUid == request.auth.uid)
         // Admin can make any other correction.
         || (isAdmin() && !decision())
         // Approvers flag watchlist matches and record overrides on any visit (status unchanged).
-        || (hasRole(['approver']) && d().status == o().status
+        || (hasRole(['sec_admin', 'sec_deputy', 'approver']) && d().status == o().status
           && d().diff(o()).affectedKeys().hasOnly(['watchFlag', 'watchReason', 'watchOverride', 'log']))
         // Approvers manage contractor access (suspend, reinstate, extend, or re-open for a new day).
-        || (hasRole(['approver']) && o().type == 'contractor' && !decision()
+        || (hasRole(['sec_admin', 'sec_deputy', 'approver']) && o().type == 'contractor' && !decision()
             && (d().status == o().status || d().status == 'suspended' || o().status == 'suspended'
                 || (o().status == 'out' && d().status == 'approved')))
         // Gate cannot admit a watchlist match; only an approver or admin can, with an override reason.
-        || (hasRole(['gate', 'approver']) && (from('approved', 'arrived')
+        || (hasRole(['gate', 'sec_admin', 'sec_deputy', 'approver']) && (from('approved', 'arrived')
             || (o().type == 'contractor' && from('out', 'arrived') && o().get('accessTo', 0) > request.time.toMillis()))
             && o().get('watchFlag', false) == false)
         || (hasRole(['docs']) && from('arrived', 'tagged'))
-        || (hasRole(['reception', 'approver']) && (from('tagged', 'in') || from('tagged', 'tagged') || (o().type == 'vip' && (from('arrived', 'in') || from('arrived', 'arrived') || from('in', 'in')))))
-        || (hasRole(['vip', 'approver']) && o().type == 'vip' && (from('approved', 'arrived') || from('approved', 'in')) && o().get('watchFlag', false) == false)
-        || (hasRole(['docs', 'gate', 'reception', 'vip']) && (from('in', 'out') || from('tagged', 'out') || (o().type == 'vip' && from('arrived', 'out'))))
+        || (hasRole(['reception', 'sec_admin', 'sec_deputy', 'approver']) && (from('tagged', 'in') || from('tagged', 'tagged') || (o().type == 'vip' && (from('arrived', 'in') || from('arrived', 'arrived') || from('in', 'in')))))
+        || (hasRole(['vip', 'sec_admin', 'sec_deputy', 'approver']) && o().type == 'vip' && (from('approved', 'arrived') || from('approved', 'in')) && o().get('watchFlag', false) == false)
+        || (hasRole(['docs', 'gate', 'reception', 'vip', 'sec_admin', 'sec_deputy']) && (from('in', 'out') || from('tagged', 'out') || (o().type == 'vip' && from('arrived', 'out'))))
         // Overstay extension with host permission (by reception, approver, gate, vip, or the host).
-        || (hasRole(['reception', 'approver', 'gate', 'vip']) && from('in', 'in')
+        || (hasRole(['reception', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'vip']) && from('in', 'in')
             && d().diff(o()).affectedKeys().hasOnly(['extendedUntil', 'extendedBy', 'extendedAt', 'extendedNote', 'hostPermittedBy', 'log']))
         // Hosts manage their own guests: reply to arrival alerts, move the time, extend stay, cancel before arrival, or edit & resubmit a rejected request.
         || ((o().requestedByUid == request.auth.uid || o().get('hostEmail', '') == request.auth.token.email)
@@ -135,7 +135,7 @@ service cloud.firestore {
     match /passes/{code} {
       function pd() { return request.resource.data; }
       allow get: if true;
-      allow list: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip'])
+      allow list: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip'])
         || (hasRole(['host']) && resource.data.requestedByUid == request.auth.uid);
       allow create: if isStaff() && code.size() >= 32
         && pd().keys().hasOnly(['visitorId', 'ref', 'name', 'org', 'host', 'agency', 'type', 'building', 'expected',
@@ -178,7 +178,7 @@ service cloud.firestore {
           && str(nv().guest.org, 160) && str(nv().guest.phone, 40)
           && str(nv().guest.expected, 30) && str(nv().guest.purpose, 300))
         // Staff turn a submission into a visit, or cancel an invite.
-        || (isStaff() && (inv().hostUid == request.auth.uid || hasRole(['admin', 'approver', 'gate', 'reception']))
+        || (isStaff() && (inv().hostUid == request.auth.uid || hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'reception']))
           && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
           && nv().status in ['used', 'cancelled'])
         || (inv().get('demo', false) == true
@@ -189,45 +189,45 @@ service cloud.firestore {
 
     // Watchlist of people who must not be admitted. Stations read it to check visitors; approvers and admins maintain it.
     match /watchlist/{id} {
-      allow read: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
-      allow create, update: if hasRole(['admin', 'approver'])
+      allow read: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
+      allow create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver'])
         && request.resource.data.name is string && request.resource.data.name.size() > 1;
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
 
     // Evacuation roll calls and the deliveries log: shared working lists for the stations.
     match /rollcalls/{id} {
-      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
+      allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if false;
     }
     match /deliveries/{id} {
-      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
+      allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
     match /handovers/{id} {
-      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
+      allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
     match /events/{id} {
-      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip', 'host']);
+      allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip', 'host']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
     match /assets/{id} {
-      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip', 'host']);
+      allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip', 'host']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
     match /dob/{id} {
-      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
+      allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
     match /parking/{id} {
-      allow read, create, update: if hasRole(['admin', 'approver', 'gate', 'docs', 'reception', 'vip']);
+      allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
     }
 
     // Server audit trail: written only by the Cloud Function, never by a browser.
     match /audit/{id} {
-      allow read: if hasRole(['admin', 'approver']);
+      allow read: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver']);
       allow write: if false;
     }
   }

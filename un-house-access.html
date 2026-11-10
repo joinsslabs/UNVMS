@@ -1050,7 +1050,7 @@ let OVERSTAY_H=9;
 let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
 try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
 /* ---------- staff, roles and permissions ---------- */
-let me=null, fb=null, staffList=[], unsubs=[], serverAudit=[], invites=[], features={}, passes=[], watchlist=[], rollcalls=[], deliveries=[], handovers=[], events=[], assetPasses=[], dobs=[], parkings=[];
+let me=null, fb=null, staffList=[], staffFilter="", unsubs=[], serverAudit=[], invites=[], features={}, passes=[], watchlist=[], rollcalls=[], deliveries=[], handovers=[], events=[], assetPasses=[], dobs=[], parkings=[];
 const FN_BASE="https://europe-west1-unhouse-vms-abj26.cloudfunctions.net/";
 async function callFn(name,body){
   const tok=await firebase.auth().currentUser.getIdToken();
@@ -1235,7 +1235,7 @@ async function connect(){
     document.body.classList.add("guest-mode","pass-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode);
   }
   if(QS.has("rules")){ document.body.classList.add("guest-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(true,"Visitor rules"); return showRules(); }
-  if(!db){ visitors=sampleData(); setSync(false,"Demo mode · changes stay on this device"); render(); return; }
+  if(!db){ visitors=sampleData(); staffList=(demoData().staff||[]); setSync(false,"Demo mode · changes stay on this device"); render(); return; }
   setSync(false,"Loading shared records…");
   const timer=setTimeout(()=>setSync(false,"Shared records not reachable yet"),10000);
   db.collection("visitors").onSnapshot(snap=>{
@@ -1361,7 +1361,7 @@ function startData(){
   if(["admin","approver"].includes(me.role)) unsubs.push(db.collection("audit").orderBy("at","desc").limit(200).onSnapshot(s=>{
     serverAudit=s.docs.map(d=>({...d.data(),id:d.id})); if(view==="history") render();
   },()=>{}));
-  if(["admin","sec_admin"].includes(me.role)) unsubs.push(db.collection("staff").onSnapshot(s=>{staffList=s.docs.map(d=>({...d.data(),uid:d.id}));if(view==="staff")render()}));
+  if(["admin","sec_admin","sec_deputy"].includes(me.role)) unsubs.push(db.collection("staff").onSnapshot(s=>{staffList=s.docs.map(d=>({...d.data(),uid:d.id}));if(view==="staff")render()},e=>console.warn("Staff sync:",e.code)));
   renderSitePicker();
   { const h=location.hash.slice(1); view=h&&canView(h)?h:defaultView(); } render();
   if(new URLSearchParams(location.search).has("wall")) enterWall();
@@ -1534,10 +1534,21 @@ function showPasswordLogin(mode="in"){
 function authMsg(e){return ({"auth/invalid-credential":"Email or password is wrong.","auth/wrong-password":"Email or password is wrong.","auth/user-not-found":"No account uses that email.","auth/email-already-in-use":"An account already uses that email. Sign in instead.","auth/weak-password":"Use a password of at least 8 characters.","auth/too-many-requests":"Too many attempts. Wait a few minutes and try again.","auth/operation-not-allowed":"Email sign-in isn't switched on for this system yet. Ask the administrator."})[e.code]||e.message}
 
 const staffView=()=>{
-  const list=[...staffList].sort((a,b)=>(a.role==="pending"?0:1)-(b.role==="pending"?0:1)||String(a.name).localeCompare(b.name));
-  const pend=list.filter(s=>s.role==="pending").length;
-  const houseAdminCount=list.filter(s=>s.role==="admin"&&s.active!==false).length;
-  const secAdminCount=list.filter(s=>s.role==="sec_admin"&&s.active!==false).length;
+  const allList=[...staffList].sort((a,b)=>(a.role==="pending"?0:1)-(b.role==="pending"?0:1)||(a.name||"").localeCompare(b.name||""));
+  const pend=allList.filter(s=>s.role==="pending").length;
+  const houseAdminCount=allList.filter(s=>s.role==="admin"&&s.active!==false).length;
+  const secAdminCount=allList.filter(s=>s.role==="sec_admin"&&s.active!==false).length;
+
+  const q=(staffFilter||"").toLowerCase().trim();
+  const list=q?allList.filter(s=>
+    (s.name||"").toLowerCase().includes(q) ||
+    (s.email||"").toLowerCase().includes(q) ||
+    (ROLES[s.role]||s.role||"").toLowerCase().includes(q) ||
+    (s.notes||"").toLowerCase().includes(q)
+  ):allList;
+
+  const ftUpdated=features?.updatedAt?.toMillis?features.updatedAt.toMillis():features?.updatedAt;
+
   return head("Staff and roles","Assign staff roles across stations and administration. Maximum of 3 Administrators and 3 Security Administrators. Administrators oversee operations and cannot bypass operational station staff.")+
   `<div class="note" style="margin-bottom:12px;background:var(--surface2);border-color:var(--line);display:grid;gap:6px">
     <div><b>Role Governance &amp; Administrator Quotas:</b></div>
@@ -1554,26 +1565,77 @@ const staffView=()=>{
     </div>
   </div>`+
   (pend?`<div class="banner">${pend} new account${pend>1?"s are":" is"} waiting for a role.</div>`:"")+
-  `<div class="panel"><div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody>${list.map(s=>{const self=s.uid===me.uid;return `<tr>
-    <td><b>${esc(s.name)}</b>${self?' <span class="small">(you)</span>':""}</td><td class="small">${esc(s.email)}</td>
-    <td><select data-role="${esc(s.uid)}" ${self?"disabled":""} aria-label="Role for ${esc(s.name)}">${Object.entries(ROLES).map(([k,l])=>{
-      const disAdmin = k==="admin" && s.role!=="admin" && houseAdminCount>=3;
-      const disSecAdmin = k==="sec_admin" && s.role!=="sec_admin" && secAdminCount>=3;
-      const dis = disAdmin || disSecAdmin;
-      return `<option value="${k}" ${s.role===k?"selected":""} ${dis?"disabled":""}>${l}${disAdmin?" (Max 3 reached)":disSecAdmin?" (Max 3 reached)":""}</option>`;
-    }).join("")}</select></td>
-    <td>${s.active===false?'<span class="pill p-rejected">Deactivated</span>':s.role==="pending"?'<span class="pill p-pending">Awaiting role</span>':'<span class="pill p-in">Active</span>'}</td>
-    <td>${self?"":`<button class="btn ${s.active===false?"":"bad"}" data-toggle="${esc(s.uid)}">${s.active===false?"Reactivate":"Deactivate"}</button>`}</td></tr>`}).join("")}</tbody></table></div></div>
-  <div class="panel"><h2>Optional features</h2><p class="small">These send visitor details to Google's Gemini AI service. Keep them off until UN data protection approves that service.</p>
-   <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-    <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ft_ai" style="width:auto" ${features.ai?"checked":""}> AI operations assistant (questions in plain English)</label>
-    <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ft_hw" style="width:auto" ${features.handwriting?"checked":""}> Read handwritten visitor lists</label>
-    <div class="f"><label for="ft_note">Approval reference (who approved this, and when)</label><input id="ft_note" value="${esc(features.approvalNote||"")}" placeholder="e.g. UN ICT approval 14 Nov 2026, ref 123"></div>
-    <div class="acts"><button class="btn pri" id="ft_save">Save feature settings</button></div>
-    ${features.updatedAt?`<span class="small">Last changed ${fmtD(features.updatedAt)}</span>`:""}
-   </div></div>
+  `<div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+      <h2 style="margin:0">Staff Directory &amp; Station Assignments <span class="cnt">${allList.length}</span></h2>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <input id="staff_search" type="search" placeholder="Search staff name, email, role..." value="${esc(staffFilter||"")}" style="padding:6px 12px;font-size:13px;border-radius:6px;border:1px solid var(--line);min-width:220px">
+        <button class="btn pri" id="addStaffBtn">＋ Add Staff Member</button>
+      </div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role &amp; Station</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.length ? list.map(s=>{
+            const self=Boolean(me && s.uid===me.uid);
+            const curRole=s.role==="approver"?"gate":s.role;
+            const stationBadge=ROLE_STATION[curRole]?`<span class="pill" style="font-size:10.5px;padding:2px 6px;margin-left:4px;background:#f1f5f9;color:#475569;border:1px solid #cbd5e1">${ROLE_STATION[curRole]}</span>`:"";
+            return `<tr>
+              <td>
+                <div style="font-weight:700">${esc(s.name||s.email?.split("@")[0]||"Staff Member")}${self?' <span class="small" style="color:var(--pri);font-weight:normal">(you)</span>':""}</div>
+                ${s.notes?`<div class="small" style="color:var(--muted)">${esc(s.notes)}</div>`:""}
+              </td>
+              <td class="small mono">${esc(s.email||"—")}</td>
+              <td>
+                <div style="display:inline-flex;align-items:center;gap:4px">
+                  <select data-role="${esc(s.uid)}" ${self?"disabled":""} aria-label="Role for ${esc(s.name||s.email)}">
+                    ${Object.entries(ROLES).map(([k,l])=>{
+                      const disAdmin=k==="admin"&&curRole!=="admin"&&houseAdminCount>=3;
+                      const disSecAdmin=k==="sec_admin"&&curRole!=="sec_admin"&&secAdminCount>=3;
+                      const dis=disAdmin||disSecAdmin;
+                      return `<option value="${k}" ${curRole===k?"selected":""} ${dis?"disabled":""}>${l}${disAdmin?" (Max 3 reached)":disSecAdmin?" (Max 3 reached)":""}</option>`;
+                    }).join("")}
+                  </select>
+                  ${stationBadge}
+                </div>
+              </td>
+              <td>${s.active===false?'<span class="pill p-rejected">Deactivated</span>':s.role==="pending"?'<span class="pill p-pending">Awaiting role</span>':'<span class="pill p-in">Active</span>'}</td>
+              <td>
+                ${self?"":`
+                  <div style="display:inline-flex;gap:6px;align-items:center">
+                    <button class="btn ${s.active===false?"":"bad"}" data-toggle="${esc(s.uid)}">${s.active===false?"Reactivate":"Deactivate"}</button>
+                    <button class="btn" data-del-staff="${esc(s.uid)}" title="Remove staff account" style="color:var(--bad);border-color:#fca5a5;padding:4px 8px;font-size:12px">Remove</button>
+                  </div>
+                `}
+              </td>
+            </tr>`;
+          }).join(""):`<tr><td colspan="5" style="text-align:center;padding:28px 16px;color:var(--muted)">${q?"No staff members matched your search.":"No staff accounts registered yet. Click <b>＋ Add Staff Member</b> to provision an officer."}</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <h2>Optional features</h2>
+    <p class="small">These send visitor details to Google's Gemini AI service. Keep them off until UN data protection approves that service.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+      <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ft_ai" style="width:auto" ${features?.ai?"checked":""}> AI operations assistant (questions in plain English)</label>
+      <label style="display:flex;gap:10px;align-items:center"><input type="checkbox" id="ft_hw" style="width:auto" ${features?.handwriting?"checked":""}> Read handwritten visitor lists</label>
+      <div class="f"><label for="ft_note">Approval reference (who approved this, and when)</label><input id="ft_note" value="${esc(features?.approvalNote||"")}" placeholder="e.g. UN ICT approval 14 Nov 2026, ref 123"></div>
+      <div class="acts"><button class="btn pri" id="ft_save">Save feature settings</button></div>
+      ${ftUpdated?`<span class="small">Last changed ${fmtD(ftUpdated)}</span>`:""}
+    </div>
+  </div>
   <div class="note">Public visitor rules page: <a href="?rules" target="_blank" rel="noopener">${esc(location.origin+location.pathname)}?rules</a>. Put it on a sign at the gate or in emails.</div>
-  <div class="note">Role separation: Gate reception & approval officers approve requests, verify credentials, admit visitors, manage tag inventory, and register walk-ins. Documentation Reception officers verify IDs, exchange physical tags, and document visitors. Receptionists check visitors in. VIP gate officers handle VIP protocol. Approvers decide requests and manage contractors. Administrators manage staff and system governance without bypassing operational controls.</div>`;
+  <div class="note">Role separation: Gate reception &amp; approval officers approve requests, verify credentials, admit visitors, manage tag inventory, and register walk-ins. Documentation Reception officers verify IDs, exchange physical tags, and document visitors. Receptionists check visitors in. VIP gate officers handle VIP protocol. Approvers decide requests and manage contractors. Administrators manage staff and system governance without bypassing operational controls.</div>`;
 };
 async function setStaff(uid,patch){
   if(patch.role==="admin"){
@@ -1592,7 +1654,109 @@ async function setStaff(uid,patch){
       return;
     }
   }
-  try{await db.collection("staff").doc(uid).update(patch);toast("Staff record updated.")}catch(e){toast(e.code==="permission-denied"?"Only an administrator can change roles.":"Could not update: "+e.message)}
+  if(DEMO || !db || db.demo){
+    const s=staffList.find(x=>x.uid===uid);
+    if(s){
+      Object.assign(s, patch);
+      if(s.uid===me?.uid && patch.role){
+        me.role=patch.role;
+        me.name=(ROLES[me.role]||"Staff").replace(/ \(.+\)/,"")+" (demo)";
+      }
+      if(typeof saveDemo==="function") saveDemo();
+      toast("Staff record updated.");
+      render();
+    } else {
+      toast("Staff record not found.");
+      render();
+    }
+    return;
+  }
+  try{
+    await db.collection("staff").doc(uid).update(patch);
+    toast("Staff record updated.");
+  }catch(e){
+    toast(e.code==="permission-denied"?"Only an administrator can change roles.":"Could not update: "+e.message);
+    render();
+  }
+}
+async function addStaffMember(name,email,role,notes=""){
+  name=(name||"").trim();
+  email=(email||"").trim().toLowerCase();
+  if(!name||!email){
+    toast("Please enter both staff name and email address.");
+    return false;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    toast("Please enter a valid official email address.");
+    return false;
+  }
+  if(role==="admin"){
+    const activeHouseAdmins=staffList.filter(s=>s.role==="admin" && s.active!==false).length;
+    if(activeHouseAdmins>=3){
+      toast("Maximum of 3 Administrators allowed by UN House policy.");
+      return false;
+    }
+  }
+  if(role==="sec_admin"){
+    const activeSecAdmins=staffList.filter(s=>s.role==="sec_admin" && s.active!==false).length;
+    if(activeSecAdmins>=3){
+      toast("Maximum of 3 Security Administrators allowed by UN House policy.");
+      return false;
+    }
+  }
+  if(staffList.some(s=>s.email&&s.email.toLowerCase()===email)){
+    toast("A staff member with that email address already exists.");
+    return false;
+  }
+  const uid="stf_"+Math.random().toString(36).slice(2,10);
+  const newStaff={
+    uid,
+    name,
+    email,
+    role:role||"gate",
+    active:true,
+    notes:notes||"",
+    createdAt:now()
+  };
+  if(DEMO||!db||db.demo){
+    staffList.unshift(newStaff);
+    if(typeof saveDemo==="function") saveDemo();
+    toast(`Staff member ${name} added.`);
+    render();
+    return true;
+  }
+  try{
+    await db.collection("staff").doc(uid).set(newStaff);
+    toast(`Staff member ${name} provisioned successfully.`);
+    render();
+    return true;
+  }catch(e){
+    toast("Could not add staff: "+e.message);
+    return false;
+  }
+}
+async function deleteStaff(uid){
+  const s=staffList.find(x=>x.uid===uid);
+  if(!s) return;
+  if(!confirm(`Are you sure you want to remove ${s.name||s.email} from the staff directory?`)) return;
+  if(DEMO||!db||db.demo){
+    staffList=staffList.filter(x=>x.uid!==uid);
+    if(typeof saveDemo==="function") saveDemo();
+    toast(`Staff member ${s.name||s.email} removed.`);
+    render();
+    return;
+  }
+  try{
+    await db.collection("staff").doc(uid).delete();
+    toast("Staff record removed.");
+  }catch(e){
+    if(e.code==="permission-denied"){
+      await setStaff(uid,{active:false});
+      toast("Account deactivated (deletion restricted by UN House security audit policy).");
+    }else{
+      toast("Could not remove staff: "+e.message);
+    }
+  }
 }
 function setSync(on,txt){$("#dot").className="dot"+(on?" on":"");$("#syncTxt").textContent=txt;live=on}
 
@@ -1732,16 +1896,16 @@ function renderNav(){
   const totalClearance=pendCount+subInvCount;
   const c={
     clearance: totalClearance,
-    gate: visitors.filter(v=>["approved","arrived"].includes(v.status)&&isToday(v.expected)).length,
+    gate: visitors.filter(v=>v.status==="approved"&&isToday(v.expected)).length,
     tagging: visitors.filter(v=>v.status==="arrived"&&v.type!=="vip").length,
     reception: visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))).length,
     vip: visitors.filter(v=>v.type==="vip"&&["approved","arrived","in"].includes(v.status)).length
   };
-  c.staff=staffList.filter(s=>s.role==="pending").length;
+  c.staff=(staffList||[]).filter(s=>s&&s.role==="pending").length;
   c.assets=assetPasses.filter(a=>a.status==="pending"||a.status==="approved").length;
   c.muster=visitors.filter(v=>["in","tagged"].includes(v.status)||(v.type==="vip"&&["arrived","in"].includes(v.status))).length;
   let lastSec="";
-  $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb)).map(([k,l,sec,ic])=>{
+  $("#nav").innerHTML=VIEWS.filter(([k])=>canView(k)&&(k!=="staff"||fb||DEMO||["admin","sec_admin","sec_deputy"].includes(myRole()))).map(([k,l,sec,ic])=>{
     const hdr=sec!==lastSec?(lastSec=sec,`<div class="nav-sec">${esc(sec)}</div>`):"";
     const hot=(c[k]&&["staff","clearance"].includes(k))?" hot":"";
     return `${hdr}<button class="${view===k?"on":""}" data-v="${k}"><span class="nl"><svg class="ni" viewBox="0 0 24 24" aria-hidden="true">${ic}</svg><span>${l}</span></span>${c[k]?`<span class="cnt${hot}">${c[k]}</span>`:""}</button>`;
@@ -4937,13 +5101,54 @@ function enterWall(){document.body.classList.add("wall-mode");view="wall";render
 /* ---------- Scripted demo mode: app.html?demo ---------- */
 let DEMO=false;
 function demoDb(){
-  const COLS={visitors:()=>visitors,deliveries:()=>deliveries,rollcalls:()=>rollcalls,watchlist:()=>watchlist,passes:()=>passes,invites:()=>invites,handovers:()=>handovers,events:()=>events,assets:()=>assetPasses,dob:()=>dobs,parking:()=>parkings,config:()=>[]};
+  const COLS={
+    visitors:()=>visitors,deliveries:()=>deliveries,rollcalls:()=>rollcalls,
+    watchlist:()=>watchlist,passes:()=>passes,invites:()=>invites,
+    handovers:()=>handovers,events:()=>events,assets:()=>assetPasses,
+    dob:()=>dobs,parking:()=>parkings,
+    staff:()=>staffList,
+    config:()=>[{id:"features",...features}]
+  };
   const col=name=>{const arr=()=>COLS[name]?COLS[name]():[];const q={
-    add:async d=>{const id="d"+Math.random().toString(36).slice(2,9);arr().unshift({...d,id});setTimeout(render);return {id}},
-    doc:id=>({id,set:async d=>{if(name==="visitors")return;const a=arr(),i=a.findIndex(x=>x.id===id);if(i>=0)a[i]={...d,id};else a.unshift({...d,id});setTimeout(render)},
-      update:async p=>{const x=arr().find(y=>y.id===id);if(!x)return;for(const[k,v]of Object.entries(p)){if(k.includes(".")){const[a1,b1]=k.split(".");x[a1]={...(x[a1]||{}),[b1]:v}}else x[k]=v}setTimeout(render)},
-      get:async()=>{const x=arr().find(y=>y.id===id);return {exists:!!x,id,data:()=>x}},delete:async()=>{},onSnapshot:()=>()=>{}}),
-    where:()=>q,orderBy:()=>q,limit:()=>q,onSnapshot:()=>()=>{},get:async()=>({docs:arr().map(x=>({id:x.id,data:()=>x})),empty:!arr().length})};return q};
+    add:async d=>{const id="d"+Math.random().toString(36).slice(2,9);arr().unshift({...d,id,uid:id});if(typeof saveDemo==="function")saveDemo();setTimeout(render);return {id}},
+    doc:id=>({
+      id,
+      set:async d=>{
+        if(name==="config"&&id==="features"){features={...features,...d};if(typeof saveDemo==="function")saveDemo();setTimeout(render);return;}
+        if(name==="visitors")return;
+        const a=arr(), i=a.findIndex(x=>x.id===id||x.uid===id);
+        if(i>=0) a[i]={...d,id,uid:id}; else a.unshift({...d,id,uid:id});
+        if(typeof saveDemo==="function")saveDemo();
+        setTimeout(render);
+      },
+      update:async p=>{
+        if(name==="config"&&id==="features"){features={...features,...p};if(typeof saveDemo==="function")saveDemo();setTimeout(render);return;}
+        const a=arr(), x=a.find(y=>y.id===id||y.uid===id);
+        if(!x)return;
+        for(const[k,v]of Object.entries(p)){
+          if(k.includes(".")){const[a1,b1]=k.split(".");x[a1]={...(x[a1]||{}),[b1]:v}}
+          else x[k]=v;
+        }
+        if(typeof saveDemo==="function")saveDemo();
+        setTimeout(render);
+      },
+      delete:async()=>{
+        if(name==="staff"){
+          staffList=staffList.filter(x=>x.id!==id&&x.uid!==id);
+          if(typeof saveDemo==="function")saveDemo();
+          setTimeout(render);
+        }
+      },
+      get:async()=>{
+        if(name==="config"&&id==="features") return {exists:true,id:"features",data:()=>features};
+        const x=arr().find(y=>y.id===id||y.uid===id);
+        return {exists:!!x,id,data:()=>x};
+      },
+      onSnapshot:()=>()=>{}
+    }),
+    where:()=>q,orderBy:()=>q,limit:()=>q,onSnapshot:()=>()=>{},
+    get:async()=>({docs:arr().map(x=>({id:x.id||x.uid,data:()=>x})),empty:!arr().length})
+  };return q};
   return {collection:col,batch:()=>({set(){},update(){},commit:async()=>{}}),enablePersistence:async()=>{}};
 }
 function demoLog(o,host){const L=(t,a,by,st)=>t?{t,a,by,byUid:"demo",role:"demo",st}:null;
@@ -5027,7 +5232,19 @@ function demoData(){
       {id:"as3",ref:"MP-2026-3119",item:"Dell Latitude 7440 & Satellite Phone Kit",serial:"DL9912048",staffName:"Dr. K. Ibrahim",staffEmail:"k.ibrahim@who.int",agency:"WHO",dest:"Borno State Polio Campaign Coordination",status:"approved",requestedAt:t9-4*864e5,expectedRemovalDate:t9-1*864e5,approvedBy:"WHO Operations Officer C. Nnamdi",approvedAt:t9-48*3600e3,validUntil:t0+14*864e5,at:t9-4*864e5,verifiedAt:t9-1.5*h,verifiedBy:"Security Officer A. Bello (Station 1 Gate)"}
     ],
     dobs:[{id:"dob1",at:t9-1.2*h,severity:"routine",category:"Power / Utilities",title:"Main Grid to Generator Switchover",detail:"FCT public power failure; automatic switch to 500kVA generator completed normally with zero disruption.",station:"S1",officer:"A. Bello"}],
-    parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Canopy Bay #1 (Ambassadorial)",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}]};
+    parkings:[{id:"p1",plate:"CD-29-01",bay:"VIP Canopy Bay #1 (Ambassadorial)",vehicleType:"VIP Diplomatic Mercedes",driverNote:"Chauffeur with vehicle",status:"parked",enteredAt:t9+1.05*h}],
+    staff:[
+      {uid:"demo-fsm",name:"FSM · Facilities Security Manager",email:"fsm@un.org",role:"sec_admin",active:true,notes:"UNDSS Primary Security Clearance Authority",createdAt:t0-30*864e5},
+      {uid:"demo-admin",name:"Common Services Administrator",email:"admin@un.org",role:"admin",active:true,notes:"UN House System Governance & Administration",createdAt:t0-60*864e5},
+      {uid:"demo-deputy",name:"Deputy Security Officer",email:"deputy.sec@un.org",role:"sec_deputy",active:true,notes:"UNDSS Alternate Clearance Authority",createdAt:t0-20*864e5},
+      {uid:"demo-gate1",name:"Supervisor F. Adeyemi",email:"f.adeyemi@undss.un.org",role:"gate",active:true,notes:"Station 1 Gate Lead & Initial Clearance Approver",createdAt:t0-15*864e5},
+      {uid:"demo-gate2",name:"Security Officer A. Bello",email:"a.bello@undss.un.org",role:"gate",active:true,notes:"Station 1 Gate Reception & Vehicle Access",createdAt:t0-14*864e5},
+      {uid:"demo-docs",name:"Documentation Officer S. Garba",email:"s.garba@undss.un.org",role:"docs",active:true,notes:"Station 2 Documentation Reception & Tag Custodian",createdAt:t0-10*864e5},
+      {uid:"demo-rec",name:"Receptionist N. Okafor",email:"n.okafor@un.org",role:"reception",active:true,notes:"Station 3 Main Internal Reception Check-in",createdAt:t0-10*864e5},
+      {uid:"demo-vip",name:"VIP Protocol Officer T. Musa",email:"t.musa@un.org",role:"vip",active:true,notes:"Station 4 VIP Diplomatic Gate Access",createdAt:t0-10*864e5},
+      {uid:"demo-host",name:"Dr. K. Ibrahim",email:"k.ibrahim@who.int",role:"host",active:true,notes:"WHO Staff Host & Programme Coordinator",createdAt:t0-5*864e5},
+      {uid:"demo-pending",name:"Halima Danjuma",email:"h.danjuma@un.org",role:"pending",active:true,notes:"Newly registered account awaiting station assignment",createdAt:t0-1*864e5}
+    ]};
 }
 const TOUR=[
   ["Live overview","Everything happening across the four stations at once: who is expected, who is on site, and what needs attention. Each alert has a button that deals with it.",()=>{view="dashboard"}],
@@ -5054,9 +5271,9 @@ function drawTour(){
 }
 const DEMO_KEY="unhDemoState_v18";
 function saveDemo(){ if(!DEMO) return; clearTimeout(saveDemo.t); saveDemo.t=setTimeout(()=>{
-  try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
+  try{ sessionStorage.setItem(DEMO_KEY,JSON.stringify({at:now(),visitors:allVisitors||visitors,watchlist,deliveries,handovers,events,assetPasses,dobs,parkings,rollcalls,passes,invites,staff:staffList,features,tourStep,view,role:me&&me.role,tourHidden:!!($("#tour")&&$("#tour").hidden)})); }catch(e){}
 },150); }
-function loadDemo(){ try{ const d=JSON.parse(sessionStorage.getItem(DEMO_KEY)||"null"); return d&&d.visitors&&now()-d.at<12*3600e3?d:null; }catch(e){ return null; } }
+function loadDemo(){ try{ const d=JSON.parse(sessionStorage.getItem(DEMO_KEY)||"null"); if(d&&d.visitors&&now()-d.at<12*3600e3){ if(d.staff) staffList=d.staff; if(d.features) features=d.features; return d; } return null; }catch(e){ return null; } }
 function loadDemoGuests(){
   try{
     const raw=localStorage.getItem("unhDemoSubmittedGuests");
@@ -5245,6 +5462,8 @@ function startDemo(){
   me={uid:"demo-fsm",name:"FSM (demo)",role:"sec_admin",email:"fsm@un.org",active:true};
   const saved=loadDemo(), d=saved||demoData(); allVisitors=d.visitors; visitors=allVisitors; watchlist=d.watchlist||[]; deliveries=d.deliveries||[]; handovers=d.handovers||[];
   events=d.events||(demoData().events||[]); assetPasses=d.assetPasses||d.assets||(demoData().assets||[]); dobs=d.dobs||(demoData().dobs||[]); parkings=d.parkings||(demoData().parkings||[]);
+  staffList=d.staff||(demoData().staff||[]);
+  if(d.features) features=d.features;
   const demoRoles=["sec_admin","gate","docs","reception","vip"];
   if(saved){ rollcalls=saved.rollcalls||[]; passes=saved.passes||[]; invites=saved.invites||[]; tourStep=Math.min(saved.tourStep||0,TOUR.length-1); if(saved.role&&demoRoles.includes(saved.role)){me.role=saved.role;me.name=ROLES[saved.role].replace(/ \(.+\)/,"")+" (demo)";} }
   loadDemoGuests();
@@ -5523,8 +5742,6 @@ V.clearance=()=>{
 
   const gov = getUndssGov();
 
-  const recentlyCleared = visitors.filter(v=>v.decidedBy&&v.status==="approved").sort((a,b)=>b.decidedAt-a.decidedAt).slice(0,8);
-
   return head("UNDSS Clearance · Pre-Arrival Security Approvals","Pre-arrival visitor screening and authorization desk. The Facilities Security Manager (FSM) reviews and clears invitations and staff visit requests before visitors are dispatched to Station 1 for compound access.")+
   
   (totalPending > 0 ? `<div class="panel" style="border-top:4px solid #0284c7;background:linear-gradient(180deg,#f0f9ff,#ffffff);border-radius:12px;box-shadow:0 3px 12px rgba(2,132,199,.1);padding:18px 20px;margin-bottom:14px">
@@ -5594,29 +5811,14 @@ V.clearance=()=>{
       },"No pending staff requests.")}
     </div>` : ""}
 
-  </div>` : `<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px;background:#f0fdf4;border-color:#bbf7d0;color:#166534"><span>✓ <b>No pending clearance requests.</b> All visitor invitations have been decided and dispatched to Station 1.</span></div>`)+
-  
-  /* Recently Cleared List in Clearance Desk */
-  `<div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
-      <h2 style="margin:0;display:flex;align-items:center;gap:8px">
-        Recently Cleared &amp; Dispatched to Station 1 <span class="cnt">${recentlyCleared.length}</span>
-      </h2>
-      <span class="pill" style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;font-weight:600">En Route / Scheduled at Gate</span>
-    </div>
-    <p class="small" style="color:var(--muted);margin:0 0 10px">Visitors cleared by Facilities Security Manager. These visitors appear in Station 1's expected list awaiting gate arrival.</p>
-    ${table(recentlyCleared, v=>`
-      <span class="pill p-approved" title="Cleared by ${esc(v.decidedBy)}">✓ Cleared for Station 1</span>
-      ${B(v.id,"detail","Details")}
-    `, "No recently cleared visitors.")}
-  </div>`;
+  </div>` : `<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px;background:#f0fdf4;border-color:#bbf7d0;color:#166534"><span>✓ <b>No pending clearance requests.</b> All visitor invitations have been decided and dispatched to Station 1.</span></div>`);
 };
 
 V.gate=()=>{
   loadDemoGuests();
   loadDemoInvites();
   const activeCon=v=>v.type==="contractor"&&v.status==="out"&&(v.accessTo||0)>now();
-  const expList=filterQ(visitors.filter(v=>["approved","arrived"].includes(v.status)||activeCon(v)).sort((a,b)=>{
+  const expList=filterQ(visitors.filter(v=>v.status==="approved"||activeCon(v)).sort((a,b)=>{
     const timeA = a.decidedAt || a.arrivedAt || a.registeredAt || a.createdAt || a.expected || 0;
     const timeB = b.decidedAt || b.arrivedAt || b.registeredAt || b.createdAt || b.expected || 0;
     return timeB - timeA;
@@ -5770,18 +5972,15 @@ V.gate=()=>{
     </div>
   </div>`+
 
-  /* Expected & Admitted Visitors */
+  /* Expected Visitors Awaiting Arrival */
   `<div class="panel">
-    <h2>Expected &amp; Admitted Visitors</h2>
+    <h2>Expected Visitors (Awaiting Gate Arrival)</h2>
     ${searchBox()}
     <div style="margin-top:12px">${table(expList,v=>{
       if(v.type==="vip"&&v.status==="approved") return B(v.id,"vipadmit","VIP Auto Check-in","pri");
       if(v.type==="delivery"&&v.status==="approved") return B(v.id,"arrive","Admit Courier / Dispatch","pri");
       if(v.status==="approved"||activeCon(v)) return B(v.id,"arrive","Admit","pri");
-      if(v.type==="vip"&&v.status==="in") return `<span class="pill p-in">VIP Auto Checked In</span>`;
-      if(v.type==="delivery"&&v.status==="arrived") return `<span class="pill p-in" style="font-size:11.5px;background:#dcfce7;color:#166534;border:1px solid #bbf7d0">At Station 2 (D-Tag) ➔</span>`;
-      if(v.status==="arrived"&&v.type!=="vip") return `<span class="pill p-in" style="font-size:11.5px">At Station 2 ➔</span>`;
-      return `<span class="small">${v.type==="vip"?"VIP Auto Checked In":"Sent to documentation"}</span>`;
+      return "";
     },"No expected visitors match.")}</div>
   </div>
 
@@ -5808,8 +6007,7 @@ V.gate=()=>{
       <b>Need to invite or register a scheduled visitor?</b> Staff and hosts can generate pre-registration links and register guests in the <b>Register &amp; Invite</b> section.
     </div>
     <button class="btn" type="button" onclick="goView('register')" style="font-size:12.5px;padding:6px 14px">Go to Register &amp; Invite ➔</button>
-  </div>`+
-  (done.length?`<div class="panel"><h2>Recent approval decisions</h2><div class="tw"><table><thead><tr><th>Ref</th><th>Visitor</th><th>Decision</th><th>By</th><th>When</th></tr></thead><tbody>${done.map(v=>`<tr><td class="ref">${esc(v.ref)}</td><td>${esc(v.name)}</td><td>${v.status==="rejected"?`<span class="pill p-rejected">Rejected</span>${v.rejectReason?`<div class="small">${esc(v.rejectReason)}</div>`:""}`:`<span class="pill p-approved">Cleared</span>`}</td><td>${esc(v.decidedBy||"—")}</td><td class="mono">${fmtT(v.decidedAt)}</td></tr>`).join("")}</tbody></table></div></div>`:"");
+  </div>`;
 };
 V.approvals=V.gate;
 V.tagging=()=>{
@@ -10398,11 +10596,78 @@ function wire(){
   const c=$("#csv"); if(c){ c.onchange=bulk; renderBulk(); }
   const ce=$("#clearEx"); if(ce) ce.onclick=clearExamples;
   const le=$("#loadEx"); if(le) le.onclick=()=>loadExamples(false);
-  const fs_=$("#ft_save"); if(fs_) fs_.onclick=async()=>{const on=$("#ft_ai").checked||$("#ft_hw").checked, note=$("#ft_note").value.trim();
+  const fs_=$("#ft_save"); if(fs_) fs_.onclick=async()=>{
+    const on=$("#ft_ai")?.checked||$("#ft_hw")?.checked, note=($("#ft_note")?.value||"").trim();
     if(on&&!note) return toast("Enter the approval reference before turning these on.");
-    try{await db.collection("config").doc("features").set({ai:$("#ft_ai").checked,handwriting:$("#ft_hw").checked,approvalNote:note,updatedBy:me.uid,updatedAt:now()});toast("Feature settings saved.")}catch(e){toast("Could not save: "+e.message)}};
+    const featObj={ai:Boolean($("#ft_ai")?.checked),handwriting:Boolean($("#ft_hw")?.checked),approvalNote:note,updatedBy:me?.uid||"admin",updatedAt:now()};
+    features={...features,...featObj};
+    if(DEMO||!db||db.demo){
+      if(typeof saveDemo==="function") saveDemo();
+      toast("Feature settings saved.");
+      render();
+      return;
+    }
+    try{
+      await db.collection("config").doc("features").set(featObj);
+      toast("Feature settings saved.");
+      render();
+    }catch(e){
+      toast("Could not save: "+e.message);
+    }
+  };
   document.querySelectorAll("[data-role]").forEach(s=>s.onchange=()=>setStaff(s.dataset.role,{role:s.value}));
-  document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const s=staffList.find(x=>x.uid===b.dataset.toggle);setStaff(s.uid,{active:s.active===false})});
+  document.querySelectorAll("[data-toggle]").forEach(b=>b.onclick=()=>{const s=staffList.find(x=>x.uid===b.dataset.toggle);if(s)setStaff(s.uid,{active:s.active===false})});
+  document.querySelectorAll("[data-del-staff]").forEach(b=>b.onclick=()=>deleteStaff(b.dataset.delStaff));
+  const staffSearchEl=$("#staff_search");
+  if(staffSearchEl){
+    staffSearchEl.oninput=e=>{
+      staffFilter=e.target.value;
+      render();
+      const nextInput=$("#staff_search");
+      if(nextInput){
+        nextInput.focus();
+        const len=nextInput.value.length;
+        try{nextInput.setSelectionRange(len,len)}catch(_){}
+      }
+    };
+  }
+  const addStaffBtn=$("#addStaffBtn");
+  if(addStaffBtn){
+    addStaffBtn.onclick=()=>{
+      modal(`<h2>Add Staff Member / Assign Station Role</h2>
+        <p class="small" style="margin-bottom:14px">Provision official UN House staff account with station-specific credentials and access permissions.</p>
+        <div class="f"><label for="stf_m_name">Full Name *</label><input id="stf_m_name" placeholder="e.g. Capt. J. Danjuma or Dr. K. Ibrahim" required autocomplete="off"></div>
+        <div class="f"><label for="stf_m_email">Official UN / Agency Email *</label><input id="stf_m_email" type="email" placeholder="e.g. j.danjuma@un.org" required autocomplete="off"></div>
+        <div class="f"><label for="stf_m_role">Initial Station &amp; Role *</label>
+          <select id="stf_m_role">
+            <option value="gate">Station 1 · Gate Reception</option>
+            <option value="docs">Station 2 · Documentation &amp; ID</option>
+            <option value="reception">Station 3 · Main Reception</option>
+            <option value="vip">Station 4 · VIP Diplomatic Gate</option>
+            <option value="host">UN Staff Host / Agency Officer</option>
+            <option value="sec_deputy">Deputy Security Officer</option>
+            <option value="sec_admin">FSM · Facilities Security Manager</option>
+            <option value="admin">Administrator (UN Common Services)</option>
+            <option value="pending">Awaiting role</option>
+          </select>
+        </div>
+        <div class="f"><label for="stf_m_notes">Notes / Intercom Ext / Agency</label><input id="stf_m_notes" placeholder="e.g. UNDSS Duty Officer · Ext 244"></div>
+        <div id="stf_err" class="small" style="color:var(--bad);min-height:16px"></div>`,
+        async ()=>{
+          const name=$("#stf_m_name")?.value?.trim()||"";
+          const email=$("#stf_m_email")?.value?.trim()||"";
+          const role=$("#stf_m_role")?.value||"gate";
+          const notes=$("#stf_m_notes")?.value?.trim()||"";
+          if(!name||!email){
+            const errEl=$("#stf_err"); if(errEl) errEl.textContent="Please provide both full name and email.";
+            return false;
+          }
+          const ok=await addStaffMember(name,email,role,notes);
+          return ok;
+        }
+      );
+    };
+  }
   const cc=$("#copyCsv"); if(cc) cc.onclick=copyCsv;
   const ab=$("#askBtn"); if(ab) ab.onclick=()=>ask($("#ask").value);
   const ai=$("#ask"); if(ai) ai.onkeydown=e=>{if(e.key==="Enter")ask(ai.value)};
