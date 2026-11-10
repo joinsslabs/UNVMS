@@ -955,6 +955,21 @@ main{gap:20px}
 .copy-pill{cursor:pointer;display:inline-flex;align-items:center;gap:4px;padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11px;background:var(--surface2);color:var(--fg);border:1px solid var(--line);transition:background .15s}
 .copy-pill:hover{background:#e2e8f0}
 
+/* Contractor & Service Staff Module Styles */
+.con-nav-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:16px;border-bottom:1.5px solid var(--line)}
+.con-nav-btn{white-space:nowrap;padding:7px 14px;border-radius:999px;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--surface2);color:var(--fg);cursor:pointer;transition:all .15s}
+.con-nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.con-nav-btn.active{background:#d97706;border-color:#d97706;color:#fff;box-shadow:0 2px 6px rgba(217,119,6,0.25)}
+.con-badge-card{background:#fff;color:#0f172a;border-radius:14px;border:2px solid #d97706;overflow:hidden;box-shadow:0 6px 20px rgba(217,119,6,0.15);max-width:380px;margin:0 auto}
+.con-badge-header{background:linear-gradient(135deg,#d97706 0%,#b45309 100%);color:#fff;padding:12px 16px;display:flex;align-items:center;gap:10px}
+.con-badge-body{padding:16px}
+.con-trade-chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+@media print{
+  body.print-badge-mode .top,body.print-badge-mode nav,body.print-badge-mode .con-nav-bar,body.print-badge-mode .btn,body.print-badge-mode #tourOpen{display:none!important}
+  body.print-badge-mode main{padding:0!important;margin:0!important}
+  body.print-badge-mode .con-badge-card{box-shadow:none!important;border:2px solid #000!important}
+}
+
 </style>
 
 <header class="top">
@@ -5970,85 +5985,1587 @@ V.register=()=>{
   </div>`;
 };
 // Approvals consolidated into V.gate
-V.contractors=()=>{
-  const list=filterQ(visitors.filter(v=>v.type==="contractor"));
-  const onSite=list.filter(v=>["in","tagged","arrived"].includes(v.status));
-  const expiring=list.filter(v=>contractorExpiring(v));
-  const expired=list.filter(v=>contractorExpired(v)||v.status==="suspended");
+// Contractor & Service Staff Management Module for UN House Abuja VMS
+let contractorTab = "dashboard";
+let selectedPassWorkerId = null;
 
-  return head("Contractors & Service Staff Management","Multi-day facility, maintenance, and technical contractors, plus service staff (cleaning, catering, and technicians). Track building permits, staff escorts, logged tools, and enforce time-limited access windows.")+
-  `<div class="kpis" style="grid-template-columns:repeat(4,1fr)">
-    <div class="kpi"><div class="n">${list.length}</div><div class="l">Contractors &amp; Service Staff</div></div>
-    <div class="kpi ok"><div class="n">${onSite.length}</div><div class="l">Currently on site</div></div>
-    <div class="kpi ${expiring.length?"alert":""}"><div class="n">${expiring.length}</div><div class="l">Expiring within 48h</div></div>
-    <div class="kpi ${expired.length?"alert":""}"><div class="n">${expired.length}</div><div class="l">Expired / Suspended</div></div>
+function defaultContractorCompanies(){
+  const t0 = typeof today0 === "function" ? today0() : Date.now();
+  const day = 864e5;
+  return [
+    {
+      id: "UNH-CON-2026-0001",
+      name: "Julius Berger Facilities Nigeria Ltd",
+      regNum: "RC-149822",
+      category: "Civil, Mechanical & Electrical Engineering",
+      address: "10 Shehu Shagari Way, Central Area, Abuja",
+      contact: "Engr. Sunday Adebayo",
+      phone: "0803 445 9901",
+      email: "s.adebayo@julius-berger.com",
+      agency: "Common Services",
+      focalPerson: "Facilities Unit / Compound Manager",
+      startDate: t0 - 90*day,
+      endDate: t0 + 275*day,
+      status: "active",
+      verifiedDocs: 4
+    },
+    {
+      id: "UNH-CON-2026-0002",
+      name: "Otis Nigeria Ltd",
+      regNum: "RC-882103",
+      category: "Elevator & Vertical Transport Maintenance",
+      address: "Plot 1204 Cadastral Zone, Abuja",
+      contact: "Tariq Al-Mansoor",
+      phone: "0802 991 3344",
+      email: "support@otis-ng.com",
+      agency: "Common Services",
+      focalPerson: "Compound Engineer",
+      startDate: t0 - 180*day,
+      endDate: t0 + 185*day,
+      status: "active",
+      verifiedDocs: 3
+    },
+    {
+      id: "UNH-CON-2026-0003",
+      name: "CleanCo Environmental Services",
+      regNum: "RC-559124",
+      category: "Industrial Cleaning, Waste & Janitorial",
+      address: "33 Gana Street, Maitama, Abuja",
+      contact: "Mrs. Grace Danladi",
+      phone: "0805 112 7788",
+      email: "contracts@cleanco-ng.com",
+      agency: "UNDP",
+      focalPerson: "Operations & Admin Unit",
+      startDate: t0 - 60*day,
+      endDate: t0 + 305*day,
+      status: "active",
+      verifiedDocs: 3
+    },
+    {
+      id: "UNH-CON-2026-0004",
+      name: "Schneider Electric Nigeria",
+      regNum: "RC-310488",
+      category: "Power Systems, UPS & High Voltage",
+      address: "Plot 777 Central Business District, Abuja",
+      contact: "Engr. Kenneth Obi",
+      phone: "0803 777 2211",
+      email: "k.obi@se-nigeria.com",
+      agency: "Common Services",
+      focalPerson: "ICT & Power Lead",
+      startDate: t0 - 120*day,
+      endDate: t0 + 15*day,
+      status: "expiring",
+      verifiedDocs: 4
+    },
+    {
+      id: "UNH-CON-2026-0005",
+      name: "Softcom ICT Solutions",
+      regNum: "RC-901243",
+      category: "Structured Cabling, Fiber Optics & Network",
+      address: "45 Gimbiya Street, Area 11, Garki, Abuja",
+      contact: "Kelechi Eze",
+      phone: "0809 334 5566",
+      email: "k.eze@softcom.ng",
+      agency: "UNICEF",
+      focalPerson: "UNICEF ICT Focal Point",
+      startDate: t0 - 45*day,
+      endDate: t0 + 320*day,
+      status: "active",
+      verifiedDocs: 2
+    }
+  ];
+}
+
+function getContractorCompanies(){
+  try{
+    const r = localStorage.getItem("unh_contractor_companies");
+    if(r) return JSON.parse(r);
+  }catch(e){}
+  const def = defaultContractorCompanies();
+  setContractorCompanies(def);
+  return def;
+}
+function setContractorCompanies(list){
+  try{ localStorage.setItem("unh_contractor_companies", JSON.stringify(list)); }catch(e){}
+}
+
+function defaultContractorStaff(){
+  const t0 = typeof today0 === "function" ? today0() : Date.now();
+  const day = 864e5;
+  return [
+    {
+      id: "UNH-WRK-2026-0001",
+      name: "Babatunde Adeleke",
+      companyId: "UNH-CON-2026-0001",
+      company: "Julius Berger Facilities Nigeria Ltd",
+      trade: "HVAC & Mechanical Systems",
+      agency: "Common Services",
+      focalPerson: "Facilities Unit (Ext. 2010)",
+      phone: "0803 219 4481",
+      idType: "National ID (NIN)",
+      idNumber: "NIN-89123891024",
+      zone: "Basement Chiller Plant & Central AHU",
+      escort: false,
+      startDate: t0 - 60*day,
+      endDate: t0 + 180*day,
+      status: "active",
+      passNumber: "CP-ABJ-0001",
+      tools: ["Fluke Multimeter", "Vacuum Pump", "R410A Gauge"]
+    },
+    {
+      id: "UNH-WRK-2026-0002",
+      name: "Ibrahim Garba",
+      companyId: "UNH-CON-2026-0001",
+      company: "Julius Berger Facilities Nigeria Ltd",
+      trade: "Electrical & Generator Systems",
+      agency: "Common Services",
+      focalPerson: "Facilities Unit (Ext. 2010)",
+      phone: "0802 881 7732",
+      idType: "Driver's License",
+      idNumber: "DL-ABJ-99214A",
+      zone: "Generator Substation & Switchgear",
+      escort: true,
+      startDate: t0 - 45*day,
+      endDate: t0 + 195*day,
+      status: "active",
+      passNumber: "CP-ABJ-0002",
+      tools: ["Insulated Toolset", "Megger Insulation Tester"]
+    },
+    {
+      id: "UNH-WRK-2026-0003",
+      name: "Chidi Eze",
+      companyId: "UNH-CON-2026-0001",
+      company: "Julius Berger Facilities Nigeria Ltd",
+      trade: "HVAC Compressor Overhaul",
+      agency: "Common Services",
+      focalPerson: "Facilities Unit (Ext. 2010)",
+      phone: "0803 555 1290",
+      idType: "National ID (NIN)",
+      idNumber: "NIN-77123901455",
+      zone: "Annex A, Roof AHU 2",
+      escort: true,
+      startDate: t0 - 30*day,
+      endDate: t0 + 210*day,
+      status: "active",
+      passNumber: "CP-ABJ-0003",
+      tools: ["Toolbox", "Bosch Cordless Drill"]
+    },
+    {
+      id: "UNH-WRK-2026-0004",
+      name: "Umar Farouk",
+      companyId: "UNH-CON-2026-0002",
+      company: "Otis Nigeria Ltd",
+      trade: "Elevator & Vertical Transport",
+      agency: "Common Services",
+      focalPerson: "Common Services Admin (Ext. 2040)",
+      phone: "0803 884 9911",
+      idType: "Driver's License",
+      idNumber: "DL-KAD-33190B",
+      zone: "Central Core Lift Shaft A & B",
+      escort: true,
+      startDate: t0 - 90*day,
+      endDate: t0 + 150*day,
+      status: "active",
+      passNumber: "CP-ABJ-0004",
+      tools: ["Hydraulic Pressure Gauge", "Rigging Kit"]
+    },
+    {
+      id: "UNH-WRK-2026-0005",
+      name: "Chiamaka Okoro",
+      companyId: "UNH-CON-2026-0003",
+      company: "CleanCo Environmental Services",
+      trade: "Janitorial & Deep Sanitation",
+      agency: "UNDP",
+      focalPerson: "Operations & Admin Unit (Ext. 3105)",
+      phone: "0805 771 8822",
+      idType: "National ID (NIN)",
+      idNumber: "NIN-66238190012",
+      zone: "UNDP 2nd Floor & Common Areas",
+      escort: false,
+      startDate: t0 - 60*day,
+      endDate: t0 + 240*day,
+      status: "active",
+      passNumber: "CP-ABJ-0005",
+      tools: ["Industrial Vacuum", "Sanitization Sprayer"]
+    },
+    {
+      id: "UNH-WRK-2026-0006",
+      name: "Emmanuel Okeke",
+      companyId: "UNH-CON-2026-0003",
+      company: "CleanCo Environmental Services",
+      trade: "Chemical Fumigation & Landscaping",
+      agency: "Common Services",
+      focalPerson: "Logistics Office (Ext. 2015)",
+      phone: "0803 661 2299",
+      idType: "National ID (NIN)",
+      idNumber: "NIN-55102938471",
+      zone: "Compound Perimeter & Waste Yard",
+      escort: false,
+      startDate: t0 - 100*day,
+      endDate: t0 + 15*day,
+      status: "suspended",
+      passNumber: "CP-ABJ-0006",
+      tools: [],
+      suspendReason: "Permit suspended by UNDSS due to safety non-compliance"
+    },
+    {
+      id: "UNH-WRK-2026-0007",
+      name: "Engr. Sunday Alabi",
+      companyId: "UNH-CON-2026-0004",
+      company: "Schneider Electric Nigeria",
+      trade: "UPS & High Voltage Distribution",
+      agency: "Common Services",
+      focalPerson: "ICT & Facilities (Ext. 2020)",
+      phone: "0803 992 4411",
+      idType: "National ID (NIN)",
+      idNumber: "NIN-44910293811",
+      zone: "Main Building Data Center UPS Room",
+      escort: true,
+      startDate: t0 - 120*day,
+      endDate: t0 + 15*day,
+      status: "active",
+      passNumber: "CP-ABJ-0007",
+      tools: ["Fluke Power Analyzer", "Insulated Toolset"]
+    },
+    {
+      id: "UNH-WRK-2026-0008",
+      name: "Kelechi Eze",
+      companyId: "UNH-CON-2026-0005",
+      company: "Softcom ICT Solutions",
+      trade: "Fiber Optic Cabling & Networks",
+      agency: "UNICEF",
+      focalPerson: "UNICEF ICT Focal (Ext. 5120)",
+      phone: "0809 334 5566",
+      idType: "National ID (NIN)",
+      idNumber: "NIN-33290192834",
+      zone: "UNICEF Server Room & Floor Riser 3",
+      escort: true,
+      startDate: t0 - 30*day,
+      endDate: t0 + 210*day,
+      status: "active",
+      passNumber: "CP-ABJ-0008",
+      tools: ["Fiber Splicer", "OTDR Tester"]
+    }
+  ];
+}
+
+function getContractorStaff(){
+  try{
+    const r = localStorage.getItem("unh_contractor_staff");
+    if(r) return JSON.parse(r);
+  }catch(e){}
+  const def = defaultContractorStaff();
+  setContractorStaff(def);
+  return def;
+}
+function setContractorStaff(list){
+  try{ localStorage.setItem("unh_contractor_staff", JSON.stringify(list)); }catch(e){}
+}
+
+function defaultServiceRequests(){
+  const t0 = typeof today0 === "function" ? today0() : Date.now();
+  const day = 864e5;
+  const todayDateStr = new Date(t0).toISOString().slice(0,10);
+  const tomorrowDateStr = new Date(t0 + day).toISOString().slice(0,10);
+  return [
+    {
+      id: "UNH-SR-2026-0012",
+      title: "Quarterly Chiller & HVAC Plant Maintenance",
+      agency: "WHO",
+      department: "Operations & Logistics",
+      officer: "Dr. K. Ibrahim (Ext. 4102)",
+      companyId: "UNH-CON-2026-0001",
+      company: "Julius Berger Facilities Nigeria Ltd",
+      workerIds: ["UNH-WRK-2026-0001", "UNH-WRK-2026-0003"],
+      workerNames: ["Babatunde Adeleke", "Chidi Eze"],
+      serviceType: "Preventative Maintenance",
+      desc: "Quarterly inspection and motor overhaul for rooftop chillers supplying the WHO East Wing.",
+      building: "Main UN House Building",
+      zone: "Basement Chiller Plant & Rooftop AHU",
+      date: todayDateStr,
+      startTime: "08:30",
+      endTime: "16:30",
+      priority: "High",
+      tools: ["Fluke Multimeter", "Vacuum Pump", "R410A Gauge", "Bosch Drill"],
+      status: "approved",
+      approvedBy: "Facilities Security Manager (FSM)",
+      approvedAt: t0 - 7200e3
+    },
+    {
+      id: "UNH-SR-2026-0014",
+      title: "Executive Offices Deep Carpet Sanitation & Polishing",
+      agency: "UNDP",
+      department: "Resident Representative Suite",
+      officer: "S. Garba (Ext. 3105)",
+      companyId: "UNH-CON-2026-0003",
+      company: "CleanCo Environmental Services",
+      workerIds: ["UNH-WRK-2026-0005"],
+      workerNames: ["Chiamaka Okoro"],
+      serviceType: "Sanitation & Cleaning",
+      desc: "After-hours deep cleaning and floor buffing in the 2nd Floor Executive Suite.",
+      building: "Main UN House Building",
+      zone: "2nd Floor UNDP Executive Wing",
+      date: todayDateStr,
+      startTime: "14:00",
+      endTime: "18:00",
+      priority: "Routine",
+      tools: ["Industrial Vacuum", "Sanitization Sprayer"],
+      status: "in_progress",
+      approvedBy: "Facilities Security Manager (FSM)",
+      approvedAt: t0 - 14400e3
+    },
+    {
+      id: "UNH-SR-2026-0015",
+      title: "Passenger Elevator #2 Hydraulic Valve Servicing",
+      agency: "Common Services",
+      department: "Facilities Management",
+      officer: "Engr. M. Lawal (Ext. 2040)",
+      companyId: "UNH-CON-2026-0002",
+      company: "Otis Nigeria Ltd",
+      workerIds: ["UNH-WRK-2026-0004"],
+      workerNames: ["Umar Farouk"],
+      serviceType: "Emergency Repair",
+      desc: "Replacement of hydraulic governor seals and safety interlock recalibration for Lift #2.",
+      building: "Main UN House Building",
+      zone: "Central Core Lift Shaft B",
+      date: todayDateStr,
+      startTime: "10:00",
+      endTime: "15:00",
+      priority: "High",
+      tools: ["Hydraulic Pressure Gauge", "Rigging Kit"],
+      status: "pending",
+      approvedBy: null
+    },
+    {
+      id: "UNH-SR-2026-0018",
+      title: "Server Room UPS Battery Bank Load Test & Maintenance",
+      agency: "UNICEF",
+      department: "ICT & Communications",
+      officer: "T. Musa (Ext. 5120)",
+      companyId: "UNH-CON-2026-0004",
+      company: "Schneider Electric Nigeria",
+      workerIds: ["UNH-WRK-2026-0007"],
+      workerNames: ["Engr. Sunday Alabi"],
+      serviceType: "Critical Infrastructure",
+      desc: "Bi-annual DC voltage impedance testing and cell replacement for 80kVA UPS unit.",
+      building: "Main UN House Building",
+      zone: "Ground Floor Data Center Substation",
+      date: tomorrowDateStr,
+      startTime: "09:00",
+      endTime: "14:00",
+      priority: "Urgent / Emergency",
+      tools: ["Fluke Power Analyzer", "Insulated Toolset"],
+      status: "pending",
+      approvedBy: null
+    }
+  ];
+}
+
+function getServiceRequests(){
+  try{
+    const r = localStorage.getItem("unh_service_requests");
+    if(r) return JSON.parse(r);
+  }catch(e){}
+  const def = defaultServiceRequests();
+  setServiceRequests(def);
+  return def;
+}
+function setServiceRequests(list){
+  try{ localStorage.setItem("unh_service_requests", JSON.stringify(list)); }catch(e){}
+}
+
+function defaultContractorDocs(){
+  const t0 = typeof today0 === "function" ? today0() : Date.now();
+  const day = 864e5;
+  return [
+    {
+      id: "DOC-2026-081",
+      companyId: "UNH-CON-2026-0001",
+      company: "Julius Berger Facilities Nigeria Ltd",
+      name: "CAC Certificate of Incorporation (RC-149822)",
+      type: "Corporate Registration",
+      validUntil: t0 + 365*day,
+      status: "valid",
+      verifiedBy: "UNDSS Compliance Officer"
+    },
+    {
+      id: "DOC-2026-082",
+      companyId: "UNH-CON-2026-0001",
+      company: "Julius Berger Facilities Nigeria Ltd",
+      name: "Comprehensive Third-Party Liability Insurance Policy ($5M)",
+      type: "Insurance Policy",
+      validUntil: t0 + 290*day,
+      status: "valid",
+      verifiedBy: "UNDSS Safety Lead"
+    },
+    {
+      id: "DOC-2026-083",
+      companyId: "UNH-CON-2026-0002",
+      company: "Otis Nigeria Ltd",
+      name: "Technical Safety Standard & Hoist Equipment Certification",
+      type: "Safety Compliance",
+      validUntil: t0 + 180*day,
+      status: "valid",
+      verifiedBy: "Facilities Unit Engineer"
+    },
+    {
+      id: "DOC-2026-084",
+      companyId: "UNH-CON-2026-0003",
+      company: "CleanCo Environmental Services",
+      name: "Federal Ministry of Environment Hazardous Waste Handling Permit",
+      type: "Environmental Permit",
+      validUntil: t0 + 210*day,
+      status: "valid",
+      verifiedBy: "UNDSS Compliance Officer"
+    },
+    {
+      id: "DOC-2026-085",
+      companyId: "UNH-CON-2026-0004",
+      company: "Schneider Electric Nigeria",
+      name: "High Voltage Electrical Safety Certification",
+      type: "Trade Accreditation",
+      validUntil: t0 + 15*day,
+      status: "expiring_soon",
+      verifiedBy: "UNDSS Safety Lead"
+    }
+  ];
+}
+
+function getContractorDocs(){
+  try{
+    const r = localStorage.getItem("unh_contractor_docs");
+    if(r) return JSON.parse(r);
+  }catch(e){}
+  const def = defaultContractorDocs();
+  setContractorDocs(def);
+  return def;
+}
+function setContractorDocs(list){
+  try{ localStorage.setItem("unh_contractor_docs", JSON.stringify(list)); }catch(e){}
+}
+
+
+// Renderers for Contractor & Service Staff Management
+function renderContractorNav(activeTab, counts){
+  const tabs = [
+    { id: "dashboard", label: "📊 Dashboard" },
+    { id: "companies", label: `🏢 Companies (${counts.companies})` },
+    { id: "workers", label: `👷 Service Workers (${counts.workers})` },
+    { id: "requests", label: `📋 Service Requests (${counts.requests})` },
+    { id: "clearance", label: `🛡️ Clearance & Approvals ${counts.pendingClearance ? `<span class="cnt hot" style="margin-left:4px">${counts.pendingClearance}</span>` : ''}` },
+    { id: "passes", label: "🪪 Contractor Passes" },
+    { id: "checkin", label: `⏱️ Check-In / Out & Attendance ${counts.onSite ? `<span class="cnt ok" style="margin-left:4px">${counts.onSite}</span>` : ''}` },
+    { id: "compliance", label: `📁 Compliance Docs (${counts.docs})` }
+  ];
+  return `<div class="con-nav-bar">
+    ${tabs.map(t => `<button class="con-nav-btn ${activeTab === t.id ? 'active' : ''}" type="button" onclick="setContractorTab('${t.id}')">${t.label}</button>`).join("")}
+  </div>`;
+}
+
+function renderContractorDashboard(companies, workers, requests, onSiteList, docs){
+  const activeCompanies = companies.filter(c => c.status === "active").length;
+  const registeredWorkers = workers.length;
+  const todayStr = new Date().toISOString().slice(0,10);
+  
+  // Requests for today
+  const todayRequests = requests.filter(r => r.date === todayStr);
+  const expectedWorkerNames = new Set(todayRequests.flatMap(r => r.workerNames || []));
+  const expectedTodayCount = expectedWorkerNames.size;
+  
+  const pendingRequests = requests.filter(r => r.status === "pending").length;
+  const expiringCompanies = companies.filter(c => c.status === "expiring" || (c.endDate && (c.endDate - Date.now() < 30*864e5))).length;
+  const suspendedWorkers = workers.filter(w => w.status === "suspended" || (w.endDate && w.endDate < Date.now())).length;
+
+  return `
+  <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+    <div class="kpi ok"><div class="n">${activeCompanies}</div><div class="l">Active Companies</div></div>
+    <div class="kpi"><div class="n">${registeredWorkers}</div><div class="l">Registered Service Workers</div></div>
+    <div class="kpi"><div class="n">${expectedTodayCount}</div><div class="l">Workers Expected Today</div></div>
+    <div class="kpi ok"><div class="n">${onSiteList.length}</div><div class="l">Currently On-Site</div></div>
+    <div class="kpi ${pendingRequests ? 'alert' : ''}"><div class="n">${pendingRequests}</div><div class="l">Pending Service Requests</div></div>
+    <div class="kpi ${pendingRequests ? 'alert' : ''}"><div class="n">${pendingRequests}</div><div class="l">Pending Authorisations</div></div>
+    <div class="kpi ${expiringCompanies ? 'alert' : ''}"><div class="n">${expiringCompanies}</div><div class="l">Expiring Contracts (&lt;30d)</div></div>
+    <div class="kpi ${suspendedWorkers ? 'alert' : ''}"><div class="n">${suspendedWorkers}</div><div class="l">Expired / Suspended Workers</div></div>
   </div>
-  <div class="panel">
+
+  <div class="panel" style="margin-bottom:14px;background:linear-gradient(180deg,#fff,#f8fafc);border-radius:12px">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="flex:1;min-width:240px">${searchBox("Search contractors, company, tools or reference...")}</div>
-      <button class="btn pri" id="con_reg_btn">+ Register Contractor / Service Staff</button>
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">Quick Actions &amp; Personnel Controls</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Manage companies, add vetted service workers, or create an agency work permit</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn pri" type="button" onclick="openRegisterCompanyModal()" style="background:#0284c7">+ Register Company</button>
+        <button class="btn pri" type="button" onclick="openRegisterWorkerModal()" style="background:#d97706">+ Add Service Worker</button>
+        <button class="btn" type="button" onclick="openSubmitServiceRequestModal()">+ Submit Service Request</button>
+      </div>
     </div>
   </div>
+
+  <!-- Today's Scheduled Personnel -->
+  <div class="panel" style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px">
+      <h2 style="margin:0;font-size:16px;color:var(--navy)">📅 Today's Scheduled Service Personnel (${expectedWorkerNames.size})</h2>
+      <span class="pill" style="background:#fef3c7;color:#92400e;font-weight:700">Amber Pass Protocol</span>
+    </div>
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Service Worker (Technician)</th>
+            <th>Company</th>
+            <th>Trade / Specialization</th>
+            <th>Authorized Zone &amp; Sponsoring Agency</th>
+            <th>Logged Tools</th>
+            <th>Compound Status</th>
+            <th style="text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Array.from(expectedWorkerNames).map(name => {
+            const w = workers.find(x => x.name === name) || { name, company: "Contractor", trade: "Technician", agency: "Common Services", zone: "General" };
+            const isInside = onSiteList.some(v => v.name === name);
+            const insideVis = onSiteList.find(v => v.name === name);
+            return `<tr>
+              <td>
+                <b>${esc(w.name)}</b>
+                <div class="small mono" style="color:var(--muted)">${esc(w.id || "UNH-WRK")}</div>
+              </td>
+              <td>${esc(w.company)}</td>
+              <td><span class="con-trade-chip">${esc(w.trade)}</span></td>
+              <td>
+                <b>${esc(w.zone || "Plant Room")}</b>
+                <div class="small">${esc(w.agency)}</div>
+              </td>
+              <td><div class="small" style="max-width:180px">${(w.tools && w.tools.length) ? esc(w.tools.join(", ")) : '<span style="color:var(--muted)">None</span>'}</div></td>
+              <td>
+                ${isInside ? `<span class="pill p-in">🟢 On Site (${esc(insideVis.tag || "C-Tag")})</span>` : `<span class="pill" style="background:#eff6ff;color:#1e40af;font-weight:600">🟡 Scheduled</span>`}
+              </td>
+              <td style="text-align:right">
+                ${isInside ? `
+                  <button class="btn bad" type="button" style="font-size:11px;padding:3px 8px" onclick="checkOutContractorWorker('${esc(insideVis.id)}')">Check Out</button>
+                ` : `
+                  <button class="btn pri" type="button" style="font-size:11px;padding:3px 8px;background:#d97706;border-color:#d97706" onclick="checkInContractorWorker('${esc(w.id)}')">Check In (Amber Tag)</button>
+                `}
+                <button class="btn" type="button" style="font-size:11px;padding:3px 8px" onclick="openContractorPassModal('${esc(w.id)}')">Pass 🪪</button>
+              </td>
+            </tr>`;
+          }).join("") || `<tr><td colspan="7" class="empty">No contractor service workers scheduled for today. Submit a service request to schedule personnel.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Compliance & Expiration Alerts -->
+  ${(expiringCompanies || suspendedWorkers) ? `
+  <div class="note" style="border-left:4px solid #d97706;background:#fffbeb;color:#92400e;margin-bottom:14px">
+    <div style="font-weight:700;font-size:13px;margin-bottom:4px">⚠️ Contractor Compliance &amp; Expiry Notice:</div>
+    <div style="font-size:12.5px;line-height:1.5">
+      ${expiringCompanies ? `<b>${expiringCompanies} contractor company/contract(s)</b> are expiring within 30 days. ` : ''}
+      ${suspendedWorkers ? `<b>${suspendedWorkers} service worker(s)</b> are currently suspended or holding expired credentials.` : ''}
+    </div>
+  </div>` : ''}
+  `;
+}
+
+
+// Complete Contractor & Service Staff Management Implementation
+
+
+
+function renderContractorCompanies(companies){
+  return `
   <div class="panel">
-    <h2>Contractors &amp; Service Staff Permits &amp; Tool Logs (${list.length})</h2>
-    <div class="tw" style="margin-top:12px"><table><thead><tr>
-      <th>Contractor / Service Staff &amp; Company</th>
-      <th>Permitted Area &amp; Escort</th>
-      <th>Host &amp; Agency</th>
-      <th>Access Window</th>
-      <th>Tools &amp; Equipment</th>
-      <th>Compound Status</th>
-      <th>Security Actions</th>
-    </tr></thead><tbody>
-    ${list.map(v=>{
-      const isExp=contractorExpired(v);
-      const isSoon=contractorExpiring(v);
-      const itemsStr=(v.items||[]).map(i=>i.d).join(", ");
-      return `<tr>
-        <td>
-          <b>${esc(v.name)}</b>
-          <div class="small">${esc(v.org)} · <span class="mono ref">${esc(v.ref)}</span></div>
-          
-        </td>
-        <td>
-          <b>${esc(v.building)}</b>
-          <div class="small">${esc(v.room||v.purpose||"Facility works")}</div>
-          ${v.escort?`<span class="pill p-pending" style="font-size:10px;padding:1px 6px;margin-top:2px">Staff Escort Required</span>`:""}
-        </td>
-        <td>
-          ${esc(v.host)}
-          <div class="small">${esc(v.agency)}</div>
-        </td>
-        <td>
-          <div class="mono small">${v.accessFrom?new Date(v.accessFrom).toLocaleDateString([], {month:"short",day:"numeric"}):"—"} → ${v.accessTo?new Date(v.accessTo).toLocaleDateString([], {month:"short",day:"numeric"}):"—"}</div>
-          <div style="margin-top:2px">
-            ${v.status==="suspended"?`<span class="pill p-rejected">Suspended</span>`:
-              isExp?`<span class="pill p-rejected">Access Expired</span>`:
-              isSoon?`<span class="pill p-pending">Expiring Soon</span>`:
-              `<span class="pill p-in">Permit Active</span>`}
-          </div>
-        </td>
-        <td>
-          <div class="small" style="max-width:180px;white-space:normal">
-            ${itemsStr?`🧰 ${esc(itemsStr)}`:`<span style="color:var(--muted)">No tools logged</span>`}
-          </div>
-        </td>
-        <td>
-          ${pill(v)}
-          ${v.tag?`<div class="small mono" style="margin-top:2px;font-weight:600;color:var(--accent)">Tag: ${esc(v.tag)}</div>`:""}
-        </td>
-        <td>
-          <div class="acts" style="flex-wrap:nowrap">
-            ${v.status==="suspended"?B(v.id,"reinstate","Reinstate","pri"):B(v.id,"suspend","Suspend","bad")}
-            ${B(v.id,"extend","+7 Days")}
-            ${B(v.id,"detail","Details")}
-          </div>
-        </td>
-      </tr>`;
-    }).join("")||`<tr><td colspan="7" class="empty">No contractors or service staff registered. Click "+ Register Contractor / Service Staff" to log a permit.</td></tr>`}
-    </tbody></table></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">🏢 Accredited Contractor Companies (${companies.length})</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Corporate vendor profiles, contracts, and UN sponsoring agencies</p>
+      </div>
+      <button class="btn pri" type="button" onclick="openRegisterCompanyModal()" style="background:#0284c7">+ Register Company</button>
+    </div>
+    <div class="tw" style="margin-top:14px">
+      <table>
+        <thead>
+          <tr>
+            <th>Company Name &amp; ID</th>
+            <th>Service Category &amp; RC Number</th>
+            <th>Sponsoring UN Agency &amp; Focal</th>
+            <th>Contact Person &amp; Phone</th>
+            <th>Contract Validity Window</th>
+            <th>Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${companies.map(c => {
+            const isExp = c.endDate && c.endDate < Date.now();
+            const isSoon = c.endDate && (c.endDate - Date.now() < 30*864e5) && !isExp;
+            return `<tr>
+              <td>
+                <b>${esc(c.name)}</b>
+                <div class="small mono" style="color:var(--muted)">${esc(c.id)}</div>
+                <div class="small" style="color:var(--muted)">${esc(c.address || "")}</div>
+              </td>
+              <td>
+                <span class="con-trade-chip">${esc(c.category)}</span>
+                <div class="small mono" style="margin-top:2px">RC: ${esc(c.regNum || "—")}</div>
+              </td>
+              <td>
+                <b>${esc(c.agency)}</b>
+                <div class="small">${esc(c.focalPerson || "Focal Person")}</div>
+              </td>
+              <td>
+                <div>${esc(c.contact)}</div>
+                <div class="small mono">${esc(c.phone)}</div>
+                <div class="small" style="color:var(--muted)">${esc(c.email)}</div>
+              </td>
+              <td>
+                <div class="mono small">${fmtD(c.startDate)} → ${fmtD(c.endDate)}</div>
+                <div class="small" style="margin-top:2px">
+                  ${isExp ? `<span class="pill p-rejected">Expired</span>` : (isSoon ? `<span class="pill p-pending">Expiring in ${Math.round((c.endDate-Date.now())/864e5)}d</span>` : `<span class="pill p-in">Active</span>`)}
+                </div>
+              </td>
+              <td>
+                ${c.status === "suspended" ? `<span class="pill p-rejected">Suspended</span>` : `<span class="pill p-in">Active</span>`}
+              </td>
+              <td style="text-align:right">
+                <div class="acts" style="justify-content:flex-end">
+                  <button class="btn" type="button" style="font-size:11px;padding:3px 8px" onclick="setContractorTab('workers')">Workers 👷</button>
+                  <button class="btn ${c.status==='suspended'?'pri':'bad'}" type="button" style="font-size:11px;padding:3px 8px" onclick="toggleSuspendCompany('${esc(c.id)}')">${c.status==='suspended'?'Reinstate':'Suspend'}</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join("") || `<tr><td colspan="7" class="empty">No contractor companies registered yet. Click "+ Register Company" to add one.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
   </div>`;
+}
+
+function renderContractorWorkers(workers, companies, onSiteList){
+  return `
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">👷 Contractor Service Workers &amp; Technicians (${workers.length})</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Vetted personnel employed by contractor companies (excluding UN Agency staff)</p>
+      </div>
+      <button class="btn pri" type="button" onclick="openRegisterWorkerModal()" style="background:#d97706">+ Add Service Worker</button>
+    </div>
+    <div class="tw" style="margin-top:14px">
+      <table>
+        <thead>
+          <tr>
+            <th>Service Worker (Technician)</th>
+            <th>Employer Company</th>
+            <th>Trade / Specialization</th>
+            <th>Verified Photo ID</th>
+            <th>Authorized Zone &amp; Sponsoring Agency</th>
+            <th>Escort Status</th>
+            <th>Compound Status</th>
+            <th style="text-align:right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${workers.map(w => {
+            const isInside = (onSiteList || []).some(v => v.name === w.name);
+            const insideVis = (onSiteList || []).find(v => v.name === w.name);
+            return `<tr>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#fef3c7;color:#92400e;display:grid;place-items:center;font-weight:700;font-size:13px;border:1px solid #fde68a">
+                    ${esc((w.name||"W").slice(0,2).toUpperCase())}
+                  </div>
+                  <div>
+                    <b>${esc(w.name)}</b>
+                    <div class="small mono" style="color:var(--muted)">${esc(w.id)} · ${esc(w.passNumber || "")}</div>
+                    <div class="small mono">${esc(w.phone || "")}</div>
+                  </div>
+                </div>
+              </td>
+              <td><b>${esc(w.company)}</b></td>
+              <td><span class="con-trade-chip">${esc(w.trade)}</span></td>
+              <td>
+                <div><b>${esc(w.idType || "National ID")}</b></div>
+                <div class="small mono" style="color:var(--muted)">${esc(w.idNumber || "Verified on File")}</div>
+              </td>
+              <td>
+                <b>${esc(w.zone || "Plant Rooms & Common Facilities")}</b>
+                <div class="small">${esc(w.agency)} · ${esc(w.focalPerson || "")}</div>
+              </td>
+              <td>
+                ${w.escort ? `<span class="pill p-pending" style="font-size:10.5px">Staff Escort Required</span>` : `<span class="pill" style="background:#f0fdf4;color:#166534;font-size:10.5px;font-weight:600">Unescorted Permitted</span>`}
+              </td>
+              <td>
+                ${w.status === "suspended" ? `<span class="pill p-rejected">Suspended</span>` : (isInside ? `<span class="pill p-in">🟢 On Site (${esc(insideVis.tag || "C-Tag")})</span>` : `<span class="pill" style="background:#f1f5f9;color:#475569">Off Site</span>`)}
+              </td>
+              <td style="text-align:right">
+                <div class="acts" style="justify-content:flex-end">
+                  <button class="btn" type="button" style="font-size:11px;padding:3px 8px" onclick="openContractorPassModal('${esc(w.id)}')">Pass 🪪</button>
+                  ${isInside ? `
+                    <button class="btn bad" type="button" style="font-size:11px;padding:3px 8px" onclick="checkOutContractorWorker('${esc(insideVis.id)}')">Check Out</button>
+                  ` : `
+                    <button class="btn pri" type="button" style="font-size:11px;padding:3px 8px;background:#d97706;border-color:#d97706" onclick="checkInContractorWorker('${esc(w.id)}')">Check In</button>
+                  `}
+                  <button class="btn ${w.status==='suspended'?'pri':'bad'}" type="button" style="font-size:11px;padding:3px 8px" onclick="toggleSuspendWorker('${esc(w.id)}')">${w.status==='suspended'?'Reinstate':'Suspend'}</button>
+                </div>
+              </td>
+            </tr>`;
+          }).join("") || `<tr><td colspan="8" class="empty">No contractor service workers registered. Click "+ Add Service Worker" to register a technician.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderContractorRequests(requests, companies, workers){
+  return `
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">📋 Contractor Service Requests &amp; Work Permits (${requests.length})</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Internal UN Agency work orders submitted for facility maintenance, IT, or janitorial work</p>
+      </div>
+      <button class="btn pri" type="button" onclick="openSubmitServiceRequestModal()">+ Submit Service Request</button>
+    </div>
+    <div class="tw" style="margin-top:14px">
+      <table>
+        <thead>
+          <tr>
+            <th>Request Ref &amp; Title</th>
+            <th>Sponsoring Agency &amp; Officer</th>
+            <th>Contractor Company &amp; Assigned Workers</th>
+            <th>Scheduled Window &amp; Zone</th>
+            <th>Priority &amp; Tools</th>
+            <th>Approval Status</th>
+            <th style="text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${requests.map(r => {
+            const priorityColors = { Routine: "#0284c7", High: "#d97706", "Urgent / Emergency": "#b91c1c" };
+            return `<tr>
+              <td>
+                <b>${esc(r.title)}</b>
+                <div class="small mono" style="color:var(--muted)">${esc(r.id)} · ${esc(r.serviceType)}</div>
+                <div class="small" style="max-width:240px;color:var(--muted)">${esc(r.desc || "")}</div>
+              </td>
+              <td>
+                <b>${esc(r.agency)}</b>
+                <div class="small">${esc(r.officer)}</div>
+                <div class="small" style="color:var(--muted)">${esc(r.department || "")}</div>
+              </td>
+              <td>
+                <b>${esc(r.company)}</b>
+                <div class="small" style="margin-top:2px">
+                  ${(r.workerNames || []).map(n => `<span class="con-trade-chip" style="margin-right:2px">${esc(n)}</span>`).join("")}
+                </div>
+              </td>
+              <td>
+                <div class="mono small"><b>${esc(r.date)}</b> (${esc(r.startTime)}–${esc(r.endTime)})</div>
+                <div class="small" style="color:var(--muted)">${esc(r.zone || r.building)}</div>
+              </td>
+              <td>
+                <div><span class="pill" style="background:${priorityColors[r.priority]||'#64748b'};color:#fff;font-weight:700;font-size:10.5px">${esc(r.priority)}</span></div>
+                <div class="small" style="margin-top:3px;max-width:180px">🧰 ${(r.tools && r.tools.length) ? esc(r.tools.join(", ")) : '<span style="color:var(--muted)">No equipment</span>'}</div>
+              </td>
+              <td>
+                ${r.status === "approved" ? `<span class="pill p-approved">Cleared &amp; Approved</span><div class="small" style="color:var(--muted)">${esc(r.approvedBy||"FSM")}</div>` :
+                  (r.status === "in_progress" ? `<span class="pill p-in">Work in Progress</span>` :
+                  (r.status === "rejected" ? `<span class="pill p-rejected">Rejected</span>` :
+                  `<span class="pill p-pending">Pending Clearance</span>`))}
+              </td>
+              <td style="text-align:right">
+                <div class="acts" style="justify-content:flex-end">
+                  ${r.status === "pending" ? `
+                    <button class="btn pri" type="button" style="font-size:11px;padding:3px 8px;background:#0284c7" onclick="openClearanceModal('${esc(r.id)}')">Review &amp; Clear</button>
+                  ` : (r.status === "approved" ? `
+                    <button class="btn pri" type="button" style="font-size:11px;padding:3px 8px;background:#d97706;border-color:#d97706" onclick="setContractorTab('checkin')">Check In Workers</button>
+                  ` : '')}
+                </div>
+              </td>
+            </tr>`;
+          }).join("") || `<tr><td colspan="7" class="empty">No service requests logged yet. Click "+ Submit Service Request" to schedule work.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderContractorClearance(requests, companies, workers){
+  const pending = requests.filter(r => r.status === "pending");
+  return `
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">🛡️ UNDSS &amp; Facilities Clearance Desk (${pending.length})</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">8-Point Statutory Security Checklist before contractor personnel are authorized on compound</p>
+      </div>
+    </div>
+    
+    <div style="margin-top:14px">
+      ${pending.map(r => {
+        return `
+        <div style="border:1.5px solid #fed7aa;background:linear-gradient(180deg,#fffbeb,#ffffff);border-radius:12px;padding:16px 18px;margin-bottom:14px;box-shadow:0 2px 8px rgba(217,119,6,0.08)">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span class="pill" style="background:#d97706;color:#fff;font-weight:700">PENDING CLEARANCE</span>
+                <span class="mono" style="font-weight:700;font-size:14px">${esc(r.id)}</span>
+              </div>
+              <h3 style="margin:6px 0 2px;font-size:16.5px;color:var(--navy)">${esc(r.title)}</h3>
+              <div class="small" style="color:var(--muted)">
+                Sponsoring Agency: <b>${esc(r.agency)}</b> (${esc(r.officer)}) · Contractor: <b>${esc(r.company)}</b>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn pri" type="button" style="background:#0284c7" onclick="openClearanceModal('${esc(r.id)}')">
+                ✓ Review 8-Point Checklist &amp; Clear
+              </button>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;background:#fff;border:1px solid #fde68a;border-radius:8px;padding:12px">
+            <div>
+              <div class="small" style="font-weight:700;color:var(--muted)">Assigned Service Personnel:</div>
+              <div style="margin-top:4px">${(r.workerNames || []).map(n=>`<div>• <b>${esc(n)}</b></div>`).join("")}</div>
+            </div>
+            <div>
+              <div class="small" style="font-weight:700;color:var(--muted)">Scheduled Work Zone:</div>
+              <div style="margin-top:4px"><b>${esc(r.zone || r.building)}</b></div>
+              <div class="small mono">${esc(r.date)} (${esc(r.startTime)}–${esc(r.endTime)})</div>
+            </div>
+            <div>
+              <div class="small" style="font-weight:700;color:var(--muted)">Logged Tools &amp; Materials:</div>
+              <div style="margin-top:4px" class="small">🧰 ${(r.tools && r.tools.length) ? esc(r.tools.join(", ")) : 'None'}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join("") || `
+        <div class="note" style="background:#f0fdf4;border-color:#bbf7d0;color:#166534;display:flex;align-items:center;gap:10px">
+          <span>✓</span> <b>Clearance queue is clear.</b> All submitted contractor service requests have been evaluated.
+        </div>
+      `}
+    </div>
+  </div>`;
+}
+
+function renderContractorPasses(workers, companies){
+  const wId = selectedPassWorkerId || (workers[0] ? workers[0].id : null);
+  const w = workers.find(x => x.id === wId) || workers[0];
+
+  return `
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">🪪 Official UN House Contractor &amp; Service Worker Pass</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Standardized physical badge format for contractor technicians and service personnel</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <label class="small" style="font-weight:600">Select Worker:</label>
+        <select onchange="selectedPassWorkerId=this.value;setContractorTab('passes')">
+          ${workers.map(x => `<option value="${esc(x.id)}" ${x.id===wId?'selected':''}>${esc(x.name)} (${esc(x.company)})</option>`).join("")}
+        </select>
+        <button class="btn pri" type="button" onclick="window.print()" style="background:#d97706;border-color:#d97706">🖨️ Print Badge</button>
+      </div>
+    </div>
+
+    ${w ? `
+    <div style="margin:20px 0;display:flex;justify-content:center">
+      <div class="con-badge-card">
+        <div class="con-badge-header">
+          <img src="un-emblem.svg" style="height:36px;width:auto;filter:brightness(0) invert(1)" alt="UN">
+          <div>
+            <div style="font-size:11px;letter-spacing:.08em;font-weight:700;text-transform:uppercase">United Nations House · Abuja</div>
+            <div style="font-size:13.5px;font-weight:800;letter-spacing:.02em">CONTRACTOR SERVICE PASS</div>
+          </div>
+        </div>
+
+        <div style="background:#fef3c7;border-bottom:2px dashed #fde68a;padding:6px 14px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:800;color:#92400e;font-size:11.5px">AMBER LANYARD REQUIRED</span>
+          <span class="mono" style="font-weight:700;font-size:11.5px;color:#b45309">${esc(w.passNumber || w.id)}</span>
+        </div>
+
+        <div class="con-badge-body">
+          <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px">
+            <div style="width:68px;height:78px;border-radius:8px;background:linear-gradient(135deg,#f1f5f9,#e2e8f0);border:2px solid #d97706;display:grid;place-items:center;font-weight:800;font-size:22px;color:#92400e;flex-shrink:0">
+              ${esc((w.name||"W").slice(0,2).toUpperCase())}
+            </div>
+            <div>
+              <div style="font-size:16px;font-weight:800;color:var(--navy);line-height:1.2">${esc(w.name)}</div>
+              <div style="margin-top:3px"><span class="con-trade-chip" style="font-size:11.5px">${esc(w.trade)}</span></div>
+              <div class="small" style="font-weight:600;margin-top:4px;color:#334155">${esc(w.company)}</div>
+            </div>
+          </div>
+
+          <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;font-size:12px;display:flex;flex-direction:column;gap:5px">
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">Sponsoring Agency:</span>
+              <b>${esc(w.agency)}</b>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">Permitted Zone:</span>
+              <b>${esc(w.zone || "Plant Rooms & Central Core")}</b>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">Verified ID Type:</span>
+              <span class="mono">${esc(w.idType || "NIN")}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">Escort Policy:</span>
+              <b>${w.escort ? 'Escort Required' : 'Unescorted Authorized'}</b>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <span style="color:var(--muted)">Validity Window:</span>
+              <span class="mono">${fmtD(w.startDate)} → ${fmtD(w.endDate)}</span>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:10px;border-top:1px dashed #cbd5e1">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <span class="mono" style="font-size:10.5px;color:var(--muted)">VERIFIED · UNDSS BOS 2.0</span>
+              <span style="font-size:9.5px;color:#94a3b8">Must be visibly displayed at all times</span>
+            </div>
+            <div style="width:48px;height:48px;background:#f8fafc;border:1px solid #cbd5e1;border-radius:4px;display:grid;place-items:center;font-size:24px" title="Encrypted Digital Pass QR">
+              📱
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>` : `<div class="empty">No workers registered to display passes.</div>`}
+  </div>`;
+}
+
+function renderContractorCheckin(workers, requests, onSiteList){
+  return `
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">⏱️ Contractor Service Worker Check-In &amp; Headcount (${onSiteList.length} On-Site)</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Synchronized with Station 1 Gatehouse, Station 2 Tagging, and UNDSS Muster Roll</p>
+      </div>
+    </div>
+
+    <!-- On Site Table -->
+    <div style="margin-top:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <span class="pill" style="background:#fef3c7;color:#92400e;font-weight:700">🏷️ ON-SITE CONTRACTORS (${onSiteList.length})</span>
+      </div>
+      <div class="tw">
+        <table>
+          <thead>
+            <tr>
+              <th>Service Worker (Technician)</th>
+              <th>Employer Company</th>
+              <th>Amber Tag #</th>
+              <th>Time In &amp; Duration</th>
+              <th>Permitted Zone &amp; Sponsoring Agency</th>
+              <th>Logged Tools</th>
+              <th style="text-align:right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${onSiteList.map(v => {
+              return `<tr>
+                <td>
+                  <b>${esc(v.name)}</b>
+                  <div class="small mono" style="color:var(--muted)">${esc(v.ref)}</div>
+                </td>
+                <td>${esc(v.org)}</td>
+                <td>
+                  <b class="mono" style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:5px;border:1px solid #fde68a">
+                    🏷️ ${esc(v.tag || v.assignedTag || "C-Tag")}
+                  </b>
+                </td>
+                <td>
+                  <div class="mono small"><b>${fmtT(v.inAt || v.arrivedAt)}</b></div>
+                  <div class="small" style="color:var(--muted)">${v.inAt ? dur(Date.now() - v.inAt) : "Just arrived"}</div>
+                </td>
+                <td>
+                  <b>${esc(v.room || v.building)}</b>
+                  <div class="small">${esc(v.agency)}</div>
+                </td>
+                <td>
+                  <div class="small">🧰 ${(v.items && v.items.length) ? esc(v.items.map(i=>i.d).join(", ")) : 'No tools'}</div>
+                </td>
+                <td style="text-align:right">
+                  <button class="btn bad" type="button" style="font-size:11px;padding:4px 10px" onclick="checkOutContractorWorker('${esc(v.id)}')">
+                    Check Out &amp; Return Tag
+                  </button>
+                </td>
+              </tr>`;
+            }).join("") || `<tr><td colspan="7" class="empty">No contractor service workers are currently on compound.</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Quick Check-in for Vetted Workers -->
+    <div style="margin-top:20px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:14px">
+      <div style="font-weight:700;font-size:13.5px;color:var(--navy);margin-bottom:8px">
+        ⚡ Rapid Gate Check-In for Cleared Service Workers
+      </div>
+      <p class="small" style="margin:0 0 10px;color:var(--muted)">Admit cleared service workers arriving at Gate 1 and allocate an official Amber Contractor Tag.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        ${workers.filter(w => !onSiteList.some(v => v.name === w.name)).map(w => `
+          <button class="btn pri" type="button" style="background:#d97706;border-color:#d97706;font-size:12px;padding:5px 12px" onclick="checkInContractorWorker('${esc(w.id)}')">
+            + Check In ${esc(w.name)} (${esc(w.trade)})
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderContractorCompliance(docs, companies){
+  return `
+  <div class="panel">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <div>
+        <h2 style="margin:0;font-size:16.5px;color:var(--navy)">📁 Contractor Compliance &amp; Statutory Documents (${docs.length})</h2>
+        <p class="small" style="margin:2px 0 0;color:var(--muted)">Corporate CAC registrations, safety permits, liability insurance, and workman's compensation</p>
+      </div>
+      <button class="btn pri" type="button" onclick="openLogDocModal()">+ Log Compliance Document</button>
+    </div>
+    <div class="tw" style="margin-top:14px">
+      <table>
+        <thead>
+          <tr>
+            <th>Document Ref &amp; Title</th>
+            <th>Contractor Company</th>
+            <th>Document Classification</th>
+            <th>Validity Expiry Date</th>
+            <th>Verified By</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${docs.map(d => {
+            const isExp = d.validUntil && d.validUntil < Date.now();
+            const isSoon = d.validUntil && (d.validUntil - Date.now() < 30*864e5) && !isExp;
+            return `<tr>
+              <td>
+                <b>${esc(d.name)}</b>
+                <div class="small mono" style="color:var(--muted)">${esc(d.id)}</div>
+              </td>
+              <td><b>${esc(d.company)}</b></td>
+              <td><span class="con-trade-chip">${esc(d.type)}</span></td>
+              <td class="mono small">${fmtD(d.validUntil)}</td>
+              <td>${esc(d.verifiedBy || "UNDSS Security")}</td>
+              <td>
+                ${isExp ? `<span class="pill p-rejected">Expired</span>` :
+                  (isSoon ? `<span class="pill p-pending">Expiring Soon</span>` :
+                  `<span class="pill p-in">Valid &amp; In Force</span>`)}
+              </td>
+            </tr>`;
+          }).join("") || `<tr><td colspan="6" class="empty">No compliance documents logged yet.</td></tr>`}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+
+// Modals and Actions for Contractor & Service Staff Management
+
+function openRegisterCompanyModal(){
+  const agencies = (typeof AGENCIES !== "undefined") ? AGENCIES : ["Common Services", "UNDP", "WHO", "UNICEF", "WFP", "UNFPA", "UNHCR", "UN Women", "FAO", "UNODC"];
+  const minD = new Date().toISOString().slice(0,10);
+  const nextYr = new Date(Date.now() + 365*864e5).toISOString().slice(0,10);
+
+  modal(`<h2>🏢 Register Contractor Company</h2>
+    <p class="small">Register an approved service contractor, facilities vendor, or technical maintenance firm.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+      <div class="f"><label for="cm_name">Company Full Name *</label><input id="cm_name" required placeholder="e.g. Julius Berger Facilities Nigeria Ltd"></div>
+      <div class="f"><label for="cm_rc">CAC / Registration Number (RC) *</label><input id="cm_rc" required placeholder="e.g. RC-149822"></div>
+      <div class="f"><label for="cm_cat">Service Category *</label>
+        <select id="cm_cat">
+          <option>Civil, Mechanical &amp; Electrical Engineering</option>
+          <option>HVAC &amp; Chiller Maintenance</option>
+          <option>Elevator &amp; Lift Engineering</option>
+          <option>Industrial Cleaning, Janitorial &amp; Waste</option>
+          <option>Structured Cabling &amp; IT Infrastructure</option>
+          <option>Power Systems, Generator &amp; High Voltage</option>
+          <option>Catering &amp; Cafeteria Services</option>
+          <option>Fire Safety, Suppression &amp; Security Systems</option>
+          <option>Driver, Transport &amp; Logistics Support</option>
+        </select>
+      </div>
+      <div class="f"><label for="cm_agency">Sponsoring UN Agency *</label>
+        <select id="cm_agency">${agencies.map(a=>`<option>${esc(a)}</option>`).join("")}</select>
+      </div>
+      <div class="f"><label for="cm_focal">Agency Focal Person / Unit *</label><input id="cm_focal" required placeholder="e.g. Facilities Unit / Compound Manager"></div>
+      <div class="f"><label for="cm_contact">Company Key Contact Person *</label><input id="cm_contact" required placeholder="e.g. Engr. Sunday Adebayo"></div>
+      <div class="f"><label for="cm_phone">Contact Phone Number *</label><input id="cm_phone" type="tel" required placeholder="e.g. 0803 445 9901"></div>
+      <div class="f"><label for="cm_email">Contact Email *</label><input id="cm_email" type="email" required placeholder="e.g. contact@contractor.com"></div>
+      <div class="f"><label for="cm_start">Contract Start Date *</label><input id="cm_start" type="date" value="${minD}"></div>
+      <div class="f"><label for="cm_end">Contract Expiry Date *</label><input id="cm_end" type="date" value="${nextYr}"></div>
+      <div class="f" style="grid-column:1/-1"><label for="cm_addr">Company Physical Address</label><input id="cm_addr" placeholder="e.g. 10 Shehu Shagari Way, Central Area, Abuja"></div>
+    </div>`,
+    ()=>{
+      const name = ($("#cm_name")?.value || "").trim();
+      const rc = ($("#cm_rc")?.value || "").trim();
+      if(!name){ toast("Please enter company name."); return; }
+      const list = getContractorCompanies();
+      const id = "UNH-CON-2026-" + String(list.length + 1).padStart(4, "0");
+      const newComp = {
+        id,
+        name,
+        regNum: rc,
+        category: $("#cm_cat").value,
+        agency: $("#cm_agency").value,
+        focalPerson: $("#cm_focal").value.trim() || "Facilities Unit",
+        contact: $("#cm_contact").value.trim(),
+        phone: $("#cm_phone").value.trim(),
+        email: $("#cm_email").value.trim(),
+        startDate: new Date($("#cm_start").value).getTime() || Date.now(),
+        endDate: new Date($("#cm_end").value).getTime() || (Date.now() + 365*864e5),
+        address: $("#cm_addr").value.trim(),
+        status: "active",
+        verifiedDocs: 1
+      };
+      list.unshift(newComp);
+      setContractorCompanies(list);
+      toast(`✓ Contractor Company "${name}" (${id}) registered successfully!`);
+      contractorTab = "companies";
+      render();
+    }
+  );
+}
+
+function openRegisterWorkerModal(){
+  const companies = getContractorCompanies();
+  const agencies = (typeof AGENCIES !== "undefined") ? AGENCIES : ["Common Services", "UNDP", "WHO", "UNICEF"];
+  const minD = new Date().toISOString().slice(0,10);
+  const nextYr = new Date(Date.now() + 180*864e5).toISOString().slice(0,10);
+
+  modal(`<h2>👷 Add Contractor Service Worker (Technician)</h2>
+    <p class="small">Register a vetted service employee / technician under an accredited contractor company. (Excludes UN Agency staff).</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+      <div class="f"><label for="wm_name">Worker Full Name *</label><input id="wm_name" required placeholder="e.g. Babatunde Adeleke"></div>
+      <div class="f"><label for="wm_comp">Employer Contractor Company *</label>
+        <select id="wm_comp">
+          ${companies.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="f"><label for="wm_trade">Trade / Specialization *</label>
+        <select id="wm_trade">
+          <option>HVAC &amp; Mechanical Systems</option>
+          <option>Electrical &amp; Generator Systems</option>
+          <option>Janitorial, Cleaning &amp; Sanitation</option>
+          <option>Plumbing &amp; Water Systems</option>
+          <option>Elevator &amp; Lift Engineering</option>
+          <option>Structured Cabling &amp; Fiber Optics</option>
+          <option>Catering &amp; Cafeteria Staff</option>
+          <option>Fire Safety &amp; Alarm Systems</option>
+          <option>Driver &amp; Logistics Personnel</option>
+          <option>Civil &amp; General Maintenance</option>
+        </select>
+      </div>
+      <div class="f"><label for="wm_agency">Sponsoring UN Agency *</label>
+        <select id="wm_agency">${agencies.map(a=>`<option>${esc(a)}</option>`).join("")}</select>
+      </div>
+      <div class="f"><label for="wm_focal">Agency Focal Person / Extension</label><input id="wm_focal" placeholder="e.g. Facilities Unit (Ext. 2010)"></div>
+      <div class="f"><label for="wm_phone">Worker Phone Number *</label><input id="wm_phone" type="tel" required placeholder="e.g. 0803 219 4481"></div>
+      <div class="f"><label for="wm_id_type">Verified Photo ID Type *</label>
+        <select id="wm_id_type">
+          <option>National Identity Card (NIN)</option>
+          <option>FRSC Driver's License</option>
+          <option>INEC Permanent Voter's Card (PVC)</option>
+          <option>International Passport</option>
+        </select>
+      </div>
+      <div class="f"><label for="wm_id_num">Verified ID Number *</label><input id="wm_id_num" required placeholder="e.g. NIN-89123891024"></div>
+      <div class="f"><label for="wm_zone">Permitted Access Zone *</label><input id="wm_zone" value="Basement Chiller Plant & Central AHU" placeholder="e.g. Zone B: Basement, Substation & Roof"></div>
+      <div class="f"><label for="wm_tools">Authorized Toolset (comma-separated)</label><input id="wm_tools" placeholder="e.g. Multimeter, Vacuum Pump, Bosch Drill"></div>
+      <div class="f"><label for="wm_start">Access Start Date</label><input id="wm_start" type="date" value="${minD}"></div>
+      <div class="f"><label for="wm_end">Access Expiry Date</label><input id="wm_end" type="date" value="${nextYr}"></div>
+      <div class="f" style="grid-column:1/-1;flex-direction:row;align-items:center;gap:8px">
+        <input id="wm_escort" type="checkbox" style="width:auto">
+        <label for="wm_escort" style="margin:0;font-weight:600">Requires Staff Escort while inside UN compound</label>
+      </div>
+    </div>`,
+    ()=>{
+      const name = ($("#wm_name")?.value || "").trim();
+      if(!name){ toast("Please enter worker full name."); return; }
+      const compId = $("#wm_comp").value;
+      const comp = companies.find(c => c.id === compId);
+      const list = getContractorStaff();
+      const id = "UNH-WRK-2026-" + String(list.length + 1).padStart(4, "0");
+      const passNumber = "CP-ABJ-" + String(list.length + 1).padStart(4, "0");
+      const toolsStr = ($("#wm_tools")?.value || "").trim();
+      const tools = toolsStr ? toolsStr.split(",").map(t=>t.trim()).filter(Boolean) : [];
+
+      const newWorker = {
+        id,
+        name,
+        companyId: compId,
+        company: comp ? comp.name : "Contractor",
+        trade: $("#wm_trade").value,
+        agency: $("#wm_agency").value,
+        focalPerson: $("#wm_focal").value.trim() || (comp ? comp.focalPerson : "Facilities Unit"),
+        phone: $("#wm_phone").value.trim(),
+        idType: $("#wm_id_type").value,
+        idNumber: $("#wm_id_num").value.trim() || "Verified on File",
+        zone: $("#wm_zone").value.trim() || "General Plant Rooms",
+        escort: $("#wm_escort").checked,
+        startDate: new Date($("#wm_start").value).getTime() || Date.now(),
+        endDate: new Date($("#wm_end").value).getTime() || (Date.now() + 180*864e5),
+        status: "active",
+        passNumber,
+        tools
+      };
+      list.unshift(newWorker);
+      setContractorStaff(list);
+      toast(`✓ Service Worker "${name}" (${id}) registered! Amber Pass generated.`);
+      contractorTab = "workers";
+      render();
+    }
+  );
+}
+
+function openSubmitServiceRequestModal(){
+  const companies = getContractorCompanies();
+  const workers = getContractorStaff();
+  const agencies = (typeof AGENCIES !== "undefined") ? AGENCIES : ["Common Services", "UNDP", "WHO", "UNICEF"];
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  modal(`<h2>📋 Submit Contractor Service Request / Work Permit</h2>
+    <p class="small">Internal UN Agency request for contractor service personnel to perform works on compound.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+      <div class="f" style="grid-column:1/-1"><label for="sm_title">Request Title / Scope *</label><input id="sm_title" required placeholder="e.g. Quarterly Chiller & HVAC Maintenance - WHO Wing"></div>
+      <div class="f"><label for="sm_agency">Requesting UN Agency *</label>
+        <select id="sm_agency">${agencies.map(a=>`<option>${esc(a)}</option>`).join("")}</select>
+      </div>
+      <div class="f"><label for="sm_dept">Department / Unit *</label><input id="sm_dept" required placeholder="e.g. Operations & Facilities"></div>
+      <div class="f"><label for="sm_officer">Requesting Officer *</label><input id="sm_officer" required placeholder="e.g. Dr. K. Ibrahim (Ext. 4102)"></div>
+      <div class="f"><label for="sm_comp">Contractor Company *</label>
+        <select id="sm_comp">
+          ${companies.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="f"><label for="sm_type">Service Type *</label>
+        <select id="sm_type">
+          <option>Preventative Maintenance</option>
+          <option>Emergency Repair</option>
+          <option>Sanitation &amp; Deep Cleaning</option>
+          <option>Critical Infrastructure (Power/UPS)</option>
+          <option>IT &amp; Structured Cabling</option>
+          <option>Civil / Architectural Works</option>
+        </select>
+      </div>
+      <div class="f"><label for="sm_priority">Work Priority *</label>
+        <select id="sm_priority">
+          <option>Routine</option>
+          <option>High</option>
+          <option>Urgent / Emergency</option>
+        </select>
+      </div>
+      <div class="f"><label for="sm_date">Scheduled Date *</label><input id="sm_date" type="date" value="${todayStr}"></div>
+      <div class="f"><label for="sm_times">Working Hours</label>
+        <div style="display:flex;gap:4px">
+          <input id="sm_start" type="time" value="08:30" style="width:50%">
+          <input id="sm_end" type="time" value="16:30" style="width:50%">
+        </div>
+      </div>
+      <div class="f" style="grid-column:1/-1"><label for="sm_zone">Building, Floor &amp; Exact Zone *</label><input id="sm_zone" required placeholder="e.g. Main Building · WHO Wing 2nd Floor & Basement Chiller Plant"></div>
+      <div class="f" style="grid-column:1/-1"><label for="sm_desc">Detailed Scope of Work</label><textarea id="sm_desc" rows="2" placeholder="Describe the physical work to be performed, hazards, and special requirements..."></textarea></div>
+      <div class="f" style="grid-column:1/-1"><label for="sm_tools">Tools, Equipment &amp; Materials to be Brought In</label><input id="sm_tools" placeholder="e.g. Multimeter, Vacuum Pump, R410A Gauge, Cordless Drill"></div>
+    </div>`,
+    ()=>{
+      const title = ($("#sm_title")?.value || "").trim();
+      if(!title){ toast("Please enter request title."); return; }
+      const compId = $("#sm_comp").value;
+      const comp = companies.find(c => c.id === compId);
+      const matchingWorkers = workers.filter(w => w.companyId === compId);
+      const workerIds = matchingWorkers.slice(0,2).map(w=>w.id);
+      const workerNames = matchingWorkers.slice(0,2).map(w=>w.name);
+      const toolsStr = ($("#sm_tools")?.value || "").trim();
+      const tools = toolsStr ? toolsStr.split(",").map(t=>t.trim()).filter(Boolean) : [];
+
+      const list = getServiceRequests();
+      const id = "UNH-SR-2026-" + String(list.length + 1).padStart(4, "0");
+      const newReq = {
+        id,
+        title,
+        agency: $("#sm_agency").value,
+        department: $("#sm_dept").value.trim(),
+        officer: $("#sm_officer").value.trim(),
+        companyId: compId,
+        company: comp ? comp.name : "Contractor",
+        workerIds: workerIds.length ? workerIds : ["UNH-WRK-2026-0001"],
+        workerNames: workerNames.length ? workerNames : ["Assigned Contractor Technician"],
+        serviceType: $("#sm_type").value,
+        priority: $("#sm_priority").value,
+        date: $("#sm_date").value,
+        startTime: $("#sm_start").value,
+        endTime: $("#sm_end").value,
+        building: "Main UN House Building",
+        zone: $("#sm_zone").value.trim() || "Main Facilities Zone",
+        desc: $("#sm_desc").value.trim(),
+        tools,
+        status: "pending",
+        approvedBy: null
+      };
+      list.unshift(newReq);
+      setServiceRequests(list);
+      toast(`✓ Service Request "${title}" (${id}) submitted for UNDSS clearance!`);
+      contractorTab = "clearance";
+      render();
+    }
+  );
+}
+
+function openClearanceModal(reqId){
+  const requests = getServiceRequests();
+  const r = requests.find(x => x.id === reqId);
+  if(!r) return;
+
+  modal(`<h2>🛡️ 8-Point Statutory Clearance Checklist</h2>
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:12px;margin:8px 0 14px">
+      <div style="font-weight:700;color:#1e40af;font-size:13.5px">${esc(r.id)}: ${esc(r.title)}</div>
+      <div class="small" style="color:#1d4ed8;margin-top:2px">
+        Agency: <b>${esc(r.agency)}</b> (${esc(r.officer)}) · Contractor: <b>${esc(r.company)}</b>
+      </div>
+      <div class="small" style="color:#1d4ed8;margin-top:2px">
+        Zone: <b>${esc(r.zone || r.building)}</b> · Date: <b>${esc(r.date)} (${esc(r.startTime)}–${esc(r.endTime)})</b>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 1. Contractor company is accredited, registered (RC verified) &amp; active in UN House VMS</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 2. Corporate service contract / SLA is active and in force (not expired)</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 3. Service personnel individually vetted &amp; registered under this contractor company</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 4. Sponsoring UN Agency internal authorization recorded</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 5. Work description, building, floor and access zone strictly defined</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 6. Government photo ID (NIN / Driver's License) inspected &amp; verified</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 7. Technical safety compliance and liability insurance verified in force</label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="width:auto"> 8. Tools, equipment and chemical materials pre-cleared for Gate 1 Material Pass</label>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn bad" type="button" id="btn_reject_req">🚫 Reject / Return Request</button>
+      <button class="btn pri" type="button" id="btn_approve_req" style="background:#0284c7">✓ Grant UNDSS Clearance &amp; Authorize Gate Access</button>
+    </div>`
+  );
+
+  setTimeout(()=>{
+    const btnApprove = document.getElementById("btn_approve_req");
+    const btnReject = document.getElementById("btn_reject_req");
+    if(btnApprove){
+      btnApprove.onclick = () => {
+        r.status = "approved";
+        r.approvedBy = typeof op === "function" ? op() : "Facilities Security Manager (FSM)";
+        r.approvedAt = Date.now();
+        setServiceRequests(requests);
+        const m = document.getElementById("modal"); if(m) m.hidden = true;
+        toast(`✓ Request ${r.id} cleared! Assigned workers authorized for compound entry.`);
+        contractorTab = "requests";
+        render();
+      };
+    }
+    if(btnReject){
+      btnReject.onclick = () => {
+        const reason = prompt("Enter security reason for returning/rejecting this request:", "Safety documentation incomplete / Prohibited tools");
+        if(reason === null) return;
+        r.status = "rejected";
+        r.rejectReason = reason;
+        setServiceRequests(requests);
+        const m = document.getElementById("modal"); if(m) m.hidden = true;
+        toast(`🚫 Request ${r.id} marked as rejected.`);
+        contractorTab = "requests";
+        render();
+      };
+    }
+  }, 50);
+}
+
+function checkInContractorWorker(workerId){
+  const workers = getContractorStaff();
+  const w = workers.find(x => x.id === workerId);
+  if(!w) return;
+
+  // Check if already checked in
+  const alreadyIn = (typeof visitors !== "undefined") ? visitors.find(v => v.name === w.name && ["in","tagged","arrived"].includes(v.status)) : null;
+  if(alreadyIn){
+    toast(`⚠️ ${w.name} is already checked in on compound (Tag: ${alreadyIn.tag || "C-Tag"}).`);
+    return;
+  }
+
+  const nextTag = (typeof nextAvailableTag === "function") ? nextAvailableTag("contractor") : ("C-" + Math.floor(10 + Math.random()*90));
+  const newV = {
+    id: "UNH-C-" + Math.floor(1000 + Math.random()*9000),
+    ref: w.passNumber || ("CP-ABJ-" + Math.floor(1000 + Math.random()*9000)),
+    name: w.name,
+    org: w.company,
+    phone: w.phone,
+    type: "contractor",
+    host: w.focalPerson || "Facilities Unit",
+    agency: w.agency || "Common Services",
+    building: "Main UN House Building",
+    room: w.zone || "Authorized Work Zone",
+    purpose: (w.trade || "Contractor") + " Service Works",
+    items: (w.tools || []).map(t => ({ d: t, out: false })),
+    escort: !!w.escort,
+    status: "in",
+    tag: nextTag,
+    assignedTag: nextTag,
+    inAt: Date.now(),
+    arrivedAt: Date.now(),
+    expected: Date.now(),
+    decidedBy: typeof op === "function" ? op() : "Facilities Security Manager (FSM)",
+    decidedAt: Date.now(),
+    log: [{ t: Date.now(), act: `Contractor Service Worker checked in at Gate 1 with Amber tag ${nextTag}`, by: typeof op === "function" ? op() : "Security Lead" }]
+  };
+
+  if(typeof visitors !== "undefined") visitors.unshift(newV);
+  if(typeof db !== "undefined" && db) db.collection("visitors").doc(newV.id).set(newV);
+  toast(`✓ ${w.name} checked in! Allocated Amber Contractor Tag ${nextTag}. Synced to Muster Roll.`);
+  render();
+}
+
+function checkOutContractorWorker(visitorId){
+  if(typeof visitors === "undefined") return;
+  const v = visitors.find(x => x.id === visitorId);
+  if(!v) return;
+
+  v.status = "out";
+  v.outAt = Date.now();
+  const oldTag = v.tag;
+  v.tag = "";
+  if(!v.log) v.log = [];
+  v.log.push({ t: Date.now(), act: `Contractor Service Worker checked out. Returned Amber tag ${oldTag || ""}.`, by: typeof op === "function" ? op() : "Gate Lead" });
+
+  if(typeof db !== "undefined" && db) db.collection("visitors").doc(v.id).set(v);
+  toast(`✓ ${v.name} (${v.org}) checked out. Amber tag returned to rack.`);
+  render();
+}
+
+function openContractorPassModal(workerId){
+  selectedPassWorkerId = workerId;
+  contractorTab = "passes";
+  render();
+}
+
+function toggleSuspendCompany(compId){
+  const companies = getContractorCompanies();
+  const c = companies.find(x => x.id === compId);
+  if(!c) return;
+  c.status = (c.status === "suspended") ? "active" : "suspended";
+  setContractorCompanies(companies);
+  toast(`${c.status === "suspended" ? '🚫' : '✓'} Company "${c.name}" ${c.status}.`);
+  render();
+}
+
+function toggleSuspendWorker(workerId){
+  const workers = getContractorStaff();
+  const w = workers.find(x => x.id === workerId);
+  if(!w) return;
+  w.status = (w.status === "suspended") ? "active" : "suspended";
+  setContractorStaff(workers);
+  toast(`${w.status === "suspended" ? '🚫' : '✓'} Worker "${w.name}" ${w.status}.`);
+  render();
+}
+
+function openLogDocModal(){
+  const companies = getContractorCompanies();
+  const minD = new Date().toISOString().slice(0,10);
+  const nextYr = new Date(Date.now() + 365*864e5).toISOString().slice(0,10);
+
+  modal(`<h2>📁 Log Contractor Compliance Document</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+      <div class="f" style="grid-column:1/-1"><label for="dm_name">Document Title *</label><input id="dm_name" required placeholder="e.g. CAC Certificate of Incorporation / Safety Permit"></div>
+      <div class="f"><label for="dm_comp">Contractor Company *</label>
+        <select id="dm_comp">${companies.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}</option>`).join("")}</select>
+      </div>
+      <div class="f"><label for="dm_type">Document Type *</label>
+        <select id="dm_type">
+          <option>Corporate Registration (CAC)</option>
+          <option>Public Liability Insurance</option>
+          <option>Safety Standard Compliance</option>
+          <option>Trade / Technical Accreditation</option>
+          <option>Environmental Waste Permit</option>
+          <option>Workmen's Compensation</option>
+        </select>
+      </div>
+      <div class="f"><label for="dm_until">Valid Until *</label><input id="dm_until" type="date" value="${nextYr}"></div>
+      <div class="f"><label for="dm_by">Verified By *</label><input id="dm_by" value="UNDSS Safety &amp; Compliance Lead"></div>
+    </div>`,
+    ()=>{
+      const name = ($("#dm_name")?.value || "").trim();
+      if(!name){ toast("Please enter document title."); return; }
+      const compId = $("#dm_comp").value;
+      const comp = companies.find(c => c.id === compId);
+      const list = getContractorDocs();
+      const id = "DOC-2026-" + String(list.length + 1).padStart(3, "0");
+      const newDoc = {
+        id,
+        companyId: compId,
+        company: comp ? comp.name : "Contractor",
+        name,
+        type: $("#dm_type").value,
+        validUntil: new Date($("#dm_until").value).getTime() || (Date.now() + 365*864e5),
+        status: "valid",
+        verifiedBy: $("#dm_by").value.trim()
+      };
+      list.unshift(newDoc);
+      setContractorDocs(list);
+      toast(`✓ Document "${name}" (${id}) logged successfully!`);
+      contractorTab = "compliance";
+      render();
+    }
+  );
+}
+
+
+
+V.contractors = () => {
+  const companies = getContractorCompanies();
+  const workers = getContractorStaff();
+  const requests = getServiceRequests();
+  const docs = getContractorDocs();
+  const onSiteList = (typeof visitors !== "undefined") ? visitors.filter(v => v.type === "contractor" && ["in", "tagged", "arrived"].includes(v.status)) : [];
+  const pendingClearance = requests.filter(r => r.status === "pending").length;
+
+  const counts = {
+    companies: companies.length,
+    workers: workers.length,
+    requests: requests.length,
+    pendingClearance,
+    onSite: onSiteList.length,
+    docs: docs.length
+  };
+
+  const navHtml = renderContractorNav(contractorTab, counts);
+
+  let contentHtml = "";
+  if(contractorTab === "dashboard") contentHtml = renderContractorDashboard(companies, workers, requests, onSiteList, docs);
+  else if(contractorTab === "companies") contentHtml = renderContractorCompanies(companies);
+  else if(contractorTab === "workers") contentHtml = renderContractorWorkers(workers, companies, onSiteList);
+  else if(contractorTab === "requests") contentHtml = renderContractorRequests(requests, companies, workers);
+  else if(contractorTab === "clearance") contentHtml = renderContractorClearance(requests, companies, workers);
+  else if(contractorTab === "passes") contentHtml = renderContractorPasses(workers, companies);
+  else if(contractorTab === "checkin") contentHtml = renderContractorCheckin(workers, requests, onSiteList);
+  else if(contractorTab === "compliance") contentHtml = renderContractorCompliance(docs, companies);
+  else contentHtml = renderContractorDashboard(companies, workers, requests, onSiteList, docs);
+
+  return head("Contractor & Service Staff Management", "Central control for contractor companies, service workers (technicians, cleaners, engineers), work schedules, service requests, and UNDSS clearance.") +
+    navHtml +
+    contentHtml;
 };
+
+window.setContractorTab = function(t){ contractorTab = t; render(); };
+window.openRegisterCompanyModal = openRegisterCompanyModal;
+window.openRegisterWorkerModal = openRegisterWorkerModal;
+window.openSubmitServiceRequestModal = openSubmitServiceRequestModal;
+window.openClearanceModal = openClearanceModal;
+window.checkInContractorWorker = checkInContractorWorker;
+window.checkOutContractorWorker = checkOutContractorWorker;
+window.openContractorPassModal = openContractorPassModal;
+window.toggleSuspendCompany = toggleSuspendCompany;
+window.toggleSuspendWorker = toggleSuspendWorker;
+window.openLogDocModal = openLogDocModal;
+
 V.history=()=>{
   const list=filterQ([...visitors].sort((a,b)=>(b.expected||0)-(a.expected||0)));
   const ev=visitors.flatMap(v=>(v.log||[]).map(l=>({...l,name:v.name,ref:v.ref}))).sort((a,b)=>b.t-a.t).slice(0,80);
@@ -8165,21 +9682,7 @@ function wire(){
 
   const conRegBtn=$("#con_reg_btn");
   if(conRegBtn) conRegBtn.onclick=()=>{
-    view="register"; render();
-    setTimeout(()=>{
-      const rt=$("#r_type");
-      if(rt){
-        rt.value="contractor";
-        const re=$("#r_escort"); if(re) re.checked=true;
-        const rp=$("#r_purpose"); if(rp) rp.placeholder="e.g. Facilities maintenance / equipment overhaul";
-        const rTo=$("#r_to");
-        if(rTo&&!rTo.value){
-          const in7d=new Date(now()+7*864e5).toISOString().slice(0,10);
-          rTo.value=in7d;
-        }
-      }
-      scrollTo({top:0,behavior:"smooth"});
-    },50);
+    openRegisterWorkerModal();
   };
 
   const assetModal=$("#asset_new_modal");
