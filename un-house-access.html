@@ -6,7 +6,7 @@
 /* Layout: operations console — station bar on top, sidebar nav, work area with dense tables */
 :root{
   --bg:#f1f5f9; --surface:#ffffff; --surface2:#f8fafc; --fg:#0f172a; --muted:#526077; --line:#e2e8f0;
-  --navy:#172542; --navy2:#0f1a30; --accent:#0284c7; --accent-fg:#ffffff;
+  --navy:#172542; --navy2:#0f1a30; --accent:#0284c7; --accent-fg:#ffffff; --blue:#0875df;
   --ok:#0284c7; --ok-bg:#e0f2fe; --warn:#b45309; --warn-bg:#fef3c7; --bad:#be123c; --bad-bg:#ffe4e6; --info-bg:#e0f2fe;
   --shadow:0 1px 3px rgba(15,23,42,.04),0 8px 24px -6px rgba(15,23,42,.08);
   --sans:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Arial,sans-serif; --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
@@ -478,11 +478,13 @@ body.pass-mode .vpass{margin-top:0}
 .evac li label{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--surface2);cursor:pointer}
 .evac li.ok label{background:var(--ok-bg)} .evac input{width:22px;height:22px}
 .agree{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:13px}.agree summary{cursor:pointer;font-weight:600}.agree ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}
-.lang{display:flex;gap:6px;justify-content:center;align-items:center;margin:0 auto 14px;flex-wrap:wrap;transition:all .2s ease}
-.lang button{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12.5px;color:var(--onnavy-muted,#b9c4d8);font-weight:600;transition:all .18s ease}
-.lang button.on{background:#ffffff22;color:#fff;font-weight:700}
-body:not(.pass-mode) .lang button{color:var(--muted);background:var(--surface2)}
-body:not(.pass-mode) .lang button.on{background:var(--blue);color:#fff}
+.lang{display:flex;gap:7px;justify-content:center;align-items:center;margin:0 auto 16px;flex-wrap:wrap;transition:all .2s ease}
+.lang button{all:unset;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:600;color:#334155;background:#ffffff;border:1.5px solid #cbd5e1;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all .18s ease}
+.lang button:hover{background:#f8fafc;border-color:#94a3b8;color:#0f172a}
+.lang button.on{background:#0875df!important;color:#ffffff!important;border:1.5px solid #0284c7!important;font-weight:750!important;box-shadow:0 2px 8px rgba(8,117,223,0.32)!important}
+body.pass-mode .lang button{color:#cbd5e1;background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.22);box-shadow:none}
+body.pass-mode .lang button:hover{background:rgba(255,255,255,0.24);color:#ffffff}
+body.pass-mode .lang button.on{background:#0875df!important;color:#ffffff!important;border-color:#38bdf8!important;box-shadow:0 2px 10px rgba(8,117,223,0.45)!important}
 .lang-cute-btn{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:750;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#0369a1!important;border:1px solid #bae6fd;box-shadow:0 2px 6px rgba(2,132,199,.15);transition:all .2s ease}
 .lang-cute-btn:hover{transform:translateY(-1px) scale(1.03);background:linear-gradient(135deg,#bae6fd,#bfdbfe);box-shadow:0 4px 10px rgba(2,132,199,.25)}
 .lang-cute-btn.open{background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff!important;border-color:#0369a1}
@@ -747,11 +749,13 @@ body.pass-mode .vpass{margin-top:0}
 .evac li label{display:flex;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;background:var(--surface2);cursor:pointer}
 .evac li.ok label{background:var(--ok-bg)} .evac input{width:22px;height:22px}
 .agree{background:var(--surface2);border-radius:10px;padding:10px 12px;font-size:13px}.agree summary{cursor:pointer;font-weight:600}.agree ul{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}
-.lang{display:flex;gap:6px;justify-content:center;align-items:center;margin:0 auto 14px;flex-wrap:wrap;transition:all .2s ease}
-.lang button{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12.5px;color:var(--onnavy-muted,#b9c4d8);font-weight:600;transition:all .18s ease}
-.lang button.on{background:#ffffff22;color:#fff;font-weight:700}
-body:not(.pass-mode) .lang button{color:var(--muted);background:var(--surface2)}
-body:not(.pass-mode) .lang button.on{background:var(--blue);color:#fff}
+.lang{display:flex;gap:7px;justify-content:center;align-items:center;margin:0 auto 16px;flex-wrap:wrap;transition:all .2s ease}
+.lang button{all:unset;cursor:pointer;padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:600;color:#334155;background:#ffffff;border:1.5px solid #cbd5e1;box-shadow:0 1px 3px rgba(0,0,0,0.04);transition:all .18s ease}
+.lang button:hover{background:#f8fafc;border-color:#94a3b8;color:#0f172a}
+.lang button.on{background:#0875df!important;color:#ffffff!important;border:1.5px solid #0284c7!important;font-weight:750!important;box-shadow:0 2px 8px rgba(8,117,223,0.32)!important}
+body.pass-mode .lang button{color:#cbd5e1;background:rgba(255,255,255,0.14);border:1.5px solid rgba(255,255,255,0.22);box-shadow:none}
+body.pass-mode .lang button:hover{background:rgba(255,255,255,0.24);color:#ffffff}
+body.pass-mode .lang button.on{background:#0875df!important;color:#ffffff!important;border-color:#38bdf8!important;box-shadow:0 2px 10px rgba(8,117,223,0.45)!important}
 .lang-cute-btn{all:unset;cursor:pointer;padding:6px 13px;border-radius:999px;font-size:12px;font-weight:750;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#e0f2fe,#dbeafe);color:#0369a1!important;border:1px solid #bae6fd;box-shadow:0 2px 6px rgba(2,132,199,.15);transition:all .2s ease}
 .lang-cute-btn:hover{transform:translateY(-1px) scale(1.03);background:linear-gradient(135deg,#bae6fd,#bfdbfe);box-shadow:0 4px 10px rgba(2,132,199,.25)}
 .lang-cute-btn.open{background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff!important;border-color:#0369a1}
@@ -1041,7 +1045,7 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const STATIONS={S1:"Station 1 · Gate Reception",S2:"Station 2 · Documentation",S3:"Station 3 · Reception",S4:"Station 4 · VIP Gate"};
 const BUILDINGS=["Main UN House Building","Access Control Building","Annex A","Conference Centre"];
 const AGENCIES=["UNDP","UNICEF","WHO","UNFPA","UNHCR","WFP","UN Women","OCHA","UNDSS","Common Services"];
-const STATUS={cancelled:"Cancelled by host",pending:"Pending clearance",approved:"Cleared · expected",arrived:"Admitted at Station 1",tagged:"Tagged",in:"Checked in",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
+const STATUS={cancelled:"Cancelled by host",pending:"Pending clearance",approved:"Cleared · expected",arrived:"En route to Station 2",tagged:"Documented · Awaiting host",in:"Checked in with host",out:"Checked out",rejected:"Rejected",suspended:"Suspended"};
 let OVERSTAY_H=9;
 let visitors=[], db=null, live=false, view="dashboard", selected=null, sample=null, chat=[];
 try{const s=localStorage.getItem("station"); if(s) $("#station").value=s; const o=localStorage.getItem("op"); if(o) $("#operator").value=o;}catch(e){}
@@ -3594,7 +3598,7 @@ function wireReports(){
 
 /* ---------- 10. Visitor pages in English and French ---------- */
 const TX={en:{passFor:"Visitor",group:"Delegation",vip:"VIP guest",contractor:"Contractor",loading:"Opening your pass…",notFound:"Pass not found",notFoundSub:"Check you opened the whole link, or ask your host to send it again.",cantOpen:"This pass can't be opened",cantOpenSub:"Check your internet connection and reload the page.",
-  st:{out:"Checked out",expired:"Pass expired",pending:"Pending clearance",bad:"Not valid",in:"Checked in",tagged:"Documented",arrived:"Admitted at Station 1",approved:"Cleared"},
+  st:{out:"Checked out",expired:"Pass expired",pending:"Pending clearance",bad:"Not valid",in:"Checked in with host",tagged:"Documented · Awaiting host",arrived:"En route to Station 2",approved:"Cleared · Expected"},
   doneMsg:"Thank you for visiting UN House.",expMsg:"This pass is no longer valid. Ask your host for a new one.",badMsg:"This pass can't be used yet. Your host will let you know.",
   host:"Host",date:"Date",tag:"Tag",until:"Valid until",ref:"Reference",room:"Meeting room",vehicle:"Vehicle",people:"people",groupPass:"Group pass",
   addCal:"Add to calendar",directions:"Directions",arriveNote:"Bring a government-issued photo ID. Arrive 15 minutes early for gate screening (61–62 Diplomatic Drive, Central Business District, Abuja).",
@@ -3876,11 +3880,149 @@ async function showInvite(tok){
           if(!gList.some(x=>x.name===newVis.name)) gList.unshift(newVis);
           localStorage.setItem("unhDemoSubmittedGuests",JSON.stringify(gList));
         }catch(e){}
-        box(`<h1>${T.thanks(esc(guest.name))}</h1><p class="sub">${T.thanksSub(esc(hostName),esc(new Date(guest.expected).toLocaleString(dateLoc(), {weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"})))}</p>
-        <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--line);display:flex;gap:10px;flex-wrap:wrap">
-          <a class="btn pri" href="app.html#gate" style="text-decoration:none">🚪 Open Station 1 Gate Clearance</a>
-          <a class="btn" href="index.html" style="text-decoration:none">🏠 Public Home Page</a>
+        // Generate and ensure live digital pass for the pre-registered guest
+        const passCode = "UNHPASS-" + String(Math.floor(100000 + Math.random() * 900000));
+        const newPassObj = {
+          id: passCode,
+          visitorId: newVis.id,
+          ref: newVis.ref,
+          name: newVis.name,
+          org: newVis.org || "",
+          host: newVis.host || hostName,
+          agency: newVis.agency || agencyName,
+          room: newVis.room || "",
+          type: newVis.type || "visitor",
+          building: newVis.building || BUILDINGS[0] || "Main Building",
+          expected: newVis.expected || now(),
+          validUntil: passValidUntil(newVis),
+          status: "approved",
+          tag: "",
+          createdAt: now(),
+          revoked: false
+        };
+        passes.unshift(newPassObj);
+        visitors.unshift(newVis);
+        if(db && fb && !fb.demo){
+          try{ await db.collection("visitors").doc(newVis.id).set(newVis); }catch(e){}
+          try{ await db.collection("passes").doc(passCode).set(newPassObj); }catch(e){}
+        }
+        try{
+          localStorage.setItem("unhDemoPass:" + passCode, JSON.stringify(newPassObj));
+          localStorage.setItem("unhDemoPassRef:" + newVis.ref, JSON.stringify(newPassObj));
+          localStorage.setItem("unhDemoPassVis:" + newVis.id, JSON.stringify(newPassObj));
+        }catch(e){}
+
+        const col = getPassColorMeta(getPassColor(newPassObj));
+        const finalPassUrl = passUrl(passCode);
+        const qrImg = await qrDataUrl(PASS_PREFIX + passCode, 200).catch(() => null);
+        const digits = String(guest.phone || "").replace(/[^\d]/g, "").replace(/^0/, "234");
+        const shareMsg = `Hello ${guest.name}, here is your official UN House Abuja digital visitor pass for ${new Date(newPassObj.expected).toLocaleDateString()}: ${finalPassUrl}`;
+
+        // Update URL to pass view so bookmarking/refreshing keeps their pass active
+        try{ history.replaceState(null, "", finalPassUrl); }catch(e){}
+
+        box(`<div style="text-align:left;display:flex;flex-direction:column;gap:14px">
+          <!-- Clearance Confirmation Banner -->
+          <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1.5px solid #86efac;border-radius:14px;padding:16px 18px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:24px">✅</span>
+              <div>
+                <div style="font-size:16.5px;font-weight:800;color:#166534">Pre-Registration Complete · Digital Pass Issued</div>
+                <div style="font-size:12.5px;color:#15803d;margin-top:2px">
+                  Your visit to UN House Abuja has been registered and cleared for arrival on <b>${new Date(newPassObj.expected).toLocaleString(dateLoc(), {weekday:"short",day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})}</b>.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live Digital Pass Card -->
+          <div class="vpass ok" style="margin:0;max-width:none;box-shadow:0 8px 24px rgba(15,23,42,0.08);border:1.5px solid ${col.border};padding:0;--pass-primary:${col.primary};--pass-border:${col.border}">
+            <div class="vpass-ribbon" style="background:${col.primary}"></div>
+            <div class="vpass-banner" style="background:${col.headerBg}">
+              <div style="display:flex;align-items:center;gap:8px">
+                <img src="un-emblem.svg" alt="UN" style="height:20px;width:auto;filter:brightness(0) invert(1)">
+                <span>${col.name} · ${col.passName}</span>
+              </div>
+              <span class="vp-st" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:2px 8px;border-radius:10px;font-size:10.5px;font-weight:750">Cleared · Expected</span>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+                <div>
+                  <div class="vp-name" style="font-size:22px">${esc(newPassObj.name)}</div>
+                  <div class="vp-org" style="font-size:13.5px;margin-top:2px">${esc(newPassObj.org || "Official Visitor")}</div>
+                </div>
+                <span class="vpass-color-pill" style="background:${col.pillBg};color:${col.pillColor};border-color:${col.border};font-weight:800">${col.lanyardText}</span>
+              </div>
+
+              <!-- Lanyard Scope Strip -->
+              <div style="background:${col.lightBg};border:1.5px solid ${col.border};border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px">
+                <div style="background:${col.primary};color:#ffffff;font-size:11px;font-weight:900;letter-spacing:0.04em;padding:4px 10px;border-radius:6px;white-space:nowrap">
+                  ${col.lanyardText}
+                </div>
+                <div style="line-height:1.35">
+                  <div style="font-size:11.5px;font-weight:800;color:${col.primary}">${col.name} Access Scope</div>
+                  <div style="font-size:11px;color:var(--navy)">${col.scope}</div>
+                </div>
+              </div>
+
+              ${qrImg ? `<div class="vp-qr" style="padding:10px;border:2px solid ${col.border};margin:4px auto;width:fit-content;border-radius:12px;background:#fff"><img src="${qrImg}" alt="Pass QR Code" style="width:140px;height:140px;display:block"></div>` : ""}
+              <div class="vp-clock" style="font-size:18px"><i style="background:${col.primary}"></i><span id="vpc_inv"></span></div>
+
+              <dl class="vp-dl" style="gap:4px">
+                <div style="padding-top:4px;font-size:13px"><dt>Host</dt><dd>${esc(newPassObj.host)} (${esc(newPassObj.agency)})</dd></div>
+                ${newPassObj.room ? `<div style="padding-top:4px;font-size:13px"><dt>Room</dt><dd>${esc(newPassObj.room)}</dd></div>` : ""}
+                <div style="padding-top:4px;font-size:13px"><dt>Arrival Window</dt><dd>${new Date(newPassObj.expected).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})} &ndash; 17:00</dd></div>
+                <div style="padding-top:4px;font-size:13px"><dt>Reference</dt><dd class="mono">${esc(newPassObj.ref)}</dd></div>
+                <div style="padding-top:4px;font-size:13px"><dt>Lanyard Tag</dt><dd class="mono" style="color:var(--muted)">Assigned upon Gate 1 ID exchange (${col.tagPrefix}-Series · ${col.lanyardText})</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="acts" style="justify-content:center;gap:8px;flex-wrap:wrap">
+            <button class="btn" type="button" id="btn_cal_inv">📅 Add to Calendar</button>
+            <a class="btn" href="https://www.google.com/maps/search/?api=1&query=UN+House+Diplomatic+Drive+Abuja" target="_blank" rel="noopener">📍 Get Directions</a>
+            <button class="btn" type="button" id="btn_copy_inv">📋 Copy Pass Link</button>
+            <a class="btn" href="https://wa.me/${digits.length>=10?digits:""}?text=${encodeURIComponent(shareMsg)}" target="_blank" rel="noopener">💬 WhatsApp to Phone</a>
+          </div>
+
+          <!-- Next Steps Guidance Card -->
+          <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:16px 18px;margin-top:4px">
+            <h3 style="margin:0 0 10px;font-size:15px;color:var(--navy);display:flex;align-items:center;gap:8px">
+              📋 Next Steps for Your Visit to UN House Abuja:
+            </h3>
+            <ol style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:var(--navy);line-height:1.45">
+              <li>
+                <b>Keep this pass accessible on your phone:</b> Bookmark this link or send it to yourself via WhatsApp. Please do not rely on static screenshots as the security clock must be live.
+              </li>
+              <li>
+                <b>Bring original Government Photo ID:</b> Present a valid physical ID (National ID Card / NIN slip, International Passport, Driver's Licence, or Diplomatic ID) at the gate.
+              </li>
+              <li>
+                <b>Gate 1 Arrival (Plot 617/618 Diplomatic Drive):</b> Present your digital pass QR code at Gate 1 for Station 1 admission. Proceed immediately to Station 2 Reception to exchange your physical ID for your official <b>${col.lanyardText}</b> lanyard tag.
+              </li>
+              <li>
+                <b>Host Handover at Reception:</b> Proceed into the main building (Station 3) where your host <b>${esc(hostName)}</b> will meet and receive you.
+              </li>
+            </ol>
+          </div>
         </div>`);
+
+        // Start live ticking clock
+        const tickClock = () => {
+          const c = $("#vpc_inv");
+          if(c) c.textContent = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+        };
+        tickClock();
+        setInterval(tickClock, 1000);
+
+        // Wire action buttons
+        const bCal = $("#btn_cal_inv");
+        if(bCal) bCal.onclick = () => downloadIcs(newPassObj);
+        const bCopy = $("#btn_copy_inv");
+        if(bCopy) bCopy.onclick = async () => {
+          try{ await navigator.clipboard.writeText(finalPassUrl); toast("Digital pass link copied to clipboard."); }catch(e){ toast(finalPassUrl); }
+        };
       }catch(x){$("#g_err").textContent=T.sendErr}};
   };
   draw();
@@ -4818,14 +4960,14 @@ const stayMs=v=>{
 function timeline(v){
   let mainTime = "", subText = "";
   if(v.status === "in" && v.inAt){
-    mainTime = `<span class="tl-main" style="color:#0284c7;font-weight:700">In ${fmtT(v.inAt)}</span>`;
-    subText = `${v.arrivedAt ? 'Gate ' + fmtT(v.arrivedAt) + ' · ' : ''}Exp ${fmtT(v.expected)}`;
+    mainTime = `<span class="tl-main" style="color:#0284c7;font-weight:700">With Host ${fmtT(v.inAt)}</span>`;
+    subText = `${v.arrivedAt ? 'Gate ' + fmtT(v.arrivedAt) + ' · ' : ''}Host ${esc(v.host)}`;
   } else if(v.status === "tagged" && (v.taggedAt || v.arrivedAt)){
     mainTime = `<span class="tl-main" style="color:#0369a1;font-weight:700">Documented ${fmtT(v.taggedAt||v.arrivedAt)}</span>`;
-    subText = `Gate ${fmtT(v.arrivedAt||v.expected)} · Exp ${fmtT(v.expected)}`;
+    subText = `Awaiting host reception · Gate ${fmtT(v.arrivedAt||v.expected)}`;
   } else if(v.status === "arrived" && v.arrivedAt){
-    mainTime = `<span class="tl-main" style="color:#0284c7;font-weight:700">At Gate ${fmtT(v.arrivedAt)}</span>`;
-    subText = `Expected ${fmtT(v.expected)}`;
+    mainTime = `<span class="tl-main" style="color:#0284c7;font-weight:700">En Route · Gate ${fmtT(v.arrivedAt)}</span>`;
+    subText = `In Station 2 Documentation`;
   } else if(v.status === "out" && v.outAt){
     mainTime = `<span class="tl-main" style="color:var(--fg);font-weight:600">Departed ${fmtT(v.outAt)}</span>`;
     subText = v.inAt ? `Stayed ${dur(v.outAt - v.inAt)}` : `Exp ${fmtT(v.expected)}`;
@@ -5995,7 +6137,7 @@ V.reception=()=>{
   ${enRoute.length ? `<div class="panel" style="border-left:4px solid #0284c7;background:var(--surface2)">
     <h2>En Route · In Documentation at Station 2 <span class="cnt">${enRoute.length}</span></h2>
     <p class="small">These visitors have passed Station 1 and are currently at <b>Station 2 Documentation Reception</b> exchanging photo ID for physical tags. They will automatically move to "Waiting for host" above once documentation is completed.</p>
-    ${table(enRoute, v=>`<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:600;font-size:11.5px">In Station 2 Documentation Desk</span>`,"", "tight-table")}
+    ${table(enRoute, v=>`<span class="pill" style="background:#e0f2fe;color:#0369a1;font-weight:700;font-size:11.5px">🚶 En Route: S1 Gate ${fmtT(v.arrivedAt||now())} → S2 Documentation</span>`,"", "tight-table")}
   </div>` : ""}
 
   <!-- Queue 3: Checked In With Host & Active on Premises -->
@@ -6030,7 +6172,7 @@ V.reception=()=>{
       if (v.type === "vip" && !v.vipReceived) {
         return (v.hostNotified ? `<span class="small" style="color:#0369a1;font-weight:600">Host notified ${fmtT(v.hostNotified)}</span>` : B(v.id, "notify", "Notify host")) + B(v.id, "checkin", "Host received", "pri");
       }
-      return `<span class="pill p-in" style="font-size:10.5px">With Host</span> ` + B(v.id, "checkout", v.type === "vip" ? "Record VIP exit" : "Collect tag &amp; check out", "pri");
+      return `<span class="pill p-in" style="font-size:11px;font-weight:700;background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd">✓ With Host: ${esc(v.host)}</span> ` + B(v.id, "checkout", v.type === "vip" ? "Record VIP exit" : "Collect tag &amp; check out", "pri");
     }, "Nobody is currently checked in.", "tight-table")}
     </div>
   </div>`;
