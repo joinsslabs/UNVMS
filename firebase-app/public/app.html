@@ -3326,7 +3326,12 @@ const VW_reports=()=>{
 function printHandoverSheet(h){
   let p=$("#printArea"); if(!p){p=document.createElement("div");p.id="printArea";document.body.appendChild(p)}
   const chk=h.checks||{};
-  p.innerHTML=`<div class="print-doc" style="font-family:'IBM Plex Sans',Arial,sans-serif;color:#111;font-size:9.5pt;line-height:1.45;width:100%;box-sizing:border-box">
+  p.innerHTML=`<style>
+    .print-doc table { table-layout: fixed !important; width: 100% !important; max-width: 100% !important; border-collapse: collapse !important; }
+    .print-doc th { border-radius: 0 !important; letter-spacing: normal !important; text-transform: uppercase !important; box-sizing: border-box !important; }
+    .print-doc td, .print-doc th { box-sizing: border-box !important; }
+  </style>
+  <div class="print-doc" style="font-family:'IBM Plex Sans',Arial,sans-serif;color:#111;font-size:9.5pt;line-height:1.45;width:100%;box-sizing:border-box">
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #172542;padding-bottom:8px;margin-bottom:12px">
       <div><div style="font-size:14pt;font-weight:700;color:#172542">UN HOUSE ABUJA — 17:00 DAILY RECEPTION CLOSEOUT</div><div style="font-size:9pt;color:#555">UNDP · UN Common Services · Security &amp; Reception Operations</div></div>
       <div style="text-align:right;font-size:9pt"><b>Date / Time:</b> ${esc(fmtD(h.at||now()))}<br><b>Station:</b> ${esc(h.stationLabel||"Main Reception (S1)")}</div>
@@ -3575,49 +3580,55 @@ function buildReportHtml(period="daily"){
     </div>
 
     <!-- 3. UN BOS 2.0 Inter-Agency Cost-Sharing & Footfall Apportionment Table (Strictly Traffic-Based, No Overflow) -->
-    <div style="border:1.5px solid #059669;background:#f0fdf4;border-radius:8px;padding:9px 12px;margin-bottom:10px;box-sizing:border-box;overflow:hidden">
+    <div style="border:1.5px solid #059669;background:#f0fdf4;border-radius:8px;padding:9px 12px;margin-bottom:10px;box-sizing:border-box;overflow:hidden;width:100%;max-width:100%">
       <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #a7f3d0;padding-bottom:4px;margin-bottom:6px">
         <div>
           <div style="font-size:7.5pt;font-weight:800;color:#059669;letter-spacing:0.06em;text-transform:uppercase">UN BUSINESS OPERATIONS STRATEGY (BOS 2.0) FRAMEWORK</div>
           <div style="font-size:9.5pt;font-weight:700;color:#064e3b">🏛️ Common Services Inter-Agency Cost-Sharing &amp; Footfall Apportionment</div>
         </div>
-        <span style="font-size:7.5pt;background:#059669;color:#fff;font-weight:700;padding:2px 7px;border-radius:4px">OMT AUDITED</span>
+        <span style="font-size:7.5pt;background:#059669;color:#fff;font-weight:700;padding:2px 7px;border-radius:4px;flex-shrink:0">OMT AUDITED</span>
       </div>
       <p style="font-size:7.5pt;color:#334155;margin:0 0 6px 0;line-height:1.35">
         Official footfall distribution for the UN Country Team Operations Management Team (OMT). Reception desk personnel, security screening lanes, and common compound operating expenses are apportioned under the Inter-Agency Common Services Agreement based on verified gate traffic.
       </p>
       
-      <div style="width:100%;box-sizing:border-box;overflow:hidden">
-        <table style="width:100%;border-collapse:collapse;font-size:8pt;table-layout:fixed;box-sizing:border-box">
+      <div style="width:100%;max-width:100%;box-sizing:border-box;overflow:hidden;border-radius:5px">
+        <table style="width:100%;max-width:100%;table-layout:fixed;border-collapse:collapse;font-size:8pt;box-sizing:border-box;margin:0">
+          <colgroup>
+            <col style="width:28%">
+            <col style="width:14%">
+            <col style="width:17%">
+            <col style="width:18%">
+            <col style="width:23%">
+          </colgroup>
           <thead>
             <tr style="background:#dcfce7;color:#065f46">
-              <th style="width:30%;padding:4px 6px;text-align:left;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">UN Agency / Entity</th>
-              <th style="width:17%;padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">Visitor Footfall</th>
-              <th style="width:18%;padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">Traffic Share (%)</th>
-              <th style="width:20%;padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">Apportionment Factor</th>
-              <th style="width:15%;padding:4px 6px;text-align:center;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;white-space:normal">BOS 2.0 Status</th>
+              <th style="padding:4px 6px;text-align:left;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;border-radius:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">UN Agency / Entity</th>
+              <th style="padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;border-radius:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Visitor Footfall</th>
+              <th style="padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;border-radius:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Traffic Share (%)</th>
+              <th style="padding:4px 6px;text-align:right;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;border-radius:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Apportionment Factor</th>
+              <th style="padding:4px 6px;text-align:center;background:#dcfce7 !important;color:#065f46;font-size:7.5pt;font-weight:700;box-sizing:border-box;border-bottom:1.5px solid #a7f3d0;border-radius:0 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BOS 2.0 Status</th>
             </tr>
           </thead>
           <tbody>
-            ${agencySorted.map(([ag, cnt]) => {
+            ${agencySorted.map(([ag, count]) => {
               const totalArr = arr.length || 1;
-              const pct = ((cnt / totalArr) * 100).toFixed(1);
-              const factor = (cnt / totalArr).toFixed(3);
-              return `<tr>
+              const pct = ((count / totalArr) * 100).toFixed(1);
+              const factor = (count / totalArr).toFixed(3);
+              return `<tr style="border-bottom:1px solid #d1fae5">
                 <td style="padding:3px 6px;border-bottom:1px solid #d1fae5;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${esc(ag)}</b></td>
-                <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;font-weight:700;box-sizing:border-box">${cnt}</td>
-                <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;color:#047857;font-weight:700;box-sizing:border-box">${pct}%</td>
-                <td class="mono" style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:right;box-sizing:border-box">${factor}</td>
-                <td style="padding:3px 6px;border-bottom:1px solid #d1fae5;text-align:center;color:#059669;font-weight:700;box-sizing:border-box">✓ Apportioned</td>
+                <td class="mono" style="padding:3px 6px;text-align:right;border-bottom:1px solid #d1fae5;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${count}</b></td>
+                <td class="mono" style="padding:3px 6px;text-align:right;border-bottom:1px solid #d1fae5;color:#047857;font-weight:700;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${pct}%</td>
+                <td class="mono" style="padding:3px 6px;text-align:right;border-bottom:1px solid #d1fae5;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${factor}</td>
+                <td style="padding:3px 6px;text-align:center;color:#059669;font-weight:700;font-size:7.5pt;border-bottom:1px solid #d1fae5;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">✓ Apportioned</td>
               </tr>`;
-            }).join("")}
-            ${!agencySorted.length ? `<tr><td colspan="5" style="padding:6px;text-align:center;color:#64748b">No visitor traffic recorded for this timeframe.</td></tr>` : ""}
-            ${agencySorted.length ? `<tr style="background:#dcfce7;font-weight:700;border-top:1.5px solid #059669">
-              <td style="padding:3px 6px;box-sizing:border-box">TOTAL COMPOUND FOOTFALL</td>
-              <td class="mono" style="padding:3px 6px;text-align:right;box-sizing:border-box">${arr.length}</td>
-              <td class="mono" style="padding:3px 6px;text-align:right;color:#047857;box-sizing:border-box">100.0%</td>
-              <td class="mono" style="padding:3px 6px;text-align:right;box-sizing:border-box">1.000</td>
-              <td style="padding:3px 6px;text-align:center;color:#059669;box-sizing:border-box">✓ OMT Certified</td>
+            }).join("") || `<tr><td colspan="5" style="padding:8px;text-align:center;color:#64748b;font-size:7.5pt">No visitor traffic recorded for this timeframe.</td></tr>`}
+            ${agencySorted.length ? `<tr style="background:#dcfce7;font-weight:800;border-top:1.5px solid #059669">
+              <td style="padding:4px 6px;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">TOTAL COMPOUND FOOTFALL</td>
+              <td class="mono" style="padding:4px 6px;text-align:right;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${arr.length}</td>
+              <td class="mono" style="padding:4px 6px;text-align:right;color:#047857;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">100.0%</td>
+              <td class="mono" style="padding:4px 6px;text-align:right;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">1.000</td>
+              <td style="padding:4px 6px;text-align:center;color:#059669;font-weight:800;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">✓ OMT Certified</td>
             </tr>` : ""}
           </tbody>
         </table>
