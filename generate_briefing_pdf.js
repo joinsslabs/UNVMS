@@ -39,11 +39,11 @@ function drawPageHeader(subTitleText) {
     .text('UNITED NATIONS HOUSE ABUJA · COMMON SERVICES & UNDSS', 45, 24, { align: 'left' });
   doc.fontSize(7.5).fillColor(C_DARK_BLUE).font('Helvetica-Bold')
     .text(subTitleText, 45, 24, { align: 'right' });
-  doc.y = 50;
+  doc.y = 52;
 }
 
 function renderSectionTitle(num, title) {
-  doc.moveDown(0.5);
+  doc.moveDown(0.6);
   const y = doc.y;
   doc.rect(45, y, 3.5, 14).fill(C_UN_BLUE);
   doc.fontSize(10.5).fillColor(C_DARK_BLUE).font('Helvetica-Bold')
@@ -52,7 +52,7 @@ function renderSectionTitle(num, title) {
 }
 
 function renderSubTitle(title) {
-  doc.moveDown(0.2);
+  doc.moveDown(0.3);
   doc.fontSize(9).fillColor(C_NAVY).font('Helvetica-Bold').text(title);
   doc.moveDown(0.15);
 }
@@ -97,7 +97,7 @@ doc.fontSize(8).fillColor('#38bdf8').font('Helvetica-Bold')
 doc.fontSize(7.5).fillColor('#ffffff').font('Helvetica')
   .text('Production Build · Engineered by SKILL.SCH', 275, badgeY + 13);
 
-doc.y = 150;
+doc.y = 148;
 
 // Section 1: Executive Summary
 renderSectionTitle('1', 'Executive Summary');
@@ -127,11 +127,13 @@ const stations = [
 ];
 
 stations.forEach(st => {
-  const y = doc.y;
-  doc.circle(52, y + 4.5, 2.5).fill(C_UN_BLUE);
-  doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text(st.s, 60, y);
-  doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE).text(st.d, 60, y + 10, { width: contentWidth - 20, lineGap: 1.2 });
-  doc.y = y + 25;
+  const bulletY = doc.y;
+  doc.circle(52, bulletY + 4.5, 2.5).fill(C_UN_BLUE);
+  doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY)
+    .text(st.s, 60, bulletY);
+  doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE)
+    .text(st.d, 60, doc.y + 1, { width: contentWidth - 20, lineGap: 1.3 });
+  doc.moveDown(0.35); // Clean vertical flow, zero hardcoded collision!
 });
 
 // =========================================================================
@@ -216,12 +218,14 @@ const points = [
 ];
 
 points.forEach(p => {
-  const y = doc.y;
-  doc.circle(52, y + 4.5, 2.5).fill(C_DARK_BLUE);
+  const bulletY = doc.y;
+  doc.circle(52, bulletY + 4.5, 2.5).fill(C_DARK_BLUE);
   const [b, ...rest] = p.split(':');
-  doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text(b + ':', 60, y, { continued: true });
-  doc.font('Helvetica').fillColor(C_SLATE).text(rest.join(':'), { lineGap: 1.2 });
-  doc.y = y + 21;
+  doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY)
+    .text(b + ': ', 60, bulletY, { continued: true });
+  doc.font('Helvetica').fillColor(C_SLATE)
+    .text(rest.join(':'), { width: contentWidth - 20, lineGap: 1.3 });
+  doc.moveDown(0.35); // Clean flow
 });
 
 renderSectionTitle('6', 'Physical Checkpoint Deployment Checklist');
@@ -237,11 +241,11 @@ const checklist = [
 
 checklist.forEach(c => {
   const y = doc.y;
-  doc.rect(45, y, contentWidth, 22).fillAndStroke('#f8fafc', C_LINE);
-  doc.rect(45, y, 3, 22).fill(C_UN_BLUE);
+  doc.rect(45, y, contentWidth, 23).fillAndStroke('#f8fafc', C_LINE);
+  doc.rect(45, y, 3, 23).fill(C_UN_BLUE);
   doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text(c.item, 54, y + 4);
-  doc.fontSize(7).font('Helvetica').fillColor(C_SLATE).text(c.detail, 54, y + 12);
-  doc.y = y + 25;
+  doc.fontSize(7).font('Helvetica').fillColor(C_SLATE).text(c.detail, 54, y + 13, { width: contentWidth - 20 });
+  doc.y = y + 26;
 });
 
 doc.moveDown(0.4);
