@@ -3,9 +3,10 @@ const path = require('path');
 const PDFDocument = require('pdfkit');
 
 const doc = new PDFDocument({
-  size: 'A4',
-  margins: { top: 45, bottom: 50, left: 50, right: 50 },
+  size: 'A4', // 595.28 x 841.89 pt
+  margins: { top: 40, bottom: 40, left: 45, right: 45 },
   bufferPages: true,
+  autoFirstPage: true,
   info: {
     Title: 'UN House Abuja - Visitor Management System Technical Briefing',
     Author: 'SKILL.SCH',
@@ -22,147 +23,152 @@ doc.pipe(stream);
 const C_NAVY = '#0f172a';
 const C_UN_BLUE = '#0077b6';
 const C_DARK_BLUE = '#1e3a8a';
-const C_SLATE = '#475569';
+const C_SLATE = '#334155';
 const C_LIGHT_SLATE = '#64748b';
 const C_BG_LIGHT = '#f8fafc';
-const C_LINE = '#e2e8f0';
+const C_LINE = '#cbd5e1';
 const C_GREEN = '#15803d';
 const C_AMBER = '#b45309';
 
-// Helpers
-function drawHeader(title) {
-  doc.rect(50, 40, doc.page.width - 100, 2).fill(C_UN_BLUE);
-  doc.fontSize(8).fillColor(C_LIGHT_SLATE).font('Helvetica-Bold')
-    .text('UNITED NATIONS HOUSE ABUJA · COMMON SERVICES & UNDSS', 50, 26, { align: 'left' });
-  doc.fontSize(8).fillColor(C_LIGHT_SLATE).font('Helvetica')
-    .text(title || 'TECHNICAL INTEGRATION & DEPLOYMENT BRIEFING', 50, 26, { align: 'right' });
-  doc.y = 55;
+const contentWidth = doc.page.width - 90; // 505.28 pt
+
+// Clean Header for Pages 2 and 3
+function drawPageHeader(subTitleText) {
+  doc.rect(45, 38, contentWidth, 2).fill(C_UN_BLUE);
+  doc.fontSize(7.5).fillColor(C_LIGHT_SLATE).font('Helvetica-Bold')
+    .text('UNITED NATIONS HOUSE ABUJA · COMMON SERVICES & UNDSS', 45, 24, { align: 'left' });
+  doc.fontSize(7.5).fillColor(C_DARK_BLUE).font('Helvetica-Bold')
+    .text(subTitleText, 45, 24, { align: 'right' });
+  doc.y = 50;
 }
 
-function sectionTitle(num, title) {
-  if (doc.y > 670) doc.addPage();
-  doc.moveDown(0.8);
+function renderSectionTitle(num, title) {
+  doc.moveDown(0.5);
   const y = doc.y;
-  doc.rect(50, y, 4, 18).fill(C_UN_BLUE);
-  doc.fontSize(12).fillColor(C_DARK_BLUE).font('Helvetica-Bold')
-    .text(`${num}. ${title.toUpperCase()}`, 62, y + 2);
-  doc.moveDown(0.6);
+  doc.rect(45, y, 3.5, 14).fill(C_UN_BLUE);
+  doc.fontSize(10.5).fillColor(C_DARK_BLUE).font('Helvetica-Bold')
+    .text(`${num}. ${title.toUpperCase()}`, 55, y + 1.5);
+  doc.y = y + 18;
 }
 
-function subTitle(title) {
-  if (doc.y > 700) doc.addPage();
-  doc.fontSize(10).fillColor(C_NAVY).font('Helvetica-Bold').text(title);
-  doc.moveDown(0.3);
+function renderSubTitle(title) {
+  doc.moveDown(0.2);
+  doc.fontSize(9).fillColor(C_NAVY).font('Helvetica-Bold').text(title);
+  doc.moveDown(0.15);
 }
 
-function bodyText(text) {
-  doc.fontSize(9).fillColor(C_SLATE).font('Helvetica').text(text, { lineGap: 2.5 });
-  doc.moveDown(0.4);
+function renderBody(text) {
+  doc.fontSize(8).fillColor(C_SLATE).font('Helvetica').text(text, { lineGap: 1.8 });
+  doc.moveDown(0.25);
 }
 
-function callout(title, text, type = 'info') {
-  if (doc.y > 680) doc.addPage();
-  const y = doc.y;
-  const borderColor = type === 'success' ? C_GREEN : (type === 'warn' ? C_AMBER : C_UN_BLUE);
-  const bgColor = type === 'success' ? '#f0fdf4' : (type === 'warn' ? '#fffbeb' : '#f0f9ff');
-  
-  doc.rect(50, y, doc.page.width - 100, 48).fillAndStroke(bgColor, '#e2e8f0');
-  doc.rect(50, y, 4, 48).fill(borderColor);
-  
-  doc.fontSize(9).fillColor(borderColor).font('Helvetica-Bold')
-    .text(title, 64, y + 8);
-  doc.fontSize(8.5).fillColor(C_NAVY).font('Helvetica')
-    .text(text, 64, y + 22, { width: doc.page.width - 130, lineGap: 2 });
-  doc.y = y + 54;
-}
+// =========================================================================
+// PAGE 1: EXECUTIVE OVERVIEW & 4-STATION ACCESS PIPELINE
+// =========================================================================
 
-// ==================== COVER / PAGE 1 ====================
-// Top UN Emblem Banner
-doc.rect(0, 0, doc.page.width, 160).fill('#0f1a30');
-doc.rect(0, 156, doc.page.width, 4).fill(C_UN_BLUE);
+// Diplomatic Top Banner
+doc.rect(0, 0, doc.page.width, 135).fill('#0f1a30');
+doc.rect(0, 132, doc.page.width, 3).fill(C_UN_BLUE);
 
-doc.fillColor('#ffffff').fontSize(11).font('Helvetica-Bold')
-  .text('UNITED NATIONS COMMON SERVICES · NIGERIA', 50, 42, { characterSpacing: 1 });
-doc.fontSize(22).font('Helvetica-Bold')
-  .text('UN House Visitor Management System (UNVMS)', 50, 60);
-doc.fontSize(11).font('Helvetica')
-  .fillColor('#94a3b8')
-  .text('Technical Architecture, IT Integration Scope & Compound Deployment Guide', 50, 92);
+doc.fillColor('#94a3b8').fontSize(9).font('Helvetica-Bold')
+  .text('UNITED NATIONS COMMON SERVICES · NIGERIA', 45, 26, { characterSpacing: 0.8 });
 
-doc.rect(50, 116, 210, 24).fillAndStroke('rgba(255,255,255,0.12)', '#38bdf8');
-doc.fontSize(8.5).fillColor('#e0f2fe').font('Helvetica-Bold')
-  .text('🛡️ UNDSS Security Level 2 · UN BOS 2.0', 58, 122);
+doc.fillColor('#ffffff').fontSize(17).font('Helvetica-Bold')
+  .text('UN House Visitor Management System (UNVMS)', 45, 42);
 
-doc.rect(270, 116, 200, 24).fillAndStroke('rgba(255,255,255,0.12)', '#38bdf8');
-doc.fontSize(8.5).fillColor('#e0f2fe').font('Helvetica-Bold')
-  .text('⚡ Live Build · Engineered by SKILL.SCH', 278, 122);
+doc.fillColor('#93c5fd').fontSize(9.5).font('Helvetica')
+  .text('Technical Architecture, IT Integration Scope & Compound Deployment Guide', 45, 68);
 
-doc.y = 180;
+// Two Clean Badges (Using Solid UN Colors, Zero Broken Emojis)
+const badgeY = 92;
+// Left Badge
+doc.rect(45, badgeY, 210, 24).fillAndStroke('#1e293b', '#0284c7');
+doc.rect(45, badgeY, 4, 24).fill('#0284c7');
+doc.fontSize(8).fillColor('#38bdf8').font('Helvetica-Bold')
+  .text('SECURITY FRAMEWORK', 55, badgeY + 4);
+doc.fontSize(7.5).fillColor('#ffffff').font('Helvetica')
+  .text('UNDSS Security Level 2 · UN BOS 2.0 Directives', 55, badgeY + 13);
 
-// Executive Summary
-sectionTitle('1', 'Executive Summary');
-bodyText('The UN House Abuja Visitor Management System (UNVMS) is an integrated digital platform engineered to modernize, secure, and streamline compound physical access under the UN Business Operations Strategy (BOS 2.0) and UNDSS physical security directives.');
-bodyText('UN House Abuja accommodates 20+ resident UN agencies (including UNDP, WHO, UNICEF, WFP, UNAIDS, UNODC, and UNESCO) at Plot 617/618 Diplomatic Drive. This briefing outlines the exact technical mechanisms in place, confirms what is 100% operational out of the box, and defines the exact, minimal footprint where UN ICT intervention is optional or beneficial.');
+// Right Badge
+doc.rect(265, badgeY, 210, 24).fillAndStroke('#1e293b', '#0284c7');
+doc.rect(265, badgeY, 4, 24).fill('#0284c7');
+doc.fontSize(8).fillColor('#38bdf8').font('Helvetica-Bold')
+  .text('ENGINEERING ATTRIBUTION', 275, badgeY + 4);
+doc.fontSize(7.5).fillColor('#ffffff').font('Helvetica')
+  .text('Production Build · Engineered by SKILL.SCH', 275, badgeY + 13);
 
-callout(
-  'KEY TAKEAWAY FOR ICT & EXECUTIVE MANAGEMENT',
-  'UNVMS is fully functional today without creating new emails, without complex database integrations, and without administrative roadblocks. Staff use their existing official UN email inboxes, visitors need zero accounts, and checkpoint officers authenticate securely.',
-  'success'
-);
+doc.y = 150;
 
-// Operational Model
-sectionTitle('2', '4-Station Compound Access Pipeline');
-bodyText('The system enforces a strict 4-station physical and visual verification pipeline:');
+// Section 1: Executive Summary
+renderSectionTitle('1', 'Executive Summary');
+renderBody('The UN House Abuja Visitor Management System (UNVMS) is an integrated digital platform engineered to modernize, secure, and streamline compound physical access under the UN Business Operations Strategy (BOS 2.0) and UNDSS physical security directives.');
+renderBody('UN House Abuja accommodates 20+ resident UN agencies at Plot 617/618 Diplomatic Drive. UNDP and the UN Secretariat (@undp.org and @un.org) lead compound operations and Common Services. This briefing outlines the exact technical mechanisms in place, confirms what is 100% operational out of the box, and defines the exact, minimal footprint where UN ICT intervention is optional or beneficial.');
+
+// Key Strategic Callout
+const callY = doc.y;
+doc.rect(45, callY, contentWidth, 38).fillAndStroke('#f0fdf4', '#86efac');
+doc.rect(45, callY, 4, 38).fill(C_GREEN);
+doc.fontSize(8.5).fillColor(C_GREEN).font('Helvetica-Bold')
+  .text('STRATEGIC TAKEAWAY FOR ICT & EXECUTIVE MANAGEMENT', 57, callY + 6);
+doc.fontSize(7.5).fillColor(C_NAVY).font('Helvetica')
+  .text('UNVMS is fully operational today with zero new email accounts, zero complex database requirements, and zero administrative roadblocks. Staff use their existing official UN email inboxes, visitors require no accounts, and checkpoint officers authenticate securely.', 57, callY + 18, { width: contentWidth - 20, lineGap: 1.5 });
+doc.y = callY + 44;
+
+// Section 2: 4-Station Access Pipeline
+renderSectionTitle('2', '4-Station Compound Access Pipeline');
+renderBody('The system enforces a strict 4-station physical and visual verification pipeline to guarantee compound integrity:');
 
 const stations = [
-  { s: 'Station 1 · Gate Clearance', d: 'Vehicle and preliminary pedestrian credential verification. Rapid lookup against pre-approved guest invitations and security watchlists.' },
-  { s: 'Station 2 · Documentation & Tagging', d: 'Physical ID capture, baggage screening declaration, visual biometric photo capture, and physical badge / visitor pass assignment.' },
-  { s: 'Station 3 · Main Reception Check-In', d: 'Final reception clearance, automated arrival alert dispatch to host agency staff via Outlook inbox and WhatsApp, and badge activation.' },
-  { s: 'Station 4 · Exit Checkout', d: 'Compound departure timestamping, visual badge surrender, and live evacuation muster list updating.' },
-  { s: 'VIP Diplomatic Gate & Protocol Fast-Track', d: 'Dedicated expedited clearance workflow for Ambassadors, High Commissioners, Heads of Agency, and Federal Ministers.' }
+  { s: 'Station 1 · Gate Clearance (Perimeter Entry)', d: 'Vehicle and preliminary pedestrian credential verification. Rapid lookup against pre-approved guest invitations and security watchlists before perimeter barrier access.' },
+  { s: 'Station 2 · Documentation & Tagging (Pedestrian Search Turnstile)', d: 'Government photo ID verification, physical baggage screening, visual photo capture, and physical visitor badge assignment.' },
+  { s: 'Station 3 · Main Reception Check-In (Diplomatic Lobby)', d: 'Final reception clearance, automated arrival alert dispatch to host agency staff via Outlook inbox and WhatsApp, and badge activation.' },
+  { s: 'Station 4 · Exit Checkout (Vehicle Gate 2 & Turnstile)', d: 'Compound departure timestamping, visual badge surrender, and live evacuation muster roll updating.' },
+  { s: 'VIP Diplomatic Gate & Protocol Fast-Track', d: 'Expedited diplomatic clearance workflow for Ambassadors, High Commissioners, Heads of Agency, and Federal Ministers.' }
 ];
 
 stations.forEach(st => {
   const y = doc.y;
-  doc.circle(58, y + 6, 3).fill(C_UN_BLUE);
-  doc.fontSize(9).font('Helvetica-Bold').fillColor(C_NAVY).text(st.s, 68, y);
-  doc.fontSize(8.5).font('Helvetica').fillColor(C_SLATE).text(st.d, 68, y + 12, { lineGap: 1.5 });
-  doc.moveDown(0.4);
+  doc.circle(52, y + 4.5, 2.5).fill(C_UN_BLUE);
+  doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text(st.s, 60, y);
+  doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE).text(st.d, 60, y + 10, { width: contentWidth - 20, lineGap: 1.2 });
+  doc.y = y + 25;
 });
 
-// ==================== PAGE 2 ====================
+// =========================================================================
+// PAGE 2: AUTHENTICATION ARCHITECTURE & IT INTEGRATION MATRIX
+// =========================================================================
 doc.addPage();
-drawHeader('IT FOOTPRINT & AUTHENTICATION ARCHITECTURE');
+drawPageHeader('IT FOOTPRINT & AUTHENTICATION ARCHITECTURE');
 
-sectionTitle('3', 'Authentication Model: Zero New Email Accounts');
-bodyText('A central design mandate is that NO staff member, security officer, or guest is ever required to create or maintain a secondary email address.');
+renderSectionTitle('3', 'Authentication Model: Zero New Email Accounts');
+renderBody('A central operational mandate is that NO staff member, security officer, or guest is ever required to create or maintain a secondary email address.');
 
-subTitle('A. Official UN Staff & Host Officers (Passwordless Magic Link)');
-bodyText('• Staff enter their official UN work email (e.g. name@undp.org or name@un.org).\n• A secure, single-use, 15-minute cryptographic sign-in link is dispatched directly into their Microsoft Outlook / M365 inbox.\n• Clicking the link in Outlook automatically authenticates them into their operations console.\n• Staff names and agency affiliations are automatically detected from their email and matched against the pre-loaded UN Staff Directory.');
+renderSubTitle('A. Official UN Staff & Host Officers (Passwordless Magic Link)');
+renderBody('• Staff enter their existing official work email (e.g. name@undp.org or name@un.org).\n• A secure, single-use, 15-minute cryptographic sign-in link is dispatched directly into their Microsoft Outlook / M365 inbox.\n• Clicking the link in Outlook automatically authenticates them into their operations console.\n• Staff names and agency affiliations are automatically detected from their email and matched against the pre-loaded UN Staff Directory.');
 
-subTitle('B. Station & Gate Security Officers');
-bodyText('• Dedicated credentials for Station 1 (Gate), Station 2 (Search/ID), Station 3 (Reception), Station 4 (Exit), VIP Protocol, and UNDSS Field Security Supervisors (FSM).\n• Role-based access ensures officers only see tools relevant to their specific checkpoint.');
+renderSubTitle('B. Station & Gate Security Officers');
+renderBody('• Dedicated credentials for Station 1 (Gate), Station 2 (Search/ID), Station 3 (Reception), Station 4 (Exit), VIP Protocol, and UNDSS Field Security Supervisors (FSM).\n• Role-based access ensures officers only see tools relevant to their specific checkpoint.');
 
-subTitle('C. External Visitors & Guests');
-bodyText('• 100% tokenized web links (via SMS, WhatsApp, or invitation email).\n• Visitors never register, download apps, or remember passwords. They simply fill in arrival details and receive a digital QR pass.');
+renderSubTitle('C. External Visitors & Guests');
+renderBody('• 100% tokenized web links (via SMS, WhatsApp, or invitation email). Visitors never register, download apps, or remember passwords. They simply fill in arrival details and receive a digital QR pass.');
 
-sectionTitle('4', 'Comprehensive IT Integration & Intervention Matrix');
-bodyText('The table below summarizes every technical subsystem and details the exact level of UN ICT involvement:');
+renderSectionTitle('4', 'Comprehensive IT Integration & Intervention Matrix');
+renderBody('The table below summarizes every technical subsystem and details the exact level of UN ICT involvement:');
 
 // Draw Table
-const tableY = doc.y;
-const colW = [120, 110, 110, 155];
+const tableY = doc.y + 2;
+const colW = [115, 95, 95, 200];
 const headers = ['System Component', 'Operational Status', 'IT Required?', 'Details / Action Required'];
 
 // Table Header
-doc.rect(50, tableY, doc.page.width - 100, 20).fill('#0f172a');
-let curX = 54;
+doc.rect(45, tableY, contentWidth, 18).fill('#0f172a');
+let curX = 50;
 headers.forEach((h, i) => {
-  doc.fontSize(7.5).font('Helvetica-Bold').fillColor('#ffffff').text(h, curX, tableY + 6, { width: colW[i] - 8 });
+  doc.fontSize(7).font('Helvetica-Bold').fillColor('#ffffff').text(h, curX, tableY + 5, { width: colW[i] - 10 });
   curX += colW[i];
 });
 
-let rowY = tableY + 20;
+let rowY = tableY + 18;
 const rows = [
   ['Staff Sign-In (Magic Link)', 'Live & Verified', 'None (0%)', 'Dispatches directly to @undp.org or @un.org Outlook inboxes out of the box.'],
   ['Station 1-4 Operations', 'Live & Verified', 'None (0%)', 'Standalone web consoles operate on standard browsers (Chrome, Edge, Safari).'],
@@ -171,33 +177,35 @@ const rows = [
   ['Host WhatsApp Alerts', 'Live & Verified', 'None (0%)', 'Uses 1-click wa.me direct dispatch without external server dependency.'],
   ['Email Spam Allowlisting', 'Recommended', 'Minor (5 min)', 'UN ICT mail admin adds sender domain to M365 Safe Senders to prevent Junk folder.'],
   ['Station Hardware & Wi-Fi', 'Deployment Task', 'Facilities/IT', 'Ensure security checkpoint tablets/laptops have compound Wi-Fi or 4G SIM.'],
-  ['Custom Compound Domain', 'Optional', 'Minor (10 min)', 'DNS CNAME pointing (e.g. vms.unhouseabuja.org) if requested by leadership.'],
+  ['Custom Compound Domain', 'Optional', 'Minor (10 min)', 'DNS CNAME pointing (e.g. unhouseabuja.org / access.un.org) if requested.'],
   ['Microsoft Entra ID (SSO)', 'Ready / Deferred', 'Optional', 'Popup SSO button preserved in code; ready for 1-click activation when tenant consents.']
 ];
 
 rows.forEach((r, idx) => {
   const bg = idx % 2 === 0 ? '#f8fafc' : '#ffffff';
-  doc.rect(50, rowY, doc.page.width - 100, 24).fillAndStroke(bg, C_LINE);
-  curX = 54;
+  doc.rect(45, rowY, contentWidth, 20).fillAndStroke(bg, C_LINE);
+  curX = 50;
   r.forEach((val, i) => {
     const isBold = i === 0;
     const isAlert = i === 2 && val.includes('None');
-    doc.fontSize(7.5).font(isBold ? 'Helvetica-Bold' : 'Helvetica')
+    doc.fontSize(7).font(isBold ? 'Helvetica-Bold' : 'Helvetica')
       .fillColor(isAlert ? C_GREEN : (i === 2 && val.includes('Minor') ? C_AMBER : C_NAVY))
-      .text(val, curX, rowY + 6, { width: colW[i] - 8, lineGap: 1 });
+      .text(val, curX, rowY + 5, { width: colW[i] - 10, lineGap: 1 });
     curX += colW[i];
   });
-  rowY += 24;
+  rowY += 20;
 });
 
-doc.y = rowY + 14;
+doc.y = rowY + 10;
 
-// ==================== PAGE 3 ====================
+// =========================================================================
+// PAGE 3: SECURITY, COMPLIANCE & PHYSICAL CHECKPOINT ROLLOUT
+// =========================================================================
 doc.addPage();
-drawHeader('SECURITY, COMPLIANCE & PHYSICAL DEPLOYMENT');
+drawPageHeader('SECURITY, COMPLIANCE & PHYSICAL DEPLOYMENT');
 
-sectionTitle('5', 'Security, Data Protection & BOS 2.0 Compliance');
-bodyText('UNVMS is architected under strict adherence to the United Nations Principles on Personal Data Protection and Privacy:');
+renderSectionTitle('5', 'Security, Data Protection & BOS 2.0 Compliance');
+renderBody('UNVMS is architected under strict adherence to the United Nations Principles on Personal Data Protection and Privacy:');
 
 const points = [
   'Purpose Limitation: Visitor data (full name, phone, agency visited, badge number) is retained strictly for physical security, contact tracing, and emergency evacuation accountability.',
@@ -209,15 +217,15 @@ const points = [
 
 points.forEach(p => {
   const y = doc.y;
-  doc.circle(58, y + 5, 2.5).fill(C_DARK_BLUE);
+  doc.circle(52, y + 4.5, 2.5).fill(C_DARK_BLUE);
   const [b, ...rest] = p.split(':');
-  doc.fontSize(8.5).font('Helvetica-Bold').fillColor(C_NAVY).text(b + ':', 68, y, { continued: true });
-  doc.font('Helvetica').fillColor(C_SLATE).text(rest.join(':'), { lineGap: 1.5 });
-  doc.moveDown(0.3);
+  doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text(b + ':', 60, y, { continued: true });
+  doc.font('Helvetica').fillColor(C_SLATE).text(rest.join(':'), { lineGap: 1.2 });
+  doc.y = y + 21;
 });
 
-sectionTitle('6', 'Physical Checkpoint Deployment Checklist');
-bodyText('To roll out the system across UN House Abuja gates, the operational team should complete these practical steps:');
+renderSectionTitle('6', 'Physical Checkpoint Deployment Checklist');
+renderBody('To roll out the system across UN House Abuja gates, the operational team should complete these practical steps:');
 
 const checklist = [
   { item: 'Checkpoint 1 (Vehicle Gate 1)', detail: '1x Tablet / Ruggedized Laptop with Google Chrome. 4G SIM or compound perimeter Wi-Fi connection.' },
@@ -229,35 +237,37 @@ const checklist = [
 
 checklist.forEach(c => {
   const y = doc.y;
-  doc.rect(50, y, doc.page.width - 100, 24).fillAndStroke('#f8fafc', C_LINE);
-  doc.rect(50, y, 3, 24).fill(C_UN_BLUE);
-  doc.fontSize(8.5).font('Helvetica-Bold').fillColor(C_NAVY).text(c.item, 60, y + 5);
-  doc.fontSize(7.5).font('Helvetica').fillColor(C_SLATE).text(c.detail, 60, y + 14);
-  doc.y = y + 28;
+  doc.rect(45, y, contentWidth, 22).fillAndStroke('#f8fafc', C_LINE);
+  doc.rect(45, y, 3, 22).fill(C_UN_BLUE);
+  doc.fontSize(8).font('Helvetica-Bold').fillColor(C_NAVY).text(c.item, 54, y + 4);
+  doc.fontSize(7).font('Helvetica').fillColor(C_SLATE).text(c.detail, 54, y + 12);
+  doc.y = y + 25;
 });
 
-doc.moveDown(0.5);
+doc.moveDown(0.4);
 
 // Sign-off Box
 const signY = doc.y;
-doc.rect(50, signY, doc.page.width - 100, 56).fillAndStroke('#f0f9ff', '#bae6fd');
-doc.fontSize(9).font('Helvetica-Bold').fillColor(C_DARK_BLUE)
-  .text('DEPLOYMENT READINESS SIGN-OFF', 62, signY + 10);
-doc.fontSize(8).font('Helvetica').fillColor(C_NAVY)
-  .text('Software Version: UNVMS Production Build 2026.3 · Target Hosting: https://unhouse-vms.web.app\nPrepared for: UN House Common Services, UNDSS Security Focal Points & UN ICT Working Group.\nAttribution: Engineered by SKILL.SCH · Inquiries & Technical Support: Desk Ext. 2010 / 2030', 62, signY + 24, { lineGap: 2 });
+doc.rect(45, signY, contentWidth, 54).fillAndStroke('#f0f9ff', '#bae6fd');
+doc.fontSize(8.5).font('Helvetica-Bold').fillColor(C_DARK_BLUE)
+  .text('DEPLOYMENT READINESS SIGN-OFF', 57, signY + 8);
+doc.fontSize(7.5).font('Helvetica').fillColor(C_NAVY)
+  .text('Software Version: UNVMS Production Build 2026.3 · Target Hosting: https://unhouse-vms.web.app\nPrepared for: UN House Common Services, UNDSS Security Focal Points & UN ICT Working Group.\nAttribution: Engineered by SKILL.SCH · Inquiries & Technical Support: Desk Ext. 2010 / 2030', 57, signY + 20, { lineGap: 2 });
 
-// Page Numbers & Footer on all pages
+// =========================================================================
+// PRECISE 3-PAGE NUMBERING & FOOTERS
+// =========================================================================
 const pages = doc.bufferedPageRange();
 for (let i = 0; i < pages.count; i++) {
   doc.switchToPage(i);
-  doc.rect(50, doc.page.height - 35, doc.page.width - 100, 0.5).fill(C_LINE);
-  doc.fontSize(7.5).fillColor(C_LIGHT_SLATE).font('Helvetica')
-    .text('UN House Abuja · Visitor Management System (UNVMS) · Engineered by SKILL.SCH', 50, doc.page.height - 28, { align: 'left' });
-  doc.text(`Page ${i + 1} of ${pages.count}`, 50, doc.page.height - 28, { align: 'right' });
+  doc.rect(45, doc.page.height - 30, contentWidth, 0.5).fill(C_LINE);
+  doc.fontSize(7).fillColor(C_LIGHT_SLATE).font('Helvetica')
+    .text('UN House Abuja · Visitor Management System (UNVMS) · Engineered by SKILL.SCH', 45, doc.page.height - 24, { align: 'left' });
+  doc.text(`Page ${i + 1} of ${pages.count}`, 45, doc.page.height - 24, { align: 'right' });
 }
 
 doc.end();
 
 stream.on('finish', () => {
-  console.log('PDF generation complete:', outputPath);
+  console.log(`PDF generation complete. Total pages: ${pages.count}`);
 });
