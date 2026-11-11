@@ -138,7 +138,7 @@ sectionTitle('3', 'Authentication Model: Zero New Email Accounts');
 bodyText('A central design mandate is that NO staff member, security officer, or guest is ever required to create or maintain a secondary email address.');
 
 subTitle('A. Official UN Staff & Host Officers (Passwordless Magic Link)');
-bodyText('• Staff enter their existing official work email (e.g. name@undp.org, name@who.int, name@unicef.org, name@un.org).\n• A secure, single-use, 15-minute cryptographic sign-in link is dispatched directly into their Microsoft Outlook / M365 inbox.\n• Clicking the link in Outlook automatically authenticates them into their operations console.\n• Staff names and agency affiliations are automatically detected from their email and matched against the pre-loaded UN Staff Directory.');
+bodyText('• Staff enter their official UN work email (e.g. name@undp.org or name@un.org).\n• A secure, single-use, 15-minute cryptographic sign-in link is dispatched directly into their Microsoft Outlook / M365 inbox.\n• Clicking the link in Outlook automatically authenticates them into their operations console.\n• Staff names and agency affiliations are automatically detected from their email and matched against the pre-loaded UN Staff Directory.');
 
 subTitle('B. Station & Gate Security Officers');
 bodyText('• Dedicated credentials for Station 1 (Gate), Station 2 (Search/ID), Station 3 (Reception), Station 4 (Exit), VIP Protocol, and UNDSS Field Security Supervisors (FSM).\n• Role-based access ensures officers only see tools relevant to their specific checkpoint.');
@@ -164,7 +164,7 @@ headers.forEach((h, i) => {
 
 let rowY = tableY + 20;
 const rows = [
-  ['Staff Sign-In (Magic Link)', 'Live & Verified', 'None (0%)', 'Dispatches directly to @undp.org, @who.int Outlook inboxes out of the box.'],
+  ['Staff Sign-In (Magic Link)', 'Live & Verified', 'None (0%)', 'Dispatches directly to @undp.org or @un.org Outlook inboxes out of the box.'],
   ['Station 1-4 Operations', 'Live & Verified', 'None (0%)', 'Standalone web consoles operate on standard browsers (Chrome, Edge, Safari).'],
   ['Visitor Digital Passes', 'Live & Verified', 'None (0%)', 'Tokenized links with dynamic QR generation. No app store installation.'],
   ['QR / Camera Scanning', 'Live & Verified', 'None (0%)', 'Standard HTML5 browser cameras; standard USB 2D scanners act as keyboards.'],
