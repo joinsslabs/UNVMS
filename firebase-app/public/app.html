@@ -1293,23 +1293,29 @@ function connectFirebase(){
 async function ensureStaff(u){
   const ref=db.collection("staff").doc(u.uid);
   let s=await ref.get();
+  const isUnEmail = u.email && (/@(undp\.org|un\.org|who\.int|unicef\.org|wfp\.org|unhcr\.org|unfpa\.org|unaids\.org|unodc\.org|unesco\.org|ilo\.org|fao\.org|unwomen\.org|iom\.int)$/i.test(u.email) || u.email.endsWith(".un.org") || u.email.endsWith(".undp.org"));
   if(!s.exists){
     const name=(u.displayName||sessionStorageGet("pendingName")||u.email.split("@")[0]).trim();
     const setup=await db.collection("config").doc("setup").get().catch(()=>({exists:true}));
-    const role = (!setup.exists) ? "admin" : "pending";
+    const role = (!setup.exists) ? "admin" : (isUnEmail ? "host" : "pending");
     const agency = getStaffAgency(name, role, u.email);
     const base={uid:u.uid,email:u.email,name,agency,active:true,createdAt:now()};
     if(!setup.exists){
       const b=db.batch();
       b.set(db.collection("config").doc("setup"),{adminUid:u.uid,createdAt:now()});
       b.set(ref,{...base,role:"admin"});
-      try{await b.commit(); toast("You are the first account, so you are the administrator.")}catch(e){await ref.set({...base,role:"pending"})}
-    } else await ref.set({...base,role:"pending"});
+      try{await b.commit(); toast("You are the first account, so you are the administrator.")}catch(e){await ref.set({...base,role:(isUnEmail?"host":"pending")})}
+    } else await ref.set({...base,role:(isUnEmail?"host":"pending")});
     s=await ref.get();
   }
   const sData = s.data() || {};
-  const agency = sData.agency || getStaffAgency(sData.name || u.displayName, sData.role, u.email);
-  return {...sData, agency, uid:u.uid};
+  let role = sData.role || "pending";
+  if(role === "pending" && isUnEmail){
+    role = "host";
+    ref.update({role:"host"}).catch(()=>{});
+  }
+  const agency = sData.agency || getStaffAgency(sData.name || u.displayName, role, u.email);
+  return {...sData, role, agency, uid:u.uid};
 }
 function sessionStorageGet(k){try{return localStorage.getItem(k)||sessionStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
