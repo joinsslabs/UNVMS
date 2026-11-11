@@ -6,6 +6,14 @@
 <script src="firebase-config.js"></script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
 </head><body>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1e2f52"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head><body>
 window.MS_SIGNIN = window.MS_SIGNIN || { enabled: true, tenant: "organizations" };
 <title>UN House Visitor Management System</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -1290,10 +1298,14 @@ function connectFirebase(){
     startData(); watchConnection();
   });
 }
+// Must match unEmail() in firestore.rules.
+const UN_EMAIL_RE=/^[^@\s]+@([a-z0-9-]+\.)*(undp\.org|un\.org|who\.int|unicef\.org|wfp\.org|unhcr\.org|unfpa\.org|unaids\.org|unodc\.org|unesco\.org|ilo\.org|fao\.org|unwomen\.org|iom\.int)$/i;
 async function ensureStaff(u){
   const ref=db.collection("staff").doc(u.uid);
   let s=await ref.get();
-  const isUnEmail = u.email && (/@(undp\.org|un\.org|who\.int|unicef\.org|wfp\.org|unhcr\.org|unfpa\.org|unaids\.org|unodc\.org|unesco\.org|ilo\.org|fao\.org|unwomen\.org|iom\.int)$/i.test(u.email) || u.email.endsWith(".un.org") || u.email.endsWith(".undp.org"));
+  // Only an email address the person has proved they own (email-link sign-in) can become a host automatically.
+  // Password accounts are not verified, so anyone could type a UN address; those wait for an admin.
+  const isUnEmail = !!(u.email && u.emailVerified && UN_EMAIL_RE.test(u.email));
   if(!s.exists){
     const name=(u.displayName||sessionStorageGet("pendingName")||u.email.split("@")[0]).trim();
     const setup=await db.collection("config").doc("setup").get().catch(()=>({exists:true}));
@@ -1305,14 +1317,13 @@ async function ensureStaff(u){
       b.set(db.collection("config").doc("setup"),{adminUid:u.uid,createdAt:now()});
       b.set(ref,{...base,role:"admin"});
       try{await b.commit(); toast("You are the first account, so you are the administrator.")}catch(e){await ref.set({...base,role:(isUnEmail?"host":"pending")})}
-    } else await ref.set({...base,role:(isUnEmail?"host":"pending")});
+    } else { try{ await ref.set({...base,role:(isUnEmail?"host":"pending")}); }catch(e){ await ref.set({...base,role:"pending"}); } }
     s=await ref.get();
   }
   const sData = s.data() || {};
   let role = sData.role || "pending";
   if(role === "pending" && isUnEmail){
-    role = "host";
-    ref.update({role:"host"}).catch(()=>{});
+    try{ await ref.update({role:"host"}); role = "host"; }catch(e){ /* stays pending; an admin can assign the role */ }
   }
   const agency = sData.agency || getStaffAgency(sData.name || u.displayName, role, u.email);
   return {...sData, role, agency, uid:u.uid};
@@ -2537,10 +2548,10 @@ async function useInvite(arg){
   // Save approved visitor record
   await save(v);
 
-  // Sync to Firestore
-  if(window.firebase && window.firebase.firestore){
+  // Sync to Firestore (live system only; the demo never writes to the real database)
+  if(db && fb && !fb.demo){
     try{
-      await window.firebase.firestore().collection("invites").doc(i.id).set({
+      await db.collection("invites").doc(i.id).set({
         status: "used",
         visitorId: ref,
         usedAt: now()
@@ -4455,22 +4466,10 @@ async function showInvite(tok){
           hostExt: (i && i.hostExt) || getHostExt(hostName, agencyName),
           submittedAt: now()
         };
-        if(window.firebase && window.firebase.firestore){
-          try{
-            const realDb = (fb && !fb.demo) ? db : window.firebase.firestore();
-            await realDb.collection("invites").doc(invId).set({
-              status: "submitted",
-              guest,
-              host: hostName,
-              agency: agencyName,
-              submittedAt: now(),
-              id: invId,
-              expires: (i && i.expires) || (now() + 7 * 864e5),
-              demo: true
-            }, { merge: true });
-          }catch(x){}
-        } else if(db && (!fb || !fb.demo)){
-          try{ await db.collection("invites").doc(tok).update({ status: "submitted", guest, submittedAt: now() }); }catch(e){}
+        const isDemoInvite = tok === "demo" || (i && i.demo === true) || (fb && fb.demo);
+        if(!isDemoInvite && db){
+          try{ await db.collection("invites").doc(tok).update({ status: "submitted", guest, submittedAt: now() }); }
+          catch(x){ $("#g_err").textContent = T.sendErr; return; }
         }
         try{
           localStorage.setItem("unhDemoInvite:" + invId, JSON.stringify(patchData));
@@ -4537,10 +4536,7 @@ async function showInvite(tok){
         };
         passes.unshift(newPassObj);
         visitors.unshift(newVis);
-        if(db && fb && !fb.demo){
-          try{ await db.collection("visitors").doc(newVis.id).set(newVis); }catch(e){}
-          try{ await db.collection("passes").doc(passCode).set(newPassObj); }catch(e){}
-        }
+        // (Visits and passes are created by staff when they register the submission; a guest cannot write them.)
         try{
           localStorage.setItem("unhDemoPass:" + passCode, JSON.stringify(newPassObj));
           localStorage.setItem("unhDemoPassRef:" + newVis.ref, JSON.stringify(newPassObj));
@@ -5881,34 +5877,8 @@ function loadDemoInvites(){
     }
   }catch(e){}
 
-  // 4. Firestore live sync for submitted invites across devices
-  if(window.firebase && window.firebase.firestore){
-    try{
-      const fdb=window.firebase.firestore();
-      fdb.collection("invites").where("status","==","submitted").get().then(snap=>{
-        let fsChanged=false;
-        snap.forEach(doc=>{
-          const data=doc.data();
-          if(data.guest && visitors.some(v => v.name === data.guest.name && ["approved","arrived","tagged","in","out"].includes(v.status))) return;
-          let existing=invites.find(x=>x.id===doc.id);
-          if(existing){
-            if(existing.status==="used"||existing.status==="cancelled") return;
-            if(existing.status!=="submitted"||!existing.guest){
-              Object.assign(existing,{status:"submitted",guest:data.guest,submittedAt:data.submittedAt||now()});
-              fsChanged=true;
-            }
-          } else {
-            invites.unshift({id:doc.id,...data});
-            fsChanged=true;
-          }
-        });
-        if(fsChanged){
-          saveDemo();
-          if(view==="register"||view==="gate") render();
-        }
-      }).catch(()=>{});
-    }catch(e){}
-  }
+  // (Removed: the demo used to load real submitted invites from the live database.
+  //  The demo is public, so it must only ever use its own sample data.)
 
   if(changed){
     saveDemo();
@@ -12049,5 +12019,7 @@ setInterval(()=>{
   render();
 },8000);
 </script>
+
+</body></html>
 
 </body></html>

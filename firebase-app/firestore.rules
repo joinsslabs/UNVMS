@@ -13,6 +13,12 @@ service cloud.firestore {
     }
     function hasRole(roles) { return isStaff() && me().role in roles; }
     function isAdmin() { return hasRole(['admin', 'sec_admin']); }
+    // A UN-agency address the person has proved they own (email-link sign-in sets email_verified).
+    // Must match UN_EMAIL_RE in the app.
+    function unEmail() {
+      return request.auth.token.email_verified == true
+        && request.auth.token.email.lower().matches('^[^@ ]+@([a-z0-9-]+[.])*(undp[.]org|un[.]org|who[.]int|unicef[.]org|wfp[.]org|unhcr[.]org|unfpa[.]org|unaids[.]org|unodc[.]org|unesco[.]org|ilo[.]org|fao[.]org|unwomen[.]org|iom[.]int)$');
+    }
 
     // Records who the first administrator is. Written once, never changed.
     match /config/setup {
@@ -45,15 +51,20 @@ service cloud.firestore {
         && request.resource.data.active == true
         && (
           request.resource.data.role == 'pending'
+          || (request.resource.data.role == 'host' && unEmail())
           || (request.resource.data.role == 'admin'
               && !exists(setupPath())
               && getAfter(setupPath()).data.adminUid == uid)
         );
-      // Only admins assign roles. An admin cannot demote or deactivate themselves.
-      allow update: if isAdmin()
+      // A pending account with a verified UN address may promote itself to host (nothing else).
+      allow update: if (request.auth.uid == uid && resource.data.role == 'pending'
+          && request.resource.data.role == 'host' && unEmail()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
+      // Only admins assign other roles. An admin cannot demote or deactivate themselves.
+        || (isAdmin()
         && (uid != request.auth.uid
             || (request.resource.data.role in ['admin', 'sec_admin'] && request.resource.data.active == true))
-        && request.resource.data.email == resource.data.email;
+        && request.resource.data.email == resource.data.email);
       allow delete: if false;
     }
 
@@ -157,20 +168,18 @@ service cloud.firestore {
       function nv() { return request.resource.data; }
       function str(v, max) { return v is string && v.size() <= max; }
       allow get: if true;
-      allow list: if isStaff()
-        || (hasRole(['host']) && resource.data.hostUid == request.auth.uid)
-        || resource.data.get('demo', false) == true
-        || resource.data.status == 'submitted';
-      allow create: if (isStaff() || nv().get('demo', false) == true)
-        && nv().status in ['open', 'submitted']
+      allow list: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip'])
+        || (hasRole(['host']) && resource.data.hostUid == request.auth.uid);
+      allow create: if isStaff() && nv().get('demo', false) == false
+        && nv().status == 'open'
         && nv().expires is int && nv().expires < request.time.toMillis() + 1209600000
         && token.size() >= 16;
       allow update: if
         // Guest submits once, before expiry, only the allowed fields.
-        ((inv().status == 'open' || inv().get('demo', false) == true)
+        (inv().status == 'open'
           && nv().status == 'submitted'
           && inv().expires > request.time.toMillis()
-          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt', 'host', 'agency', 'id', 'demo', 'expires'])
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt'])
           && nv().guest.keys().hasOnly(['name', 'org', 'phone', 'vehicle', 'email', 'expected', 'purpose', 'agreedAt', 'agreement', 'lang'])
           && (!('email' in nv().guest) || str(nv().guest.email, 160))
           && (!('vehicle' in nv().guest) || str(nv().guest.vehicle, 60))
@@ -179,10 +188,7 @@ service cloud.firestore {
           && str(nv().guest.expected, 30) && str(nv().guest.purpose, 300))
         // Staff turn a submission into a visit, or cancel an invite.
         || (isStaff() && (inv().hostUid == request.auth.uid || hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'reception']))
-          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
-          && nv().status in ['used', 'cancelled'])
-        || (inv().get('demo', false) == true
-          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId', 'usedAt'])
           && nv().status in ['used', 'cancelled']);
       allow delete: if false;
     }
