@@ -255,15 +255,16 @@ doc.fontSize(7.5).font('Helvetica').fillColor(C_NAVY)
   .text('Software Version: UNVMS Production Build 2026.3 · Target Hosting: https://unhouse-vms.web.app\nPrepared for: UN House Common Services, UNDSS Security Focal Points & UN ICT Working Group.\nAttribution: Engineered by SKILL.SCH · Inquiries & Technical Support: Desk Ext. 2010 / 2030', 57, signY + 20, { lineGap: 2 });
 
 // =========================================================================
-// PRECISE 3-PAGE NUMBERING & FOOTERS
+// PRECISE 3-PAGE NUMBERING & FOOTERS (Zero Margin Overflow)
 // =========================================================================
 const pages = doc.bufferedPageRange();
 for (let i = 0; i < pages.count; i++) {
   doc.switchToPage(i);
+  doc.page.margins.bottom = 0;
   doc.rect(45, doc.page.height - 30, contentWidth, 0.5).fill(C_LINE);
   doc.fontSize(7).fillColor(C_LIGHT_SLATE).font('Helvetica')
-    .text('UN House Abuja · Visitor Management System (UNVMS) · Engineered by SKILL.SCH', 45, doc.page.height - 24, { align: 'left' });
-  doc.text(`Page ${i + 1} of ${pages.count}`, 45, doc.page.height - 24, { align: 'right' });
+    .text('UN House Abuja · Visitor Management System (UNVMS) · Engineered by SKILL.SCH', 45, doc.page.height - 24, { width: contentWidth / 2, lineBreak: false });
+  doc.text(`Page ${i + 1} of ${pages.count}`, 45 + contentWidth / 2, doc.page.height - 24, { width: contentWidth / 2, align: 'right', lineBreak: false });
 }
 
 doc.end();
