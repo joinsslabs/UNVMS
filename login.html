@@ -654,19 +654,6 @@ h1 {
           >
         </div>
 
-        <div class="form-group" id="ml_name_group">
-          <label for="ml_name">
-            Official Full Name
-            <span class="optional">(first-time registration)</span>
-          </label>
-          <input
-            type="text"
-            id="ml_name"
-            placeholder="e.g. Dr. Amina Bello"
-            autocomplete="name"
-          >
-        </div>
-
         <div class="form-message" id="ml_err"></div>
 
         <button class="submit-btn" type="submit" id="ml_submit">
@@ -903,7 +890,8 @@ h1 {
   formMl.addEventListener('submit', function(e){
     e.preventDefault();
     var email = document.getElementById('ml_email').value.trim();
-    var name = document.getElementById('ml_name').value.trim();
+    var nameEl = document.getElementById('ml_name');
+    var name = nameEl ? nameEl.value.trim() : '';
     var errEl = document.getElementById('ml_err');
     var btn = document.getElementById('ml_submit');
     errEl.className = 'form-message';

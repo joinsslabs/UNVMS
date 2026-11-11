@@ -1420,10 +1420,6 @@ function showLogin(_m,msg){
           <label for="ml_email" style="font-size:12px;font-weight:700;color:var(--navy)">Work Email Address *</label>
           <input id="ml_email" type="email" placeholder="name@un.org / name@undp.org" required autocomplete="username" value="${esc(sessionStorageGet("linkEmail")||"")}" style="height:40px;font-size:13.5px;border:1.5px solid #cbd5e1;border-radius:8px" autofocus>
         </div>
-        <div class="f">
-          <label for="ml_name" style="font-size:12px;font-weight:700;color:var(--navy)">Full Name <span style="font-weight:400;color:var(--muted)">(first-time registration only)</span></label>
-          <input id="ml_name" autocomplete="name" placeholder="e.g. Dr. Amina Bello" style="height:40px;font-size:13.5px;border:1.5px solid #cbd5e1;border-radius:8px">
-        </div>
         <div id="l_err" class="small" style="color:var(--bad);font-weight:600">${esc(msg||"")}</div>
         <button class="btn pri" type="submit" id="ml_go" style="height:42px;font-size:13.5px;font-weight:700;background:linear-gradient(135deg,#0284c7 0%,#0369a1 100%);border-radius:8px;box-shadow:0 4px 14px rgba(2,132,199,0.35);margin-top:4px">
           ✉️ Send Secure Sign-In Link
@@ -1458,7 +1454,7 @@ function showLogin(_m,msg){
     if(window.MS_SIGNIN.tenant) p.setCustomParameters({tenant:window.MS_SIGNIN.tenant,prompt:"select_account"});
     try{await firebase.auth().signInWithPopup(p)}catch(x){if(x.code==="auth/popup-blocked"||x.code==="auth/operation-not-supported-in-this-environment")firebase.auth().signInWithRedirect(p);else $("#l_err").textContent=x.code==="auth/operation-not-allowed"?"Microsoft sign-in isn't set up in Firebase yet.":authMsg(x)}};
 
-  $("#ml").onsubmit=async e=>{e.preventDefault();const em=$("#ml_email").value.trim(),nm=$("#ml_name").value.trim();
+  $("#ml").onsubmit=async e=>{e.preventDefault();const em=$("#ml_email").value.trim(),nm=$("#ml_name")?$("#ml_name").value.trim():"";
     $("#ml_go").setAttribute("disabled","");$("#l_err").textContent="";
     try{await firebase.auth().sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true});
       lsSet("linkEmail",em); if(nm) lsSet("pendingName",nm);
