@@ -1,3 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1e2f52"><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="icon.svg">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}</style>
+</head><body>
 window.MS_SIGNIN = window.MS_SIGNIN || { enabled: true, tenant: "organizations" };
 <title>UN House Visitor Management System</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -1422,6 +1430,7 @@ function showLogin(_m,msg){
         </button>
       </form>
 
+      <!-- Microsoft 365 Single Sign-On (Deferred for now - re-enable once UN ICT grants Entra ID tenant consent)
       <div style="display:flex;align-items:center;gap:10px;margin:18px 0 12px" class="small">
         <span style="flex:1;height:1px;background:var(--line)"></span>
         <span style="color:var(--muted);font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.05em">Or Sign In With</span>
@@ -1434,6 +1443,7 @@ function showLogin(_m,msg){
       <p style="text-align:center;font-size:11.5px;color:#0369a1;margin:6px 0 0;line-height:1.4">
         🔐 Use your existing official UN email (<code>@undp.org</code>, <code>@who.int</code>, <code>@unicef.org</code>, <code>@un.org</code>). No separate email or password required.
       </p>
+      -->
 
       <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px" class="small">
         <a href="index.html" style="color:#0284c7;font-weight:600;text-decoration:none">← Return to UN House Portal</a>
@@ -12037,3 +12047,5 @@ setInterval(()=>{
   render();
 },8000);
 </script>
+
+</body></html>
