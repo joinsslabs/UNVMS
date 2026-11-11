@@ -730,6 +730,20 @@ h1 {
         </div>
       </form>
 
+      <div style="display:flex;align-items:center;gap:10px;margin:20px 0 12px">
+        <span style="flex:1;height:1px;background:#e2e8f0"></span>
+        <span style="color:#64748b;font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.05em">Or Sign In With</span>
+        <span style="flex:1;height:1px;background:#e2e8f0"></span>
+      </div>
+
+      <button type="button" id="ms_go" style="width:100%;height:46px;justify-content:center;border:1.5px solid #cbd5e1;border-radius:11px;font-weight:700;font-size:13px;background:#ffffff;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s">
+        <svg width="18" height="18" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
+        <span>Sign in with Microsoft 365 (UN Work Account)</span>
+      </button>
+      <p style="text-align:center;font-size:11.5px;color:#0369a1;margin:8px 0 14px;line-height:1.4">
+        🔐 Use your official UN email (<code>@undp.org</code>, <code>@who.int</code>, <code>@unicef.org</code>, <code>@un.org</code>). No separate email or password required.
+      </p>
+
       <div class="divider"></div>
 
       <div class="return-link">
@@ -785,6 +799,34 @@ h1 {
           });
       }
     }
+  }
+
+  // Microsoft 365 Entra ID SSO
+  var msBtn = document.getElementById('ms_go');
+  if (msBtn && auth) {
+    msBtn.addEventListener('click', async function() {
+      var p = new firebase.auth.OAuthProvider('microsoft.com');
+      p.setCustomParameters({
+        tenant: (window.MS_SIGNIN && window.MS_SIGNIN.tenant) || 'organizations',
+        prompt: 'select_account'
+      });
+      try {
+        await auth.signInWithPopup(p);
+      } catch (x) {
+        if (x.code === 'auth/popup-blocked' || x.code === 'auth/operation-not-supported-in-this-environment') {
+          auth.signInWithRedirect(p);
+        } else {
+          var errDiv = document.getElementById('ml_err');
+          if (errDiv) {
+            errDiv.className = 'form-message error';
+            errDiv.style.display = 'block';
+            errDiv.textContent = x.code === 'auth/operation-not-allowed'
+              ? "Microsoft sign-in is pending administrator activation in Firebase Auth."
+              : (x.message || 'Authentication error.');
+          }
+        }
+      }
+    });
   }
 
   // Tab Switching
