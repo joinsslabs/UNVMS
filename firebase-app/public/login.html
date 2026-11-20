@@ -628,19 +628,6 @@ h1 {
         Enter your official UN email address to receive a secure instant authentication link.
       </p>
 
-      <!-- AUTH TABS -->
-      <div class="tabs">
-        <button type="button" class="tab active" id="tab_ml">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-          Magic Link
-        </button>
-
-        <button type="button" class="tab" id="tab_pw">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          Password
-        </button>
-      </div>
-
       <!-- MAGIC LINK FORM -->
       <form id="form_ml">
         <div class="form-group">
@@ -660,61 +647,6 @@ h1 {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
           Send Secure Sign-In Link
         </button>
-      </form>
-
-      <!-- PASSWORD FORM -->
-      <form id="form_pw" style="display:none">
-        <div class="form-group" id="pw_name_group" style="display:none">
-          <label for="pw_name">Official Full Name *</label>
-          <input
-            type="text"
-            id="pw_name"
-            placeholder="e.g. Dr. Amina Bello"
-            autocomplete="name"
-          >
-        </div>
-
-        <div class="form-group">
-          <label for="pw_email">Work Email Address *</label>
-          <input
-            type="email"
-            id="pw_email"
-            placeholder="name@un.org"
-            autocomplete="username"
-            required
-          >
-        </div>
-
-        <div class="form-group">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <label for="pw_pass" style="margin:0">Account Password *</label>
-            <a href="#" id="pw_reset" style="font-size:11.5px;color:#0284c7;text-decoration:none;font-weight:700">Forgot password?</a>
-          </div>
-          <div class="password-wrap">
-            <input
-              type="password"
-              id="pw_pass"
-              placeholder="Minimum 8 characters"
-              autocomplete="current-password"
-              required
-            >
-            <button type="button" class="show-password" id="pw_show_btn">
-              Show
-            </button>
-          </div>
-        </div>
-
-        <div class="form-message" id="pw_err"></div>
-
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <button class="submit-btn" type="submit" id="pw_submit" style="flex:1">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Sign In to Station
-          </button>
-          <button type="button" id="pw_toggle_mode" style="height:50px;padding:0 14px;border:1.5px solid #cbd5e1;border-radius:11px;background:#f8fafc;color:#334155;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap">
-            Register
-          </button>
-        </div>
       </form>
 
       <!-- Microsoft 365 Single Sign-On (Deferred for now - re-enable once UN ICT grants Entra ID tenant consent)
@@ -818,73 +750,7 @@ h1 {
     });
   }
 
-  // Tab Switching
-  var tabMl = document.getElementById('tab_ml');
-  var tabPw = document.getElementById('tab_pw');
   var formMl = document.getElementById('form_ml');
-  var formPw = document.getElementById('form_pw');
-  var title = document.getElementById('login_title');
-  var sub = document.getElementById('login_sub');
-  var isRegisterMode = false;
-
-  tabMl.addEventListener('click', function(){
-    tabMl.classList.add('active');
-    tabPw.classList.remove('active');
-    formMl.style.display = 'block';
-    formPw.style.display = 'none';
-    title.textContent = 'Passwordless Sign-In';
-    sub.textContent = 'Enter your official UN email address to receive a secure instant authentication link.';
-  });
-
-  tabPw.addEventListener('click', function(){
-    tabPw.classList.add('active');
-    tabMl.classList.remove('active');
-    formMl.style.display = 'none';
-    formPw.style.display = 'block';
-    updatePwMode();
-  });
-
-  var toggleBtn = document.getElementById('pw_toggle_mode');
-  toggleBtn.addEventListener('click', function(){
-    isRegisterMode = !isRegisterMode;
-    updatePwMode();
-  });
-
-  function updatePwMode(){
-    var nameGroup = document.getElementById('pw_name_group');
-    var pwSubmit = document.getElementById('pw_submit');
-    var pwPass = document.getElementById('pw_pass');
-    if (isRegisterMode) {
-      nameGroup.style.display = 'block';
-      title.textContent = 'Create Staff Account';
-      sub.textContent = 'Register with your UN work credentials. Station roles must be confirmed by Security Administration.';
-      pwSubmit.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg> Create Account';
-      toggleBtn.textContent = 'Have Account';
-      pwPass.setAttribute('autocomplete', 'new-password');
-    } else {
-      nameGroup.style.display = 'none';
-      title.textContent = 'Staff Password Sign-In';
-      sub.textContent = 'Enter your registered staff credentials to access your designated station.';
-      pwSubmit.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Sign In to Station';
-      toggleBtn.textContent = 'Register';
-      pwPass.setAttribute('autocomplete', 'current-password');
-    }
-  }
-
-  // Password Visibility Toggle
-  var showBtn = document.getElementById('pw_show_btn');
-  var pwInput = document.getElementById('pw_pass');
-  if (showBtn && pwInput) {
-    showBtn.addEventListener('click', function(){
-      if (pwInput.type === 'password') {
-        pwInput.type = 'text';
-        showBtn.textContent = 'Hide';
-      } else {
-        pwInput.type = 'password';
-        showBtn.textContent = 'Show';
-      }
-    });
-  }
 
   // Magic Link Submit
   formMl.addEventListener('submit', function(e){
@@ -928,67 +794,6 @@ h1 {
       });
   });
 
-  // Password Submit
-  formPw.addEventListener('submit', function(e){
-    e.preventDefault();
-    var email = document.getElementById('pw_email').value.trim();
-    var pass = document.getElementById('pw_pass').value;
-    var name = document.getElementById('pw_name').value.trim();
-    var errEl = document.getElementById('pw_err');
-    var btn = document.getElementById('pw_submit');
-    errEl.className = 'form-message';
-    errEl.textContent = '';
-    btn.disabled = true;
-
-    if (!auth) {
-      errEl.className = 'form-message err';
-      errEl.textContent = 'Authentication service initializing.';
-      btn.disabled = false;
-      return;
-    }
-
-    if (isRegisterMode) {
-      auth.createUserWithEmailAndPassword(email, pass)
-        .then(function(cred){
-          if (name && cred.user) {
-            return cred.user.updateProfile({ displayName: name });
-          }
-        })
-        .then(function(){
-          location.replace("app.html" + location.search);
-        })
-        .catch(function(err){
-          btn.disabled = false;
-          errEl.className = 'form-message err';
-          errEl.textContent = err.message || 'Error registering account.';
-        });
-    } else {
-      auth.signInWithEmailAndPassword(email, pass)
-        .then(function(){
-          location.replace("app.html" + location.search);
-        })
-        .catch(function(err){
-          btn.disabled = false;
-          errEl.className = 'form-message err';
-          errEl.textContent = err.message || 'Invalid email or password.';
-        });
-    }
-  });
-
-  // Password Reset
-  document.getElementById('pw_reset').addEventListener('click', function(e){
-    e.preventDefault();
-    var email = document.getElementById('pw_email').value.trim() || window.prompt('Enter your registered UN email address:');
-    if (email && auth) {
-      auth.sendPasswordResetEmail(email)
-        .then(function(){
-          alert('Password reset link sent to ' + email + '. Check your inbox.');
-        })
-        .catch(function(err){
-          alert(err.message || 'Error sending password reset email.');
-        });
-    }
-  });
 })();
 </script>
 </body>
