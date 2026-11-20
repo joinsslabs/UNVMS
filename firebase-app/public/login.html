@@ -17,6 +17,25 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script>
+  // Opened from a sign-in email: hide the request form from the first paint and show "Signing you in".
+  if (/[?&]mode=signIn\b/.test(location.search) && /[?&]oobCode=/.test(location.search)) {
+    document.documentElement.className += ' linking';
+  }
+</script>
+
+<style>
+.link-status { display: none; text-align: center; padding: 10px 0 4px; }
+html.linking .link-status { display: block; }
+html.linking #login_title, html.linking #login_sub, html.linking #form_ml { display: none; }
+.link-spinner { width: 38px; height: 38px; margin: 6px auto 16px; border-radius: 50%;
+  border: 3px solid #e0f2fe; border-top-color: #0284c7; animation: link-spin .8s linear infinite; }
+@keyframes link-spin { to { transform: rotate(360deg); } }
+.link-status h2 { margin: 0 0 6px; }
+.link-status p { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
+.link-status .form-message { display: block; text-align: left; }
+.link-status a.again { display: inline-block; margin-top: 12px; font-size: 13px; color: #0284c7; font-weight: 700; text-decoration: none; }
+</style>
 
 <style>
 :root {
@@ -622,6 +641,22 @@ h1 {
         Staff &amp; Station Authentication
       </div>
 
+      <!-- Shown instead of the form when the page is opened from a sign-in email -->
+      <div class="link-status" id="link_status">
+        <div class="link-spinner" id="link_spinner"></div>
+        <h2 id="link_title">Signing you in…</h2>
+        <p id="link_sub">Verifying your secure link. You will be taken to the VMS portal in a moment.</p>
+        <form id="link_confirm" style="display:none">
+          <div class="form-group" style="text-align:left">
+            <label for="link_email">Confirm your work email address *</label>
+            <input type="email" id="link_email" placeholder="name@un.org" autocomplete="email" required>
+          </div>
+          <button class="submit-btn" type="submit">Continue to VMS Portal</button>
+        </form>
+        <div class="form-message" id="link_err" style="display:none"></div>
+        <a class="again" id="link_again" href="/login" style="display:none">Request a new sign-in link</a>
+      </div>
+
       <h2 id="login_title">Passwordless Sign-In</h2>
 
       <p class="subtitle" id="login_sub">
@@ -690,36 +725,72 @@ h1 {
 
   const auth = typeof firebase !== 'undefined' ? firebase.auth() : null;
 
-  // If already authenticated, redirect to app.html
-  if (auth) {
-    auth.onAuthStateChanged(function(u){
-      if (u) {
-        var dest = "app.html" + location.search;
-        location.replace(dest);
-      }
-    });
+  var linking = document.documentElement.className.indexOf('linking') >= 0;
 
-    // Check for email link sign-in
-    if (auth.isSignInWithEmailLink(location.href)) {
-      var savedEmail = window.localStorage.getItem('emailForSignIn') || window.sessionStorage.getItem('linkEmail');
-      if (!savedEmail) {
-        savedEmail = window.prompt('Please provide your UN work email address for confirmation:');
-      }
+  function goToPortal(){ location.replace('/app'); }
+
+  function linkFailed(msg){
+    document.getElementById('link_spinner').style.display = 'none';
+    document.getElementById('link_confirm').style.display = 'none';
+    document.getElementById('link_title').textContent = 'This sign-in link can’t be used';
+    document.getElementById('link_sub').textContent = '';
+    var e = document.getElementById('link_err');
+    e.className = 'form-message err'; e.style.display = 'block'; e.textContent = msg;
+    document.getElementById('link_again').style.display = 'inline-block';
+  }
+
+  function linkErrorText(err){
+    var c = err && err.code;
+    if (c === 'auth/invalid-action-code' || c === 'auth/expired-action-code')
+      return 'This link has expired or has already been used. Each link works once. Please request a new one.';
+    if (c === 'auth/invalid-email')
+      return 'That email address does not match the one this link was sent to.';
+    if (c === 'auth/network-request-failed')
+      return 'No internet connection. Please check your connection and try again.';
+    return 'We could not sign you in with this link. Please request a new one.';
+  }
+
+  function completeLink(email){
+    document.getElementById('link_confirm').style.display = 'none';
+    document.getElementById('link_spinner').style.display = 'block';
+    document.getElementById('link_title').textContent = 'Signing you in…';
+    document.getElementById('link_sub').textContent = 'Verifying your secure link. You will be taken to the VMS portal in a moment.';
+    auth.signInWithEmailLink(email, location.href)
+      .then(function(){
+        try { window.localStorage.removeItem('emailForSignIn'); } catch (e) {}
+        document.getElementById('link_title').textContent = 'Signed in';
+        document.getElementById('link_sub').textContent = 'Opening the VMS portal…';
+        goToPortal();
+      })
+      .catch(function(err){ linkFailed(linkErrorText(err)); });
+  }
+
+  if (auth && linking) {
+    // Opened from a sign-in email: finish signing in, then go straight to the portal.
+    if (!auth.isSignInWithEmailLink(location.href)) {
+      linkFailed(linkErrorText({ code: 'auth/invalid-action-code' }));
+    } else {
+      var savedEmail = null;
+      try { savedEmail = window.localStorage.getItem('emailForSignIn') || window.sessionStorage.getItem('linkEmail'); } catch (e) {}
       if (savedEmail) {
-        auth.signInWithEmailLink(savedEmail, location.href)
-          .then(function(){
-            window.localStorage.removeItem('emailForSignIn');
-            location.replace("app.html" + location.search);
-          })
-          .catch(function(err){
-            var el = document.getElementById('ml_err');
-            if (el) {
-              el.className = 'form-message err';
-              el.textContent = err.message || "Sign-in link expired or invalid.";
-            }
-          });
+        completeLink(savedEmail);
+      } else {
+        // Link opened on another device or browser: ask for the address on the page, not in a popup.
+        document.getElementById('link_spinner').style.display = 'none';
+        document.getElementById('link_title').textContent = 'Confirm your email';
+        document.getElementById('link_sub').textContent = 'For your security, please enter the email address this sign-in link was sent to.';
+        document.getElementById('link_confirm').style.display = 'block';
+        document.getElementById('link_email').focus();
+        document.getElementById('link_confirm').addEventListener('submit', function(e){
+          e.preventDefault();
+          var em = document.getElementById('link_email').value.trim();
+          if (em) completeLink(em);
+        });
       }
     }
+  } else if (auth) {
+    // Already signed in: skip the form.
+    auth.onAuthStateChanged(function(u){ if (u) goToPortal(); });
   }
 
   // Microsoft 365 Entra ID SSO
