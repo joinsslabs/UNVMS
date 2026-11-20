@@ -752,6 +752,11 @@ h1 {
 
   var formMl = document.getElementById('form_ml');
 
+  // Only UN agency addresses (plus the test account) may sign in. Must match unEmail() in firestore.rules.
+  var UN_EMAIL_RE = /^[^@\s]+@([a-z0-9-]+\.)*(undp\.org|un\.org|who\.int|unicef\.org|wfp\.org|unhcr\.org|unfpa\.org|unaids\.org|unodc\.org|unesco\.org|ilo\.org|fao\.org|unwomen\.org|iom\.int)$/i;
+  var TEST_EMAILS = ['skillschule@gmail.com'];
+  function isAllowedEmail(em){ em = (em || '').trim(); return UN_EMAIL_RE.test(em) || TEST_EMAILS.indexOf(em.toLowerCase()) >= 0; }
+
   // Magic Link Submit
   formMl.addEventListener('submit', function(e){
     e.preventDefault();
@@ -762,6 +767,11 @@ h1 {
     var btn = document.getElementById('ml_submit');
     errEl.className = 'form-message';
     errEl.textContent = '';
+    if (!isAllowedEmail(email)) {
+      errEl.className = 'form-message err';
+      errEl.textContent = 'Please use your official UN email address (e.g. @un.org, @undp.org).';
+      return;
+    }
     btn.disabled = true;
 
     if (!auth) {
@@ -772,7 +782,7 @@ h1 {
     }
 
     var actionCodeSettings = {
-      url: location.origin + '/login.html',
+      url: location.origin + '/login',
       handleCodeInApp: true
     };
 

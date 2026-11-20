@@ -17,7 +17,9 @@ service cloud.firestore {
     // Must match UN_EMAIL_RE in the app.
     function unEmail() {
       return request.auth.token.email_verified == true
-        && request.auth.token.email.lower().matches('^[^@ ]+@([a-z0-9-]+[.])*(undp[.]org|un[.]org|who[.]int|unicef[.]org|wfp[.]org|unhcr[.]org|unfpa[.]org|unaids[.]org|unodc[.]org|unesco[.]org|ilo[.]org|fao[.]org|unwomen[.]org|iom[.]int)$');
+        && request.auth.token.email.lower().matches('^[^@ ]+@([a-z0-9-]+[.])*(undp[.]org|un[.]org|who[.]int|unicef[.]org|wfp[.]org|unhcr[.]org|unfpa[.]org|unaids[.]org|unodc[.]org|unesco[.]org|ilo[.]org|fao[.]org|unwomen[.]org|iom[.]int)$')
+        || request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['skillschule@gmail.com'];
     }
 
     // Records who the first administrator is. Written once, never changed.
@@ -50,7 +52,7 @@ service cloud.firestore {
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.active == true
         && (
-          request.resource.data.role == 'pending'
+          (request.resource.data.role == 'pending' && unEmail())
           || (request.resource.data.role == 'host' && unEmail())
           || (request.resource.data.role == 'admin'
               && !exists(setupPath())

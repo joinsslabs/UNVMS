@@ -1291,12 +1291,19 @@ function connectFirebase(){
 }
 // Must match unEmail() in firestore.rules.
 const UN_EMAIL_RE=/^[^@\s]+@([a-z0-9-]+\.)*(undp\.org|un\.org|who\.int|unicef\.org|wfp\.org|unhcr\.org|unfpa\.org|unaids\.org|unodc\.org|unesco\.org|ilo\.org|fao\.org|unwomen\.org|iom\.int)$/i;
+// Non-UN addresses allowed in for testing. Must match unEmail() in firestore.rules.
+const TEST_EMAILS=["skillschule@gmail.com"];
+const isAllowedEmail=em=>!!em&&(UN_EMAIL_RE.test(em.trim())||TEST_EMAILS.includes(em.trim().toLowerCase()));
 async function ensureStaff(u){
   const ref=db.collection("staff").doc(u.uid);
   let s=await ref.get();
   // Only an email address the person has proved they own (email-link sign-in) can become a host automatically.
   // Password accounts are not verified, so anyone could type a UN address; those wait for an admin.
-  const isUnEmail = !!(u.email && u.emailVerified && UN_EMAIL_RE.test(u.email));
+  const isUnEmail = !!(u.email && u.emailVerified && isAllowedEmail(u.email));
+  if(!s.exists && !isUnEmail){
+    await firebase.auth().signOut();
+    throw new Error("Access is limited to official UN email addresses.");
+  }
   if(!s.exists){
     const name=(u.displayName||sessionStorageGet("pendingName")||u.email.split("@")[0]).trim();
     const setup=await db.collection("config").doc("setup").get().catch(()=>({exists:true}));
@@ -1463,7 +1470,7 @@ function showLogin(_m,msg){
     try{await firebase.auth().signInWithPopup(p)}catch(x){if(x.code==="auth/popup-blocked"||x.code==="auth/operation-not-supported-in-this-environment")firebase.auth().signInWithRedirect(p);else $("#l_err").textContent=x.code==="auth/operation-not-allowed"?"Microsoft sign-in isn't set up in Firebase yet.":authMsg(x)}};
 
   $("#ml").onsubmit=async e=>{e.preventDefault();const em=$("#ml_email").value.trim(),nm=$("#ml_name")?$("#ml_name").value.trim():"";
-    $("#ml_go").setAttribute("disabled","");$("#l_err").textContent="";
+    $("#l_err").textContent="";if(!isAllowedEmail(em)){$("#l_err").textContent="Please use your official UN email address (e.g. @un.org, @undp.org).";return;}$("#ml_go").setAttribute("disabled","");
     try{await firebase.auth().sendSignInLinkToEmail(em,{url:location.origin+location.pathname,handleCodeInApp:true});
       lsSet("linkEmail",em); if(nm) lsSet("pendingName",nm);
       $("#main").innerHTML=`<div style="max-width:460px;width:100%;margin:30px auto;border-radius:16px;box-shadow:0 16px 40px -10px rgba(15,23,42,0.16);overflow:hidden;border:1px solid #cbd5e1;background:var(--surface)">

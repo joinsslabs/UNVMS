@@ -1,6 +1,6 @@
 window.FIREBASE_CONFIG = {
   apiKey: "AIzaSyCeXCUNgk4RedN6wymXxQZxxbNMqLWOWzk",
-  authDomain: "unhouse-vms-abj26.firebaseapp.com",
+  authDomain: "unhousengvms.com",
   projectId: "unhouse-vms-abj26",
   storageBucket: "unhouse-vms-abj26.firebasestorage.app",
   messagingSenderId: "820309663495",
