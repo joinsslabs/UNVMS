@@ -96,12 +96,10 @@ section{padding:92px 0}
 
 .who{margin-top:-64px;position:relative;z-index:2;padding:0}
 .who-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:900px;margin:0 auto}
-.who-card{--c:#0b6bcb;--t:#e0f2fe;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 10px 24px -20px rgba(15,23,42,.35);transition:border-color .2s,box-shadow .2s}
-.who-card:hover{border-color:#cbd5e1;box-shadow:0 14px 28px -20px rgba(15,23,42,.45)}
-.who-card .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin-bottom:8px;background:var(--t);color:var(--c)}
-.who-card .ic svg{width:16px;height:16px}
+.who-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;box-shadow:0 8px 20px -18px rgba(15,23,42,.35);transition:border-color .2s}
+.who-card:hover{border-color:#cbd5e1}
 .who-card h3{margin:0 0 3px;font-size:14px}
-.who-card p{margin:0;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.who-card p{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
 .who-card.blue{--c:#0b6bcb;--t:#e0f2fe}
 .who-card.mint{--c:#059669;--t:#dcfce7}
 .who-card.peach{--c:#b45309;--t:#fef3c7}
@@ -146,12 +144,10 @@ section{padding:92px 0}
 .secure{background:linear-gradient(165deg,#04132c,#0a3270);color:#fff;position:relative;overflow:hidden}
 .secure .sec-head p{color:#cbd5e1}
 .secure .eyebrow{color:#7dd3fc}
-.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.f{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:22px;backdrop-filter:blur(6px)}
-.f .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(56,189,248,.35),rgba(11,107,203,.4));color:#e0f2fe;margin-bottom:14px}
-.f .ic svg{width:20px;height:20px}
-.f h3{margin:0 0 6px;font-size:16px}
-.f p{margin:0;color:#cbd5e1;font-size:13.5px;line-height:1.55}
+.feat{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.f{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:14px 16px}
+.f h3{margin:0 0 4px;font-size:14.5px}
+.f p{margin:0;color:#cbd5e1;font-size:13px;line-height:1.5}
 
 .cta{padding:72px 0}
 .cta-box{border-radius:28px;padding:44px;display:flex;justify-content:space-between;align-items:center;gap:24px;flex-wrap:wrap;background:linear-gradient(120deg,#e0f2fe,#eef2ff);border:1px solid #bfdbfe}
@@ -259,10 +255,10 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #38
 
 <section class="who">
   <div class="wrap who-grid">
-    <div class="who-card blue reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></div><h3>Visitors</h3><p>Fill in your details from your host's secure link, then bring photo ID on the day.</p></div>
-    <div class="who-card mint reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg></div><h3>UN staff hosts</h3><p>Invite guests in seconds and get notified the moment they arrive.</p></div>
-    <div class="who-card peach reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div><h3>Contractors</h3><p>Dated, named site access requested by a UN focal point and cleared by Security.</p></div>
-    <div class="who-card lilac reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Security &amp; reception</h3><p>Clearance, watchlist checks, tags and a live view of who is on site.</p></div>
+    <div class="who-card blue reveal"><h3>Visitors</h3><p>Fill in your details from your host's secure link, then bring photo ID on the day.</p></div>
+    <div class="who-card mint reveal"><h3>UN staff hosts</h3><p>Invite guests in seconds and get notified the moment they arrive.</p></div>
+    <div class="who-card peach reveal"><h3>Contractors</h3><p>Dated, named site access requested by a UN focal point and cleared by Security.</p></div>
+    <div class="who-card lilac reveal"><h3>Security &amp; reception</h3><p>Clearance, watchlist checks, tags and a live view of who is on site.</p></div>
   </div>
 </section>
 
@@ -337,12 +333,12 @@ a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #38
   <div class="wrap">
     <div class="sec-head reveal"><div class="eyebrow">Security &amp; privacy</div><h2>Built for a UN compound.</h2><p>Designed around UNDSS procedures and UN personal data protection principles.</p></div>
     <div class="feat">
-      <div class="f reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><h3>UN staff only</h3><p>Passwordless sign-in restricted to official UN agency email addresses.</p></div>
-      <div class="f reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div><h3>Cleared before arrival</h3><p>Every visit and contractor request is approved by the Facilities Security Manager.</p></div>
-      <div class="f reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div><h3>Watchlist checks</h3><p>Names are checked automatically; a match can't be admitted without an override.</p></div>
-      <div class="f reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2M15 12h2M7 16h10"/></svg></div><h3>ID checked in person</h3><p>Identity documents are inspected at the gate, not uploaded or stored as scans.</p></div>
-      <div class="f reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Who is on site, now</h3><p>A live roll of everyone in the compound, ready for an evacuation muster.</p></div>
-      <div class="f reveal"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></div><h3>Full audit trail</h3><p>Every registration, decision, check-in and check-out is logged with who and when.</p></div>
+      <div class="f reveal"><h3>UN staff only</h3><p>Passwordless sign-in restricted to official UN agency email addresses.</p></div>
+      <div class="f reveal"><h3>Cleared before arrival</h3><p>Every visit and contractor request is approved by the Facilities Security Manager.</p></div>
+      <div class="f reveal"><h3>Watchlist checks</h3><p>Names are checked automatically; a match can't be admitted without an override.</p></div>
+      <div class="f reveal"><h3>ID checked in person</h3><p>Identity documents are inspected at the gate, not uploaded or stored as scans.</p></div>
+      <div class="f reveal"><h3>Who is on site, now</h3><p>A live roll of everyone in the compound, ready for an evacuation muster.</p></div>
+      <div class="f reveal"><h3>Full audit trail</h3><p>Every registration, decision, check-in and check-out is logged with who and when.</p></div>
     </div>
   </div>
 </section>
