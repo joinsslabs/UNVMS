@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>UN House Abuja | Staff &amp; Station Authentication</title>
+<title>Sign in · UN House Abuja VMS</title>
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0759a3">
+<meta name="theme-color" content="#061a3a">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,621 +25,175 @@
 </script>
 
 <style>
-.link-status { display: none; text-align: center; padding: 10px 0 4px; }
-html.linking .link-status { display: block; }
-html.linking #login_title, html.linking #login_sub, html.linking #form_ml { display: none; }
-.link-spinner { width: 38px; height: 38px; margin: 6px auto 16px; border-radius: 50%;
-  border: 3px solid #e0f2fe; border-top-color: #0284c7; animation: link-spin .8s linear infinite; }
-@keyframes link-spin { to { transform: rotate(360deg); } }
-.link-status h2 { margin: 0 0 6px; }
-.link-status p { margin: 0 0 14px; color: var(--muted); font-size: 13.5px; line-height: 1.5; }
-.link-status .form-message { display: block; text-align: left; }
-.link-status a.again { display: inline-block; margin-top: 12px; font-size: 13px; color: #0284c7; font-weight: 700; text-decoration: none; }
-</style>
-
-<style>
-:root {
-  --blue: #087fc5;
-  --deep-blue: #07549b;
-  --navy: #102d4c;
-  --light-blue: #eaf6ff;
-  --text: #18334e;
-  --muted: #64748b;
-  --border: #e1e9f1;
+:root{
+  --navy:#061a3a; --navy2:#0a2a5c; --blue:#0b6bcb; --sky:#38bdf8; --ink:#0f172a; --muted:#64748b;
+  --line:#e2e8f0; --ok:#15803d; --bad:#dc2626; --card:#ffffff;
 }
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Inter,"Segoe UI",system-ui,-apple-system,Arial,sans-serif;color:var(--ink);background:var(--navy);-webkit-font-smoothing:antialiased}
+a{color:inherit}
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ---------- stage ---------- */
+.stage{position:relative;min-height:100vh;min-height:100dvh;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);overflow:hidden;isolation:isolate}
+.sky{position:absolute;inset:0;z-index:-2;background:
+  radial-gradient(60% 70% at 15% 20%,rgba(56,189,248,.28),transparent 60%),
+  radial-gradient(50% 60% at 85% 85%,rgba(11,107,203,.45),transparent 65%),
+  radial-gradient(40% 50% at 60% 10%,rgba(99,102,241,.22),transparent 60%),
+  linear-gradient(160deg,#04132c 0%,#082552 55%,#0a3270 100%)}
+.sky::before{content:"";position:absolute;inset:-20%;background:
+  radial-gradient(35% 35% at 30% 40%,rgba(56,189,248,.18),transparent 70%),
+  radial-gradient(30% 30% at 70% 60%,rgba(14,165,233,.16),transparent 70%);
+  animation:drift 22s ease-in-out infinite alternate}
+.sky::after{content:"";position:absolute;inset:0;opacity:.18;background-image:
+  linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+  background-size:44px 44px;mask-image:radial-gradient(80% 70% at 35% 45%,#000 30%,transparent 80%);-webkit-mask-image:radial-gradient(80% 70% at 35% 45%,#000 30%,transparent 80%)}
+@keyframes drift{from{transform:translate3d(-3%,-2%,0) rotate(0deg)}to{transform:translate3d(4%,3%,0) rotate(8deg)}}
+.watermark{position:absolute;z-index:-1;left:-140px;bottom:-160px;width:620px;height:620px;opacity:.07;filter:brightness(0) invert(1);pointer-events:none;animation:spin 240s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- hero ---------- */
+.hero{color:#fff;padding:44px clamp(24px,5vw,72px);display:flex;flex-direction:column;justify-content:space-between;gap:36px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;width:fit-content}
+.brand img{height:44px;width:auto;filter:brightness(0) invert(1)}
+.brand b{display:block;font-size:13px;letter-spacing:.14em;text-transform:uppercase}
+.brand small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd;margin-top:2px}
+.live{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#bae6fd;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);padding:6px 12px;border-radius:999px;backdrop-filter:blur(6px);width:fit-content}
+.live i{width:8px;height:8px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.hero h1{font-size:clamp(34px,4.6vw,58px);line-height:1.04;letter-spacing:-.025em;margin:18px 0 16px;font-weight:800}
+.hero h1 em{font-style:normal;background:linear-gradient(90deg,#7dd3fc,#38bdf8 40%,#a5b4fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p.lead{font-size:16px;line-height:1.6;color:#cbd5e1;max-width:520px;margin:0}
+.flow{display:flex;align-items:center;gap:0;margin-top:30px;flex-wrap:wrap;row-gap:10px}
+.step{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 14px;backdrop-filter:blur(8px)}
+.step .ic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(56,189,248,.35),rgba(11,107,203,.35));color:#e0f2fe}
+.step .ic svg{width:17px;height:17px}
+.step b{display:block;font-size:12.5px;color:#fff}
+.step span{display:block;font-size:11px;color:#94a3b8}
+.arrow{width:26px;height:2px;margin:0 6px;background:linear-gradient(90deg,rgba(125,211,252,.1),rgba(125,211,252,.7));position:relative}
+.arrow::after{content:"";position:absolute;right:-1px;top:-3px;border:4px solid transparent;border-left-color:rgba(125,211,252,.8)}
+.meta{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#94a3b8}
+.meta b{color:#e2e8f0;font-weight:600}
+
+/* ---------- card ---------- */
+.side{display:grid;place-items:center;padding:32px clamp(16px,4vw,56px)}
+.card{width:100%;max-width:440px;background:rgba(255,255,255,.97);border-radius:24px;padding:34px 32px 26px;
+  box-shadow:0 40px 80px -30px rgba(2,8,23,.65),0 0 0 1px rgba(255,255,255,.6) inset;position:relative;animation:rise .6s cubic-bezier(.2,.8,.2,1) both}
+.card::before{content:"";position:absolute;inset:-1px;border-radius:25px;padding:1px;background:linear-gradient(140deg,rgba(125,211,252,.9),rgba(255,255,255,0) 40%,rgba(99,102,241,.6));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none}
+@keyframes rise{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
+.seal{width:62px;height:62px;border-radius:18px;margin-bottom:18px;display:grid;place-items:center;background:linear-gradient(145deg,#0b6bcb,#061a3a);box-shadow:0 12px 24px -10px rgba(11,107,203,.7)}
+.seal img{height:38px;width:auto;filter:brightness(0) invert(1)}
+.kicker{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#0b6bcb}
+.kicker svg{width:13px;height:13px}
+.card h2{font-size:28px;letter-spacing:-.02em;margin:8px 0 6px;color:var(--ink)}
+.card .subtitle{margin:0 0 22px;font-size:14px;line-height:1.55;color:var(--muted)}
+
+.field{position:relative;margin-bottom:12px}
+.field label{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:7px}
+.field .wrap{position:relative}
+.field svg.lead{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:#94a3b8;transition:color .15s;pointer-events:none}
+.field input{width:100%;height:52px;border:1.5px solid #cbd5e1;border-radius:14px;padding:0 14px 0 44px;font:500 15px Inter,system-ui,sans-serif;color:var(--ink);background:#f8fafc;transition:border-color .15s,box-shadow .15s,background .15s;outline:none}
+.field input::placeholder{color:#94a3b8}
+.field input:focus{border-color:#0b6bcb;background:#fff;box-shadow:0 0 0 4px rgba(11,107,203,.14)}
+.field .wrap:focus-within svg.lead{color:#0b6bcb}
+.hint{font-size:12px;color:#94a3b8;margin:0 0 16px}
+.hint b{color:#475569;font-weight:600}
+
+.submit-btn{width:100%;height:52px;border:0;border-radius:999px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  font:700 15px Inter,system-ui,sans-serif;color:#fff;background:linear-gradient(135deg,#0ea5e9 0%,#0b6bcb 55%,#1e40af 100%);background-size:160% 100%;
+  box-shadow:0 14px 28px -12px rgba(11,107,203,.75);transition:transform .15s,box-shadow .2s,background-position .4s}
+.submit-btn:hover{transform:translateY(-1px);background-position:100% 0;box-shadow:0 18px 34px -12px rgba(11,107,203,.85)}
+.submit-btn:active{transform:translateY(0)}
+.submit-btn:disabled{opacity:.7;cursor:progress}
+.submit-btn svg{width:18px;height:18px;transition:transform .2s}
+.submit-btn:hover svg{transform:translateX(3px)}
+
+.form-message{display:none;font-size:13px;line-height:1.5;border-radius:12px;padding:11px 13px;margin:0 0 14px}
+.form-message.err,.form-message.error{display:block;background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+.form-message.ok{display:block;background:linear-gradient(135deg,#f0fdf4,#ecfeff);border:1px solid #a7f3d0;color:#065f46;padding:18px 16px;font-size:13.5px}
+.form-message.ok strong{display:block;font-size:17px;margin-bottom:6px;color:#064e3b}
+.form-message.ok small{color:#047857!important}
+#form_ml a{color:#0b6bcb!important}
+
+.trust{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:20px 0 4px;font-size:11.5px;color:#64748b}
+.trust span{display:inline-flex;align-items:center;gap:5px}
+.trust svg{width:13px;height:13px;color:#0b6bcb}
+.card-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px}
+.card-foot a{color:#0b6bcb;font-weight:700;text-decoration:none}
+.card-foot a:hover{text-decoration:underline}
+.card-foot span{color:#94a3b8}
+
+/* sign-in link states (used by the script) */
+.link-status{display:none;text-align:center;padding:6px 0 0}
+html.linking .link-status{display:block}
+html.linking #login_title,html.linking #login_sub,html.linking #form_ml,html.linking .hint,html.linking .trust{display:none}
+.link-spinner{width:46px;height:46px;margin:6px auto 18px;border-radius:50%;border:3px solid #e0f2fe;border-top-color:#0b6bcb;animation:link-spin .8s linear infinite}
+@keyframes link-spin{to{transform:rotate(360deg)}}
+.link-status h2{margin:0 0 6px}
+.link-status p{margin:0 0 16px;color:var(--muted);font-size:14px;line-height:1.55}
+.link-status .form-message{text-align:left}
+.link-status .field{text-align:left}
+.link-status a.again{display:inline-block;margin-top:14px;font-size:13.5px;color:#0b6bcb;font-weight:700;text-decoration:none}
+
+/* ---------- responsive ---------- */
+@media (max-width:980px){
+  .stage{grid-template-columns:1fr}
+  .hero{padding-bottom:0;gap:20px}
+  .hero .lead,.flow,.meta.desk{display:none}
+  .hero h1{font-size:30px;margin:14px 0 0}
+  .side{padding-top:20px;place-items:start center}
 }
-
-body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f4f7fb;
-  color: var(--text);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
+@media (max-width:480px){
+  .card{padding:26px 20px 20px;border-radius:20px}
+  .card h2{font-size:24px}
+  .hero{padding:24px 18px 0}
 }
-
-/* MAIN LAYOUT */
-.container {
-  display: grid;
-  grid-template-columns: 1.25fr 0.95fr;
-  min-height: 100vh;
-}
-
-/* LEFT PANEL */
-.left-panel {
-  position: relative;
-  overflow: hidden;
-  padding: 60px 8%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: white;
-  background: linear-gradient(
-    135deg,
-    #0759a3 0%,
-    #0788cc 55%,
-    #03a0d1 100%
-  );
-}
-
-.left-panel::before {
-  content: "";
-  position: absolute;
-  width: 550px;
-  height: 550px;
-  border: 1px solid rgba(255,255,255,.12);
-  border-radius: 50%;
-  top: -210px;
-  right: -150px;
-  box-shadow:
-    0 0 0 50px rgba(255,255,255,.03),
-    0 0 0 100px rgba(255,255,255,.03);
-  pointer-events: none;
-}
-
-.left-panel::after {
-  content: "";
-  position: absolute;
-  width: 460px;
-  height: 460px;
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 50%;
-  bottom: -270px;
-  left: -170px;
-  box-shadow: 0 0 0 45px rgba(255,255,255,.02);
-  pointer-events: none;
-}
-
-.left-content {
-  max-width: 660px;
-  position: relative;
-  z-index: 2;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 50px;
-  text-decoration: none;
-  color: inherit;
-}
-
-.brand-symbol {
-  width: 64px;
-  height: 64px;
-  border: 1.5px solid #ffffff;
-  border-radius: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: #ffffff;
-  box-shadow: 0 10px 25px rgba(0,0,0,.15);
-  flex-shrink: 0;
-}
-
-.brand-symbol img {
-  height: 44px;
-  width: auto;
-  display: block;
-}
-
-.brand-text {
-  font-size: 11.5px;
-  font-weight: 700;
-  line-height: 1.7;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,.95);
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 8px 16px;
-  border: 1px solid rgba(255,255,255,.24);
-  border-radius: 30px;
-  background: rgba(255,255,255,.12);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 1.1px;
-  text-transform: uppercase;
-  margin-bottom: 22px;
-  backdrop-filter: blur(8px);
-}
-
-.eyebrow span {
-  width: 7px;
-  height: 7px;
-  background: #7df2c0;
-  border-radius: 50%;
-  box-shadow: 0 0 8px #7df2c0;
-}
-
-h1 {
-  font-size: clamp(34px, 4vw, 56px);
-  line-height: 1.1;
-  letter-spacing: -2px;
-  font-weight: 800;
-  margin-bottom: 20px;
-}
-
-.description {
-  font-size: 15px;
-  line-height: 1.8;
-  color: rgba(255,255,255,.9);
-  max-width: 560px;
-  margin-bottom: 34px;
-}
-
-.features {
-  display: grid;
-  gap: 15px;
-}
-
-.feature {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: rgba(255,255,255,.95);
-}
-
-.feature-icon {
-  width: 42px;
-  height: 42px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: rgba(255,255,255,.16);
-  border: 1px solid rgba(255,255,255,.22);
-  color: #ffffff;
-  flex-shrink: 0;
-  backdrop-filter: blur(6px);
-}
-
-.feature-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.footer {
-  margin-top: 50px;
-  padding-top: 22px;
-  border-top: 1px solid rgba(255,255,255,.2);
-  color: rgba(255,255,255,.8);
-  font-size: 11.5px;
-  line-height: 1.7;
-}
-
-/* RIGHT PANEL */
-.right-panel {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px 24px;
-  background: #f7f9fc;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 460px;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 24px;
-  padding: 40px 36px;
-  box-shadow: 0 20px 50px rgba(15,35,65,.08);
-}
-
-.security-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 13px;
-  border-radius: 30px;
-  background: #eaf6ff;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
-  font-size: 11px;
-  font-weight: 750;
-  margin-bottom: 20px;
-  letter-spacing: .02em;
-}
-
-.security-label svg {
-  width: 14px;
-  height: 14px;
-}
-
-.login-card h2 {
-  font-size: 26px;
-  letter-spacing: -.8px;
-  font-weight: 800;
-  color: var(--navy);
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  font-size: 13px;
-  line-height: 1.65;
-  color: var(--muted);
-  margin-bottom: 24px;
-}
-
-/* AUTH TABS */
-.tabs {
-  display: flex;
-  background: #f1f5f9;
-  padding: 4px;
-  border-radius: 12px;
-  margin-bottom: 24px;
-  gap: 4px;
-}
-
-.tab {
-  flex: 1;
-  border: none;
-  padding: 11px 8px;
-  border-radius: 9px;
-  background: transparent;
-  color: #64748b;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .2s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-}
-
-.tab.active {
-  background: white;
-  color: #0369a1;
-  box-shadow: 0 3px 10px rgba(15,35,65,.08);
-}
-
-/* FORM */
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
-}
-
-.optional {
-  color: #94a3b8;
-  font-weight: 400;
-}
-
-.form-group input {
-  width: 100%;
-  height: 48px;
-  padding: 0 16px;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 11px;
-  outline: none;
-  font-family: inherit;
-  font-size: 13.5px;
-  color: var(--text);
-  background: #fff;
-  transition: border-color .18s, box-shadow .18s;
-}
-
-.form-group input::placeholder {
-  color: #94a3b8;
-}
-
-.form-group input:focus {
-  border-color: #0284c7;
-  box-shadow: 0 0 0 3.5px rgba(2,132,199,.15);
-}
-
-.password-wrap {
-  position: relative;
-}
-
-.password-wrap input {
-  padding-right: 56px;
-}
-
-.show-password {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: #64748b;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 6px;
-}
-
-.show-password:hover {
-  color: #0369a1;
-}
-
-.submit-btn {
-  width: 100%;
-  height: 50px;
-  margin-top: 6px;
-  border: none;
-  border-radius: 11px;
-  background: linear-gradient(110deg, #0759a9, #0284c7);
-  color: white;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 750;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(2,132,199,.28);
-  transition: transform .18s, box-shadow .18s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(2,132,199,.38);
-}
-
-.submit-btn:active {
-  transform: translateY(0);
-}
-
-.form-message {
-  display: none;
-  margin-top: 14px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  font-size: 12.5px;
-  line-height: 1.5;
-}
-
-.form-message.err {
-  display: block;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-}
-
-.form-message.ok {
-  display: block;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
-}
-
-.divider {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 24px 0 20px;
-}
-
-.return-link {
-  text-align: center;
-}
-
-.return-link a {
-  color: #0284c7;
-  font-size: 12.5px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.return-link a:hover {
-  text-decoration: underline;
-}
-
-.bottom-security {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-top: 22px;
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-/* RESPONSIVE */
-@media (max-width: 960px) {
-  .container {
-    grid-template-columns: 1fr;
-  }
-  .left-panel {
-    padding: 48px 7%;
-    min-height: auto;
-  }
-  .brand {
-    margin-bottom: 36px;
-  }
-  .right-panel {
-    padding: 40px 18px;
-  }
-}
-
-@media (max-width: 520px) {
-  .left-panel {
-    padding: 36px 20px;
-  }
-  .brand-symbol {
-    width: 52px;
-    height: 52px;
-  }
-  .brand-symbol img {
-    height: 34px;
-  }
-  .brand-text {
-    font-size: 10px;
-  }
-  h1 {
-    font-size: 34px;
-    letter-spacing: -1.2px;
-  }
-  .description {
-    font-size: 13.5px;
-  }
-  .feature {
-    font-size: 12px;
-  }
-  .right-panel {
-    padding: 24px 14px;
-  }
-  .login-card {
-    padding: 28px 20px;
-    border-radius: 18px;
-  }
-  .login-card h2 {
-    font-size: 23px;
-  }
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
 }
 </style>
 </head>
 
 <body>
+<main class="stage">
+  <div class="sky" aria-hidden="true"></div>
+  <img class="watermark" src="un-emblem.svg" alt="" aria-hidden="true">
 
-<div class="container">
-
-  <!-- LEFT INFORMATION PANEL -->
-  <section class="left-panel">
-    <div class="left-content">
-
-      <a class="brand" href="index.html">
-        <div class="brand-symbol" style="width:50px;height:50px;border-radius:14px">
-          <img src="un-emblem.svg" alt="United Nations Emblem" style="height:34px;width:auto;display:block">
-        </div>
-        <div class="brand-text">
-          <div style="font-size:11.5px;font-weight:800;letter-spacing:0.8px;text-transform:uppercase;color:#ffffff">United Nations</div>
-          <div style="font-size:9.5px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:rgba(255,255,255,0.85);margin-top:2px">Visitors Management System</div>
-        </div>
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <a class="brand" href="/">
+        <img src="un-emblem.svg" alt="United Nations">
+        <div><b>United Nations</b><small>UN House Abuja · Visitors Management</small></div>
       </a>
+    </div>
 
-      <div class="eyebrow">
-        <span></span>
-        Secure staff access portal
+    <div>
+      <div class="live"><i></i> <span id="clock">Abuja</span></div>
+      <h1>Every visitor.<br>Every station.<br><em>One secure system.</em></h1>
+      <p class="lead">Pre-registration, UNDSS clearance, gate verification and live host alerts for UN House Abuja, in one place.</p>
+      <div class="flow" aria-label="How a visit flows">
+        <div class="step"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg></div><div><b>Invite</b><span>Host sends a link</span></div></div>
+        <div class="arrow"></div>
+        <div class="step"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg></div><div><b>Clear</b><span>UNDSS approves</span></div></div>
+        <div class="arrow"></div>
+        <div class="step"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M15 8h2M15 12h2M7 16h10"/></svg></div><div><b>Arrive</b><span>Gate verifies ID</span></div></div>
       </div>
+    </div>
 
-      <h1>
-        UN House Visitor<br>Management System
-      </h1>
-
-      <p class="description">
-        An integrated platform for secure compound access verification, physical identification management, diplomatic protocol clearance, and real-time station operations.
-      </p>
-
-      <div class="features">
-        <div class="feature">
-          <div class="feature-icon" title="UNDSS Security Level 2">
-            <!-- Shield SVG -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            </svg>
-          </div>
-          <div>UNDSS Security Level 2 · Authorized Staff &amp; Officers</div>
-        </div>
-
-        <div class="feature">
-          <div class="feature-icon" title="Compound Location">
-            <!-- Map Pin SVG -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-              <circle cx="12" cy="10" r="3"/>
-            </svg>
-          </div>
-          <div>Plot 617/618 Diplomatic Drive, Central Area, Abuja</div>
-        </div>
-
-        <div class="feature">
-          <div class="feature-icon" title="4-Station Architecture">
-            <!-- ID Badge SVG -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="4" width="18" height="16" rx="2"/>
-              <circle cx="9" cy="10" r="2"/>
-              <line x1="15" y1="8" x2="17" y2="8"/>
-              <line x1="15" y1="12" x2="17" y2="12"/>
-              <line x1="7" y1="16" x2="17" y2="16"/>
-            </svg>
-          </div>
-          <div>4-Station Physical ID &amp; Visual Pass Architecture</div>
-        </div>
-
-        <div class="feature">
-          <div class="feature-icon" title="Real-Time Alerts & Muster">
-            <!-- Bolt/Activity SVG -->
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-            </svg>
-          </div>
-          <div>Real-Time Host Notifications &amp; Evacuation Muster</div>
-        </div>
-      </div>
-
-      <div class="footer">
-        UN BOS 2.0 Framework · Security and Data Protection Principles<br>
-        © 2026 UN House Abuja · Engineered by SKILL.SCH
-      </div>
-
+    <div class="meta desk">
+      <span><b>Plot 617/618</b> Diplomatic Drive, Abuja</span>
+      <span><b>UNDSS</b> Security Level 2</span>
+      <span>© 2026 UN House Abuja</span>
     </div>
   </section>
 
-  <!-- RIGHT LOGIN PANEL -->
-  <section class="right-panel">
-    <div class="login-card">
-
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <div style="width:36px;height:36px;border-radius:9px;background:#e0f2fe;display:grid;place-items:center;border:1px solid #bae6fd;flex-shrink:0">
-          <img src="un-emblem.svg" alt="UN Emblem" style="height:22px;width:auto;display:block">
-        </div>
-        <div>
-          <div style="font-size:10px;font-weight:800;color:#0369a1;letter-spacing:.05em;text-transform:uppercase">United Nations</div>
-          <div style="font-size:9px;color:var(--muted);font-weight:600;letter-spacing:.03em;text-transform:uppercase;margin-top:1px">Visitors Management System</div>
-        </div>
-      </div>
-
-      <div class="security-label">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        Staff &amp; Station Authentication
-      </div>
+  <!-- SIGN-IN CARD -->
+  <section class="side">
+    <div class="card">
+      <div class="seal"><img src="un-emblem.svg" alt="United Nations emblem"></div>
+      <div class="kicker"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Staff sign-in</div>
 
       <!-- Shown instead of the form when the page is opened from a sign-in email -->
       <div class="link-status" id="link_status">
@@ -647,74 +201,58 @@ h1 {
         <h2 id="link_title">Signing you in…</h2>
         <p id="link_sub">Verifying your secure link. You will be taken to the VMS portal in a moment.</p>
         <form id="link_confirm" style="display:none">
-          <div class="form-group" style="text-align:left">
-            <label for="link_email">Confirm your work email address *</label>
-            <input type="email" id="link_email" placeholder="name@un.org" autocomplete="email" required>
-          </div>
-          <button class="submit-btn" type="submit">Continue to VMS Portal</button>
+          <div class="field"><label for="link_email">Confirm your work email</label>
+            <div class="wrap"><svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>
+            <input type="email" id="link_email" placeholder="name@un.org" autocomplete="email" required></div></div>
+          <button class="submit-btn" type="submit">Continue to the portal</button>
         </form>
         <div class="form-message" id="link_err" style="display:none"></div>
         <a class="again" id="link_again" href="/login" style="display:none">Request a new sign-in link</a>
       </div>
 
-      <h2 id="login_title">Passwordless Sign-In</h2>
+      <h2 id="login_title">Welcome back</h2>
+      <p class="subtitle" id="login_sub">Enter your UN work email and we'll send you a secure one-time sign-in link. No password needed.</p>
 
-      <p class="subtitle" id="login_sub">
-        Enter your official UN email address to receive a secure instant authentication link.
-      </p>
-
-      <!-- MAGIC LINK FORM -->
-      <form id="form_ml">
-        <div class="form-group">
-          <label for="ml_email">Work Email Address *</label>
-          <input
-            type="email"
-            id="ml_email"
-            placeholder="name@un.org / name@undp.org"
-            autocomplete="email"
-            required
-          >
+      <form id="form_ml" novalidate>
+        <div class="field">
+          <label for="ml_email">Work email</label>
+          <div class="wrap">
+            <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="m4 7 8 6 8-6"/></svg>
+            <input type="email" id="ml_email" placeholder="name@un.org" autocomplete="email" inputmode="email" autofocus required>
+          </div>
         </div>
-
+        <p class="hint">Use your <b>@un.org</b>, <b>@undp.org</b> or other UN agency address.</p>
         <div class="form-message" id="ml_err"></div>
-
         <button class="submit-btn" type="submit" id="ml_submit">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          Send Secure Sign-In Link
+          Send my sign-in link
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
       </form>
 
-      <!-- Microsoft 365 Single Sign-On (Deferred for now - re-enable once UN ICT grants Entra ID tenant consent)
-      <div style="display:flex;align-items:center;gap:10px;margin:20px 0 12px">
-        <span style="flex:1;height:1px;background:#e2e8f0"></span>
-        <span style="color:#64748b;font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.05em">Or Sign In With</span>
-        <span style="flex:1;height:1px;background:#e2e8f0"></span>
+      <div class="trust">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Passwordless</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>UN staff only</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>One-time link</span>
       </div>
 
-      <button type="button" id="ms_go" style="width:100%;height:46px;justify-content:center;border:1.5px solid #cbd5e1;border-radius:11px;font-weight:700;font-size:13px;background:#ffffff;color:#1e293b;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s">
-        <svg width="18" height="18" viewBox="0 0 21 21"><rect x="1" y="1" width="9" height="9" fill="#f25022"/><rect x="11" y="1" width="9" height="9" fill="#7fba00"/><rect x="1" y="11" width="9" height="9" fill="#00a4ef"/><rect x="11" y="11" width="9" height="9" fill="#ffb900"/></svg>
-        <span>Sign in with Microsoft 365 (UN Work Account)</span>
-      </button>
-      <p style="text-align:center;font-size:11.5px;color:#0369a1;margin:8px 0 14px;line-height:1.4">
-        🔐 Use your official UN email (<code>@undp.org</code>, <code>@who.int</code>, <code>@unicef.org</code>, <code>@un.org</code>). No separate email or password required.
-      </p>
-      -->
-
-      <div class="divider"></div>
-
-      <div class="return-link">
-        <a href="index.html">← Return to Public Portal</a>
+      <div class="card-foot">
+        <a href="/">← Public portal</a>
+        <span>Authorized personnel only</span>
       </div>
-
-      <div class="bottom-security">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        <span>Secure Access · Authorized Personnel Only</span>
-      </div>
-
     </div>
   </section>
-
-</div>
+</main>
+<script>
+  // Live Abuja time in the hero badge.
+  (function(){
+    var el = document.getElementById('clock'); if (!el) return;
+    function tick(){
+      try { el.textContent = 'Abuja · ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Lagos' }) + ' · System online'; }
+      catch (e) { el.textContent = 'System online'; }
+    }
+    tick(); setInterval(tick, 15000);
+  })();
+</script>
 
 <script>
 (function(){
