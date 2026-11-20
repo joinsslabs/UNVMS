@@ -1964,7 +1964,7 @@ const inviteUrl=t=>{
     agency: i.agency || "UNDP",
     room: i.room || "",
     status: "open",
-    expires: i.expires || (now() + 7 * 864e5)
+    expires: i.expires || (now() + 3 * 864e5)
   }));
 };
 function newToken(){const a=new Uint8Array(18);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,"0")).join("")}
@@ -1990,7 +1990,7 @@ function showCreatedInviteModal(invDoc, url){
         "${esc(invDoc.host)} (${esc(invDoc.agency)}) has invited you to UN House Abuja."
       </div>
       ${invDoc.room?`<div class="small" style="color:#0369a1;margin-top:2px">Meeting Destination: <b>Room ${esc(invDoc.room)}</b></div>`:""}
-      <div class="small" style="color:#64748b;margin-top:5px">Valid for 7 days · One-time pre-registration · Instant compound clearance at Gate 1</div>
+      <div class="small" style="color:#64748b;margin-top:5px">Valid for 72 hours · One-time pre-registration · Instant compound clearance at Gate 1</div>
     </div>
 
     <div class="f">
@@ -2234,7 +2234,7 @@ function openInviteDialog(){
       room,
       status:"open",
       createdAt:now(),
-      expires:now()+7*864e5
+      expires:now()+3*864e5
     };
     invites.unshift(invDoc);
     if(db){
@@ -2355,7 +2355,7 @@ function inviteView(){
             </div>
             <div class="hinv-prev-msg">has invited you to <b>UN House Abuja</b>. Fill in your details so security can clear your entry.</div>
             <div class="small" style="color:#0369a1;font-weight:600" id="inv_prev_room"></div>
-            <ul><li>One-time link, valid 7 days</li><li>No account needed</li><li>Cleared by the FSM before arrival</li></ul>
+            <ul><li>One-time link, valid 72 hours</li><li>No account needed</li><li>Cleared by the FSM before arrival</li></ul>
           </div>
         </aside>
       </div>
@@ -2408,7 +2408,7 @@ async function createInvite(){
     room,
     status:"open",
     createdAt:now(),
-    expires:now()+7*864e5
+    expires:now()+3*864e5
   };
   invites.unshift(invDoc);
   try{
@@ -5857,7 +5857,7 @@ function loadDemoInvites(){
               changed=true;
             }
           } else {
-            invites.unshift({id,status:"submitted",guest:p.guest,host:p.host||"UN Host",agency:p.agency||"UNDP",submittedAt:p.submittedAt||p.at||now(),expires:now()+7*864e5});
+            invites.unshift({id,status:"submitted",guest:p.guest,host:p.host||"UN Host",agency:p.agency||"UNDP",submittedAt:p.submittedAt||p.at||now(),expires:now()+3*864e5});
             changed=true;
           }
         }
@@ -5927,7 +5927,7 @@ function loadDemoInvites(){
                 host: g.host || "UN Host",
                 agency: g.agency || "UNDP",
                 submittedAt: g.expected||now(),
-                expires: now() + 7 * 864e5
+                expires: now() + 3 * 864e5
               });
               changed=true;
             }
