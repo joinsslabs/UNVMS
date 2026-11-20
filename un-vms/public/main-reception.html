@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reception — Main Building</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<main>
+  <div class="grid cols-2">
+    <section>
+      <div class="panel">
+        <div class="panel-head"><h2>Coming in from Access Control</h2><span class="count" id="nIncoming">0</span></div>
+        <p class="small muted" style="margin-top:-.4rem">Tagged visitors. Check the tag, then call the host or direct meeting guests to their room.</p>
+        <div id="incoming" class="list"></div>
+      </div>
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-head"><h2>Waiting for their host</h2><span class="count" id="nWaiting">0</span></div>
+        <div id="waiting" class="list"></div>
+      </div>
+    </section>
+    <section>
+      <div class="panel">
+        <div class="panel-head"><h2>Today's meetings</h2></div>
+        <div id="meetings" class="list"></div>
+      </div>
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-head"><h2>In the building</h2><span class="count" id="nIn">0</span></div>
+        <div class="table-wrap"><table><thead><tr><th>Tag</th><th>Visitor</th><th>With</th><th>Since</th></tr></thead><tbody id="inside"></tbody></table></div>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="/js/common.js"></script>
+<script src="/js/main-reception.js"></script>
+</body>
+</html>
