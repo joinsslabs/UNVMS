@@ -4330,7 +4330,7 @@ function showPass(code){
   try{navigator.wakeLock&&navigator.wakeLock.request("screen").catch(()=>{})}catch(e){}
 }
 async function showInvite(tok){
-  const main=$("#main"), box=h=>{main.innerHTML=`${langSwitch()}<div class="panel" style="max-width:480px;width:100%;margin:12px auto">${h}</div>`;};
+  const main=$("#main"), box=(h,wide)=>{main.innerHTML=`${langSwitch()}<div class="panel${wide?" inv-card":""}" style="max-width:${wide?600:480}px;width:100%;margin:12px auto">${h}</div>`;};
   box(`<h1>${tx().opening}</h1>`);
   let d; for(let n=0;n<3&&!d;n++){try{d=await db.collection("invites").doc(tok).get()}catch(e){await new Promise(r=>setTimeout(r,1200))}}
   const draw=()=>{const T=tx();
@@ -4350,34 +4350,71 @@ async function showInvite(tok){
       agencyName = "UNDSS";
     }
 
-    box(`<div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;padding-bottom:14px;border-bottom:1.5px solid var(--line);flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-        <img src="un-emblem.svg" alt="United Nations" style="height:48px;width:auto;display:block">
-      </div>
-      <div style="flex:1;min-width:200px">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#0284c7;letter-spacing:.08em">Official Visitor Pre-Registration</div>
-        <div style="font-weight:700;color:var(--navy);font-size:16px;line-height:1.25;margin-top:2px"><span style="color:#0284c7">UN House, Abuja</span>${agencyName && agencyName !== 'UN Common Services' ? ` · <span style="color:var(--muted);font-weight:600">${esc(agencyName)}</span>` : ''}</div>
-      </div>
+    const fr=LANG==="fr";
+    const L=fr?{about:"Vos informations",visit:"Votre visite",req:"obligatoire",hostLbl:"Votre hôte",steps:["Remplissez ce formulaire","La sécurité examine votre demande","Vous recevez votre laissez-passer"],valid:"Lien valable jusqu'au",hrs:"Heures de visite : lun–ven, 08h00–17h00",bring:"Apportez une pièce d'identité officielle avec photo."}
+            :{about:"About you",visit:"Your visit",req:"required",hostLbl:"Your host",steps:["Fill in this form","Security reviews your request","You receive your visitor pass"],valid:"Link valid until",hrs:"Visiting hours: Mon–Fri, 08:00–17:00",bring:"Bring a valid government photo ID on the day."};
+    const until=new Date(i.expires).toLocaleDateString(dateLoc(),{day:"numeric",month:"short",year:"numeric"});
+    const initials=hostName.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase();
+    const star=`<span class="inv-req" aria-label="${L.req}">*</span>`;
+    box(`<style>
+      .inv-card{padding:0!important;overflow:hidden;border-radius:16px;box-shadow:0 18px 44px -18px rgba(9,38,83,.28)}
+      .inv-head{background:linear-gradient(135deg,#092653 0%,#0b3a7a 100%);color:#fff;padding:22px 24px 20px;display:flex;gap:14px;align-items:center}
+      .inv-head img{height:46px;width:auto;filter:brightness(0) invert(1);flex-shrink:0}
+      .inv-kicker{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#7dd3fc}
+      .inv-title{font-size:21px;font-weight:800;line-height:1.2;margin-top:3px}
+      .inv-body{padding:20px 24px 24px;display:flex;flex-direction:column;gap:18px}
+      .inv-host{display:flex;gap:12px;align-items:center;background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:12px 14px}
+      .inv-av{width:42px;height:42px;border-radius:50%;background:#0284c7;color:#fff;display:grid;place-items:center;font-weight:800;font-size:15px;flex-shrink:0}
+      .inv-host small{display:block;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#0369a1}
+      .inv-host b{display:block;font-size:15px;color:var(--navy)}
+      .inv-host span{font-size:12.5px;color:var(--muted)}
+      .inv-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0;padding:0;list-style:none;counter-reset:s}
+      .inv-steps li{counter-increment:s;font-size:11.5px;line-height:1.35;color:var(--muted);background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:9px 10px}
+      .inv-steps li::before{content:counter(s);display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#e0f2fe;color:#0369a1;font-weight:800;font-size:11px;margin-right:6px}
+      .inv-steps li:first-child{border-color:#7dd3fc;background:#f0f9ff;color:var(--navy);font-weight:600}
+      .inv-sec{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin:2px 0 -4px;display:flex;align-items:center;gap:8px}
+      .inv-sec::after{content:"";flex:1;height:1px;background:#e2e8f0}
+      .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      .inv-grid .full{grid-column:1/-1}
+      .inv-card .f label{font-size:12.5px;font-weight:700;color:var(--navy)}
+      .inv-card .f input{height:42px;border:1.5px solid #cbd5e1;border-radius:9px;font-size:14px}
+      .inv-card .f input:focus{border-color:#0284c7;box-shadow:0 0 0 3px rgba(2,132,199,.15);outline:none}
+      .inv-req{color:#dc2626;margin-left:2px}
+      .inv-note{display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--muted)}
+      .inv-note span{background:#f1f5f9;border-radius:20px;padding:4px 10px}
+      .inv-send{width:100%;height:46px;font-size:14.5px;font-weight:800;border-radius:10px;justify-content:center;background:linear-gradient(135deg,#0284c7,#0369a1)!important;box-shadow:0 6px 16px rgba(2,132,199,.3)}
+      @media (max-width:560px){.inv-grid{grid-template-columns:1fr}.inv-steps{grid-template-columns:1fr}.inv-head,.inv-body{padding-left:16px;padding-right:16px}}
+    </style>
+    <div class="inv-head">
+      <img src="un-emblem.svg" alt="United Nations">
+      <div><div class="inv-kicker">UN House Abuja · Visitor Pre-Registration</div><div class="inv-title">${T.invTitle}</div></div>
     </div>
-    <h1 style="font-size:22px;margin-bottom:6px">${T.invTitle}</h1>
-    <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:12px 14px;margin:12px 0">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#0369a1;letter-spacing:.05em">Host &amp; Meeting Destination</div>
-      <div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:2px">${esc(hostName)} · <span style="color:#0369a1">${esc(agencyName)}</span></div>
-      ${i.room?`<div class="small" style="color:var(--muted);margin-top:2px">Meeting Location: <b>Room ${esc(i.room)}</b></div>`:""}
-      <p class="small" style="color:var(--muted);margin:6px 0 0">Fill in your details below so Gate 1 security can clear your compound access before arrival.</p>
-    </div>
-    <form id="gf" style="display:flex;flex-direction:column;gap:12px;margin-top:14px">
-     <div class="f"><label for="g_name">${T.name}</label><input id="g_name" required minlength="2" maxlength="120" autocomplete="name"></div>
-     <div class="f"><label for="g_org">${T.org}</label><input id="g_org" maxlength="160" autocomplete="organization"></div>
-     <div class="f"><label for="g_email">${T.email}</label><input id="g_email" type="email" maxlength="160" autocomplete="email"></div>
-     <div class="f"><label for="g_phone">${T.phone}</label><input id="g_phone" maxlength="40" inputmode="tel" autocomplete="tel"></div>
-     
-     <div class="f"><label for="g_when">${T.when} (08:00–17:00)</label><input id="g_when" type="datetime-local" value="${fmtLocalDT()}" required></div>
-     <div class="f"><label for="g_purpose">${T.purpose}</label><input id="g_purpose" maxlength="300"></div>
-     ${agreementBlock(LANG,"g_agree")}
-     <div id="g_err" class="small" style="color:var(--warn)"></div>
-     <div class="acts"><button class="btn pri" type="submit">${T.send}</button></div>
-     <p class="small">${T.privacy}</p></form>`);
+    <div class="inv-body">
+      <div class="inv-host">
+        <div class="inv-av">${esc(initials||"UN")}</div>
+        <div><small>${L.hostLbl}</small><b>${esc(hostName)}</b><span>${esc(agencyName)}${i.room?` · Room ${esc(i.room)}`:""}</span></div>
+      </div>
+      <ol class="inv-steps">${L.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+      <form id="gf" style="display:flex;flex-direction:column;gap:14px">
+        <div class="inv-sec">${L.about}</div>
+        <div class="inv-grid">
+          <div class="f full"><label for="g_name">${T.name}${star}</label><input id="g_name" required minlength="2" maxlength="120" autocomplete="name"></div>
+          <div class="f"><label for="g_org">${T.org}</label><input id="g_org" maxlength="160" autocomplete="organization"></div>
+          <div class="f"><label for="g_phone">${T.phone}${star}</label><input id="g_phone" required maxlength="40" inputmode="tel" autocomplete="tel" placeholder="+234 …"></div>
+          <div class="f full"><label for="g_email">${T.email}</label><input id="g_email" type="email" maxlength="160" autocomplete="email"></div>
+        </div>
+        <div class="inv-sec">${L.visit}</div>
+        <div class="inv-grid">
+          <div class="f"><label for="g_when">${T.when}${star}</label><input id="g_when" type="datetime-local" value="${fmtLocalDT()}" required></div>
+          <div class="f"><label for="g_purpose">${T.purpose}</label><input id="g_purpose" maxlength="300"></div>
+        </div>
+        <div class="inv-note"><span>🕗 ${L.hrs}</span><span>🪪 ${L.bring}</span><span>⏳ ${L.valid} ${esc(until)}</span></div>
+        ${agreementBlock(LANG,"g_agree")}
+        <div id="g_err" class="small" style="color:var(--bad);font-weight:600"></div>
+        <button class="btn pri inv-send" type="submit">${T.send}</button>
+        <p class="small" style="margin:0;color:var(--muted)">${T.privacy}</p>
+      </form>
+    </div>`,true);
     wireLang(draw);
     $("#gf").onsubmit=async e=>{e.preventDefault(); if(!$("#g_agree").checked){$("#g_err").textContent=T.mustAgree;return}
       const expT=new Date($("#g_when").value).getTime();
@@ -4411,6 +4448,40 @@ async function showInvite(tok){
           }
           localStorage.setItem("unhDemoInvites", JSON.stringify(storedList));
         }catch(e){}
+        if(!isDemoInvite){
+          const fr=LANG==="fr";
+          const whenTxt=new Date(guest.expected).toLocaleString(dateLoc(),{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"});
+          box(`<div class="inv-head" style="background:linear-gradient(135deg,#065f46,#047857)">
+              <div style="font-size:34px;line-height:1">✅</div>
+              <div><div class="inv-kicker" style="color:#a7f3d0">${fr?"Demande reçue":"Request received"}</div>
+              <div class="inv-title">${fr?"Merci, ":"Thank you, "}${esc(guest.name.split(" ")[0])}</div></div>
+            </div>
+            <div class="inv-body">
+              <p style="margin:0;font-size:14px;line-height:1.55;color:var(--navy)">${fr
+                ?`Votre demande de visite pour <b>${esc(whenTxt)}</b> a été transmise. Le responsable de la sécurité des installations doit l'approuver avant votre arrivée.`
+                :`Your visit request for <b>${esc(whenTxt)}</b> has been sent. The Facilities Security Manager must clear it before your arrival.`}</p>
+              <ol class="inv-steps">
+                <li style="border-color:#86efac;background:#f0fdf4;color:#166534;font-weight:600">✓ ${fr?"Formulaire envoyé":"Form submitted"}</li>
+                <li style="border-color:#7dd3fc;background:#f0f9ff;color:var(--navy);font-weight:600">${fr?"Examen par la sécurité":"Security review"}</li>
+                <li>${fr?"Laissez-passer envoyé":"Pass sent to you"}</li>
+              </ol>
+              <div class="inv-host">
+                <div class="inv-av">${esc(hostName.split(/\s+/).map(w=>w[0]||"").join("").slice(0,2).toUpperCase()||"UN")}</div>
+                <div><small>${fr?"Votre hôte":"Your host"}</small><b>${esc(hostName)}</b><span>${esc(agencyName)}${i.room?` · Room ${esc(i.room)}`:""}</span></div>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.5;color:var(--navy)">
+                <b>${fr?"Le jour de votre visite":"On the day of your visit"}</b>
+                <ul style="margin:6px 0 0;padding-left:18px">
+                  <li>${fr?"Présentez-vous à la Porte 1, Plot 617/618 Diplomatic Drive, Abuja.":"Come to Gate 1, Plot 617/618 Diplomatic Drive, Abuja."}</li>
+                  <li>${fr?"Apportez une pièce d'identité officielle avec photo.":"Bring a valid government photo ID (National ID, passport, driver's licence or diplomatic ID)."}</li>
+                  <li>${fr?"Votre hôte vous recevra à la réception.":"Your host will meet you at reception."}</li>
+                </ul>
+              </div>
+              <a class="btn" style="justify-content:center" href="https://www.google.com/maps/search/?api=1&query=UN+House+Diplomatic+Drive+Abuja" target="_blank" rel="noopener">📍 ${fr?"Itinéraire":"Get directions"}</a>
+              <p class="small" style="margin:0;color:var(--muted)">${fr?"Vous pouvez fermer cette page.":"You can close this page."}</p>
+            </div>`,true);
+          return;
+        }
         const ref = "UNH-" + String(Math.floor(1000 + Math.random() * 9000));
         const newVis = {
           id: ref,
