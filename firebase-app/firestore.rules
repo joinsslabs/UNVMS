@@ -103,7 +103,16 @@ service cloud.firestore {
         || (hasRole(['sec_admin', 'sec_deputy', 'approver', 'gate', 'reception', 'host'])
             && d().log is list && d().log.size() == 1 && entryOk(d().log[0])
             && d().requestedByUid == request.auth.uid
-            && d().status == 'pending');
+            && d().status == 'pending')
+        // FSM clears a contractor access request: each worker is created as an approved contractor visit,
+        // only by the person who cleared that request.
+        || (hasRole(['admin', 'sec_admin', 'sec_deputy'])
+            && d().type == 'contractor' && d().status == 'approved'
+            && d().decidedByUid == request.auth.uid
+            && d().log is list && d().log.size() == 1 && entryOk(d().log[0])
+            && d().get('contractorRequestId', '') is string && d().get('contractorRequestId', '') != ''
+            && get(/databases/$(db)/documents/contractorRequests/$(d().contractorRequestId)).data.status == 'approved'
+            && get(/databases/$(db)/documents/contractorRequests/$(d().contractorRequestId)).data.decidedByUid == request.auth.uid);
 
       allow update: if (isStaff() && o().get('example', false) == true && d().get('example', false) == true)
         || (isStaff() && fixedFields() && logAppended() && (
@@ -231,6 +240,45 @@ service cloud.firestore {
     match /parking/{id} {
       allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
+    }
+
+    // Contract companies and their workers. All staff can read; focal points and security maintain them.
+    match /contractors/{id} {
+      function cd() { return request.resource.data; }
+      allow read: if isStaff();
+      allow create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'host'])
+        && cd().name is string && cd().name.size() > 1 && cd().name.size() <= 120
+        && cd().workers is list && cd().workers.size() <= 200
+        && cd().updatedByUid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Dated site-access requests for named contractor workers, cleared by the FSM.
+    match /contractorRequests/{id} {
+      function rq() { return request.resource.data; }
+      function cur() { return resource.data; }
+      function changes(keys) { return rq().diff(cur()).affectedKeys().hasOnly(keys); }
+      allow read: if isStaff();
+      allow create: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'host'])
+        && rq().requestedByUid == request.auth.uid && rq().status == 'pending'
+        && rq().workers is list && rq().workers.size() >= 1 && rq().workers.size() <= 50
+        && rq().from is int && rq().to is int && rq().to >= rq().from
+        && rq().to - rq().from <= 7776000000
+        && rq().companyId is string && exists(/databases/$(db)/documents/contractors/$(rq().companyId));
+      allow update: if
+        // The FSM (never the requester) clears or declines a pending request.
+        (hasRole(['admin', 'sec_admin', 'sec_deputy']) && cur().status == 'pending'
+          && rq().status in ['approved', 'rejected'] && cur().requestedByUid != request.auth.uid
+          && rq().decidedByUid == request.auth.uid
+          && changes(['status', 'decidedBy', 'decidedByUid', 'decidedAt', 'decisionNote', 'visitorIds']))
+        // The requester withdraws a pending request.
+        || (cur().requestedByUid == request.auth.uid && cur().status == 'pending'
+          && rq().status == 'cancelled' && changes(['status', 'cancelledAt']))
+        // Security revokes a cleared request.
+        || (hasRole(['admin', 'sec_admin', 'sec_deputy']) && cur().status == 'approved'
+          && rq().status == 'revoked' && rq().revokedByUid == request.auth.uid
+          && changes(['status', 'revokedBy', 'revokedByUid', 'revokedAt']));
+      allow delete: if false;
     }
 
     // Server audit trail: written only by the Cloud Function, never by a browser.

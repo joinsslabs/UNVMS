@@ -766,7 +766,18 @@ h1 {
   }
 
   if (auth && linking) {
-    // Opened from a sign-in email: finish signing in, then go straight to the portal.
+    // Opened from a sign-in email. If this browser is already signed in, the link isn't needed: go straight in.
+    var firstCheck = auth.onAuthStateChanged(function(u){
+      firstCheck();
+      if (u) { goToPortal(); return; }
+      handleLink();
+    });
+  } else if (auth) {
+    // Already signed in: skip the form.
+    auth.onAuthStateChanged(function(u){ if (u) goToPortal(); });
+  }
+
+  function handleLink() {
     if (!auth.isSignInWithEmailLink(location.href)) {
       linkFailed(linkErrorText({ code: 'auth/invalid-action-code' }));
     } else {
@@ -788,9 +799,6 @@ h1 {
         });
       }
     }
-  } else if (auth) {
-    // Already signed in: skip the form.
-    auth.onAuthStateChanged(function(u){ if (u) goToPortal(); });
   }
 
   // Microsoft 365 Entra ID SSO
