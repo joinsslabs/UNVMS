@@ -6,6 +6,14 @@
 <title>UN House Abuja · Visitor Management System</title>
 <meta name="description" content="Secure visitor pre-registration, UNDSS clearance and gate verification for UN House Abuja.">
 <meta name="theme-color" content="#061a3a">
+<link rel="canonical" href="https://unhousengvms.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="UN House Abuja">
+<meta property="og:title" content="UN House Abuja · Visitor Management System">
+<meta property="og:description" content="Secure visitor pre-registration, UNDSS clearance and gate verification for UN House Abuja.">
+<meta property="og:url" content="https://unhousengvms.com/">
+<meta property="og:image" content="https://unhousengvms.com/un-house-hero.jpg">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="un-emblem.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -157,12 +165,33 @@ footer ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;
 footer a:hover{color:#fff}
 .legal{border-top:1px solid rgba(255,255,255,.1);margin-top:36px;padding-top:20px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:12.5px}
 
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:#fff;color:var(--ink);padding:10px 14px;border-radius:10px;font-weight:700;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+.skip:focus{top:12px}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid #38bdf8;outline-offset:3px;border-radius:10px}
+.badge.closed i{background:#f59e0b;animation:none}
+.menu-btn{display:none;width:40px;height:40px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff;cursor:pointer;place-items:center}
+.menu-btn svg{width:20px;height:20px}
+.nav-right{display:flex;align-items:center;gap:10px}
+.mobile-nav{display:none}
+.faq{max-width:780px;margin:0 auto}
+.faq details{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;transition:border-color .2s}
+.faq details[open]{border-color:#bfdbfe}
+.faq summary{list-style:none;cursor:pointer;padding:16px 18px;font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:20px;font-weight:500;color:var(--blue);transition:transform .2s;flex-shrink:0}
+.faq details[open] summary::after{transform:rotate(45deg)}
+.faq .a{padding:0 18px 16px;color:var(--muted);font-size:14px;line-height:1.65}
 .reveal{opacity:0;transform:translateY(18px);transition:opacity .7s ease,transform .7s ease}
 .reveal.in{opacity:1;transform:none}
 .pass.reveal.in:hover{transform:translateY(-4px) rotate(-.5deg)}
 
 @media (max-width:1020px){
   .links{display:none}
+  .menu-btn{display:grid}
+  .mobile-nav{position:fixed;left:12px;right:12px;top:78px;z-index:49;background:rgba(6,26,58,.97);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:8px;box-shadow:0 20px 40px -10px rgba(0,0,0,.5)}
+  .mobile-nav.open{display:block}
+  .mobile-nav a{display:block;padding:13px 14px;border-radius:12px;color:#e2e8f0;font-weight:600;font-size:15px}
+  .mobile-nav a:hover{background:rgba(255,255,255,.06)}
   .hero-grid{grid-template-columns:1fr}
   .shot{max-width:560px;margin:10px auto 0}
   .who-grid{grid-template-columns:1fr 1fr}
@@ -184,17 +213,22 @@ footer a:hover{color:#fff}
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
 
 <header id="top">
   <div class="wrap nav">
     <a class="brand" href="/"><img src="un-emblem.svg" alt="United Nations"><div><b>UN House Abuja</b><small>Visitor Management System</small></div></a>
-    <nav class="links"><a href="#how">How it works</a><a href="#passes">Passes</a><a href="#visiting">Visiting</a><a href="#security">Security</a></nav>
-    <a class="pill pill-pri pill-sm" href="/login">Staff sign-in
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+    <nav class="links" aria-label="Main"><a href="#how">How it works</a><a href="#passes">Passes</a><a href="#visiting">Visiting</a><a href="#faq">Questions</a><a href="#security">Security</a></nav>
+    <div class="nav-right">
+      <a class="pill pill-pri pill-sm" href="/login">Staff sign-in
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <button class="menu-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mnav"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
   </div>
+  <nav class="mobile-nav" id="mnav" aria-label="Mobile"><a href="#how">How it works</a><a href="#passes">Passes</a><a href="#visiting">Visiting</a><a href="#faq">Questions</a><a href="#security">Security</a></nav>
 </header>
 
-<main>
+<main id="main">
 <section class="hero">
   <img class="wm" src="un-emblem.svg" alt="" aria-hidden="true">
   <div class="wrap hero-grid">
@@ -281,6 +315,20 @@ footer a:hover{color:#fff}
   </div>
 </section>
 
+<section id="faq" style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head center reveal"><div class="eyebrow">Questions</div><h2>Good to know.</h2></div>
+    <div class="faq">
+      <details class="reveal"><summary>How do I get an invitation?</summary><div class="a">Ask the UN staff member you're meeting. They create a secure link for you from the system, and you fill in your own details. Each link works once and expires after 72 hours.</div></details>
+      <details class="reveal"><summary>I didn't get a link. Can I just walk in?</summary><div class="a">Unscheduled visits may be refused or delayed. Gate staff will call your host to confirm before you're admitted, so pre-registering is always faster.</div></details>
+      <details class="reveal"><summary>What ID should I bring?</summary><div class="a">A valid government photo ID: National ID (NIN), international passport, driver's licence or diplomatic ID. It's checked in person at the gate and you get it back when you leave.</div></details>
+      <details class="reveal"><summary>What happens to my personal information?</summary><div class="a">Your details are used only to manage your visit and site security. ID documents are inspected in person and not scanned or uploaded.</div></details>
+      <details class="reveal"><summary>I'm a contractor. How do I get access?</summary><div class="a">Your UN focal point requests dated site access for you through the system. Once the Facilities Security Manager clears it, you're expected at the gate for those days.</div></details>
+      <details class="reveal"><summary>I'm UN staff. How do I sign in?</summary><div class="a">Use <a href="/login" style="color:var(--blue);font-weight:600">Staff sign-in</a> with your UN agency email address. We email you a one-time sign-in link, so there's no password to remember.</div></details>
+    </div>
+  </div>
+</section>
+
 <section class="secure" id="security">
   <div class="wrap">
     <div class="sec-head reveal"><div class="eyebrow">Security &amp; privacy</div><h2>Built for a UN compound.</h2><p>Designed around UNDSS procedures and UN personal data protection principles.</p></div>
@@ -334,9 +382,16 @@ footer a:hover{color:#fff}
       var hr = Number(new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: 'Africa/Lagos' }).format(now));
       var open = !/Sat|Sun/.test(day) && hr >= 8 && hr < 17;
       el.textContent = 'Abuja · ' + t + ' · ' + (open ? 'Visitor services open' : 'Visitor services closed');
+      el.parentNode.classList.toggle('closed', !open);
     } catch (e) {}
   }
   if (el) { tick(); setInterval(tick, 30000); }
+
+  var btn = document.querySelector('.menu-btn'), mnav = document.getElementById('mnav');
+  if (btn && mnav) {
+    btn.addEventListener('click', function(){ var o = mnav.classList.toggle('open'); btn.setAttribute('aria-expanded', o); h.classList.add('solid'); });
+    mnav.addEventListener('click', function(e){ if (e.target.tagName === 'A') { mnav.classList.remove('open'); btn.setAttribute('aria-expanded', 'false'); } });
+  }
 
   var items = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
