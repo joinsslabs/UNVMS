@@ -6328,59 +6328,58 @@ V.clearance=()=>{
     </div>
     <p class="small" style="margin:0 0 14px;color:var(--muted)">All visitor clearance requests evaluated in real-time across <b>UNDSS, UN Security Council (UNSC)</b> and <b>Nigerian National Security</b> watchlists. Once approved by FSM, visitors automatically flow to Station 1 as Expected Guests.</p>
 
-    ${subInv.length ? `
-    <div style="margin-bottom:${pend.length?'18px':'0'}">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:12.5px;font-weight:700;color:#0369a1;text-transform:uppercase;letter-spacing:.04em">📩 Online Pre-Registrations Received (${subInv.length})</span>
-      </div>
-      <div class="tw"><table><thead><tr><th>Visitor</th><th>Host</th><th>Expected</th><th>Purpose</th><th style="text-align:right">FSM Clearance Action</th></tr></thead><tbody>
-        ${subInv.map(i=>{
-          const wm=watchMatch(i.guest.name);
-          const src=wm?(wm.source==="unsc"?"UNSC Sanctions":(wm.source==="nigeria"?"Nigerian National":"UNDSS")):"";
-          return `<tr style="${wm?'background:#fef2f2;border-left:4px solid #ef4444':''}">
-            <td>
-              <b>${esc(i.guest.name)}</b>
-              ${wm?`<div style="margin-top:2px"><span class="pill" style="background:#991b1b;color:#fff;font-weight:700;font-size:10.5px">🚨 WATCHLIST MATCH: ${src}</span></div><div class="small" style="color:#b91c1c;font-weight:600">${esc(wm.reason)}</div>`:""}
-              <div class="small">${esc(i.guest.org||"—")} · ${esc(i.guest.phone||"")}</div>
-            </td>
-            <td><b>${esc(i.host)}</b><div class="small">${esc(i.agency)}</div></td>
-            <td class="mono">${esc((i.guest.expected||"").replace("T"," "))}</td>
-            <td>${esc(i.guest.purpose||"Meeting")}</td>
-            <td style="text-align:right">
-              <div class="acts" style="justify-content:flex-end">
-                ${wm?`
-                  <button class="btn bad" data-watchlist-reject-inv="${esc(i.id)}" style="background:#991b1b;color:#fff;font-weight:700" title="Reject request immediately due to Security Sanctions / Watchlist hit">🚫 Reject Request (Watchlist Hit)</button>
-                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Review clearance dossier">Review &amp; Clear</button>
-                `:`
-                  <button class="btn pri" data-inv-use="${esc(i.id)}" title="Approve pre-registration and dispatch to Station 1">${gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "Alternate Clearance" : "Grant Clearance"}</button>
-                  <button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button>
-                `}
-              </div>
-            </td>
-          </tr>`;
-        }).join("")}
-      </tbody></table></div>
-    </div>` : ""}
-
-    ${pend.length ? `
-    <div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:12.5px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.04em">🏢 Host-Requested Visits Awaiting Clearance (${pend.length})</span>
-      </div>
-      ${table(pend,v=>{
-        const ext=getHostExt(v.host, v.agency);
-        const isUnsch = v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
-        const wm = watched(v);
-        if(wm){
-          const src=wm.source==="unsc"?"UNSC Sanctions":(wm.source==="nigeria"?"Nigerian National":"UNDSS");
-          return `<button class="btn bad" data-watchlist-reject-vis="${esc(v.id)}" style="background:#991b1b;color:#fff;font-weight:700" title="Reject request immediately due to Security Sanctions / Watchlist hit">🚫 Reject Request (${src} Hit)</button>`
-            + B(v.id,"detail","Details");
-        }
-        return (isUnsch ? `<button class="btn btn-confirm-host" data-confirm-host="${esc(v.id)}" title="Unscheduled visitor: Confirm with host on desk phone first">📞 Confirm with Host (Ext. ${esc(ext)})</button>` : "")
-          + B(v.id,"approve", gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "Alternate Clearance" : "Grant Clearance", "pri")
-          + B(v.id,"reject","Reject","bad");
-      },"No pending staff requests.")}
-    </div>` : ""}
+    <style>
+      .clr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+      .clr{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px;display:flex;flex-direction:column;gap:10px;box-shadow:0 8px 20px -18px rgba(15,23,42,.4)}
+      .clr.hit{border:2px solid #ef4444;background:#fff7f7}
+      .clr-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+      .clr-name{font-size:15.5px;font-weight:800;color:var(--navy);line-height:1.25}
+      .clr-org{font-size:12.5px;color:var(--muted);margin-top:2px}
+      .clr-src{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:3px 8px;white-space:nowrap}
+      .clr-src.inv{background:#e0f2fe;color:#075985}.clr-src.staff{background:#e0e7ff;color:#3730a3}
+      .clr-hit{background:#991b1b;color:#fff;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700}
+      .clr-hit small{display:block;font-weight:500;opacity:.9;margin-top:2px}
+      .clr dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0;font-size:12.5px}
+      .clr dt{color:var(--muted)}.clr dd{margin:0;color:var(--ink,#0f172a);font-weight:600}
+      .clr .acts{margin-top:auto;padding-top:10px;border-top:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap}
+      .clr .acts .btn{flex:1;justify-content:center;min-width:110px}
+      .clr-sec{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:4px 0 8px}
+    </style>
+    ${(()=>{
+      const when=x=>{const n=typeof x==="number"?x:new Date(String(x||"")).getTime();return n?fmtD(n):"—"};
+      const invCards=subInv.map(i=>{
+        const wm=watchMatch(i.guest.name);
+        const src=wm?(wm.source==="unsc"?"UNSC Sanctions":(wm.source==="nigeria"?"Nigerian National":"UNDSS")):"";
+        return {hit:!!wm,html:`<div class="clr${wm?" hit":""}">
+          <div class="clr-top"><div><div class="clr-name">${esc(i.guest.name)}</div><div class="clr-org">${esc(i.guest.org||"—")}${i.guest.phone?" · "+esc(i.guest.phone):""}</div></div><span class="clr-src inv">Online invite</span></div>
+          ${wm?`<div class="clr-hit">🚨 Watchlist match: ${src}<small>${esc(wm.reason)}</small></div>`:""}
+          <dl><dt>Host</dt><dd>${esc(i.host)} · ${esc(i.agency||"")}</dd><dt>Arriving</dt><dd>${esc(when(i.guest.expected))}</dd><dt>Purpose</dt><dd>${esc(i.guest.purpose||"Meeting")}</dd>${i.room?`<dt>Room</dt><dd>${esc(i.room)}</dd>`:""}</dl>
+          <div class="acts">${wm?`<button class="btn bad" data-watchlist-reject-inv="${esc(i.id)}" style="background:#991b1b;color:#fff">🚫 Reject</button><button class="btn" data-inv-use="${esc(i.id)}">Review</button>`
+            :`<button class="btn pri" data-inv-use="${esc(i.id)}">${gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "Alternate clearance" : "✓ Clear"}</button><button class="btn bad" data-inv-cancel="${esc(i.id)}">Decline</button>`}</div>
+        </div>`};
+      });
+      const staffCards=pend.map(v=>{
+        const wm=watched(v), ext=getHostExt(v.host, v.agency);
+        const isUnsch=v.unscheduled && !v.hostConfirmed && !v.verbalApproval;
+        const src=wm?(wm.source==="unsc"?"UNSC Sanctions":(wm.source==="nigeria"?"Nigerian National":"UNDSS")):"";
+        const acts=wm
+          ? `<button class="btn bad" data-watchlist-reject-vis="${esc(v.id)}" style="background:#991b1b;color:#fff">🚫 Reject</button>`+B(v.id,"detail","Details")
+          : (isUnsch?`<button class="btn btn-confirm-host" data-confirm-host="${esc(v.id)}">📞 Call host (Ext. ${esc(ext)})</button>`:"")
+            + B(v.id,"approve", gov.fsmIndisposed && ["sec_deputy","gate"].includes(myRole()) ? "Alternate clearance" : "Clear", "pri")
+            + B(v.id,"reject","Decline","bad") + B(v.id,"detail","Details");
+        return {hit:!!wm,html:`<div class="clr${wm?" hit":""}">
+          <div class="clr-top"><div><div class="clr-name">${esc(v.name)}</div><div class="clr-org">${esc(v.org||"—")}${v.phone?" · "+esc(v.phone):""}</div></div><span class="clr-src staff">${v.type==="contractor"?"Contractor":v.type==="vip"?"VIP":"Staff request"}</span></div>
+          ${wm?`<div class="clr-hit">🚨 Watchlist match: ${src}<small>${esc(wm.reason||"")}</small></div>`:""}
+          ${isUnsch&&!wm?`<div class="small" style="color:#b45309;font-weight:600">Unscheduled: confirm with the host before clearing.</div>`:""}
+          <dl><dt>Host</dt><dd>${esc(v.host||"")} · ${esc(v.agency||"")}</dd><dt>Arriving</dt><dd>${esc(when(v.expected))}</dd><dt>Purpose</dt><dd>${esc(v.purpose||"Meeting")}</dd><dt>Where</dt><dd>${esc(v.building||"")}${v.room?" · "+esc(v.room):""}</dd>${v.group?`<dt>Group</dt><dd>${esc(v.group)}</dd>`:""}</dl>
+          <div class="acts">${acts}</div>
+        </div>`};
+      });
+      const all=[...invCards,...staffCards].sort((a,b)=>(b.hit?1:0)-(a.hit?1:0));
+      const hits=all.filter(c=>c.hit).length;
+      return (hits?`<div class="clr-sec" style="color:#b91c1c">${hits} watchlist match${hits===1?"":"es"} shown first</div>`:"")
+        + `<div class="clr-grid">${all.map(c=>c.html).join("")}</div>`;
+    })()}
 
   </div>` : `<div class="note" style="margin-bottom:14px;display:flex;align-items:center;gap:8px;background:#f0fdf4;border-color:#bbf7d0;color:#166534"><span>✓ <b>No pending clearance requests.</b> All visitor invitations have been decided and dispatched to Station 1.</span></div>`);
 };
