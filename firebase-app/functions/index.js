@@ -23,7 +23,7 @@ const SMTP_USER = defineSecret("SMTP_USER");
 const SMTP_PASS = defineSecret("SMTP_PASS");
 const SMTP_HOST = defineString("SMTP_HOST", { default: "smtp.gmail.com" });
 const SMTP_PORT = defineInt("SMTP_PORT", { default: 465 });
-const APP_URL = defineString("APP_URL", { default: "https://unhouse-vms-abj26.web.app/app.html" });
+const APP_URL = defineString("APP_URL", { default: "https://unhousengvms.com/app" });
 const RETENTION_DAYS = defineInt("RETENTION_DAYS", { default: 365 });
 const TZ = "Africa/Lagos";
 
