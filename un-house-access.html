@@ -6226,94 +6226,73 @@ V.dashboard=()=>{
   <div class="panel"><h2>On premises now <span class="cnt">${inside.length}</span></h2>${table(inside,v=>canAct("checkout")?B(v.id,"checkout","Check out","pri"):"","Nobody is checked in.")}</div>`;
 };
 
+/* ---------- Muster roll: shared roll call ---------- */
+const musterInside = () => visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
+const activeRollCall = () => (rollcalls || []).find(r => r.status === "active") || null;
+function musterSet() { const rc = activeRollCall(); return new Set(Object.entries((rc && rc.accounted) || {}).filter(([, x]) => x).map(([k]) => k)); }
+async function rcWrite(id, patch, create) {
+  const i = rollcalls.findIndex(r => r.id === id);
+  if (create) rollcalls.unshift({ ...patch, id });
+  else if (i >= 0) { const r = rollcalls[i]; for (const [k, v] of Object.entries(patch)) { if (k.includes(".")) { const [a, b] = k.split("."); r[a] = { ...(r[a] || {}), [b]: v }; } else r[k] = v; } }
+  render();
+  if (!db) return;
+  try { const ref = db.collection("rollcalls").doc(id); if (create) await ref.set(patch); else await ref.update(patch); }
+  catch (e) { toast(e.code === "permission-denied" ? "Your role can't update the roll call." : "Roll call not saved: " + (e.message || e.code)); }
+}
 V.muster = () => {
-  const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
-  if(!window._accountedMusterSet) window._accountedMusterSet = new Set();
-  const acc = window._accountedMusterSet;
-  const accCount = inside.filter(v => acc.has(v.id)).length;
-  const unaccCount = inside.length - accCount;
-  const pct = inside.length ? Math.round((accCount / inside.length) * 100) : 100;
-
-  return head("UNDSS Emergency Evacuation Muster Roll", "Compound Perimeter Headcount & Building Evacuation Roll Call. Designated Assembly Point: Primary Compound Assembly Point (as marked on UNDSS Evacuation Signage).")+
-  `<div class="panel" style="border-top:4px solid #dc2626;background:linear-gradient(180deg,#ffffff,#fef2f2);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:48px;height:48px;border-radius:12px;background:#fee2e2;border:2px solid #fca5a5;display:grid;place-items:center;font-size:26px">🚨</div>
-        <div>
-          <h2 style="margin:0;font-size:18px;color:#991b1b;display:flex;align-items:center;gap:8px">
-            Perimeter Compound Evacuation Manifest
-            <span class="pill" style="background:#dc2626;color:#fff;font-size:11px;font-weight:800;letter-spacing:.05em">LIVE ROLL CALL</span>
-          </h2>
-          <p class="small" style="margin:2px 0 0;color:var(--muted)">
-            SOP-04: Verify all visitors and non-staff persons reach designated assembly areas with their host.
-          </p>
-        </div>
+  const inside = musterInside();
+  const rc = activeRollCall();
+  const acc = rc ? (rc.accounted || {}) : {};
+  const isAcc = v => !!acc[v.id];
+  const accCount = inside.filter(isAcc).length, miss = inside.length - accCount;
+  const pct = inside.length ? Math.round(accCount / inside.length * 100) : 100;
+  const list = [...inside].sort((a, b) => (isAcc(a) - isAcc(b)) || (a.name || "").localeCompare(b.name || ""));
+  const last = !rc && rollcalls.find(r => r.status === "closed");
+  return head("UNDSS Emergency Evacuation Muster Roll", "Head count at the assembly point. Every marshal sees the same list and ticks update live on all devices.") +
+  `<style>
+    .mu-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .mu-stats{display:grid;grid-template-columns:repeat(3,minmax(90px,1fr));gap:10px;flex:1;min-width:260px}
+    .mu-stat{border-radius:12px;padding:10px 12px;border:1px solid var(--line);background:#fff}
+    .mu-stat b{display:block;font-size:26px;line-height:1.1}
+    .mu-stat span{font-size:12px;color:var(--muted)}
+    .mu-prog{height:10px;border-radius:999px;background:#fee2e2;overflow:hidden;margin:12px 0 4px}
+    .mu-prog i{display:block;height:100%;background:linear-gradient(90deg,#16a34a,#22c55e);transition:width .3s}
+    .mu-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+    .mu-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1.5px solid #fecaca;border-left:6px solid #dc2626;border-radius:12px;padding:12px 14px;cursor:pointer;font:inherit;color:inherit}
+    .mu-row.ok{border-color:#bbf7d0;border-left-color:#16a34a;background:#f0fdf4}
+    .mu-row:disabled{cursor:default}
+    .mu-row .who{flex:1;min-width:0}
+    .mu-row .who b{display:block;font-size:15px}
+    .mu-row .who span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .mu-pill{font-size:12px;font-weight:800;border-radius:999px;padding:6px 12px;white-space:nowrap;background:#dc2626;color:#fff}
+    .mu-row.ok .mu-pill{background:#16a34a}
+    @media (max-width:560px){.mu-stats{grid-template-columns:repeat(3,1fr)}.mu-stat b{font-size:22px}}
+  </style>
+  <div class="panel" style="border-top:4px solid #dc2626">
+    <div class="mu-bar">
+      <div class="mu-stats">
+        <div class="mu-stat"><b>${inside.length}</b><span>On site</span></div>
+        <div class="mu-stat" style="border-color:#bbf7d0"><b style="color:#15803d">${accCount}</b><span>Accounted for</span></div>
+        <div class="mu-stat" style="border-color:#fecaca"><b style="color:#b91c1c">${miss}</b><span>Missing</span></div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn pri" id="v_btn_print_muster" style="background:#dc2626;border-color:#dc2626;font-weight:700;display:inline-flex;align-items:center;gap:6px">
-          🖨️ Print Official Manifest
-        </button>
-        <button class="btn" id="v_btn_export_muster_csv" style="display:inline-flex;align-items:center;gap:6px">
-          📊 Export CSV
-        </button>
+      <div class="acts" style="flex-wrap:wrap">
+        ${rc ? `<button class="btn bad" id="mu_end">End roll call</button>` : `<button class="btn pri" id="mu_start" style="background:#dc2626;border-color:#dc2626">🚨 Start roll call</button>`}
+        <button class="btn" id="v_btn_print_muster">Print list</button>
+        <button class="btn" id="v_btn_export_muster_csv">CSV</button>
       </div>
     </div>
-  </div>
-
-  <div class="kpis">
-    <div class="kpi"><div class="n">${inside.length}</div><div class="l">Total On Premises</div></div>
-    <div class="kpi ok"><div class="n" style="color:#16a34a">${accCount}</div><div class="l">✓ Accounted at Assembly Area</div></div>
-    <div class="kpi ${unaccCount ? 'alert' : ''}"><div class="n" style="color:${unaccCount ? '#dc2626' : 'var(--navy)'}">${unaccCount}</div><div class="l">⚠️ Unaccounted (Inside)</div></div>
-    <div class="kpi"><div class="n" style="color:#0284c7">${pct}%</div><div class="l">Evacuation Clearance</div></div>
-  </div>
-
-  <div class="panel">
-    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-        <button class="btn" id="v_btn_mark_all_muster" style="font-size:12px">✓ Mark All Accounted</button>
-        <button class="btn" id="v_btn_reset_muster" style="font-size:12px">Reset Checkmarks</button>
-      </div>
-      <div class="search" style="margin:0;max-width:320px"><div class="search-in"><input id="v_muster_search" placeholder="Search name, tag, building, host..."><kbd>/</kbd></div></div>
+    ${rc ? `<div class="mu-prog"><i style="width:${pct}%"></i></div>
+      <div class="small" style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap"><span><b>${pct}%</b> accounted for</span><span>Started ${fmtT(rc.startedAt)} by ${esc(rc.startedBy || "")}</span></div>`
+      : `<p class="small" style="margin:12px 0 0">Press <b>Start roll call</b> during an evacuation. Marshals then tap each person as they reach the assembly point.${last ? ` Last roll call ended ${fmtD(last.closedAt)} by ${esc(last.closedBy || "")}.` : ""}</p>`}
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px">
+      <div class="search" style="margin:0;flex:1;min-width:200px"><div class="search-in"><input id="v_muster_search" placeholder="Search name, tag, building or host"></div></div>
+      ${rc && miss ? `<button class="btn" id="v_btn_mark_all_muster">Mark all safe</button>` : ""}
     </div>
-
-    <div style="margin-top:12px" id="v_muster_table_wrap">
-      ${inside.length ? `<div class="tw"><table class="dep-table" style="width:100%;font-size:13px">
-        <thead><tr style="background:#f1f5f9;border-bottom:2px solid #cbd5e1">
-          <th style="width:50px;text-align:center">Muster</th>
-          <th style="width:85px">Tag</th>
-          <th>Visitor / Org</th>
-          <th>Location &amp; Agency Wing</th>
-          <th>Responsible Host &amp; Ext</th>
-          <th style="width:100px;text-align:right">Time Inside</th>
-        </tr></thead>
-        <tbody>
-          ${inside.map(v => {
-            const isAcc = acc.has(v.id);
-            const ext = getHostExt(v.host, v.agency);
-            return `<tr style="background:${isAcc ? '#f0fdf4' : 'transparent'};border-bottom:1px solid var(--line)">
-              <td style="text-align:center">
-                <input type="checkbox" data-vmuster-id="${esc(v.id)}" ${isAcc ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer;accent-color:#16a34a">
-              </td>
-              <td class="mono"><b>${esc(v.tag || (v.type === 'vip' ? '⭐ VIP' : '—'))}</b></td>
-              <td>
-                <div style="font-weight:700;color:var(--fg)">${esc(v.name)}</div>
-                <div class="small" style="color:var(--muted)">${esc(v.org || 'Official Guest')}</div>
-              </td>
-              <td>
-                <div style="font-weight:600">${esc(v.building || 'Main UN House')}</div>
-                <div class="small" style="color:#0284c7">${esc(v.agency)} Wing ${v.room ? '· ' + esc(v.room) : ''}</div>
-              </td>
-              <td>
-                <div style="font-weight:600">${esc(v.host)}</div>
-                <div class="small mono" style="color:var(--muted)">Desk Ext. ${esc(ext)}</div>
-              </td>
-              <td style="text-align:right" class="mono small">
-                ${fmtT(v.inAt || v.taggedAt || v.arrivedAt)}
-              </td>
-            </tr>`;
-          }).join("")}
-        </tbody>
-      </table></div>` : `<div class="empty">Perimeter compound is clear. Zero visitors currently inside.</div>`}
+    <div class="mu-list" id="v_muster_table_wrap">
+      ${list.length ? list.map(v => { const a = acc[v.id]; return `<button type="button" class="mu-row${a ? " ok" : ""}" data-mu-id="${esc(v.id)}" ${rc ? "" : "disabled"}>
+        <div class="who"><b>${esc(v.name)}</b><span>${esc(v.org || "Visitor")}${v.tag ? " · " + esc(v.tag) : ""} · ${esc(v.building || "")} · Host ${esc(v.host || "")}</span></div>
+        <span class="mu-pill">${a ? "✓ Safe" : rc ? "Missing" : "On site"}</span></button>`; }).join("")
+        : `<div class="small" style="padding:18px;text-align:center;color:var(--muted)">Nobody is recorded on site.</div>`}
     </div>
   </div>`;
 };
@@ -9286,6 +9265,8 @@ function render(){
 /* ---------- UNDSS Emergency Evacuation Muster Roll ---------- */
 window._accountedMusterSet = new Set();
 function openEvacMuster(){
+  // One shared roll call: the Muster Roll page.
+  if(ROLE_VIEWS[myRole()]?.includes("muster")){ goView("muster"); return; }
   const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
   const m = $("#modal");
   const acc = window._accountedMusterSet;
@@ -9599,43 +9580,36 @@ function wire(){
   wireRegistry();
   const edBtn=$("#btn_open_ext_dir"); if(edBtn) edBtn.onclick=()=>openExtensionDirectory();
   const evacBtn=$("#btn_evac_muster"); if(evacBtn) evacBtn.onclick=()=>openEvacMuster();
-  document.querySelectorAll("input[data-vmuster-id]").forEach(chk => {
-    chk.onchange = () => {
-      const id = chk.dataset.vmusterId;
-      if(!window._accountedMusterSet) window._accountedMusterSet = new Set();
-      if(chk.checked) window._accountedMusterSet.add(id);
-      else window._accountedMusterSet.delete(id);
-      render();
-    };
+  document.querySelectorAll("[data-mu-id]").forEach(b => b.onclick = () => {
+    const rc = activeRollCall(); if (!rc) return;
+    const id = b.dataset.muId, now_ = (rc.accounted || {})[id];
+    rcWrite(rc.id, { ["accounted." + id]: now_ ? null : { by: op(), byUid: myUid(), at: now() } });
   });
+  const muStart = $("#mu_start");
+  if (muStart) muStart.onclick = () => modal(`<h2>Start an evacuation roll call?</h2><p class="small">Everyone on site is listed as <b>Missing</b> until a marshal marks them safe. All marshals see the same list.</p>`, () => {
+    const id = "RC-" + Date.now().toString(36).toUpperCase();
+    rcWrite(id, { status: "active", startedAt: now(), startedBy: op(), startedByUid: myUid(), accounted: {} }, true);
+  });
+  const muEnd = $("#mu_end");
+  if (muEnd) muEnd.onclick = () => { const rc = activeRollCall(); if (!rc) return;
+    const miss = musterInside().filter(v => !(rc.accounted || {})[v.id]).length;
+    modal(`<h2>End this roll call?</h2><p class="small">${miss ? `<b style="color:#b91c1c">${miss} ${miss === 1 ? "person is" : "people are"} still missing.</b> ` : "Everyone is accounted for. "}The result is saved with your name and the time.</p>`, () => {
+      rcWrite(rc.id, { status: "closed", closedAt: now(), closedBy: op(), closedByUid: myUid(), missingAtClose: miss });
+    });
+  };
   const vPrintMuster = $("#v_btn_print_muster");
-  if(vPrintMuster) vPrintMuster.onclick = () => {
-    const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
-    printEvacManifest(inside, window._accountedMusterSet || new Set());
-  };
+  if (vPrintMuster) vPrintMuster.onclick = () => printEvacManifest(musterInside(), musterSet());
   const vExpMuster = $("#v_btn_export_muster_csv");
-  if(vExpMuster) vExpMuster.onclick = () => {
-    const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
-    exportEvacCsv(inside, window._accountedMusterSet || new Set());
-  };
+  if (vExpMuster) vExpMuster.onclick = () => exportEvacCsv(musterInside(), musterSet());
   const vMarkAll = $("#v_btn_mark_all_muster");
-  if(vMarkAll) vMarkAll.onclick = () => {
-    const inside = visitors.filter(v => ["in","tagged"].includes(v.status) || (v.type === "vip" && ["arrived","in"].includes(v.status)));
-    if(!window._accountedMusterSet) window._accountedMusterSet = new Set();
-    inside.forEach(v => window._accountedMusterSet.add(v.id));
-    render();
-  };
-  const vReset = $("#v_btn_reset_muster");
-  if(vReset) vReset.onclick = () => {
-    if(window._accountedMusterSet) window._accountedMusterSet.clear();
-    render();
+  if (vMarkAll) vMarkAll.onclick = () => { const rc = activeRollCall(); if (!rc) return;
+    const patch = {}; musterInside().forEach(v => { if (!(rc.accounted || {})[v.id]) patch["accounted." + v.id] = { by: op(), byUid: myUid(), at: now() }; });
+    modal(`<h2>Mark everyone safe?</h2><p class="small">Only do this once everyone has been seen at the assembly point.</p>`, () => rcWrite(rc.id, patch));
   };
   const vMusterSearch = $("#v_muster_search");
-  if(vMusterSearch) vMusterSearch.oninput = () => {
+  if (vMusterSearch) vMusterSearch.oninput = () => {
     const q = vMusterSearch.value.toLowerCase().trim();
-    document.querySelectorAll("#v_muster_table_wrap tbody tr").forEach(tr => {
-      tr.style.display = (!q || tr.textContent.toLowerCase().includes(q)) ? "" : "none";
-    });
+    document.querySelectorAll("#v_muster_table_wrap [data-mu-id]").forEach(r => { r.style.display = (!q || r.textContent.toLowerCase().includes(q)) ? "" : "none"; });
   };
 
   const calBtn=$("#btn_cal_to_gate"); if(calBtn) calBtn.onclick=()=>openCalendarToGateModal();
