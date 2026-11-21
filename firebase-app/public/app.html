@@ -4254,7 +4254,7 @@ const TX={en:{passFor:"Visitor",group:"Delegation",vip:"VIP guest",contractor:"C
   st:{out:"Checked out",expired:"Pass expired",pending:"Pending clearance",bad:"Not valid",in:"Checked in with host",tagged:"Documented · Awaiting host",arrived:"En route to Station 2",approved:"Cleared · Expected"},
   doneMsg:"Thank you for visiting UN House.",expMsg:"This pass is no longer valid. Ask your host for a new one.",badMsg:"This pass can't be used yet. Your host will let you know.",
   host:"Host",date:"Date",tag:"Tag",until:"Valid until",ref:"Reference",room:"Meeting room",vehicle:"Vehicle",people:"people",groupPass:"Group pass",
-  addCal:"Add to calendar",directions:"Directions",arriveNote:"Bring a government-issued photo ID. Arrive 15 minutes early for gate screening (61–62 Diplomatic Drive, Central Business District, Abuja).",
+  addCal:"Add to calendar",directions:"Directions",arriveNote:"Bring a government-issued photo ID. Arrive 15 minutes early for gate screening (Plot 617/618 Diplomatic Drive, Central Business District, Abuja).",
   foot:"Show this screen at the gate together with your photo ID. Screenshots are not accepted: the clock must be moving.",
   invTitle:"Visit to UN House, Abuja",invIntro:(h,a)=>`${h} (${a}) has invited you. Fill in your details so the gate can expect you.`,name:"Full name",org:"Organisation",email:"Email (optional)",phone:"Phone",vehicleOpt:"Vehicle / plate number (optional)",when:"Arrival date and time",purpose:"Purpose of visit",send:"Send my details",
   privacy:"Your details are used only to manage your visit. Bring a photo ID to the gate.",thanks:n=>`Thank you, ${n}`,thanksSub:(h,w)=>`${h} has your details. Bring a photo ID to the gate at UN House on ${w}.`,received:"Thank you",receivedSub:"Your details have been received. Bring a photo ID to the gate at UN House.",
@@ -4263,7 +4263,7 @@ const TX={en:{passFor:"Visitor",group:"Delegation",vip:"VIP guest",contractor:"C
   st:{out:"Visite terminée (Sorti)",expired:"Laissez-passer expiré",pending:"En attente d'autorisation",bad:"Non valide",in:"Enregistré",tagged:"Documenté",arrived:"Admis à l'entrée",approved:"Autorisé"},
   doneMsg:"Merci de votre visite à UN House.",expMsg:"Ce laissez-passer n'est plus valide. Demandez-en un nouveau à votre hôte.",badMsg:"Ce laissez-passer n'est pas encore utilisable. Votre hôte vous informera.",
   host:"Hôte",date:"Date",tag:"Badge",until:"Valable jusqu'au",ref:"Référence",room:"Salle de réunion",vehicle:"Véhicule",people:"personnes",groupPass:"Laissez-passer de groupe",
-  addCal:"Ajouter au calendrier",directions:"Itinéraire",arriveNote:"Apportez une pièce d'identité officielle avec photo. Arrivez 15 minutes à l'avance pour le contrôle (61–62 Diplomatic Drive, Central Business District, Abuja).",
+  addCal:"Ajouter au calendrier",directions:"Itinéraire",arriveNote:"Apportez une pièce d'identité officielle avec photo. Arrivez 15 minutes à l'avance pour le contrôle (Plot 617/618 Diplomatic Drive, Central Business District, Abuja).",
   foot:"Présentez cet écran à l'entrée avec votre pièce d'identité. Les captures d'écran ne sont pas acceptées : l'horloge doit défiler.",
   invTitle:"Visite à UN House, Abuja",invIntro:(h,a)=>`${h} (${a}) vous a invité. Remplissez vos informations pour que l'entrée vous attende.`,name:"Nom complet",org:"Organisation",email:"E-mail (facultatif)",phone:"Téléphone",vehicleOpt:"Immatriculation du véhicule (facultatif)",when:"Date et heure d'arrivée",purpose:"Objet de la visite",send:"Envoyer mes informations",
   privacy:"Vos informations servent uniquement à gérer votre visite. Apportez une pièce d'identité avec photo.",thanks:n=>`Merci, ${n}`,thanksSub:(h,w)=>`${h} a reçu vos informations. Apportez une pièce d'identité avec photo à l'entrée de UN House le ${w}.`,received:"Merci",receivedSub:"Vos informations ont été reçues. Apportez une pièce d'identité avec photo à l'entrée de UN House.",
@@ -4352,25 +4352,13 @@ function showPass(code){
         <span class="vp-st" style="background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.3);padding:3px 10px;border-radius:12px;font-size:10.5px;font-weight:750">${esc(label)}</span>
       </div>
       <div class="vpass-body">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-          <div>
-            <div class="vp-name">${esc(p.name)}</div>
-            <div class="vp-org" style="margin-top:2px">${p.members?`${T.groupPass} · ${p.members.length} ${T.people}`:esc(p.org)}</div>
-          </div>
-          <span class="vpass-color-pill">🏷️ ${col.lanyardText}</span>
+        <div style="text-align:center">
+          <div class="vp-name">${esc(p.name)}</div>
+          <div class="vp-org" style="margin-top:2px">${p.members?`${T.groupPass} · ${p.members.length} ${T.people}`:esc(p.org)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:6px;line-height:1.4">${col.scope}</div>
         </div>
 
-        <!-- Official Category Badge & Scope -->
-        <div style="background:${col.lightBg};border:1.5px solid ${col.border};border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:12px;margin:8px 0">
-          <div style="background:${col.primary};color:#ffffff;font-size:11.5px;font-weight:900;letter-spacing:0.06em;padding:5px 12px;border-radius:6px;box-shadow:0 2px 6px ${col.primary}33;text-align:center;white-space:nowrap">
-            ${col.lanyardText}
-          </div>
-          <div style="line-height:1.35">
-            <div style="font-size:12.5px;font-weight:800;color:${col.primary};letter-spacing:0.02em">${col.name}</div>
-            <div style="font-size:11.5px;color:var(--navy);margin-top:2px">${col.scope}</div>
-          </div>
-        </div>
-        ${ok?`<div class="vp-qr" style="border:2px solid ${col.border};box-shadow:0 6px 18px ${col.primary}22"><img id="vpq" alt="QR"></div><div class="vp-clock"><i style="background:${col.primary}"></i><span id="vpc"></span></div>`:done?`
+        ${ok?`<div class="vp-qr" style="border:2px solid ${col.border};box-shadow:0 6px 18px ${col.primary}22;margin:14px auto 6px"><img id="vpq" alt="QR code for the gate" style="width:220px;height:220px;max-width:62vw;max-height:62vw"></div><div class="vp-clock"><i style="background:${col.primary}"></i><span id="vpc"></span></div>`:done?`
           <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:20px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;margin:8px 0">
             <div style="width:52px;height:52px;border-radius:50%;background:#e2e8f0;display:grid;place-items:center;font-size:26px">🚪</div>
             <div style="font-size:20px;font-weight:800;color:#1e293b;letter-spacing:.2px">${esc(T.st.out)}</div>
@@ -4396,7 +4384,7 @@ function showPass(code){
         ` : `
           <div>
             <dt>${T.tag}</dt>
-            <dd class="mono" style="color:var(--muted);font-size:12px">Assigned at Station 1 Gate Entry (${col.tagPrefix}-Series · ${col.lanyardText})</dd>
+            <dd style="color:var(--muted);font-size:12.5px">Given at the gate</dd>
           </div>
         `}
         ${done&&p.outAt?`<div><dt>Departed</dt><dd class="mono">${new Date(p.outAt).toLocaleTimeString(dateLoc(),{hour:'2-digit',minute:'2-digit'})}</dd></div>`:""}
