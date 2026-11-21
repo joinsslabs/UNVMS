@@ -2641,7 +2641,7 @@ function tagChip(tag, col) {
 }
 function holderTable(list) {
   if (!list.length) return '<p class="small" style="color:var(--muted)">Nobody is holding one right now.</p>';
-  return `<div class="tw" style="max-height:260px;overflow:auto"><table><thead><tr><th>Tag</th><th>Name</th><th>Host</th><th>Status</th></tr></thead><tbody>${list.map(v => `<tr><td class="mono"><b>${esc(v.tag || v.assignedTag)}</b></td><td>${esc(v.name)}</td><td>${esc(v.host || "")}</td><td>${esc(STATUS[v.status] || v.status)}</td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="tw" style="max-height:260px;overflow:auto"><table><thead><tr><th>Tag</th><th>Name</th><th>Host</th><th>Status</th></tr></thead><tbody>${list.map(v => `<tr><td class="mono" style="white-space:nowrap"><b>${esc(v.tag || v.assignedTag)}</b></td><td>${esc(v.name)}</td><td>${esc(v.host || "")}</td><td>${esc(STATUS[v.status] || v.status)}</td></tr>`).join("")}</tbody></table></div>`;
 }
 function tagInfo(html){ modal(html,()=>true); const ok=$("#mOk"), no=$("#mNo"); if(ok) ok.textContent="Close"; if(no) no.style.display="none"; }
 window.tagRackOpen = key => {
