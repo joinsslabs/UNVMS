@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reception — Access Control Building</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<main>
+  <div class="grid cols-2">
+    <section>
+      <div class="panel">
+        <div class="panel-head"><h2>1 · Find the visitor</h2><button id="walkin" type="button">+ Register walk-in</button></div>
+        <input id="q" class="search" placeholder="Type the visitor's name or reference…" autocomplete="off" aria-label="Search visitor">
+        <p class="small muted">Search today's bookings. Ask for the visitor's name, check their photo ID, then grant access — a tag number is assigned automatically.</p>
+        <div id="results" class="list"></div>
+      </div>
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-head"><h2>Expected today — not yet arrived</h2><span class="count" id="nExpected">0</span></div>
+        <div id="expected" class="list"></div>
+      </div>
+    </section>
+    <section>
+      <div class="panel">
+        <div class="panel-head"><h2>2 · Sent to Documentation</h2><span class="count" id="nSent">0</span></div>
+        <p class="small muted" style="margin-top:-.4rem">Access granted, waiting to exchange ID for tag.</p>
+        <div id="sent" class="list"></div>
+      </div>
+      <div class="panel" style="margin-top:1.25rem">
+        <div class="panel-head"><h2>Walk-ins awaiting approval</h2><span class="count" id="nPending">0</span></div>
+        <div id="pending" class="list"></div>
+      </div>
+    </section>
+  </div>
+</main>
+<script src="/js/common.js"></script>
+<script src="/js/reception.js"></script>
+</body>
+</html>

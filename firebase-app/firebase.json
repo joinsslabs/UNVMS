@@ -3,55 +3,7 @@
     {
       "site": "unhouse-vms",
       "public": "public",
-      "ignore": [
-        "firebase.json",
-        "**/.*"
-      ],
-      "rewrites": [
-        {
-          "source": "/login",
-          "destination": "/login.html"
-        }
-      ],
-      "headers": [
-        {
-          "source": "**",
-          "headers": [
-            {
-              "key": "Cache-Control",
-              "value": "no-cache, no-store, must-revalidate"
-            },
-            {
-              "key": "Content-Security-Policy",
-              "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.cloudfunctions.net https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://*.jsdelivr.net blob: data:; worker-src 'self' blob: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self' https://wa.me"
-            },
-            {
-              "key": "X-Content-Type-Options",
-              "value": "nosniff"
-            },
-            {
-              "key": "X-Frame-Options",
-              "value": "DENY"
-            },
-            {
-              "key": "X-XSS-Protection",
-              "value": "1; mode=block"
-            },
-            {
-              "key": "Referrer-Policy",
-              "value": "strict-origin-when-cross-origin"
-            },
-            {
-              "key": "Permissions-Policy",
-              "value": "geolocation=(), camera=(self), microphone=()"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "site": "unhouse-vms-abj26",
-      "public": "public",
+      "cleanUrls": true,
       "ignore": [
         "firebase.json",
         "**/.*"

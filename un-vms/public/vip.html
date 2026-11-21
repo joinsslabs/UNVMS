@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>VIP Gate</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="tablet">
+<main>
+  <div class="panel">
+    <div class="panel-head"><h2>VIP arrival</h2><button id="addvip" type="button">+ Unscheduled VIP</button></div>
+    <input id="q" class="search" placeholder="Search VIP by name…" autocomplete="off" aria-label="Search VIP">
+    <div id="results" class="list" style="margin-top:.75rem"></div>
+  </div>
+  <div class="grid cols-2" style="margin-top:1.25rem">
+    <div class="panel">
+      <div class="panel-head"><h2>Expected VIPs today</h2><span class="count" id="nExp">0</span></div>
+      <div id="expected" class="list"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><h2>VIPs on site</h2><span class="count" id="nOn">0</span></div>
+      <div id="onsite" class="list"></div>
+    </div>
+  </div>
+</main>
+<script src="/js/common.js"></script>
+<script src="/js/vip.js"></script>
+</body>
+</html>

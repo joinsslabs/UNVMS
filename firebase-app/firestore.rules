@@ -13,6 +13,14 @@ service cloud.firestore {
     }
     function hasRole(roles) { return isStaff() && me().role in roles; }
     function isAdmin() { return hasRole(['admin', 'sec_admin']); }
+    // A UN-agency address the person has proved they own (email-link sign-in sets email_verified).
+    // Must match UN_EMAIL_RE in the app.
+    function unEmail() {
+      return request.auth.token.email_verified == true
+        && request.auth.token.email.lower().matches('^[^@ ]+@([a-z0-9-]+[.])*(undp[.]org|un[.]org|who[.]int|unicef[.]org|wfp[.]org|unhcr[.]org|unfpa[.]org|unaids[.]org|unodc[.]org|unesco[.]org|ilo[.]org|fao[.]org|unwomen[.]org|iom[.]int)$')
+        || request.auth.token.email_verified == true
+        && request.auth.token.email.lower() in ['skillschule@gmail.com'];
+    }
 
     // Records who the first administrator is. Written once, never changed.
     match /config/setup {
@@ -44,16 +52,21 @@ service cloud.firestore {
         && request.resource.data.email == request.auth.token.email
         && request.resource.data.active == true
         && (
-          request.resource.data.role == 'pending'
+          (request.resource.data.role == 'pending' && unEmail())
+          || (request.resource.data.role == 'host' && unEmail())
           || (request.resource.data.role == 'admin'
               && !exists(setupPath())
               && getAfter(setupPath()).data.adminUid == uid)
         );
-      // Only admins assign roles. An admin cannot demote or deactivate themselves.
-      allow update: if isAdmin()
+      // A pending account with a verified UN address may promote itself to host (nothing else).
+      allow update: if (request.auth.uid == uid && resource.data.role == 'pending'
+          && request.resource.data.role == 'host' && unEmail()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role']))
+      // Only admins assign other roles. An admin cannot demote or deactivate themselves.
+        || (isAdmin()
         && (uid != request.auth.uid
             || (request.resource.data.role in ['admin', 'sec_admin'] && request.resource.data.active == true))
-        && request.resource.data.email == resource.data.email;
+        && request.resource.data.email == resource.data.email);
       allow delete: if false;
     }
 
@@ -90,7 +103,16 @@ service cloud.firestore {
         || (hasRole(['sec_admin', 'sec_deputy', 'approver', 'gate', 'reception', 'host'])
             && d().log is list && d().log.size() == 1 && entryOk(d().log[0])
             && d().requestedByUid == request.auth.uid
-            && d().status == 'pending');
+            && d().status == 'pending')
+        // FSM clears a contractor access request: each worker is created as an approved contractor visit,
+        // only by the person who cleared that request.
+        || (hasRole(['admin', 'sec_admin', 'sec_deputy'])
+            && d().type == 'contractor' && d().status == 'approved'
+            && d().decidedByUid == request.auth.uid
+            && d().log is list && d().log.size() == 1 && entryOk(d().log[0])
+            && d().get('contractorRequestId', '') is string && d().get('contractorRequestId', '') != ''
+            && get(/databases/$(db)/documents/contractorRequests/$(d().contractorRequestId)).data.status == 'approved'
+            && get(/databases/$(db)/documents/contractorRequests/$(d().contractorRequestId)).data.decidedByUid == request.auth.uid);
 
       allow update: if (isStaff() && o().get('example', false) == true && d().get('example', false) == true)
         || (isStaff() && fixedFields() && logAppended() && (
@@ -157,21 +179,23 @@ service cloud.firestore {
       function nv() { return request.resource.data; }
       function str(v, max) { return v is string && v.size() <= max; }
       allow get: if true;
-      allow list: if isStaff()
-        || (hasRole(['host']) && resource.data.hostUid == request.auth.uid)
-        || resource.data.get('demo', false) == true
-        || resource.data.status == 'submitted';
-      allow create: if (isStaff() || nv().get('demo', false) == true)
-        && nv().status in ['open', 'submitted']
+      allow list: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip'])
+        || (hasRole(['host']) && resource.data.hostUid == request.auth.uid);
+      allow create: if isStaff() && nv().get('demo', false) == false
+        && nv().status == 'open'
         && nv().expires is int && nv().expires < request.time.toMillis() + 1209600000
         && token.size() >= 16;
       allow update: if
         // Guest submits once, before expiry, only the allowed fields.
-        ((inv().status == 'open' || inv().get('demo', false) == true)
+        (inv().status == 'open'
           && nv().status == 'submitted'
           && inv().expires > request.time.toMillis()
-          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt', 'host', 'agency', 'id', 'demo', 'expires'])
-          && nv().guest.keys().hasOnly(['name', 'org', 'phone', 'vehicle', 'email', 'expected', 'purpose', 'agreedAt', 'agreement', 'lang'])
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt'])
+          && nv().guest.keys().hasOnly(['name', 'org', 'phone', 'vehicle', 'email', 'expected', 'purpose', 'agreedAt', 'agreement', 'lang', 'lockProof'])
+          // A locked invite only accepts the visitor whose email or phone the host entered (stored as a SHA-256 hash).
+          && (!('lockHash' in inv())
+              || (nv().guest.get('lockProof', '') is string && str(nv().guest.lockProof, 160)
+                  && hashing.sha256(nv().guest.lockProof).toHexString().lower() == inv().lockHash))
           && (!('email' in nv().guest) || str(nv().guest.email, 160))
           && (!('vehicle' in nv().guest) || str(nv().guest.vehicle, 60))
           && str(nv().guest.name, 120) && nv().guest.name.size() > 1
@@ -179,10 +203,7 @@ service cloud.firestore {
           && str(nv().guest.expected, 30) && str(nv().guest.purpose, 300))
         // Staff turn a submission into a visit, or cancel an invite.
         || (isStaff() && (inv().hostUid == request.auth.uid || hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'reception']))
-          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
-          && nv().status in ['used', 'cancelled'])
-        || (inv().get('demo', false) == true
-          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId'])
+          && nv().diff(inv()).affectedKeys().hasOnly(['status', 'visitorId', 'usedAt'])
           && nv().status in ['used', 'cancelled']);
       allow delete: if false;
     }
@@ -223,6 +244,45 @@ service cloud.firestore {
     match /parking/{id} {
       allow read, create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'approver', 'gate', 'docs', 'reception', 'vip']);
       allow delete: if isStaff() && resource.data.get('example', false) == true;
+    }
+
+    // Contract companies and their workers. All staff can read; focal points and security maintain them.
+    match /contractors/{id} {
+      function cd() { return request.resource.data; }
+      allow read: if isStaff();
+      allow create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy'])
+        && cd().name is string && cd().name.size() > 1 && cd().name.size() <= 120
+        && cd().workers is list && cd().workers.size() <= 200
+        && cd().updatedByUid == request.auth.uid;
+      allow delete: if false;
+    }
+
+    // Dated site-access requests for named contractor workers, cleared by the FSM.
+    match /contractorRequests/{id} {
+      function rq() { return request.resource.data; }
+      function cur() { return resource.data; }
+      function changes(keys) { return rq().diff(cur()).affectedKeys().hasOnly(keys); }
+      allow read: if isStaff();
+      allow create: if hasRole(['admin', 'sec_admin', 'sec_deputy'])
+        && rq().requestedByUid == request.auth.uid && rq().status == 'pending'
+        && rq().workers is list && rq().workers.size() >= 1 && rq().workers.size() <= 50
+        && rq().from is int && rq().to is int && rq().to >= rq().from
+        && rq().to - rq().from <= 7776000000
+        && rq().companyId is string && exists(/databases/$(db)/documents/contractors/$(rq().companyId));
+      allow update: if
+        // The FSM (never the requester) clears or declines a pending request.
+        (hasRole(['admin', 'sec_admin', 'sec_deputy']) && cur().status == 'pending'
+          && rq().status in ['approved', 'rejected'] && cur().requestedByUid != request.auth.uid
+          && rq().decidedByUid == request.auth.uid
+          && changes(['status', 'decidedBy', 'decidedByUid', 'decidedAt', 'decisionNote', 'visitorIds']))
+        // The requester withdraws a pending request.
+        || (cur().requestedByUid == request.auth.uid && cur().status == 'pending'
+          && rq().status == 'cancelled' && changes(['status', 'cancelledAt']))
+        // Security revokes a cleared request.
+        || (hasRole(['admin', 'sec_admin', 'sec_deputy']) && cur().status == 'approved'
+          && rq().status == 'revoked' && rq().revokedByUid == request.auth.uid
+          && changes(['status', 'revokedBy', 'revokedByUid', 'revokedAt']));
+      allow delete: if false;
     }
 
     // Server audit trail: written only by the Cloud Function, never by a browser.
