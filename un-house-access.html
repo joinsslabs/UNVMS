@@ -2622,6 +2622,42 @@ function getPassColor(p){
   return "blue";
 }
 
+/* ---------- Station 1 tag rack: details behind each card ---------- */
+const TAG_CATS = { visitor: ["V", "Visitor", "blue"], delivery: ["D", "Courier / delivery", "green"], contractor: ["C", "Contractor", "teal"], protocol: ["P", "Protocol", "purple"] };
+function tagHolders(prefix) {
+  return visitors.filter(x => (x.tag || x.assignedTag) && ["arrived", "tagged", "in"].includes(x.status)
+    && (!prefix || String(x.tag || x.assignedTag).toUpperCase().startsWith(prefix + "-")));
+}
+function tagChip(tag, col) {
+  return `<span style="display:inline-block;font:700 12px var(--mono,monospace);padding:4px 8px;margin:3px;border-radius:6px;background:${col.tagBg};color:${col.tagColor};border:1px solid ${col.tagBorder}">${esc(tag)}</span>`;
+}
+function holderTable(list) {
+  if (!list.length) return '<p class="small" style="color:var(--muted)">Nobody is holding one right now.</p>';
+  return `<div class="tw" style="max-height:260px;overflow:auto"><table><thead><tr><th>Tag</th><th>Name</th><th>Host</th><th>Status</th></tr></thead><tbody>${list.map(v => `<tr><td class="mono"><b>${esc(v.tag || v.assignedTag)}</b></td><td>${esc(v.name)}</td><td>${esc(v.host || "")}</td><td>${esc(STATUS[v.status] || v.status)}</td></tr>`).join("")}</tbody></table></div>`;
+}
+function tagInfo(html){ modal(html,()=>true); const ok=$("#mOk"), no=$("#mNo"); if(ok) ok.textContent="Close"; if(no) no.style.display="none"; }
+window.tagRackOpen = key => {
+  if (TAG_CATS[key]) {
+    const [prefix, label, colKey] = TAG_CATS[key], col = getPassColorMeta(colKey);
+    const ready = getAvailableTags(key), held = tagHolders(prefix);
+    return tagInfo(`<h2 style="display:flex;align-items:center;gap:8px">${label} tags <span style="font-size:11px;font-weight:800;background:${col.primary};color:#fff;padding:2px 8px;border-radius:999px">${col.passName}</span></h2>
+      <p class="small" style="margin:0 0 10px">${ready.length} ready in the tray · ${held.length} in use</p>
+      <h3 style="font-size:14px;margin:8px 0 4px">Ready in the tray</h3>
+      <div style="max-height:180px;overflow:auto;margin-bottom:10px">${ready.length ? ready.map(x => tagChip(x, col)).join("") : '<p class="small" style="color:var(--muted)">None left. Restock returned tags or scan new ones.</p>'}</div>
+      <h3 style="font-size:14px;margin:8px 0 4px">In use now</h3>${holderTable(held)}`);
+  }
+  if (key === "active") {
+    const held = tagHolders("");
+    return tagInfo(`<h2>Tags circulating inside</h2><p class="small" style="margin:0 0 10px">${held.length} visitor${held.length === 1 ? "" : "s"} on site with a tag. Collect each tag at exit.</p>${holderTable(held)}`);
+  }
+  const rows = Object.entries(TAG_CATS).map(([k, [prefix, label, colKey]]) => {
+    const col = getPassColorMeta(colKey), ready = getAvailableTags(k).length, used = tagHolders(prefix).length;
+    return `<tr style="cursor:pointer" onclick="tagRackOpen('${k}')"><td><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${col.primary};margin-right:6px"></span>${label}</td><td>${ready}</td><td>${used}</td><td><b>${ready + used}</b></td></tr>`;
+  }).join("");
+  tagInfo(`<h2>Tag fleet</h2><p class="small" style="margin:0 0 10px">${gateTagStock.length} tags in stock across all colours. Tap a row to see its tags.</p>
+    <div class="tw"><table><thead><tr><th>Category</th><th>Ready</th><th>In use</th><th>Total</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+};
+
 function getPassColorMeta(colorKey){
   const meta = {
     blue: {
@@ -6345,9 +6381,18 @@ V.gate=()=>{
     </div>
 
     <!-- Live Physical Tray Rack Status Cards (5 Tiers) -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:16px">
+    <style>
+      .tag-rack{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:16px}
+      .tag-card{cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}
+      .tag-card:hover{transform:translateY(-2px);box-shadow:0 8px 18px -10px rgba(15,23,42,.35)}
+      .tag-card:focus-visible{outline:3px solid #38bdf8;outline-offset:2px}
+      .tag-card::after{content:"View ›";position:absolute;right:12px;bottom:10px;font-size:10.5px;font-weight:700;opacity:.55}
+      .tag-card:hover::after{opacity:1}
+      @media (max-width:520px){.tag-rack{grid-template-columns:1fr 1fr}.tag-card{padding:10px 11px!important}}
+    </style>
+    <div class="tag-rack">
       <!-- Blue: General Visitor -->
-      <div style="background:#f0f9ff;border:1.5px solid #bae6fd;padding:12px 14px;border-radius:10px">
+      <div class="tag-card" role="button" tabindex="0" aria-label="Show visitor tags" onclick="tagRackOpen('visitor')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tagRackOpen('visitor')}" style="background:#f0f9ff;border:1.5px solid #bae6fd;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;font-weight:700;color:#075985">Visitor [VISITOR]</span>
           <span style="font-size:9.5px;font-weight:800;background:#0284c7;color:#fff;padding:1px 6px;border-radius:4px">BLUE</span>
@@ -6359,7 +6404,7 @@ V.gate=()=>{
       </div>
 
       <!-- Grey: Courier & Delivery -->
-      <div style="background:#f8fafc;border:1.5px solid #cbd5e1;padding:12px 14px;border-radius:10px">
+      <div class="tag-card" role="button" tabindex="0" aria-label="Show delivery tags" onclick="tagRackOpen('delivery')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tagRackOpen('delivery')}" style="background:#f8fafc;border:1.5px solid #cbd5e1;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;font-weight:700;color:#334155">Courier [DELIVERY]</span>
           <span style="font-size:9.5px;font-weight:800;background:#475569;color:#fff;padding:1px 6px;border-radius:4px">GREY</span>
@@ -6371,7 +6416,7 @@ V.gate=()=>{
       </div>
 
       <!-- Amber: Contractor -->
-      <div style="background:#fffbeb;border:1.5px solid #fde68a;padding:12px 14px;border-radius:10px">
+      <div class="tag-card" role="button" tabindex="0" aria-label="Show contractor tags" onclick="tagRackOpen('contractor')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tagRackOpen('contractor')}" style="background:#fffbeb;border:1.5px solid #fde68a;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;font-weight:700;color:#92400e">Contractor [CONTRACTOR]</span>
           <span style="font-size:9.5px;font-weight:800;background:#d97706;color:#fff;padding:1px 6px;border-radius:4px">AMBER</span>
@@ -6383,7 +6428,7 @@ V.gate=()=>{
       </div>
 
       <!-- Green: Protocol -->
-      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;padding:12px 14px;border-radius:10px">
+      <div class="tag-card" role="button" tabindex="0" aria-label="Show protocol tags" onclick="tagRackOpen('protocol')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tagRackOpen('protocol')}" style="background:#f0fdf4;border:1.5px solid #bbf7d0;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;font-weight:700;color:#166534">Protocol [PROTOCOL]</span>
           <span style="font-size:9.5px;font-weight:800;background:#16a34a;color:#fff;padding:1px 6px;border-radius:4px">GREEN</span>
@@ -6395,7 +6440,7 @@ V.gate=()=>{
       </div>
 
       <!-- In Compound -->
-      <div style="background:#f8fafc;border:1.5px solid #cbd5e1;padding:12px 14px;border-radius:10px">
+      <div class="tag-card" role="button" tabindex="0" aria-label="Show active tags" onclick="tagRackOpen('active')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tagRackOpen('active')}" style="background:#f8fafc;border:1.5px solid #cbd5e1;padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;font-weight:700;color:var(--navy)">Circulating</span>
           <span style="font-size:9.5px;font-weight:800;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">ACTIVE</span>
@@ -6407,7 +6452,7 @@ V.gate=()=>{
       </div>
 
       <!-- Fleet -->
-      <div style="background:var(--surface2);border:1.5px solid var(--line);padding:12px 14px;border-radius:10px">
+      <div class="tag-card" role="button" tabindex="0" aria-label="Show all tags" onclick="tagRackOpen('all')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();tagRackOpen('all')}" style="background:var(--surface2);border:1.5px solid var(--line);padding:12px 14px;border-radius:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <span style="font-size:12px;font-weight:700;color:var(--muted)">Total Fleet</span>
           <span style="font-size:9.5px;font-weight:800;background:var(--navy);color:#fff;padding:1px 6px;border-radius:4px">TOTAL</span>
