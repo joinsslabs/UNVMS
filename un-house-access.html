@@ -1263,6 +1263,20 @@ function connectFirebase(){
   db.collection("config").doc("settings").onSnapshot(s=>{applySettings(s.data());if(me&&me.role!=="pending")render();if(QS.has("rules"))showRules()},()=>{});
   if(QS.has("rules")){ document.body.classList.add("guest-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; setSync(true,"Visitor rules"); return showRules(); }
   const passCode=QS.get("pass");
+  // Demo invite and pass links carry their data in the URL and are not real records.
+  // On the live system they show a notice instead of a working form or pass.
+  if(passCode==="demo"||QS.get("invite")==="demo"){
+    document.body.classList.add("guest-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none";
+    setSync(true,"Demonstration link");
+    const isPass=passCode==="demo";
+    $("#main").innerHTML=`<div class="panel" style="max-width:480px;width:100%;margin:24px auto;text-align:center;padding:28px 24px">
+      <img src="un-emblem.svg" alt="United Nations" style="height:48px;margin:0 auto 14px;display:block">
+      <h1 style="font-size:20px;margin:0 0 8px">This is a demonstration link</h1>
+      <p class="sub" style="margin:0 0 16px;line-height:1.55">It was created in the system's sample-data demo and can't be used for a real visit${isPass?" or to enter UN House":""}. ${isPass?"Real visitor passes are issued after Security clears your visit.":"Real invitations come from your UN host and look like <span class=\"mono\">unhousengvms.com/app?invite=…</span> followed by a long code."}</p>
+      <div class="acts" style="justify-content:center;gap:8px;flex-wrap:wrap"><a class="btn pri" href="/">UN House visitor information</a><a class="btn" href="/app?demo">Explore the demo</a></div>
+    </div>`;
+    return;
+  }
   if(passCode==="demo"){ try{const p=JSON.parse(decodeURIComponent(escape(atob(QS.get("d")||""))));db={collection:()=>({doc:()=>({onSnapshot:f=>{f({exists:true,id:"demo",data:()=>p});return()=>{}}})})}}catch(e){} }
   if(passCode){ document.body.classList.add("guest-mode","pass-mode"); $("#demoSel").style.display="none"; $("#who").hidden=true; $("#nav").innerHTML=""; $("#nav").style.display="none"; setSync(true,"Visitor pass"); return showPass(passCode); }
   const inviteTok=new URLSearchParams(location.search).get("invite");
