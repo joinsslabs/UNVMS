@@ -191,7 +191,11 @@ service cloud.firestore {
           && nv().status == 'submitted'
           && inv().expires > request.time.toMillis()
           && nv().diff(inv()).affectedKeys().hasOnly(['status', 'guest', 'submittedAt'])
-          && nv().guest.keys().hasOnly(['name', 'org', 'phone', 'vehicle', 'email', 'expected', 'purpose', 'agreedAt', 'agreement', 'lang'])
+          && nv().guest.keys().hasOnly(['name', 'org', 'phone', 'vehicle', 'email', 'expected', 'purpose', 'agreedAt', 'agreement', 'lang', 'lockProof'])
+          // A locked invite only accepts the visitor whose email or phone the host entered (stored as a SHA-256 hash).
+          && (!('lockHash' in inv())
+              || (nv().guest.get('lockProof', '') is string && str(nv().guest.lockProof, 160)
+                  && hashing.sha256(nv().guest.lockProof).toHexString().lower() == inv().lockHash))
           && (!('email' in nv().guest) || str(nv().guest.email, 160))
           && (!('vehicle' in nv().guest) || str(nv().guest.vehicle, 60))
           && str(nv().guest.name, 120) && nv().guest.name.size() > 1

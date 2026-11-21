@@ -1316,6 +1316,10 @@ const UN_EMAIL_RE=/^[^@\s]+@([a-z0-9-]+\.)*(undp\.org|un\.org|who\.int|unicef\.o
 // Non-UN addresses allowed in for testing. Must match unEmail() in firestore.rules.
 const TEST_EMAILS=["skillschule@gmail.com"];
 const isAllowedEmail=em=>!!em&&(UN_EMAIL_RE.test(em.trim())||TEST_EMAILS.includes(em.trim().toLowerCase()));
+// Invite lock: an invite can be tied to the visitor's email or phone. Only a SHA-256 hash is stored.
+// Emails: trimmed, lower case. Phones: digits only, last 10 (so +234 803…, 0803… and 803… all match).
+const lockNorm=v=>{v=String(v||"").trim().toLowerCase(); if(!v) return ""; if(v.includes("@")) return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)?v:""; const d=v.replace(/\D/g,""); return d.length>=7?d.slice(-10):"";};
+async function sha256Hex(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
 async function ensureStaff(u){
   const ref=db.collection("staff").doc(u.uid);
   let s=await ref.get();
@@ -2362,6 +2366,11 @@ function inviteView(){
               <input id="inv_host_ext" placeholder="e.g. 2101">
               <div class="hinv-hint">Used by reception if your phone is unreachable.</div>
             </div>
+            <div class="f full">
+              <label for="inv_lock">Lock link to visitor's email or phone <span style="font-weight:500;color:var(--muted)">(optional)</span></label>
+              <input id="inv_lock" placeholder="e.g. guest@example.com or +234 803 555 0192" autocomplete="off">
+              <div class="hinv-hint">🔒 Only someone who enters this exact email or phone can open the form. It isn't shown on the link.</div>
+            </div>
           </div>
         </div>
         <aside class="hinv-prev" aria-label="What your visitor will see">
@@ -2414,6 +2423,9 @@ async function createInvite(){
   const hostPhone=($("#inv_host_phone")?$("#inv_host_phone").value.trim():"")||getHostPhone(host, agency);
   const hostExt=($("#inv_host_ext")?$("#inv_host_ext").value.trim():"")||getHostExt(host, agency);
   const room=$("#inv_room")?$("#inv_room").value.trim():"";
+  const lockRaw=$("#inv_lock")?$("#inv_lock").value.trim():"";
+  const lockVal=lockNorm(lockRaw);
+  if(lockRaw && !lockVal) return toast("Enter a valid email address or phone number to lock the link, or leave it empty.");
   const tok=newToken();
   const invDoc={
     id:tok,
@@ -2428,13 +2440,18 @@ async function createInvite(){
     createdAt:now(),
     expires:now()+3*864e5
   };
+  if(lockVal){ invDoc.lockHash=await sha256Hex(lockVal); invDoc.lockKind=lockVal.includes("@")?"email":"phone"; }
+  if(db && fb && !fb.demo){
+    try{ await db.collection("invites").doc(tok).set(invDoc); }
+    catch(e){ return toast(e.code==="permission-denied"?"Your account isn't allowed to create invitations. The link was not created.":"Could not create the invitation: "+(e.message||e.code)); }
+  }
   invites.unshift(invDoc);
   try{
     let stored=JSON.parse(localStorage.getItem("unhDemoInvites")||"[]");
     stored.unshift(invDoc);
     localStorage.setItem("unhDemoInvites",JSON.stringify(stored));
   }catch(e){}
-  if(db){
+  if(db && (!fb || fb.demo)){
     try{await db.collection("invites").doc(tok).set(invDoc);}catch(e){}
   }
   const url=inviteUrl(tok);
@@ -4435,12 +4452,32 @@ async function showInvite(tok){
   const main=$("#main"), box=(h,wide)=>{main.innerHTML=`${langSwitch()}<div class="panel${wide?" inv-card":""}" style="max-width:${wide?600:480}px;width:100%;margin:12px auto">${h}</div>`;};
   box(`<h1>${tx().opening}</h1>`);
   let d; for(let n=0;n<3&&!d;n++){try{d=await db.collection("invites").doc(tok).get()}catch(e){await new Promise(r=>setTimeout(r,1200))}}
+  let lockProof="", lockShown="";
   const draw=()=>{const T=tx();
     if(!d) return box(`<h1>${T.cantOpen}</h1><p class="sub">${T.cantOpenSub}</p>`);
     if(!d.exists) return box(`<h1>${T.linkNF}</h1><p class="sub">${T.linkNFSub}</p>`);
     const i=d.data();
     if(i.status==="submitted"||i.status==="used") return box(`<h1>${T.received}</h1><p class="sub">${T.receivedSub}</p>`);
     if(i.status!=="open"||i.expires<now()) return box(`<h1>${T.linkExp}</h1><p class="sub">${T.linkExpSub(esc(i.host))}</p>`);
+    // Locked invite: the visitor confirms the email or phone the host entered before the form opens.
+    if(i.lockHash && !lockProof){
+      const fr=LANG==="fr", isMail=i.lockKind==="email";
+      box(`<div style="text-align:center;padding:6px 4px">
+        <div style="font-size:34px;line-height:1;margin-bottom:10px">🔒</div>
+        <h1 style="font-size:20px;margin:0 0 6px">${fr?"Confirmez votre identité":"Confirm it's you"}</h1>
+        <p class="sub" style="margin:0 0 16px">${fr?`${esc(i.host)} a réservé cette invitation à une personne précise. Saisissez ${isMail?"l'adresse e-mail":"le numéro de téléphone"} indiqué par votre hôte.`:`${esc(i.host)} reserved this invitation for a specific person. Enter the ${isMail?"email address":"phone number"} your host has for you.`}</p>
+        <form id="lk_f" style="display:flex;flex-direction:column;gap:10px;max-width:340px;margin:0 auto;text-align:left">
+          <div class="f"><label for="lk_v">${isMail?(fr?"E-mail":"Email"):(fr?"Téléphone":"Phone")}</label><input id="lk_v" ${isMail?'type="email" autocomplete="email"':'type="tel" inputmode="tel" autocomplete="tel"'} required></div>
+          <div id="lk_err" class="small" style="color:var(--bad);font-weight:600"></div>
+          <button class="btn pri" type="submit" style="justify-content:center">${fr?"Continuer":"Continue"}</button>
+        </form></div>`);
+      $("#lk_f").onsubmit=async e=>{e.preventDefault();
+        const v=lockNorm($("#lk_v").value);
+        if(v && await sha256Hex(v)===i.lockHash){ lockProof=v; lockShown=$("#lk_v").value.trim(); draw(); }
+        else $("#lk_err").textContent=fr?"Cela ne correspond pas. Vérifiez auprès de votre hôte.":"That doesn't match. Please check with your host.";
+      };
+      return;
+    }
 
     // Clean up host display if generated with generic Station operator placeholder
     let hostName = (i.host||"UN Staff Host").trim();
@@ -4518,10 +4555,12 @@ async function showInvite(tok){
       </form>
     </div>`,true);
     wireLang(draw);
+    if(lockProof){ const tgt=lockProof.includes("@")?$("#g_email"):$("#g_phone"); if(tgt&&!tgt.value){ tgt.value=lockShown||lockProof; } }
     $("#gf").onsubmit=async e=>{e.preventDefault(); if(!$("#g_agree").checked){$("#g_err").textContent=T.mustAgree;return}
       const expT=new Date($("#g_when").value).getTime();
       if(!expT||!inWorkHours(expT)){$("#g_err").textContent=LANG==="fr"?"Veuillez choisir une heure pendant les heures ouvrables (08h00 à 17h00).":"Please choose an arrival time within working hours (08:00 to 17:00).";return}
       const guest={name:$("#g_name").value.trim(),org:$("#g_org").value.trim(),phone:$("#g_phone").value.trim(),vehicle:"",email:$("#g_email").value.trim().toLowerCase(),expected:$("#g_when").value,purpose:$("#g_purpose").value.trim(),agreedAt:now(),agreement:AGREEMENT.version,lang:LANG};
+      if(lockProof) guest.lockProof=lockProof;
       try{
         const invId = (i && i.id) || (tok !== "demo" ? tok : "") || ("inv-" + now());
         const patchData = {
