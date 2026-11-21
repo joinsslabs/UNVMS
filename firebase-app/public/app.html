@@ -1097,7 +1097,7 @@ const ROLE_VIEWS={
   docs:["tagging","contractors","register","history"],
   reception:["reception","kiosk","register","history"],
   vip:["vip","register","history"],
-  host:["register","contractors","dashboard","history"]
+  host:["register","dashboard","history"]
 };
 const ACT_ROLES={
   reply:["admin","sec_admin","sec_deputy"],
@@ -7457,7 +7457,7 @@ V.register=()=>{
 // appears at Station 1 as an expected contractor for exactly those dates.
 let conCompanies = [], conRequests = [], conTab = "overview", conLoaded = false;
 const CON_DECIDERS = ["admin", "sec_admin", "sec_deputy"];
-const CON_EDITORS = ["admin", "sec_admin", "sec_deputy", "host"];
+const CON_EDITORS = ["admin", "sec_admin", "sec_deputy"];
 const conLive = () => !!(fb && !fb.demo && db);
 const conCanEdit = () => CON_EDITORS.includes(myRole());
 const conCanDecide = () => CON_DECIDERS.includes(myRole());

@@ -246,7 +246,7 @@ service cloud.firestore {
     match /contractors/{id} {
       function cd() { return request.resource.data; }
       allow read: if isStaff();
-      allow create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'host'])
+      allow create, update: if hasRole(['admin', 'sec_admin', 'sec_deputy'])
         && cd().name is string && cd().name.size() > 1 && cd().name.size() <= 120
         && cd().workers is list && cd().workers.size() <= 200
         && cd().updatedByUid == request.auth.uid;
@@ -259,7 +259,7 @@ service cloud.firestore {
       function cur() { return resource.data; }
       function changes(keys) { return rq().diff(cur()).affectedKeys().hasOnly(keys); }
       allow read: if isStaff();
-      allow create: if hasRole(['admin', 'sec_admin', 'sec_deputy', 'host'])
+      allow create: if hasRole(['admin', 'sec_admin', 'sec_deputy'])
         && rq().requestedByUid == request.auth.uid && rq().status == 'pending'
         && rq().workers is list && rq().workers.size() >= 1 && rq().workers.size() <= 50
         && rq().from is int && rq().to is int && rq().to >= rq().from
