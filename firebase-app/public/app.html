@@ -6149,6 +6149,34 @@ function filterQ(list){const q=(render.q||"").toLowerCase().trim(); if(!q) retur
 function head(t,s){return `<div class="page-head" style="margin-bottom:6px"><h1 style="font-size:22px;font-weight:700;color:var(--navy);margin:0">${t}</h1><p class="sub" style="font-size:13.5px;color:var(--muted);margin:3px 0 0;line-height:1.45">${s}</p></div>`}
 
 const V={};
+/* ---------- Dashboard: lists behind each number ---------- */
+window.kpiOpen = key => {
+  const inside = visitors.filter(v => v.status === "in" || (v.type === "vip" && v.status === "arrived"));
+  const exp = visitors.filter(v => ["approved"].includes(v.status) && isToday(v.expected));
+  const wait = visitors.filter(v => v.status === "tagged" || (v.type === "vip" && (v.status === "arrived" || (v.status === "in" && !v.vipReceived))));
+  const pend = visitors.filter(v => v.status === "pending");
+  const exc = visitors.filter(v => overstay(v) || contractorExpired(v));
+  const tagsOut = visitors.filter(v => v.tag && ["tagged", "in"].includes(v.status));
+  const L = {
+    expected: ["Expected today", exp, "Cleared visitors due today who haven't arrived yet.", v => fmtT(v.expected)],
+    inside: ["On premises", inside, "Everyone currently inside the compound.", v => v.inAt ? "In since " + fmtT(v.inAt) : ""],
+    waiting: ["Waiting for host", wait, "Tagged visitors waiting at reception for their host.", v => v.arrivedAt ? "Arrived " + fmtT(v.arrivedAt) : ""],
+    pending: ["Pending clearances", pend, "Requests waiting for FSM / UNDSS clearance.", v => fmtD(v.expected)],
+    tags: ["Tags issued", tagsOut, "Visitors holding a tag. Collect each one at exit.", v => v.tag || ""],
+    exceptions: ["Exceptions", exc, "Overstays and contractors whose access has ended.", v => overstay(v) ? "Overstay" : "Access ended " + fmtD(v.accessTo)],
+  }[key];
+  if (!L) return;
+  const [title, list, sub, extra] = L;
+  const goto = { pending: "clearance", tags: "gate", waiting: "reception", expected: "gate" }[key];
+  modal(`<h2>${title} <span class="mono" style="font-size:15px;color:var(--muted)">${list.length}</span></h2>
+    <p class="small" style="margin:0 0 10px">${sub}${list.length ? " Tap a name for details." : ""}</p>
+    ${list.length ? `<div class="tw" style="max-height:340px;overflow:auto"><table><thead><tr><th>Name</th><th>Organisation</th><th>Host</th><th></th></tr></thead><tbody>${list.map(v => `<tr style="cursor:pointer" onclick="kpiDetail('${esc(v.id)}')"><td><b>${esc(v.name)}</b><div class="small">${esc(STATUS[v.status] || v.status)}</div></td><td>${esc(v.org || "—")}</td><td>${esc(v.host || "")}</td><td class="small" style="white-space:nowrap">${esc(extra(v))}</td></tr>`).join("")}</tbody></table></div>` : '<p class="small" style="color:var(--muted);padding:12px 0">Nothing here right now.</p>'}`, () => { if (goto && ROLE_VIEWS[myRole()]?.includes(goto)) goView(goto); return true; });
+  const ok = $("#mOk"), no = $("#mNo");
+  if (goto && ROLE_VIEWS[myRole()]?.includes(goto)) { if (ok) ok.textContent = "Open " + ({ clearance: "UNDSS Clearance", gate: "Station 1 · Gate", reception: "Station 3 · Reception" })[goto]; if (no) no.textContent = "Close"; }
+  else { if (ok) ok.textContent = "Close"; if (no) no.style.display = "none"; }
+};
+window.kpiDetail = id => { const v = visitors.find(x => x.id === id); if (v) doAct("detail", v); };
+
 V.dashboard=()=>{
   const inside=visitors.filter(v=>v.status==="in"||(v.type==="vip"&&v.status==="arrived")), exp=visitors.filter(v=>["approved"].includes(v.status)&&isToday(v.expected));
   const wait=visitors.filter(v=>v.status==="tagged"||(v.type==="vip"&&(v.status==="arrived"||(v.status==="in"&&!v.vipReceived)))), pend=visitors.filter(v=>v.status==="pending");
@@ -6159,13 +6187,14 @@ V.dashboard=()=>{
   const al=alerts();
   return head("Live overview",`Everything happening across the four stations right now. Visiting hours: 08:00 – 17:00. Updated ${fmtT(now())}.`)+
   (visitors.some(v=>v.example)?`<div class="banner"><span>These are example records for testing.</span><div class="acts"><button class="btn" id="loadEx">Reset sample records</button><button class="btn" id="clearEx">Remove example records</button></div></div>`:!DEMO?`<div class="note" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><span>${visitors.length?"Showing live records only.":"No visitors recorded yet. Register the first one under <b>Register visitors</b>, or load sample records to try the workflow."}</span><div class="acts"><button class="btn pri" id="loadEx">Load sample records</button><a class="btn" href="?demo">Guided demo</a></div></div>`:"")+
-  `<div class="kpis">
-    <div class="kpi"><div class="n">${exp.length}</div><div class="l">Expected today</div></div>
-    <div class="kpi ok"><div class="n">${inside.length}</div><div class="l">On premises</div></div>
-    <div class="kpi"><div class="n">${wait.length}</div><div class="l">Waiting for host</div></div>
-    <div class="kpi ${pend.length?"alert":""}"><div class="n">${pend.length}</div><div class="l">Pending clearances</div></div>
-    <div class="kpi"><div class="n">${tagsOut.length}</div><div class="l">Tags issued</div></div>
-    <div class="kpi ${exc.length?"alert":""}"><div class="n">${exc.length}</div><div class="l">Exceptions</div></div>
+  `<style>.kpi-click{cursor:pointer;transition:transform .15s,box-shadow .15s;position:relative}.kpi-click:hover{transform:translateY(-2px);box-shadow:0 8px 18px -10px rgba(15,23,42,.35)}.kpi-click:focus-visible{outline:3px solid #38bdf8;outline-offset:2px}.kpi-click::after{content:"View ›";position:absolute;right:10px;bottom:8px;font-size:10.5px;font-weight:700;opacity:.5}.kpi-click:hover::after{opacity:1}</style>
+  <div class="kpis">
+    <div class="kpi kpi-click" role="button" tabindex="0" aria-label="Show list" onclick="kpiOpen('expected')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();kpiOpen('expected')}"><div class="n">${exp.length}</div><div class="l">Expected today</div></div>
+    <div class="kpi kpi-click ok" role="button" tabindex="0" aria-label="Show list" onclick="kpiOpen('inside')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();kpiOpen('inside')}"><div class="n">${inside.length}</div><div class="l">On premises</div></div>
+    <div class="kpi kpi-click" role="button" tabindex="0" aria-label="Show list" onclick="kpiOpen('waiting')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();kpiOpen('waiting')}"><div class="n">${wait.length}</div><div class="l">Waiting for host</div></div>
+    <div class="kpi kpi-click ${pend.length?"alert":""}" role="button" tabindex="0" aria-label="Show list" onclick="kpiOpen('pending')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();kpiOpen('pending')}"><div class="kpi ${pend.length?"alert":""}"><div class="n">${pend.length}</div><div class="l">Pending clearances</div></div>
+    <div class="kpi kpi-click" role="button" tabindex="0" aria-label="Show list" onclick="kpiOpen('tags')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();kpiOpen('tags')}"><div class="n">${tagsOut.length}</div><div class="l">Tags issued</div></div>
+    <div class="kpi kpi-click ${exc.length?"alert":""}" role="button" tabindex="0" aria-label="Show list" onclick="kpiOpen('exceptions')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();kpiOpen('exceptions')}"><div class="kpi ${exc.length?"alert":""}"><div class="n">${exc.length}</div><div class="l">Exceptions</div></div>
   </div>
   <div class="grid2">
     <div class="panel"><h2>Occupancy by building</h2>
